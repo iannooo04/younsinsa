@@ -1,0 +1,27 @@
+{
+  "topBar": {
+    "brand": "YOUNSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "login": "Log In",
+    "join": "Sign Up",
+    "mypage": "My Page",
+    "logout": "Log Out",
+    "userPrefix": "Member",
+    "userSuffix": ""
+  },
+  "searchPlaceholder": "2025 Last Season Off Sale!",
+  "nav": {
+    "ranking": "Ranking",
+    "sale": "Sale",
+    "brand": "Brand",
+    "seasonOff": "Season Off",
+    "outer": "Outer",
+    "top": "Top",
+    "bottom": "Bottom",
+    "shoes": "Shoes",
+    "sport": "Sport",
+    "beauty": "Beauty"
+  }
+}

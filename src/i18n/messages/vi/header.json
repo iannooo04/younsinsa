@@ -1,0 +1,27 @@
+{
+  "topBar": {
+    "brand": "YOUNSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "login": "Đăng nhập",
+    "join": "Đăng ký",
+    "mypage": "Trang cá nhân",
+    "logout": "Đăng xuất",
+    "userPrefix": "Thành viên",
+    "userSuffix": "ơi"
+  },
+  "searchPlaceholder": "Sale cuối mùa 2025!",
+  "nav": {
+    "ranking": "BXH",
+    "sale": "Sale",
+    "brand": "Thương hiệu",
+    "seasonOff": "Xả kho",
+    "outer": "Áo khoác",
+    "top": "Áo",
+    "bottom": "Quần",
+    "shoes": "Giày",
+    "sport": "Thể thao",
+    "beauty": "Làm đẹp"
+  }
+}

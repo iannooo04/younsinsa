@@ -1,0 +1,27 @@
+{
+  "topBar": {
+    "brand": "YOUNSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "login": "로그인",
+    "join": "회원가입",
+    "mypage": "마이페이지",
+    "logout": "로그아웃",
+    "userPrefix": "회원",
+    "userSuffix": "님"
+  },
+  "searchPlaceholder": "2025년 마지막 시즌오프 세일!",
+  "nav": {
+    "ranking": "랭킹",
+    "sale": "세일",
+    "brand": "브랜드",
+    "seasonOff": "시즌오프",
+    "outer": "아우터",
+    "top": "상의",
+    "bottom": "하의",
+    "shoes": "신발",
+    "sport": "스포츠",
+    "beauty": "뷰티"
+  }
+}

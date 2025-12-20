@@ -1,0 +1,27 @@
+{
+  "topBar": {
+    "brand": "YOUNSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "login": "ログイン",
+    "join": "会員登録",
+    "mypage": "マイページ",
+    "logout": "ログアウト",
+    "userPrefix": "会員",
+    "userSuffix": "様"
+  },
+  "searchPlaceholder": "2025年 最後のシーズンオフセール！",
+  "nav": {
+    "ranking": "ランキング",
+    "sale": "セール",
+    "brand": "ブランド",
+    "seasonOff": "シーズンオフ",
+    "outer": "アウター",
+    "top": "トップス",
+    "bottom": "ボトムス",
+    "shoes": "シューズ",
+    "sport": "スポーツ",
+    "beauty": "ビューティー"
+  }
+}

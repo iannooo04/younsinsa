@@ -1,0 +1,27 @@
+{
+  "topBar": {
+    "brand": "YOUNSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "login": "登录",
+    "join": "注册",
+    "mypage": "我的页面",
+    "logout": "退出登录",
+    "userPrefix": "会员",
+    "userSuffix": "您好"
+  },
+  "searchPlaceholder": "2025年 最后一次换季大促！",
+  "nav": {
+    "ranking": "排行榜",
+    "sale": "促销",
+    "brand": "品牌",
+    "seasonOff": "季末清仓",
+    "outer": "外套",
+    "top": "上装",
+    "bottom": "下装",
+    "shoes": "鞋类",
+    "sport": "运动",
+    "beauty": "美妆"
+  }
+}
