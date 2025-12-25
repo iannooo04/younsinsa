@@ -117,6 +117,9 @@ const PUBLIC_PATHS: RegExp[] = [
   /^\/notice(?:\/.*)?$/,
   /^\/popup(?:\/.*)?$/,
 
+  /^\/brand(?:\/.*)?$/,
+  /^\/category(?:\/.*)?$/,
+
   // ✅ 로그인 없이 열려야 하는 페이지
   /^\/main\/recommend(?:\/.*)?$/,
 
