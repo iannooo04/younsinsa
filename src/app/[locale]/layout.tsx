@@ -1,10 +1,8 @@
 // src/app/[locale]/layout.tsx
-
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
-
 import { locales, type AppLocale } from "@/i18n/routing";
 
 export const metadata = {
