@@ -11,17 +11,19 @@
     "userPrefix": "会員",
     "userSuffix": "様"
   },
-  "searchPlaceholder": "2025年 最後のシーズンオフセール！",
+  "searchPlaceholder": "商品番号 / 商品ID",
   "nav": {
-    "ranking": "ランキング",
-    "sale": "セール",
-    "brand": "ブランド",
-    "seasonOff": "シーズンオフ",
-    "outer": "アウター",
-    "top": "トップス",
-    "bottom": "ボトムス",
+    "bestseller": "トップセール",
+    "women": "レディース",
     "shoes": "シューズ",
-    "sport": "スポーツ",
-    "beauty": "ビューティー"
+    "swimwear": "水着",
+    "yoga": "ヨガウェア",
+    "accessories": "アクセサリー",
+    "pants": "バッグ",
+    "spot": "即納商品",
+    "special": "特価セール",
+    "new": "新商品",
+    "activity": "イベント",
+    "agent": "購買代行"
   }
 }

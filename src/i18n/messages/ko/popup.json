@@ -1,0 +1,132 @@
+{
+  "tabs": {
+    "category": "카테고리",
+    "brand": "브랜드",
+    "service": "서비스"
+  },
+  "filters": {
+    "all": "전체",
+    "men": "남성",
+    "women": "여성"
+  },
+  "headings": {
+    "viewAll": "전체 보기",
+    "womenClothing": "여성 의류",
+    "plusSize": "플러스 사이즈 여성 의류",
+    "golf": "골프",
+    "shoes": "신발",
+    "top": "상의",
+    "outer": "아우터",
+    "bottom": "하의",
+    "bag": "가방",
+    "accessories": "패션소품",
+    "underwear": "속옷/홈웨어",
+    "sports": "스포츠/레저",
+    "digital": "디지털/라이프"
+  },
+  "categories": {
+    "golf": "골프",
+    "shoes": "신발",
+    "top": "상의",
+    "outer": "아우터",
+    "bottom": "하의",
+    "bag": "가방",
+    "accessories": "패션소품",
+    "underwear": "속옷/홈웨어",
+    "sports": "스포츠/레저",
+    "digital": "디지털/라이프"
+  },
+  "golfSub": {
+    "driver": "드라이버",
+    "wood": "우드",
+    "iron": "아이언",
+    "putter": "퍼터",
+    "wedge": "웨지",
+    "ball": "골프공",
+    "bag": "캐디백/가방",
+    "shoes": "골프화",
+    "men_wear": "남성 골프웨어",
+    "women_wear": "여성 골프웨어",
+    "cap": "골프모자",
+    "glove": "골프장갑",
+    "distance": "거리측정기",
+    "accessory": "골프용품",
+    "practice": "연습용품"
+  },
+  "shoesSub": {
+    "sneakers": "스니커즈",
+    "loafers": "로퍼",
+    "boots": "부츠/워커",
+    "sandals": "샌들",
+    "slippers": "슬리퍼/뮬",
+    "running": "러닝화/운동화",
+    "heels": "구두/힐",
+    "flat": "플랫슈즈"
+  },
+  "topSub": {
+    "tshirt": "티셔츠",
+    "shirt": "셔츠/남방",
+    "hoodie": "후드",
+    "sweatshirt": "맨투맨",
+    "knit": "니트/스웨터",
+    "sleeveless": "민소매"
+  },
+  "outerSub": {
+    "jacket": "재킷",
+    "coat": "코트",
+    "padding": "패딩/다운",
+    "cardigan": "가디건",
+    "vest": "조끼/베스트",
+    "blazer": "블레이저"
+  },
+  "bottomSub": {
+    "jeans": "데님 팬츠",
+    "slacks": "슬랙스",
+    "shorts": "숏 팬츠",
+    "skirt": "스커트",
+    "leggings": "레깅스",
+    "sweatpants": "트레이닝/조거"
+  },
+  "bagSub": {
+    "backpack": "백팩",
+    "tote": "토트백",
+    "shoulder": "숄더백",
+    "crossbody": "크로스백",
+    "clutch": "클러치",
+    "eco": "에코백"
+  },
+  "accessoriesSub": {
+    "hat": "모자",
+    "jewelry": "주얼리",
+    "scarf": "머플러/스카프",
+    "belt": "벨트",
+    "sunglasses": "안경/선글라스",
+    "watch": "시계",
+    "socks": "양말/스타킹"
+  },
+  "underwearSub": {
+    "bra": "브라",
+    "panties": "팬티",
+    "boxers": "드로즈/트렁크",
+    "pajamas": "파자마/홈웨어",
+    "robe": "로브/가운",
+    "thermal": "발열내의"
+  },
+  "sportsSub": {
+    "gym": "헬스/피트니스",
+    "yoga": "요가/필라테스",
+    "swimwear": "수영복/비치웨어",
+    "camping": "캠핑용품",
+    "fishing": "낚시",
+    "bike": "자전거"
+  },
+  "digitalSub": {
+    "case": "폰케이스",
+    "earphone": "음향가전",
+    "charger": "충전기/케이블",
+    "laptop_bag": "노트북/태블릿가방",
+    "speaker": "스피커",
+    "camera": "카메라"
+  },
+  "servicePlaceholder": "준비 중인 서비스입니다."
+}

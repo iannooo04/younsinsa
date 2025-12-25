@@ -1,0 +1,114 @@
+{
+  "tabs": {
+    "musinsa": "MUSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "boutique": "BOUTIQUE",
+    "shoes": "SHOES",
+    "kids": "kids",
+    "used": "USED"
+  },
+  "notice": {
+    "title": "Thông báo",
+    "viewAll": "Xem tất cả",
+    "items": {
+      "0": "Thay đổi quy trình xử lý sản phẩm MUSINSA USED không thể bán",
+      "1": "[Musinsa Store/29CM] Thông báo sửa đổi Điều khoản dịch vụ tích hợp",
+      "2": "Thông báo sửa đổi Chính sách bảo mật (Hiệu lực từ 15/12)"
+    },
+    "dates": {
+      "0": "12.12.2025",
+      "1": "12.12.2025",
+      "2": "10.12.2025"
+    }
+  },
+  "benefits": {
+    "title": "Ưu đãi thanh toán",
+    "viewAll": "Xem tất cả",
+    "items": {
+      "0": "Giảm 5.000 KRW khi thanh toán KakaoPay x Shinhan Card trên 130.000 KRW",
+      "1": "Giảm 5.000 KRW khi thanh toán Musinsa Pay x Samsung Card trên 150.000 KRW",
+      "2": "Giảm 4.000 KRW khi thanh toán KakaoPay x Pay Money trên 100.000 KRW"
+    },
+    "badges": {
+      "0": "PAY",
+      "1": "CARD",
+      "2": "PAY"
+    }
+  },
+  "sitemap": {
+    "about": {
+      "title": "Về Musinsa",
+      "items": {
+        "0": "Giới thiệu công ty",
+        "1": "Giới thiệu kinh doanh",
+        "2": "Phát triển bền vững",
+        "3": "Tin tức",
+        "4": "Tuyển dụng"
+      }
+    },
+    "store": {
+      "title": "Cửa hàng Offline",
+      "items": {
+        "0": "Musinsa Store",
+        "1": "Musinsa Standard",
+        "2": "29CM",
+        "3": "Musinsa Empty",
+        "4": "Musinsa Square",
+        "5": "Musinsa Beauty",
+        "6": "Musinsa Terrace",
+        "7": "Asnisum"
+      }
+    },
+    "business": {
+      "title": "Kinh doanh",
+      "items": {
+        "0": "29CM",
+        "1": "Soldout",
+        "2": "Empty",
+        "3": "Musinsa Partners",
+        "4": "Musinsa Studio",
+        "5": "Musinsa Trading",
+        "6": "Musinsa Logistics"
+      }
+    },
+    "partner": {
+      "title": "Hỗ trợ đối tác",
+      "items": {
+        "0": "Hỏi về mở gian hàng",
+        "1": "Quảng cáo/Hợp tác",
+        "2": "Hỏi về tài trợ",
+        "3": "Mua chung/Mua số lượng lớn"
+      }
+    },
+    "support": {
+      "title": "Hỗ trợ khách hàng",
+      "items": {
+        "0": "Tư vấn 1:1",
+        "1": "Câu hỏi thường gặp (FAQ)",
+        "2": "Trung tâm giao dịch an toàn"
+      },
+      "phone": "Trung tâm CSKH 1544-7199",
+      "time": "Giờ làm việc: Ngày thường 09:00 - 18:00 (Nghỉ trưa 12:00 - 13:00)",
+      "email": "cs@musinsa.com"
+    }
+  },
+  "legal": {
+    "copyright": "© MUSINSA ALL RIGHTS RESERVED",
+    "companyInfo": "Công ty TNHH Musinsa | Đại diện: Cho Man-ho, Park Jun-mo | Địa chỉ: Tầng 1, 11 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Musinsa Campus N1)",
+    "bizInfo": "ĐKKD: 211-88-79575 | Giấy phép TMĐT: 2022-Seoul Seongdong-01952 | Đơn vị lưu trữ: Công ty TNHH Musinsa",
+    "guarantee": "Chúng tôi đảm bảo giao dịch an toàn thông qua hợp đồng bảo lãnh thanh toán nợ với Woori Bank cho các khoản thanh toán bằng tiền mặt.",
+    "guaranteeCheck": "Kiểm tra đăng ký dịch vụ",
+    "disclaimer": "Đối với một số sản phẩm, Musinsa chỉ đóng vai trò trung gian và không phải là bên bán hàng trực tiếp. Do đó, trách nhiệm về sản phẩm, thông tin sản phẩm và giao dịch có thể bị giới hạn. Vui lòng kiểm tra chi tiết trên trang sản phẩm.",
+    "links": {
+      "0": "Chính sách bảo mật",
+      "1": "Điều khoản sử dụng",
+      "2": "Đơn vị ủy thác thanh toán",
+      "3": "Tiêu chuẩn giải quyết tranh chấp",
+      "4": "Chính sách quản lý thiết bị xử lý video"
+    },
+    "ismsTitle": "Chứng nhận quốc tế về Quản lý Đạo đức & Tuân thủ và Hệ thống Quản lý An toàn & Sức khỏe",
+    "ismsDesc": "Chứng nhận Hệ thống Quản lý An toàn Thông tin (ISMS)"
+  }
+}

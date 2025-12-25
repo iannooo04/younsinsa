@@ -44,12 +44,18 @@ const PUBLIC_PATHS: RegExp[] = [
   /^\/$/,
   /^\/home(?:\/.*)?$/,
   /^\/header(?:\/.*)?$/,
+  /^\/footer(?:\/.*)?$/,
+  /^\/notice(?:\/.*)?$/,
+  /^\/popup(?:\/.*)?$/,
 
   /^\/auth\/login(?:\/.*)?$/,
   /^\/auth\/signup(?:\/.*)?$/,
 
   /^\/api\/account(?:\/.*)?$/,
   /^\/api\/header(?:\/.*)?$/,
+  /^\/api\/footer(?:\/.*)?$/,
+  /^\/api\/notice(?:\/.*)?$/,
+  /^\/api\/popup(?:\/.*)?$/,
 
   /^\/api\/auth\/login(?:\/.*)?$/,
   /^\/api\/auth\/logout(?:\/.*)?$/,
@@ -285,7 +291,8 @@ export async function middleware(req: NextRequest): Promise<NextResponse> {
   }
 }
 
-// ✅ 공식 권장 매처: API 및 정적 자산/확장자 제외 (API 포함)
+// ✅ 공식 권장 매처: API 및 정적 자산/확장자 제외
+// 이 매처가 /notice 페이지를 포함한 모든 앱 라우트 경로를 포착합니다.
 export const config = {
   matcher: ["/((?!_next|.*\\..*).*)"],
 };

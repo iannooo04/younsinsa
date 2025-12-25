@@ -1,0 +1,132 @@
+{
+  "tabs": {
+    "category": "Danh mục",
+    "brand": "Thương hiệu",
+    "service": "Dịch vụ"
+  },
+  "filters": {
+    "all": "Tất cả",
+    "men": "Nam",
+    "women": "Nữ"
+  },
+  "headings": {
+    "viewAll": "Xem tất cả",
+    "womenClothing": "Thời trang nữ",
+    "plusSize": "Thời trang nữ Big size",
+    "golf": "Golf",
+    "shoes": "Giày dép",
+    "top": "Áo",
+    "outer": "Áo khoác",
+    "bottom": "Quần",
+    "bag": "Túi xách",
+    "accessories": "Phụ kiện",
+    "underwear": "Đồ lót",
+    "sports": "Thể thao",
+    "digital": "Kỹ thuật số"
+  },
+  "categories": {
+    "golf": "Golf",
+    "shoes": "Giày dép",
+    "top": "Áo",
+    "outer": "Áo khoác",
+    "bottom": "Quần",
+    "bag": "Túi xách",
+    "accessories": "Phụ kiện",
+    "underwear": "Đồ lót",
+    "sports": "Thể thao",
+    "digital": "Kỹ thuật số"
+  },
+  "golfSub": {
+    "driver": "Gậy Driver",
+    "wood": "Gậy Wood",
+    "iron": "Gậy Iron",
+    "putter": "Gậy Putter",
+    "wedge": "Gậy Wedge",
+    "ball": "Bóng Golf",
+    "bag": "Túi gậy Golf",
+    "shoes": "Giày Golf",
+    "men_wear": "Đồ Golf Nam",
+    "women_wear": "Đồ Golf Nữ",
+    "cap": "Mũ Golf",
+    "glove": "Găng tay Golf",
+    "distance": "Máy đo khoảng cách",
+    "accessory": "Phụ kiện Golf",
+    "practice": "Dụng cụ tập luyện"
+  },
+  "shoesSub": {
+    "sneakers": "Sneakers",
+    "loafers": "Giày lười",
+    "boots": "Boots",
+    "sandals": "Xăng đan",
+    "slippers": "Dép lê",
+    "running": "Giày chạy bộ",
+    "heels": "Giày cao gót",
+    "flat": "Giày bệt"
+  },
+  "topSub": {
+    "tshirt": "Áo phông",
+    "shirt": "Áo sơ mi",
+    "hoodie": "Áo Hoodie",
+    "sweatshirt": "Áo nỉ",
+    "knit": "Áo len",
+    "sleeveless": "Áo sát nách"
+  },
+  "outerSub": {
+    "jacket": "Áo khoác",
+    "coat": "Áo dạ",
+    "padding": "Áo phao",
+    "cardigan": "Cardigan",
+    "vest": "Áo gile",
+    "blazer": "Áo vest"
+  },
+  "bottomSub": {
+    "jeans": "Quần bò",
+    "slacks": "Quần âu",
+    "shorts": "Quần short",
+    "skirt": "Chân váy",
+    "leggings": "Quần legging",
+    "sweatpants": "Quần thể thao"
+  },
+  "bagSub": {
+    "backpack": "Ba lô",
+    "tote": "Túi Tote",
+    "shoulder": "Túi đeo vai",
+    "crossbody": "Túi đeo chéo",
+    "clutch": "Clutch",
+    "eco": "Túi vải"
+  },
+  "accessoriesSub": {
+    "hat": "Mũ",
+    "jewelry": "Trang sức",
+    "scarf": "Khăn quàng",
+    "belt": "Thắt lưng",
+    "sunglasses": "Kính mắt",
+    "watch": "Đồng hồ",
+    "socks": "Tất"
+  },
+  "underwearSub": {
+    "bra": "Áo lót",
+    "panties": "Quần lót",
+    "boxers": "Quần lót nam",
+    "pajamas": "Đồ ngủ",
+    "robe": "Áo choàng",
+    "thermal": "Áo giữ nhiệt"
+  },
+  "sportsSub": {
+    "gym": "Gym",
+    "yoga": "Yoga",
+    "swimwear": "Đồ bơi",
+    "camping": "Cắm trại",
+    "fishing": "Câu cá",
+    "bike": "Xe đạp"
+  },
+  "digitalSub": {
+    "case": "Ốp lưng",
+    "earphone": "Tai nghe",
+    "charger": "Sạc/Cáp",
+    "laptop_bag": "Túi laptop",
+    "speaker": "Loa",
+    "camera": "Máy ảnh"
+  },
+  "servicePlaceholder": "Dịch vụ đang được chuẩn bị."
+}

@@ -1,0 +1,132 @@
+{
+  "tabs": {
+    "category": "カテゴリ",
+    "brand": "ブランド",
+    "service": "サービス"
+  },
+  "filters": {
+    "all": "すべて",
+    "men": "メンズ",
+    "women": "レディース"
+  },
+  "headings": {
+    "viewAll": "すべて見る",
+    "womenClothing": "レディースウェア",
+    "plusSize": "プラスサイズレディース",
+    "golf": "ゴルフ",
+    "shoes": "シューズ",
+    "top": "トップス",
+    "outer": "アウター",
+    "bottom": "ボトムス",
+    "bag": "バッグ",
+    "accessories": "アクセサリー",
+    "underwear": "下着/ホームウェア",
+    "sports": "スポーツ",
+    "digital": "デジタル/ライフ"
+  },
+  "categories": {
+    "golf": "ゴルフ",
+    "shoes": "シューズ",
+    "top": "トップス",
+    "outer": "アウター",
+    "bottom": "ボトムス",
+    "bag": "バッグ",
+    "accessories": "アクセサリー",
+    "underwear": "下着/ホームウェア",
+    "sports": "スポーツ",
+    "digital": "デジタル/ライフ"
+  },
+  "golfSub": {
+    "driver": "ドライバー",
+    "wood": "フェアウェイウッド",
+    "iron": "アイアン",
+    "putter": "パター",
+    "wedge": "ウェッジ",
+    "ball": "ゴルフボール",
+    "bag": "キャディバッグ",
+    "shoes": "ゴルフシューズ",
+    "men_wear": "メンズウェア",
+    "women_wear": "レディースウェア",
+    "cap": "ゴルフキャップ",
+    "glove": "グローブ",
+    "distance": "距離計",
+    "accessory": "アクセサリー",
+    "practice": "練習器具"
+  },
+  "shoesSub": {
+    "sneakers": "スニーカー",
+    "loafers": "ローファー",
+    "boots": "ブーツ",
+    "sandals": "サンダル",
+    "slippers": "スリッパ/ミュール",
+    "running": "ランニングシューズ",
+    "heels": "パンプス/ヒール",
+    "flat": "フラットシューズ"
+  },
+  "topSub": {
+    "tshirt": "Tシャツ",
+    "shirt": "シャツ",
+    "hoodie": "パーカー",
+    "sweatshirt": "スウェット",
+    "knit": "ニット/セーター",
+    "sleeveless": "ノースリーブ"
+  },
+  "outerSub": {
+    "jacket": "ジャケット",
+    "coat": "コート",
+    "padding": "ダウン/中綿",
+    "cardigan": "カーディガン",
+    "vest": "ベスト",
+    "blazer": "ブレザー"
+  },
+  "bottomSub": {
+    "jeans": "デニム",
+    "slacks": "スラックス",
+    "shorts": "ショートパンツ",
+    "skirt": "スカート",
+    "leggings": "レギンス",
+    "sweatpants": "スウェットパンツ"
+  },
+  "bagSub": {
+    "backpack": "バックパック",
+    "tote": "トートバッグ",
+    "shoulder": "ショルダーバッグ",
+    "crossbody": "クロスボディ",
+    "clutch": "クラッチバッグ",
+    "eco": "エコバッグ"
+  },
+  "accessoriesSub": {
+    "hat": "帽子",
+    "jewelry": "ジュエリー",
+    "scarf": "マフラー/スカーフ",
+    "belt": "ベルト",
+    "sunglasses": "メガネ/サングラス",
+    "watch": "時計",
+    "socks": "靴下"
+  },
+  "underwearSub": {
+    "bra": "ブラジャー",
+    "panties": "ショーツ",
+    "boxers": "ボクサーパンツ",
+    "pajamas": "パジャマ",
+    "robe": "ローブ",
+    "thermal": "保温肌着"
+  },
+  "sportsSub": {
+    "gym": "フィットネス",
+    "yoga": "ヨガ/ピラティス",
+    "swimwear": "水着",
+    "camping": "キャンプ用品",
+    "fishing": "釣り",
+    "bike": "自転車"
+  },
+  "digitalSub": {
+    "case": "スマホケース",
+    "earphone": "オーディオ",
+    "charger": "充電器",
+    "laptop_bag": "PCバッグ",
+    "speaker": "スピーカー",
+    "camera": "カメラ"
+  },
+  "servicePlaceholder": "準備中のサービスです。"
+}

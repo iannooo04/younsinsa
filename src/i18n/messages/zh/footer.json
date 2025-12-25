@@ -1,0 +1,114 @@
+{
+  "tabs": {
+    "musinsa": "MUSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "boutique": "BOUTIQUE",
+    "shoes": "SHOES",
+    "kids": "kids",
+    "used": "USED"
+  },
+  "notice": {
+    "title": "公告",
+    "viewAll": "查看全部",
+    "items": {
+      "0": "关于变更 MUSINSA USED 不可销售商品处理方式的通知",
+      "1": "[Musinsa Store/29CM] 综合服务条款修订通知",
+      "2": "个人信息处理方针修订预告 (12/15 施行)"
+    },
+    "dates": {
+      "0": "2025.12.12",
+      "1": "2025.12.12",
+      "2": "2025.12.10"
+    }
+  },
+  "benefits": {
+    "title": "支付优惠",
+    "viewAll": "查看全部",
+    "items": {
+      "0": "KakaoPay x 新韩卡 支付满 13万韩元 立减 5千韩元",
+      "1": "Musinsa Pay x 三星卡 支付满 15万韩元 立减 5千韩元",
+      "2": "KakaoPay x Pay Money 支付满 10万韩元 立减 4千韩元"
+    },
+    "badges": {
+      "0": "PAY",
+      "1": "CARD",
+      "2": "PAY"
+    }
+  },
+  "sitemap": {
+    "about": {
+      "title": "关于 Musinsa",
+      "items": {
+        "0": "公司介绍",
+        "1": "业务介绍",
+        "2": "可持续发展",
+        "3": "新闻中心",
+        "4": "人才招聘"
+      }
+    },
+    "store": {
+      "title": "线下门店",
+      "items": {
+        "0": "Musinsa Store",
+        "1": "Musinsa Standard",
+        "2": "29CM",
+        "3": "Musinsa Empty",
+        "4": "Musinsa Square",
+        "5": "Musinsa Beauty",
+        "6": "Musinsa Terrace",
+        "7": "Asnisum"
+      }
+    },
+    "business": {
+      "title": "商业",
+      "items": {
+        "0": "29CM",
+        "1": "Soldout",
+        "2": "Empty",
+        "3": "Musinsa Partners",
+        "4": "Musinsa Studio",
+        "5": "Musinsa Trading",
+        "6": "Musinsa Logistics"
+      }
+    },
+    "partner": {
+      "title": "合作伙伴",
+      "items": {
+        "0": "入驻咨询",
+        "1": "广告/合作咨询",
+        "2": "赞助咨询",
+        "3": "团购/批量购买咨询"
+      }
+    },
+    "support": {
+      "title": "客户支持",
+      "items": {
+        "0": "1:1 咨询",
+        "1": "FAQ 常见问题",
+        "2": "安全交易中心"
+      },
+      "phone": "客户中心 1544-7199",
+      "time": "运营时间 : 平日 09:00 - 18:00 (午休 12:00 - 13:00 除外)",
+      "email": "cs@musinsa.com"
+    }
+  },
+  "legal": {
+    "copyright": "© MUSINSA ALL RIGHTS RESERVED",
+    "companyInfo": "(株) Musinsa | 代表人 : 赵万浩, 朴俊模 | 地址 : 首尔特别市城东区阿且山路13街11, 1层 (圣水洞2街, Musinsa Campus N1)",
+    "bizInfo": "商业登记号 : 211-88-79575 | 通信销售业 : 2022-首尔城东-01952 | 托管服务商 : (株)Musinsa",
+    "guarantee": "本公司已与友利银行签订债务支付担保合同，保障客户现金支付金额的安全交易。",
+    "guaranteeCheck": "确认服务加入事实",
+    "disclaimer": "对于部分商品，(株)Musinsa 仅作为通信销售中介者，并非通信销售的当事人。因此，关于商品、商品信息及交易的责任可能会受到限制，具体内容请在各商品页面确认。",
+    "links": {
+      "0": "个人信息处理方针",
+      "1": "使用条款",
+      "2": "支付代理由",
+      "3": "纠纷解决标准",
+      "4": "视频信息处理设备运营·管理方针"
+    },
+    "ismsTitle": "伦理·合规经营国际标准综合认证 · 安全保健经营体系国际认证",
+    "ismsDesc": "信息保护管理体系 ISMS 认证"
+  }
+}

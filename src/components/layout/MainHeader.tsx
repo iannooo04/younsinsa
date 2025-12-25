@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
+import CategoryPopup from "./CategoryPopup"; // 분리한 컴포넌트 import
+// SearchPopup import 추가 필요 (만약 파일이 있다면)
+// import SearchPopup from "./SearchPopup";
 
 interface MainHeaderProps {
   authed?: boolean; // 로그인 여부
@@ -10,60 +14,177 @@ interface MainHeaderProps {
 
 export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
   const t = useTranslations("header");
-  const locale = useLocale(); // 현재 언어 확인 (예: 'ko')
+  const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+
+  // 🍔 햄버거 메뉴 토글 상태 관리
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [initialTab, setInitialTab] = useState<
+    "category" | "brand" | "service"
+  >("category");
+
+  // 메뉴 열기 핸들러 (탭 지정 가능)
+  const openMenuWithTab = (tab: "category" | "brand" | "service") => {
+    setInitialTab(tab);
+    setIsMenuOpen(true);
+  };
 
   // 언어 변경 핸들러
   const handleLanguageChange = (newLocale: string) => {
     router.replace(pathname, { locale: newLocale });
   };
 
+  // 🛠️ [수정] 로그인/회원가입 페이지에서는 헤더를 렌더링하지 않음
+  if (pathname.includes("/auth/login") || pathname.includes("/auth/signup")) {
+    return null;
+  }
+
   return (
     // 배경: 검정, 텍스트: 흰색
     <header className="border-b border-gray-800 bg-black text-white relative z-40">
       {/* 1. Top Bar */}
-      <div className="w-full px-4 text-xs py-2 flex justify-between items-center relative z-50 border-b border-gray-900">
-        <div className="flex gap-4">
-          <span>{t("topBar.brand")}</span>
-          <span>{t("topBar.beauty")}</span>
-          <span>{t("topBar.player")}</span>
-          <span>{t("topBar.outlet")}</span>
+      <div className="w-full px-4 text-xs py-3 flex justify-between items-center relative z-50 border-b border-gray-900">
+        <div className="flex gap-6 items-center">
+          {/* 🍔 햄버거 버튼 */}
+          <button
+            onClick={() => openMenuWithTab("category")}
+            className="p-1 hover:bg-gray-800 rounded-md transition-colors -mr-2 cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
+          </button>
+
+          {/* 왼쪽 탭 메뉴 */}
+          <span className="cursor-pointer hover:text-gray-300 font-bold">
+            {t("topBar.brand")}
+          </span>
+          <span className="cursor-pointer hover:text-gray-300 font-bold">
+            {t("topBar.beauty")}
+          </span>
+          <span className="cursor-pointer hover:text-gray-300 font-bold">
+            {t("topBar.player")}
+          </span>
+          <span className="cursor-pointer hover:text-gray-300 font-bold">
+            {t("topBar.outlet")}
+          </span>
         </div>
 
-        <div className="flex gap-4 items-center">
-          {authed ? (
-            <>
-              <span>
-                {t("topBar.userPrefix")} Lv.{userLevel} {t("topBar.userSuffix")}
-              </span>
-              <span className="cursor-pointer hover:underline">
-                {t("topBar.mypage")}
-              </span>
-              <span className="cursor-pointer hover:underline">
-                {t("topBar.logout")}
-              </span>
-            </>
-          ) : (
-            <>
-              <span className="cursor-pointer hover:underline">
-                {t("topBar.login")}
-              </span>
-              <span className="cursor-pointer hover:underline">
-                {t("topBar.join")}
-              </span>
-              <span className="cursor-pointer hover:underline">
-                {t("topBar.mypage")}
-              </span>
-            </>
+        {/* 🛠️ 우측 메뉴 영역 */}
+        <div className="flex gap-5 items-center text-xs">
+          {/* 오프라인 스토어 */}
+          <div className="flex items-center gap-5 border-r border-gray-700 pr-5 cursor-pointer">
+            <span className="hover:text-gray-300 font-medium">
+              오프라인 스토어
+            </span>
+          </div>
+
+          {/* 검색 (아이콘 + 텍스트) */}
+          <button className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
+              />
+            </svg>
+            <span>검색</span>
+          </button>
+
+          {/* 좋아요 (아이콘 + 텍스트) */}
+          <button className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
+              />
+            </svg>
+            <span>좋아요</span>
+          </button>
+
+          {/* 마이 (아이콘 + 텍스트) */}
+          <Link
+            href="/mypage"
+            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
+              />
+            </svg>
+            <span>마이</span>
+          </Link>
+
+          {/* 장바구니 (아이콘 + 텍스트) */}
+          <button className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-4 h-4"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
+              />
+            </svg>
+            <span>장바구니</span>
+          </button>
+
+          {/* 로그인 버튼 (비로그인 시 노출) */}
+          {!authed && (
+            <Link href="/auth/login">
+              <button className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer">
+                로그인 / 회원가입
+              </button>
+            </Link>
           )}
 
           {/* 🌐 언어 변경 드롭다운 */}
-          <div className="dropdown dropdown-end">
+          <div className="dropdown dropdown-end ml-1">
             <div
               tabIndex={0}
               role="button"
-              className="btn btn-ghost btn-xs text-white flex items-center gap-1 px-1 hover:bg-gray-800"
+              className="btn btn-ghost btn-xs text-white flex items-center gap-1 px-1 hover:bg-gray-800 h-auto min-h-0 py-1 cursor-pointer"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -79,7 +200,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
                   d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S12 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S12 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
                 />
               </svg>
-              <span className="uppercase">{locale}</span>
+              <span className="uppercase text-[10px]">{locale}</span>
             </div>
             <ul
               tabIndex={0}
@@ -87,7 +208,11 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
             >
               <li>
                 <button
-                  className={locale === "ko" ? "active bg-gray-200" : ""}
+                  className={
+                    locale === "ko"
+                      ? "active bg-gray-200 w-full text-left"
+                      : "w-full text-left"
+                  }
                   onClick={() => handleLanguageChange("ko")}
                 >
                   🇰🇷 한국어
@@ -95,7 +220,11 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </li>
               <li>
                 <button
-                  className={locale === "en" ? "active bg-gray-200" : ""}
+                  className={
+                    locale === "en"
+                      ? "active bg-gray-200 w-full text-left"
+                      : "w-full text-left"
+                  }
                   onClick={() => handleLanguageChange("en")}
                 >
                   🇺🇸 English
@@ -103,7 +232,11 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </li>
               <li>
                 <button
-                  className={locale === "ja" ? "active bg-gray-200" : ""}
+                  className={
+                    locale === "ja"
+                      ? "active bg-gray-200 w-full text-left"
+                      : "w-full text-left"
+                  }
                   onClick={() => handleLanguageChange("ja")}
                 >
                   🇯🇵 日本語
@@ -111,7 +244,11 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </li>
               <li>
                 <button
-                  className={locale === "zh" ? "active bg-gray-200" : ""}
+                  className={
+                    locale === "zh"
+                      ? "active bg-gray-200 w-full text-left"
+                      : "w-full text-left"
+                  }
                   onClick={() => handleLanguageChange("zh")}
                 >
                   🇨🇳 中文
@@ -119,7 +256,11 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </li>
               <li>
                 <button
-                  className={locale === "vi" ? "active bg-gray-200" : ""}
+                  className={
+                    locale === "vi"
+                      ? "active bg-gray-200 w-full text-left"
+                      : "w-full text-left"
+                  }
                   onClick={() => handleLanguageChange("vi")}
                 >
                   🇻🇳 Tiếng Việt
@@ -130,7 +271,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
         </div>
       </div>
 
-      {/* 2. Main Header (로고, 검색창, 아이콘) */}
+      {/* 2. Main Header (로고 & 검색창 영역) */}
       <div className="w-full px-4 py-6">
         <div className="flex items-center justify-between gap-8">
           {/* Logo */}
@@ -142,17 +283,16 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
           </Link>
 
           {/* Search Bar */}
-          <div className="flex-1 max-w-3xl relative mx-auto">
-            {/* 🛠️ [수정] rounded-full -> rounded-lg (또는 rounded-md)로 변경하여 모서리만 살짝 깎음 */}
+          <div className="flex-1 max-w-5xl relative mx-auto">
             <input
               type="text"
               placeholder={t("searchPlaceholder")}
-              className="input input-bordered w-full rounded-lg border-transparent focus:outline-none bg-white text-black placeholder-gray-500 px-6 pr-12"
+              className="input input-bordered w-full rounded-lg border-transparent focus:outline-none bg-white text-black placeholder-gray-500 px-6 pr-12 h-9 text-sm"
             />
-            <button className="absolute right-5 top-1/2 -translate-y-1/2 text-black">
+            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-black cursor-pointer">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
+                className="h-5 w-5"
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
@@ -166,90 +306,98 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </svg>
             </button>
           </div>
-
-          {/* Icons */}
-          <div className="flex gap-6 items-center shrink-0">
-            <button className="btn btn-ghost btn-circle text-white hover:bg-gray-800">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-6 w-6"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
-                />
-              </svg>
-            </button>
-            <button className="btn btn-ghost btn-circle text-white hover:bg-gray-800">
-              <div className="indicator">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
-                </svg>
-                <span className="badge badge-sm indicator-item bg-red-600 text-white border-none">
-                  2
-                </span>
-              </div>
-            </button>
-          </div>
         </div>
       </div>
 
       {/* 3. Category Nav (하단 메뉴) */}
-      <div className="bg-black text-white border-t border-gray-900">
-        <div className="w-full px-4">
+      <div className="bg-black text-white border-t border-gray-900 relative">
+        <div className="w-full px-4 flex items-center">
+          {/* 네비게이션 항목 */}
           <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.ranking")}
-            </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.sale")}
-            </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.brand")}
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.bestseller")}
             </Link>
             <Link
               href="#"
-              className="hover:text-gray-300 text-red-400 transition-colors"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
             >
-              {t("nav.seasonOff")}
+              {t("nav.women")}
             </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.outer")}
-            </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.top")}
-            </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.bottom")}
-            </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
               {t("nav.shoes")}
             </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.sport")}
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.swimwear")}
             </Link>
-            <Link href="#" className="hover:text-gray-300 transition-colors">
-              {t("nav.beauty")}
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.yoga")}
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.accessories")}
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.pants")}
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.spot")}
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.special")}
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.new")}
+            </Link>
+            <Link
+              href="#"
+              className="hover:text-gray-300 transition-colors cursor-pointer"
+            >
+              {t("nav.activity")}
+            </Link>
+            {/* 주황색 텍스트 */}
+            <Link
+              href="#"
+              className="text-orange-500 hover:text-orange-400 transition-colors cursor-pointer"
+            >
+              {t("nav.agent")}
             </Link>
           </nav>
         </div>
       </div>
+
+      {/* 🆕 팝업 메가 메뉴 (초기 탭 전달) */}
+      {isMenuOpen && (
+        <CategoryPopup
+          onClose={() => setIsMenuOpen(false)}
+          initialTab={initialTab}
+        />
+      )}
     </header>
   );
 }

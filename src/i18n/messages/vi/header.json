@@ -8,20 +8,22 @@
     "join": "Đăng ký",
     "mypage": "Trang cá nhân",
     "logout": "Đăng xuất",
-    "userPrefix": "Thành viên",
-    "userSuffix": "ơi"
+    "userPrefix": "Thành viên ",
+    "userSuffix": ""
   },
-  "searchPlaceholder": "Sale cuối mùa 2025!",
+  "searchPlaceholder": "Mã sản phẩm / ID sản phẩm",
   "nav": {
-    "ranking": "BXH",
-    "sale": "Sale",
-    "brand": "Thương hiệu",
-    "seasonOff": "Xả kho",
-    "outer": "Áo khoác",
-    "top": "Áo",
-    "bottom": "Quần",
-    "shoes": "Giày",
-    "sport": "Thể thao",
-    "beauty": "Làm đẹp"
+    "bestseller": "Bán chạy",
+    "women": "Đồ nữ",
+    "shoes": "Giày dép",
+    "swimwear": "Đồ bơi",
+    "yoga": "Đồ tập Yoga",
+    "accessories": "Phụ kiện",
+    "pants": "Túi xách",
+    "spot": "Hàng có sẵn",
+    "special": "Giá đặc biệt",
+    "new": "Hàng mới",
+    "activity": "Sự kiện",
+    "agent": "Mua hộ"
   }
 }

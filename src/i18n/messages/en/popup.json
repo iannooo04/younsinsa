@@ -1,0 +1,132 @@
+{
+  "tabs": {
+    "category": "Category",
+    "brand": "Brand",
+    "service": "Service"
+  },
+  "filters": {
+    "all": "All",
+    "men": "Men",
+    "women": "Women"
+  },
+  "headings": {
+    "viewAll": "View All",
+    "womenClothing": "Women's Clothing",
+    "plusSize": "Plus Size Women's",
+    "golf": "Golf",
+    "shoes": "Shoes",
+    "top": "Tops",
+    "outer": "Outerwear",
+    "bottom": "Bottoms",
+    "bag": "Bags",
+    "accessories": "Accessories",
+    "underwear": "Underwear",
+    "sports": "Sports",
+    "digital": "Digital/Life"
+  },
+  "categories": {
+    "golf": "Golf",
+    "shoes": "Shoes",
+    "top": "Tops",
+    "outer": "Outerwear",
+    "bottom": "Bottoms",
+    "bag": "Bags",
+    "accessories": "Accessories",
+    "underwear": "Underwear",
+    "sports": "Sports",
+    "digital": "Digital/Life"
+  },
+  "golfSub": {
+    "driver": "Driver",
+    "wood": "Wood",
+    "iron": "Iron",
+    "putter": "Putter",
+    "wedge": "Wedge",
+    "ball": "Golf Ball",
+    "bag": "Golf Bag",
+    "shoes": "Golf Shoes",
+    "men_wear": "Men's Golf Wear",
+    "women_wear": "Women's Golf Wear",
+    "cap": "Golf Cap",
+    "glove": "Golf Glove",
+    "distance": "Rangefinder",
+    "accessory": "Accessories",
+    "practice": "Training Aids"
+  },
+  "shoesSub": {
+    "sneakers": "Sneakers",
+    "loafers": "Loafers",
+    "boots": "Boots",
+    "sandals": "Sandals",
+    "slippers": "Slippers/Mules",
+    "running": "Running Shoes",
+    "heels": "Heels",
+    "flat": "Flat Shoes"
+  },
+  "topSub": {
+    "tshirt": "T-shirt",
+    "shirt": "Shirt",
+    "hoodie": "Hoodie",
+    "sweatshirt": "Sweatshirt",
+    "knit": "Knit/Sweater",
+    "sleeveless": "Sleeveless"
+  },
+  "outerSub": {
+    "jacket": "Jacket",
+    "coat": "Coat",
+    "padding": "Down/Padding",
+    "cardigan": "Cardigan",
+    "vest": "Vest",
+    "blazer": "Blazer"
+  },
+  "bottomSub": {
+    "jeans": "Denim",
+    "slacks": "Slacks",
+    "shorts": "Shorts",
+    "skirt": "Skirt",
+    "leggings": "Leggings",
+    "sweatpants": "Sweatpants"
+  },
+  "bagSub": {
+    "backpack": "Backpack",
+    "tote": "Tote Bag",
+    "shoulder": "Shoulder Bag",
+    "crossbody": "Crossbody Bag",
+    "clutch": "Clutch",
+    "eco": "Eco Bag"
+  },
+  "accessoriesSub": {
+    "hat": "Hat/Cap",
+    "jewelry": "Jewelry",
+    "scarf": "Scarf",
+    "belt": "Belt",
+    "sunglasses": "Eyewear",
+    "watch": "Watch",
+    "socks": "Socks"
+  },
+  "underwearSub": {
+    "bra": "Bra",
+    "panties": "Panties",
+    "boxers": "Boxers/Trunks",
+    "pajamas": "Pajamas",
+    "robe": "Robe/Gown",
+    "thermal": "Thermal"
+  },
+  "sportsSub": {
+    "gym": "Fitness",
+    "yoga": "Yoga/Pilates",
+    "swimwear": "Swimwear",
+    "camping": "Camping",
+    "fishing": "Fishing",
+    "bike": "Cycling"
+  },
+  "digitalSub": {
+    "case": "Phone Case",
+    "earphone": "Audio",
+    "charger": "Charger",
+    "laptop_bag": "Laptop Bag",
+    "speaker": "Speaker",
+    "camera": "Camera"
+  },
+  "servicePlaceholder": "Service coming soon."
+}

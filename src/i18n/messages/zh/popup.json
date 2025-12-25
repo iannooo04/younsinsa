@@ -1,0 +1,132 @@
+{
+  "tabs": {
+    "category": "分类",
+    "brand": "品牌",
+    "service": "服务"
+  },
+  "filters": {
+    "all": "全部",
+    "men": "男士",
+    "women": "女士"
+  },
+  "headings": {
+    "viewAll": "查看全部",
+    "womenClothing": "女装",
+    "plusSize": "大码女装",
+    "golf": "高尔夫",
+    "shoes": "鞋靴",
+    "top": "上装",
+    "outer": "外套",
+    "bottom": "下装",
+    "bag": "包袋",
+    "accessories": "配饰",
+    "underwear": "内衣/家居服",
+    "sports": "运动/休闲",
+    "digital": "数码/生活"
+  },
+  "categories": {
+    "golf": "高尔夫",
+    "shoes": "鞋靴",
+    "top": "上装",
+    "outer": "外套",
+    "bottom": "下装",
+    "bag": "包袋",
+    "accessories": "配饰",
+    "underwear": "内衣/家居服",
+    "sports": "运动/休闲",
+    "digital": "数码/生活"
+  },
+  "golfSub": {
+    "driver": "发球木",
+    "wood": "球道木",
+    "iron": "铁杆",
+    "putter": "推杆",
+    "wedge": "挖起杆",
+    "ball": "高尔夫球",
+    "bag": "球包",
+    "shoes": "高尔夫鞋",
+    "men_wear": "男士球服",
+    "women_wear": "女士球服",
+    "cap": "球帽",
+    "glove": "手套",
+    "distance": "测距仪",
+    "accessory": "高尔夫配件",
+    "practice": "练习用品"
+  },
+  "shoesSub": {
+    "sneakers": "运动鞋",
+    "loafers": "乐福鞋",
+    "boots": "靴子",
+    "sandals": "凉鞋",
+    "slippers": "拖鞋",
+    "running": "跑鞋",
+    "heels": "高跟鞋",
+    "flat": "平底鞋"
+  },
+  "topSub": {
+    "tshirt": "T恤",
+    "shirt": "衬衫",
+    "hoodie": "连帽衫",
+    "sweatshirt": "卫衣",
+    "knit": "针织衫/毛衣",
+    "sleeveless": "背心"
+  },
+  "outerSub": {
+    "jacket": "夹克",
+    "coat": "大衣",
+    "padding": "羽绒服",
+    "cardigan": "开衫",
+    "vest": "马甲",
+    "blazer": "西装"
+  },
+  "bottomSub": {
+    "jeans": "牛仔裤",
+    "slacks": "休闲裤",
+    "shorts": "短裤",
+    "skirt": "半身裙",
+    "leggings": "打底裤",
+    "sweatpants": "运动裤"
+  },
+  "bagSub": {
+    "backpack": "双肩包",
+    "tote": "托特包",
+    "shoulder": "单肩包",
+    "crossbody": "斜挎包",
+    "clutch": "手拿包",
+    "eco": "帆布包"
+  },
+  "accessoriesSub": {
+    "hat": "帽子",
+    "jewelry": "首饰",
+    "scarf": "围巾",
+    "belt": "腰带",
+    "sunglasses": "眼镜",
+    "watch": "手表",
+    "socks": "袜子"
+  },
+  "underwearSub": {
+    "bra": "文胸",
+    "panties": "内裤",
+    "boxers": "平角裤",
+    "pajamas": "睡衣",
+    "robe": "睡袍",
+    "thermal": "保暖内衣"
+  },
+  "sportsSub": {
+    "gym": "健身",
+    "yoga": "瑜伽",
+    "swimwear": "泳衣",
+    "camping": "露营",
+    "fishing": "垂钓",
+    "bike": "骑行"
+  },
+  "digitalSub": {
+    "case": "手机壳",
+    "earphone": "耳机",
+    "charger": "充电设备",
+    "laptop_bag": "电脑包",
+    "speaker": "音箱",
+    "camera": "相机"
+  },
+  "servicePlaceholder": "服务准备中。"
+}

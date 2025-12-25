@@ -11,17 +11,19 @@
     "userPrefix": "회원",
     "userSuffix": "님"
   },
-  "searchPlaceholder": "2025년 마지막 시즌오프 세일!",
+  "searchPlaceholder": "제품 번호/제품 ID",
   "nav": {
-    "ranking": "랭킹",
-    "sale": "세일",
-    "brand": "브랜드",
-    "seasonOff": "시즌오프",
-    "outer": "아우터",
-    "top": "상의",
-    "bottom": "하의",
+    "bestseller": "TOPSALE",
+    "women": "여성 의류",
     "shoes": "신발",
-    "sport": "스포츠",
-    "beauty": "뷰티"
+    "swimwear": "수영복",
+    "yoga": "요가복",
+    "accessories": "악세사리",
+    "pants": "가방",
+    "spot": "즉시 출고 상품",
+    "special": "특가 판매",
+    "new": "신상품",
+    "activity": "이벤트",
+    "agent": "외부 구매대행"
   }
 }

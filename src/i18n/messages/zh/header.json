@@ -6,22 +6,24 @@
     "outlet": "OUTLET",
     "login": "登录",
     "join": "注册",
-    "mypage": "我的页面",
+    "mypage": "我的主页",
     "logout": "退出登录",
     "userPrefix": "会员",
     "userSuffix": "您好"
   },
-  "searchPlaceholder": "2025年 最后一次换季大促！",
+  "searchPlaceholder": "商品编号 / 商品ID",
   "nav": {
-    "ranking": "排行榜",
-    "sale": "促销",
-    "brand": "品牌",
-    "seasonOff": "季末清仓",
-    "outer": "外套",
-    "top": "上装",
-    "bottom": "下装",
-    "shoes": "鞋类",
-    "sport": "运动",
-    "beauty": "美妆"
+    "bestseller": "热销榜",
+    "women": "女装",
+    "shoes": "鞋靴",
+    "swimwear": "泳衣",
+    "yoga": "瑜伽服",
+    "accessories": "配饰",
+    "pants": "包袋",
+    "spot": "现货",
+    "special": "特价促销",
+    "new": "新品",
+    "activity": "活动",
+    "agent": "海外代购"
   }
 }

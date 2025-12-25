@@ -1,0 +1,114 @@
+{
+  "tabs": {
+    "musinsa": "MUSINSA",
+    "beauty": "BEAUTY",
+    "player": "PLAYER",
+    "outlet": "OUTLET",
+    "boutique": "BOUTIQUE",
+    "shoes": "SHOES",
+    "kids": "kids",
+    "used": "USED"
+  },
+  "notice": {
+    "title": "Notice",
+    "viewAll": "View All",
+    "items": {
+      "0": "Notice regarding changes to handling unsold MUSINSA USED items",
+      "1": "[Musinsa Store/29CM] Notice of Revision to Integrated Service Terms",
+      "2": "Notice of Privacy Policy Revision (Effective Dec 15)"
+    },
+    "dates": {
+      "0": "2025.12.12",
+      "1": "2025.12.12",
+      "2": "2025.12.10"
+    }
+  },
+  "benefits": {
+    "title": "Payment Benefits",
+    "viewAll": "View All",
+    "items": {
+      "0": "5,000 KRW off on KakaoPay x Shinhan Card orders over 130,000 KRW",
+      "1": "5,000 KRW off on Musinsa Pay x Samsung Card orders over 150,000 KRW",
+      "2": "4,000 KRW off on KakaoPay x Pay Money orders over 100,000 KRW"
+    },
+    "badges": {
+      "0": "PAY",
+      "1": "CARD",
+      "2": "PAY"
+    }
+  },
+  "sitemap": {
+    "about": {
+      "title": "About Musinsa",
+      "items": {
+        "0": "Company Info",
+        "1": "Business Info",
+        "2": "Sustainability",
+        "3": "Newsroom",
+        "4": "Careers"
+      }
+    },
+    "store": {
+      "title": "Offline Stores",
+      "items": {
+        "0": "Musinsa Store",
+        "1": "Musinsa Standard",
+        "2": "29CM",
+        "3": "Musinsa Empty",
+        "4": "Musinsa Square",
+        "5": "Musinsa Beauty",
+        "6": "Musinsa Terrace",
+        "7": "Asnisum"
+      }
+    },
+    "business": {
+      "title": "Business",
+      "items": {
+        "0": "29CM",
+        "1": "Soldout",
+        "2": "Empty",
+        "3": "Musinsa Partners",
+        "4": "Musinsa Studio",
+        "5": "Musinsa Trading",
+        "6": "Musinsa Logistics"
+      }
+    },
+    "partner": {
+      "title": "Partner Support",
+      "items": {
+        "0": "Store Inquiry",
+        "1": "Ads/Partnership",
+        "2": "Sponsorship",
+        "3": "Bulk Order Inquiry"
+      }
+    },
+    "support": {
+      "title": "Help Center",
+      "items": {
+        "0": "1:1 Inquiry",
+        "1": "FAQ",
+        "2": "Safe Transaction Center"
+      },
+      "phone": "Customer Center 1544-7199",
+      "time": "Hours: Weekdays 09:00 - 18:00 (Lunch 12:00 - 13:00 excluded)",
+      "email": "cs@musinsa.com"
+    }
+  },
+  "legal": {
+    "copyright": "© MUSINSA ALL RIGHTS RESERVED",
+    "companyInfo": "Musinsa Co., Ltd. | CEO: Man-ho Cho, Jun-mo Park | Address: 1F, 13 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Musinsa Campus N1)",
+    "bizInfo": "Business Registration: 211-88-79575 | E-commerce Permit: 2022-Seoul Seongdong-01952 | Hosting: Musinsa Co., Ltd.",
+    "guarantee": "We guarantee safe transactions through a debt payment guarantee contract with Woori Bank for cash payments.",
+    "guaranteeCheck": "Check Service Status",
+    "disclaimer": "For some products, Musinsa Co., Ltd. acts only as a mail-order intermediary and is not a party to the mail-order. Therefore, responsibility for the product, product information, and transaction may be limited. Please check the specific details on each product page.",
+    "links": {
+      "0": "Privacy Policy",
+      "1": "Terms of Service",
+      "2": "Payment Gateway",
+      "3": "Dispute Resolution",
+      "4": "CCTV Operation Policy"
+    },
+    "ismsTitle": "Certified for Ethics & Compliance Management and Safety & Health Management Systems",
+    "ismsDesc": "Information Security Management System (ISMS) Certified"
+  }
+}

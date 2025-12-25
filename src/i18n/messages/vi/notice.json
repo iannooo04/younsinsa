@@ -1,0 +1,14 @@
+{
+  "pageTitle": "Thông báo",
+  "types": {
+    "notice": "Thông báo",
+    "event": "Sự kiện",
+    "maintenance": "Bảo trì"
+  },
+  "items": {
+    "1": "Thông báo trước về việc sửa đổi Chính sách bảo mật (Áp dụng từ 15/12)",
+    "2": "Thông báo giá đặc biệt cho sản phẩm đứng đầu Musinsa Beauty Awards",
+    "3": "Thông báo bảo trì hệ thống sáng sớm (02:00 ~ 04:00)",
+    "4": "Thông báo chậm giao hàng cuối năm"
+  }
+}

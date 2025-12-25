@@ -6,7 +6,8 @@ const LOCALES = ["ko", "en", "ja", "zh", "vi"] as const;
 type AppLocale = (typeof LOCALES)[number];
 
 /** 네임스페이스(슬래시 허용) */
-const NAMESPACES = ["home", "header"] as const;
+// notice, popup 등이 포함되어 있는지 확인 필수
+const NAMESPACES = ["home", "header", "footer", "popup", "notice"] as const;
 type Namespace = (typeof NAMESPACES)[number];
 
 /** 재귀 JSON 타입 (빈 인터페이스 제거) */
@@ -32,15 +33,15 @@ async function importMessages(
   try {
     // 경로 주의: 이 파일이 src/i18n/request.ts라면,
     // ./messages/... 는 src/i18n/messages 를 가리킵니다.
-    // 실제 파일이 src/messages/... 라면 '../messages' 또는 '@/messages' 로 바꾸세요.
     const mod = await import(`./messages/${lang}/${ns}.json`);
     return mod.default as { [key: string]: JSONValue };
   } catch (e) {
-    const msg =
-      e instanceof Error ? e.message : typeof e === "string" ? e : "unknown";
-    throw new Error(
-      `i18n load error: locale='${lang}', ns='${ns}', reason='${msg}'`
+    // 🛠️ [수정] 파일이 없거나 JSON 문법 오류 시 앱이 죽지 않도록 에러 로그만 찍고 빈 객체 반환
+    console.error(
+      `i18n load error: locale='${lang}', ns='${ns}'`,
+      e instanceof Error ? e.message : e
     );
+    return {};
   }
 }
 
