@@ -230,7 +230,7 @@ export default function HomePage() {
   return (
     <div className="bg-white min-h-screen text-black">
       {/* 2. Hero Section (Slider) */}
-      <section className="relative group bg-gray-100 overflow-hidden h-[400px] md:h-[500px]">
+      <section className="relative group bg-gray-100 overflow-hidden h-100 md:h-125">
         {/* 화살표 버튼 */}
         <button
           onClick={prevSlide}
@@ -299,7 +299,7 @@ export default function HomePage() {
                     {slide.left.desc}
                   </p>
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
               {/* 중앙 */}
               <div
@@ -361,7 +361,7 @@ export default function HomePage() {
           {topShortcutBanners.map((banner) => (
             <div
               key={banner.id}
-              className={`min-w-[280px] h-[100px] ${banner.bg} rounded-md relative cursor-pointer overflow-hidden group flex-shrink-0`}
+              className={`min-w-70 h-25 ${banner.bg} rounded-md relative cursor-pointer overflow-hidden group shrink-0`}
             >
               {/* 이미지 */}
               <img
@@ -390,7 +390,7 @@ export default function HomePage() {
           {bottomShortcutIcons.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 min-w-max border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:border-black transition-colors flex-shrink-0"
+              className="flex items-center gap-3 min-w-max border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:border-black transition-colors shrink-0"
             >
               <div
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${item.bg}`}
@@ -403,7 +403,7 @@ export default function HomePage() {
             </div>
           ))}
           {/* 서비스 전체보기 버튼 */}
-          <div className="flex items-center gap-2 min-w-max border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:border-black transition-colors flex-shrink-0 bg-gray-50">
+          <div className="flex items-center gap-2 min-w-max border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:border-black transition-colors shrink-0 bg-gray-50">
             <span className="text-gray-500 text-lg">≡</span>
             <span className="text-xs font-bold text-gray-800">
               서비스 전체보기
@@ -433,7 +433,7 @@ export default function HomePage() {
             >
               {/* 이미지 영역 */}
               <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden">
-                <div className="aspect-[3/4]">
+                <div className="aspect-3/4">
                   <img
                     src={product.img}
                     alt={product.name}
