@@ -1,0 +1,14 @@
+{
+  "title": "Cart",
+  "banner": {
+    "title": "Tops Birthday 26 Collection Released",
+    "subtitle": "Up to 36% Off"
+  },
+  "empty_message": "Your cart is empty.",
+  "view_liked_items": "View Liked Items",
+  "recently_viewed_title": "Items you recently viewed and missed",
+  "recommended_title": "Recommended Sporty Style Brand Items",
+  "continue_shopping": "Continue Shopping",
+  "unit_won": "KRW",
+  "option_fee_separate": "Option fee excluded"
+}

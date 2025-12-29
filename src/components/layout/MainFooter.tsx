@@ -4,9 +4,19 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation"; // 경로 확인 훅
 
 export default function MainFooter() {
   const t = useTranslations("footer");
+  const pathname = usePathname(); // 현재 경로 가져오기
+
+  // ✅ [수정] 장바구니(/orders/cart) 또는 좋아요(/like) 경로가 포함되면 푸터를 렌더링하지 않음
+  if (
+    pathname &&
+    (pathname.includes("/orders/cart") || pathname.includes("/like"))
+  ) {
+    return null;
+  }
 
   return (
     // 푸터 전체 배경색 bg-[#f9f9f9]

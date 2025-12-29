@@ -1,0 +1,14 @@
+{
+  "title": "カート",
+  "banner": {
+    "title": "Tops Birthday 26 コレクション発売",
+    "subtitle": "最大36%OFF"
+  },
+  "empty_message": "カートに商品が入っていません。",
+  "view_liked_items": "お気に入り商品を見る",
+  "recently_viewed_title": "以前チェックして見逃した商品",
+  "recommended_title": "スポーティスタイルブランドのおすすめ",
+  "continue_shopping": "ショッピングを続ける",
+  "unit_won": "ウォン",
+  "option_fee_separate": "オプション料金別途"
+}

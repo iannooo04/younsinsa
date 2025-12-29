@@ -1,11 +1,12 @@
+// src/components/layout/MainHeader.tsx
+
 "use client";
 
 import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
 import CategoryPopup from "./CategoryPopup"; // 분리한 컴포넌트 import
-// SearchPopup import 추가 필요 (만약 파일이 있다면)
-// import SearchPopup from "./SearchPopup";
+import SearchPopup from "./SearchPopup"; // 🛠️ [신규] 검색 팝업 import
 
 interface MainHeaderProps {
   authed?: boolean; // 로그인 여부
@@ -20,6 +21,10 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
 
   // 🍔 햄버거 메뉴 토글 상태 관리
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  // 🔍 검색 팝업 토글 상태 관리 (신규)
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   const [initialTab, setInitialTab] = useState<
     "category" | "brand" | "service"
   >("category");
@@ -35,64 +40,90 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
     router.replace(pathname, { locale: newLocale });
   };
 
-  // 🛠️ [수정] 로그인/회원가입 페이지에서는 헤더를 렌더링하지 않음
-  if (pathname.includes("/auth/login") || pathname.includes("/auth/signup")) {
-    return null;
-  }
+  // ✅ [수정] 심플 헤더를 보여줄 경로인지 확인
+  // 마이페이지, 장바구니, 오프라인, 좋아요 페이지만 심플 헤더(검색창 숨김) 적용
+  // yimili 관련 페이지는 포함되지 않으므로 검색창이 나옵니다.
+  const isSimplePage =
+    pathname.includes("/mypage") ||
+    pathname.includes("/orders/cart") ||
+    pathname.includes("/offline") ||
+    pathname.includes("/like");
 
   return (
     // 배경: 검정, 텍스트: 흰색
     <header className="border-b border-gray-800 bg-black text-white relative z-40">
       {/* 1. Top Bar */}
-      <div className="w-full px-4 text-xs py-3 flex justify-between items-center relative z-50 border-b border-gray-900">
+      <div
+        className={`w-full px-4 text-xs flex justify-between items-center relative z-50 ${
+          isSimplePage ? "py-4" : "py-3 border-b border-gray-900"
+        }`}
+      >
         <div className="flex gap-6 items-center">
-          {/* 🍔 햄버거 버튼 */}
-          <button
-            onClick={() => openMenuWithTab("category")}
-            className="p-1 hover:bg-gray-800 rounded-md transition-colors -mr-2 cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-6 h-6"
+          {/* ✅ [수정 1] 상단 바(Top Bar)에 있는 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
+          {isSimplePage ? (
+            <Link
+              href="/main/yimili/recommend?gf=A"
+              className="text-xl font-black tracking-tighter text-white cursor-pointer"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-              />
-            </svg>
-          </button>
+              YIMILI
+            </Link>
+          ) : (
+            <>
+              {/* 🍔 햄버거 버튼 */}
+              <button
+                onClick={() => openMenuWithTab("category")}
+                className="p-1 hover:bg-gray-800 rounded-md transition-colors -mr-2 cursor-pointer"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
+                  className="w-6 h-6"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                  />
+                </svg>
+              </button>
 
-          {/* 왼쪽 탭 메뉴 */}
-          <span className="cursor-pointer hover:text-gray-300 font-bold">
-            {t("topBar.brand")}
-          </span>
-          <span className="cursor-pointer hover:text-gray-300 font-bold">
-            {t("topBar.beauty")}
-          </span>
-          <span className="cursor-pointer hover:text-gray-300 font-bold">
-            {t("topBar.player")}
-          </span>
-          <span className="cursor-pointer hover:text-gray-300 font-bold">
-            {t("topBar.outlet")}
-          </span>
+              {/* 왼쪽 탭 메뉴 */}
+              <span className="cursor-pointer hover:text-gray-300 font-bold">
+                {t("topBar.brand")}
+              </span>
+              <span className="cursor-pointer hover:text-gray-300 font-bold">
+                {t("topBar.beauty")}
+              </span>
+              <span className="cursor-pointer hover:text-gray-300 font-bold">
+                {t("topBar.player")}
+              </span>
+              <span className="cursor-pointer hover:text-gray-300 font-bold">
+                {t("topBar.outlet")}
+              </span>
+            </>
+          )}
         </div>
 
         {/* 🛠️ 우측 메뉴 영역 */}
         <div className="flex gap-5 items-center text-xs">
           {/* 오프라인 스토어 */}
-          <div className="flex items-center gap-5 border-r border-gray-700 pr-5 cursor-pointer">
+          <Link
+            href="/offline"
+            className="flex items-center gap-5 border-r border-gray-700 pr-5 cursor-pointer"
+          >
             <span className="hover:text-gray-300 font-medium">
               오프라인 스토어
             </span>
-          </div>
+          </Link>
 
           {/* 검색 (아이콘 + 텍스트) */}
-          <button className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+          <button
+            onClick={() => setIsSearchOpen(true)} // 🛠️ [추가] 검색 버튼 클릭 시 팝업 오픈
+            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -111,7 +142,10 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
           </button>
 
           {/* 좋아요 (아이콘 + 텍스트) */}
-          <button className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+          <Link
+            href="/like/goods"
+            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -127,7 +161,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               />
             </svg>
             <span>좋아요</span>
-          </button>
+          </Link>
 
           {/* 마이 (아이콘 + 텍스트) */}
           <Link
@@ -152,7 +186,10 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
           </Link>
 
           {/* 장바구니 (아이콘 + 텍스트) */}
-          <button className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+          <Link
+            href="/orders/cart"
+            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -168,11 +205,11 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               />
             </svg>
             <span>장바구니</span>
-          </button>
+          </Link>
 
           {/* 로그인 버튼 (비로그인 시 노출) */}
           {!authed && (
-            <Link href="/auth/login">
+            <Link href="/member/login">
               <button className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer">
                 로그인 / 회원가입
               </button>
@@ -271,125 +308,141 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
         </div>
       </div>
 
-      {/* 2. Main Header (로고 & 검색창 영역) */}
-      <div className="w-full px-4 py-6">
-        <div className="flex items-center justify-between gap-8">
-          {/* Logo */}
-          <Link
-            href="/"
-            className="text-3xl font-black tracking-tighter text-white shrink-0"
-          >
-            YOUNSINSA
-          </Link>
+      {/* 2. Main Header (로고 & 검색창 영역) - ✅ [수정] 심플 페이지가 아닐 때만 노출 */}
+      {!isSimplePage && (
+        <div className="w-full px-4 py-6">
+          <div className="flex items-center justify-between gap-8">
+            {/* Logo */}
+            {/* ✅ [수정 2] 검색창 왼쪽의 큰 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
+            <Link
+              href="/main/yimili/recommend?gf=A"
+              className="text-3xl font-black tracking-tighter text-white shrink-0"
+            >
+              YIMILI
+            </Link>
 
-          {/* Search Bar */}
-          <div className="flex-1 max-w-5xl relative mx-auto">
-            <input
-              type="text"
-              placeholder={t("searchPlaceholder")}
-              className="input input-bordered w-full rounded-lg border-transparent focus:outline-none bg-white text-black placeholder-gray-500 px-6 pr-12 h-9 text-sm"
-            />
-            <button className="absolute right-3 top-1/2 -translate-y-1/2 text-black cursor-pointer">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
-            </button>
+            {/* Search Bar */}
+            <div className="flex-1 max-w-5xl relative mx-auto">
+              <input
+                type="text"
+                placeholder={t("searchPlaceholder")}
+                onClick={() => setIsSearchOpen(true)} // 🛠️ [추가] 인풋 클릭 시 팝업 오픈
+                className="input input-bordered w-full rounded-lg border-transparent focus:outline-none bg-white text-black placeholder-gray-500 px-6 pr-12 h-9 text-sm"
+              />
+              <button className="absolute right-3 top-1/2 -translate-y-1/2 text-black cursor-pointer">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* 3. Category Nav (하단 메뉴) */}
-      <div className="bg-black text-white border-t border-gray-900 relative">
-        <div className="w-full px-4 flex items-center">
-          {/* 네비게이션 항목 */}
-          <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.bestseller")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.women")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.shoes")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.swimwear")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.yoga")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.accessories")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.pants")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.spot")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.special")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.new")}
-            </Link>
-            <Link
-              href="#"
-              className="hover:text-gray-300 transition-colors cursor-pointer"
-            >
-              {t("nav.activity")}
-            </Link>
-            {/* 주황색 텍스트 */}
-            <Link
-              href="#"
-              className="text-orange-500 hover:text-orange-400 transition-colors cursor-pointer"
-            >
-              {t("nav.agent")}
-            </Link>
-          </nav>
+      {/* 3. Category Nav (하단 메뉴) - ✅ [수정] 심플 페이지가 아닐 때만 노출 */}
+      {!isSimplePage && (
+        <div className="bg-black text-white border-t border-gray-900 relative">
+          <div className="w-full px-4 flex items-center">
+            {/* 네비게이션 항목 */}
+            <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
+              {/* 🛠️ [수정] TOPSALE 버튼 경로 수정: /main/yimili/recommend?gf=A */}
+              <Link
+                href="/main/yimili/recommend?gf=A"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.bestseller")}
+              </Link>
+
+              {/* 🛠️ [추가] Special Offer 버튼 경로 수정: /main/yimili/sale?gf=A */}
+              <Link
+                href="/main/yimili/sale?gf=A"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                Special Offer
+              </Link>
+
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.women")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.shoes")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.swimwear")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.yoga")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.accessories")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.pants")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.spot")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.special")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.new")}
+              </Link>
+              <Link
+                href="#"
+                className="hover:text-gray-300 transition-colors cursor-pointer"
+              >
+                {t("nav.activity")}
+              </Link>
+              {/* 주황색 텍스트 */}
+              <Link
+                href="#"
+                className="text-orange-500 hover:text-orange-400 transition-colors cursor-pointer"
+              >
+                {t("nav.agent")}
+              </Link>
+            </nav>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 🆕 팝업 메가 메뉴 (초기 탭 전달) */}
       {isMenuOpen && (
@@ -398,6 +451,9 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
           initialTab={initialTab}
         />
       )}
+
+      {/* 🔍 [신규] 검색 팝업 (전체 화면 오버레이) */}
+      {isSearchOpen && <SearchPopup onClose={() => setIsSearchOpen(false)} />}
     </header>
   );
 }

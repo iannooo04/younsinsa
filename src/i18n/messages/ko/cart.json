@@ -1,0 +1,14 @@
+{
+  "title": "장바구니",
+  "banner": {
+    "title": "톱스벌스데이 26 컬렉션 발매",
+    "subtitle": "최대 36% 할인"
+  },
+  "empty_message": "장바구니에 담긴 상품이 없습니다.",
+  "view_liked_items": "좋아요한 상품 보기",
+  "recently_viewed_title": "내가 전에 보고 놓쳤던 상품 다시보기",
+  "recommended_title": "스포티 스타일 브랜드 아이템 추천",
+  "continue_shopping": "쇼핑 계속하기",
+  "unit_won": "원",
+  "option_fee_separate": "옵션비 별도"
+}

@@ -244,8 +244,16 @@ export default function CategoryPopup({
   }, [currentCategoryInfo.categoryId]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white text-black shadow-2xl border border-gray-200 rounded-lg w-150 min-h-150 overflow-hidden relative flex flex-col">
+    // 🛠️ [수정] 배경 오버레이 클릭 시 onClose 실행
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      onClick={onClose}
+    >
+      {/* 🛠️ [수정] 팝업 본문 클릭 시 이벤트 전파 방지 (닫힘 방지) */}
+      <div
+        className="bg-white text-black shadow-2xl border border-gray-200 rounded-lg w-150 min-h-150 overflow-hidden relative flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-black z-10"

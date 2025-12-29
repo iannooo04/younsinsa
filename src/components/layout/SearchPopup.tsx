@@ -1,6 +1,4 @@
 // src/components/layout/SearchPopup.tsx
-
-// src/components/layout/SearchPopup.tsx
 "use client";
 
 import React from "react";
@@ -51,17 +49,23 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-start pt-[100px]">
-      {/* 팝업 컨테이너 */}
-      <div className="bg-white w-full max-w-5xl rounded-b-lg shadow-xl overflow-hidden pb-10">
+    // 전체 화면을 덮는 오버레이 (z-50)
+    <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-start">
+      {/* 🛠️ [수정] 검색창 컨테이너
+          - bg-white -> bg-[#F9F9F9] (연한 회색 배경으로 변경)
+          - top-0 absolute: 화면 최상단에 고정
+          - w-full: 가로 꽉 채움
+      */}
+      <div className="absolute top-0 left-0 w-full bg-[#F9F9F9] shadow-xl overflow-hidden pb-10">
         {/* 상단 검색바 영역 */}
-        <div className="flex items-center px-6 py-4 border-b border-gray-100 gap-4">
+        <div className="flex items-center px-6 py-4 border-b border-gray-200 gap-4 max-w-7xl mx-auto w-full">
           <input
             type="text"
             placeholder="검색어를 입력하세요"
-            className="flex-1 text-lg font-bold placeholder-gray-300 outline-none h-10"
+            className="flex-1 text-lg font-bold placeholder-gray-400 outline-none h-10 bg-transparent"
             autoFocus
           />
+          {/* 검색 아이콘 (장식용) */}
           <button className="text-gray-400 hover:text-black">
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -78,9 +82,11 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
               />
             </svg>
           </button>
+
+          {/* 닫기 버튼 */}
           <button
             onClick={onClose}
-            className="text-black hover:bg-gray-100 rounded-full p-1 transition-colors"
+            className="text-black hover:bg-gray-200 rounded-full p-1 transition-colors"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -99,8 +105,8 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
           </button>
         </div>
 
-        {/* 컨텐츠 영역 */}
-        <div className="px-8 py-6 flex flex-col gap-10 h-[600px] overflow-y-auto scrollbar-hide">
+        {/* 컨텐츠 영역 (가운데 정렬을 위해 max-w-7xl mx-auto 추가) */}
+        <div className="max-w-7xl mx-auto w-full px-8 py-6 flex flex-col gap-10 h-[600px] overflow-y-auto scrollbar-hide">
           {/* 1. 최근 검색어 */}
           <div>
             <div className="flex justify-between items-center mb-3">
@@ -113,7 +119,7 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
               {recentSearches.map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer"
+                  className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer shadow-sm"
                 >
                   <span className="text-sm text-gray-600">{item}</span>
                   <button className="text-gray-300 hover:text-black ml-1">

@@ -7,7 +7,14 @@ type AppLocale = (typeof LOCALES)[number];
 
 /** 네임스페이스(슬래시 허용) */
 // notice, popup 등이 포함되어 있는지 확인 필수
-const NAMESPACES = ["home", "header", "footer", "popup", "notice"] as const;
+const NAMESPACES = [
+  "home",
+  "header",
+  "footer",
+  "popup",
+  "notice",
+  "cart",
+] as const;
 type Namespace = (typeof NAMESPACES)[number];
 
 /** 재귀 JSON 타입 (빈 인터페이스 제거) */

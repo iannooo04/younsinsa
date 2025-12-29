@@ -1,0 +1,14 @@
+{
+  "title": "购物车",
+  "banner": {
+    "title": "Tops Birthday 26 系列发布",
+    "subtitle": "最高优惠 36%"
+  },
+  "empty_message": "购物车内没有商品。",
+  "view_liked_items": "查看收藏商品",
+  "recently_viewed_title": "再次查看之前错过的商品",
+  "recommended_title": "运动风格品牌商品推荐",
+  "continue_shopping": "继续购物",
+  "unit_won": "韩元",
+  "option_fee_separate": "选项费用另计"
+}

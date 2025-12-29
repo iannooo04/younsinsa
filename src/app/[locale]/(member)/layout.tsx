@@ -5,10 +5,10 @@ export const revalidate = 0;
 import type { ReactNode } from "react";
 
 export default function MemberLayout({ children }: { children: ReactNode }) {
-  // member 영역은 보통 헤더/푸터 없이 “센터 정렬” 로그인 UI가 많음
+  // 🛠️ [수정] max-w 제한을 완전히 제거하고, 중앙 정렬만 담당하도록 수정
   return (
-    <div className="min-h-dvh bg-base-200 text-base-content flex items-center justify-center p-4">
-      <div className="w-full max-w-md">{children}</div>
+    <div className="min-h-dvh flex flex-col items-center justify-center bg-[#FAFAFA]">
+      {children}
     </div>
   );
 }
