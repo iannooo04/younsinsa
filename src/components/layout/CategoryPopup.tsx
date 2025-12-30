@@ -5,143 +5,14 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 
-// 1) 카테고리 목록: 라우팅에 쓸 categoryId(숫자) 추가
-const CATEGORY_ITEMS: Array<{
-  id: string;
-  label: string;
-  color: string;
-  categoryId: string;
-}> = [
-  { id: "golf", label: "G", color: "bg-green-600", categoryId: "104001" },
-  { id: "shoes", label: "S", color: "bg-blue-600", categoryId: "104002" },
-  { id: "top", label: "T", color: "bg-indigo-600", categoryId: "104003" },
-  { id: "outer", label: "O", color: "bg-gray-600", categoryId: "104004" },
-  { id: "bottom", label: "B", color: "bg-teal-600", categoryId: "104005" },
-  { id: "bag", label: "B", color: "bg-orange-600", categoryId: "104006" },
-  { id: "accessories", label: "A", color: "bg-pink-600", categoryId: "104007" },
-  { id: "underwear", label: "U", color: "bg-purple-600", categoryId: "104008" },
-  { id: "sports", label: "S", color: "bg-red-600", categoryId: "104009" },
-  { id: "digital", label: "D", color: "bg-cyan-600", categoryId: "104010" },
-];
+// 1) [삭제] 하드코딩된 카테고리 목록 제거
+// const CATEGORY_ITEMS = ... (삭제됨)
 
 // 2) 각 카테고리별 서브 아이템 정의 (성별 추가)
-type SubItem = { id: string; icon: string; gender: "common" | "men" | "women" };
+type SubItem = { id: string; icon: string; gender: "common" | "men" | "women"; name?: string };
 
-const GOLF_SUB_ITEMS: SubItem[] = [
-  { id: "driver", icon: "🏌️‍♂️", gender: "common" },
-  { id: "wood", icon: "🪵", gender: "common" },
-  { id: "iron", icon: "🏒", gender: "common" },
-  { id: "putter", icon: "⛳", gender: "common" },
-  { id: "wedge", icon: "📐", gender: "common" },
-  { id: "ball", icon: "⚪", gender: "common" },
-  { id: "bag", icon: "🎒", gender: "common" },
-  { id: "shoes", icon: "👟", gender: "common" },
-  { id: "men_wear", icon: "👕", gender: "men" },
-  { id: "women_wear", icon: "👚", gender: "women" },
-  { id: "cap", icon: "🧢", gender: "common" },
-  { id: "glove", icon: "🧤", gender: "common" },
-  { id: "distance", icon: "📷", gender: "common" },
-  { id: "accessory", icon: "🧳", gender: "common" },
-  { id: "practice", icon: "🚩", gender: "common" },
-];
-
-const SHOES_SUB_ITEMS: SubItem[] = [
-  { id: "sneakers", icon: "👟", gender: "common" },
-  { id: "loafers", icon: "👞", gender: "men" },
-  { id: "boots", icon: "🥾", gender: "women" },
-  { id: "sandals", icon: "👡", gender: "common" },
-  { id: "slippers", icon: "🩴", gender: "common" },
-  { id: "running", icon: "🏃", gender: "common" },
-  { id: "heels", icon: "👠", gender: "women" },
-  { id: "flat", icon: "🩰", gender: "women" },
-];
-
-const TOP_SUB_ITEMS: SubItem[] = [
-  { id: "tshirt", icon: "👕", gender: "common" },
-  { id: "shirt", icon: "👔", gender: "men" },
-  { id: "hoodie", icon: "🧥", gender: "common" },
-  { id: "sweatshirt", icon: "👚", gender: "common" },
-  { id: "knit", icon: "🧶", gender: "common" },
-  { id: "sleeveless", icon: "🎽", gender: "women" },
-];
-
-const OUTER_SUB_ITEMS: SubItem[] = [
-  { id: "jacket", icon: "🧥", gender: "common" },
-  { id: "coat", icon: "🧥", gender: "common" },
-  { id: "padding", icon: "🧣", gender: "common" },
-  { id: "cardigan", icon: "🧶", gender: "women" },
-  { id: "vest", icon: "🦺", gender: "men" },
-  { id: "blazer", icon: "🕴️", gender: "men" },
-];
-
-const BOTTOM_SUB_ITEMS: SubItem[] = [
-  { id: "jeans", icon: "👖", gender: "common" },
-  { id: "slacks", icon: "👖", gender: "men" },
-  { id: "shorts", icon: "🩳", gender: "common" },
-  { id: "skirt", icon: "👗", gender: "women" },
-  { id: "leggings", icon: "🧘", gender: "women" },
-  { id: "sweatpants", icon: "🏃", gender: "common" },
-];
-
-const BAG_SUB_ITEMS: SubItem[] = [
-  { id: "backpack", icon: "🎒", gender: "common" },
-  { id: "tote", icon: "👜", gender: "women" },
-  { id: "shoulder", icon: "🛍️", gender: "women" },
-  { id: "crossbody", icon: "👜", gender: "common" },
-  { id: "clutch", icon: "👛", gender: "women" },
-  { id: "eco", icon: "🥡", gender: "common" },
-];
-
-const ACCESSORIES_SUB_ITEMS: SubItem[] = [
-  { id: "hat", icon: "🧢", gender: "common" },
-  { id: "jewelry", icon: "💍", gender: "women" },
-  { id: "scarf", icon: "🧣", gender: "women" },
-  { id: "belt", icon: "🥋", gender: "men" },
-  { id: "sunglasses", icon: "🕶️", gender: "common" },
-  { id: "watch", icon: "⌚", gender: "common" },
-  { id: "socks", icon: "🧦", gender: "common" },
-];
-
-const UNDERWEAR_SUB_ITEMS: SubItem[] = [
-  { id: "bra", icon: "👙", gender: "women" },
-  { id: "panties", icon: "🩲", gender: "women" },
-  { id: "boxers", icon: "🩳", gender: "men" },
-  { id: "pajamas", icon: "🛌", gender: "common" },
-  { id: "robe", icon: "👘", gender: "women" },
-  { id: "thermal", icon: "🌡️", gender: "common" },
-];
-
-const SPORTS_SUB_ITEMS: SubItem[] = [
-  { id: "gym", icon: "🏋️", gender: "common" },
-  { id: "yoga", icon: "🧘", gender: "women" },
-  { id: "swimwear", icon: "🩱", gender: "common" },
-  { id: "camping", icon: "⛺", gender: "common" },
-  { id: "fishing", icon: "🎣", gender: "men" },
-  { id: "bike", icon: "🚴", gender: "common" },
-];
-
-const DIGITAL_SUB_ITEMS: SubItem[] = [
-  { id: "case", icon: "📱", gender: "common" },
-  { id: "earphone", icon: "🎧", gender: "common" },
-  { id: "charger", icon: "🔋", gender: "common" },
-  { id: "laptop_bag", icon: "💻", gender: "common" },
-  { id: "speaker", icon: "🔊", gender: "common" },
-  { id: "camera", icon: "📸", gender: "common" },
-];
-
-const SUB_ITEMS_MAP: Record<string, SubItem[]> = {
-  golf: GOLF_SUB_ITEMS,
-  shoes: SHOES_SUB_ITEMS,
-  top: TOP_SUB_ITEMS,
-  outer: OUTER_SUB_ITEMS,
-  bottom: BOTTOM_SUB_ITEMS,
-  bag: BAG_SUB_ITEMS,
-  accessories: ACCESSORIES_SUB_ITEMS,
-  underwear: UNDERWEAR_SUB_ITEMS,
-  sports: SPORTS_SUB_ITEMS,
-  digital: DIGITAL_SUB_ITEMS,
-};
-
+// 2) [삭제] 하드코딩된 서브 아이템 및 맵 제거
+// const SUB_ITEMS_MAP = ... (삭제됨)
 // 🧑‍💻 [유틸] 한글 초성 추출 함수
 function getInitialConsonant(text: string) {
   const CHO_HANGUL = [
@@ -270,7 +141,9 @@ export default function CategoryPopup({
   const [selectedTab, setSelectedTab] = useState<
     "category" | "brand" | "service"
   >(initialTab);
-  const [activeCategory, setActiveCategory] = useState<string>("golf");
+  
+  // activeCategory in Dynamic Mode: Stores the ID of the selected admin category
+  const [activeCategory, setActiveCategory] = useState<string>("");
 
   // 🔹 [Brand Tab State]
   const [selectedBrandCategory, setSelectedBrandCategory] = useState("전체");
@@ -280,7 +153,28 @@ export default function CategoryPopup({
   // 🔹 [Gender Filter State]
   const [selectedGender, setSelectedGender] = useState<"all" | "men" | "women">("all");
 
-  // 🔒 [스크롤 잠금] 팝업이 열릴 때 백그라운드 스크롤 방지
+  // 🔹 [Admin Data State]
+  const [adminCategories, setAdminCategories] = useState<any[]>([]);
+
+  // 📡 [Data Fetching]
+  useEffect(() => {
+    fetch("/api/popup/categories")
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setAdminCategories(data);
+          
+          // Set default active category to the first root category
+          const rootCats = data.filter((c: any) => !c.parentId);
+          if (rootCats.length > 0) {
+            setActiveCategory(rootCats[0].id);
+          }
+        }
+      })
+      .catch((err) => console.error("Failed to fetch admin categories:", err));
+  }, []);
+
+  //  [스크롤 잠금] 팝업이 열릴 때 백그라운드 스크롤 방지
   useEffect(() => {
     document.body.style.overflow = "hidden";
     return () => {
@@ -288,21 +182,42 @@ export default function CategoryPopup({
     };
   }, []);
 
+  // 🛠️ [Dynamic Logic] Root & Child Categories
+  const rootCategories = useMemo(() => {
+    return adminCategories.filter(c => !c.parentId);
+  }, [adminCategories]);
+
   const currentCategoryInfo = useMemo(() => {
-    return (
-      CATEGORY_ITEMS.find((c) => c.id === activeCategory) ?? CATEGORY_ITEMS[0]
-    );
-  }, [activeCategory]);
+    const found = rootCategories.find(c => c.id === activeCategory);
+    if (found) {
+        return {
+            id: found.id,
+            label: found.name.charAt(0).toUpperCase(),
+            color: "bg-black", // Default color
+            categoryId: found.code || found.id
+        };
+    }
+    return { id: "", label: "", color: "bg-gray-500", categoryId: "" };
+  }, [activeCategory, rootCategories]);
 
   // 🔍 [필터 로직] 카테고리 성별 필터링
   const currentSubItems = useMemo(() => {
-    const items = SUB_ITEMS_MAP[activeCategory] ?? [];
+    // Admin Dynamic Children
+    const children = adminCategories.filter(c => c.parentId === activeCategory);
+    
+    let items = children.map(c => ({
+        id: c.slug || c.id,
+        icon: c.imageUrl || "📁", // Default icon
+        gender: "common",
+        name: c.name
+    }));
+
     if (selectedGender === "all") return items;
     // common은 항상 포함 + 선택된 성별
     return items.filter(
       (item) => item.gender === "common" || item.gender === selectedGender
     );
-  }, [activeCategory, selectedGender]);
+  }, [activeCategory, selectedGender, adminCategories]);
 
   // ✅ 전체보기용 href(완성된 문자열)
   const categoryHref = useMemo(() => {
@@ -322,11 +237,11 @@ export default function CategoryPopup({
     // 감도 조절: 10 (더 적은 움직임으로도 반응)
     if (e.deltaY > 10) {
       // 아래로 스크롤 -> 다음 카테고리
-      const currentIndex = CATEGORY_ITEMS.findIndex(
+      const currentIndex = rootCategories.findIndex(
         (c) => c.id === activeCategory
       );
-      if (currentIndex < CATEGORY_ITEMS.length - 1) {
-        setActiveCategory(CATEGORY_ITEMS[currentIndex + 1].id);
+      if (currentIndex < rootCategories.length - 1) {
+        setActiveCategory(rootCategories[currentIndex + 1].id);
         isThrottled.current = true;
         setTimeout(() => {
           isThrottled.current = false;
@@ -334,11 +249,11 @@ export default function CategoryPopup({
       }
     } else if (e.deltaY < -10) {
       // 위로 스크롤 -> 이전 카테고리
-      const currentIndex = CATEGORY_ITEMS.findIndex(
+      const currentIndex = rootCategories.findIndex(
         (c) => c.id === activeCategory
       );
       if (currentIndex > 0) {
-        setActiveCategory(CATEGORY_ITEMS[currentIndex - 1].id);
+        setActiveCategory(rootCategories[currentIndex - 1].id);
         isThrottled.current = true;
         setTimeout(() => {
           isThrottled.current = false;
@@ -494,8 +409,12 @@ export default function CategoryPopup({
           {selectedTab === "category" && (
             <div className="flex h-full">
               {/* 왼쪽 카테고리 리스트 */}
+              {/* 왼쪽 카테고리 리스트 */}
               <ul className="w-48 border-r border-gray-100 pr-4 shrink-0 space-y-1 h-full overflow-y-auto px-4 custom-scroll">
-                {CATEGORY_ITEMS.map((item) => (
+                {rootCategories.length === 0 && (
+                     <li className="text-gray-400 text-sm px-4 py-2">Loading...</li>
+                )}
+                {rootCategories.map((item) => (
                   <li
                     key={item.id}
                     onClick={() => setActiveCategory(item.id)}
@@ -505,7 +424,7 @@ export default function CategoryPopup({
                         : "text-gray-600 hover:bg-gray-100"
                     }`}
                   >
-                    {t(`categories.${item.id}`)}
+                    {item.name}
                     {activeCategory === item.id && <span>›</span>}
                   </li>
                 ))}
@@ -520,7 +439,7 @@ export default function CategoryPopup({
                     >
                       {currentCategoryInfo.label}
                     </span>
-                    {t(`headings.${activeCategory}`)}
+                    {currentCategoryInfo.id && rootCategories.find(c => c.id === currentCategoryInfo.id)?.name}
                   </h3>
 
                   <Link
@@ -547,11 +466,19 @@ export default function CategoryPopup({
                         onClick={onClose}
                         className="flex flex-col items-center group cursor-pointer"
                       >
-                        <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform">
-                          {sub.icon}
+                        <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform overflow-hidden">
+                          {sub.icon.startsWith("http") || sub.icon.startsWith("/") ? (
+                            <img
+                              src={sub.icon}
+                              alt={sub.name || t(`${activeCategory}Sub.${sub.id}`)}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            sub.icon
+                          )}
                         </div>
                         <span className="text-xs font-medium text-gray-700 group-hover:text-black text-center">
-                          {t(`${activeCategory}Sub.${sub.id}`)}
+                          {sub.name || t(`${activeCategory}Sub.${sub.id}`)}
                         </span>
                       </Link>
                     );

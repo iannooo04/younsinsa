@@ -19,6 +19,10 @@ const PUBLIC_PATHS = [
     /^\/(?:ko|en|ja|zh|vi)\/home(?:\/.*)?$/,
     /^\/(?:ko|en|ja|zh|vi)\/member\/login(?:\/.*)?$/,
     /^\/(?:ko|en|ja|zh|vi)\/member\/join(?:\/.*)?$/,
+    /^\/features\/event(?:\/.*)?$/,
+    /^\/features\/proxy(?:\/.*)?$/,
+    // ✅ [신규] 팝업 카테고리 데이터 API
+    /^\/api\/popup\/categories(?:\/.*)?$/,
     /^\/api\/auth(?:\/.*)?$/, // NextAuth API
 ];
 
