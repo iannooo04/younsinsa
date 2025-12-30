@@ -161,6 +161,13 @@ const PUBLIC_PATHS: RegExp[] = [
   /^\/api\/auth\/login(?:\/.*)?$/,
   /^\/api\/auth\/logout(?:\/.*)?$/,
   /^\/api\/auth\/signup(?:\/.*)?$/,
+
+  // ✅ [신규] Features (특집 페이지) 공개 허용
+  /^\/features\/immediate(?:\/.*)?$/,
+  /^\/features\/sale(?:\/.*)?$/,
+  /^\/features\/new(?:\/.*)?$/,
+  /^\/features\/event(?:\/.*)?$/,
+  /^\/features\/proxy(?:\/.*)?$/,
 ];
 
 function isPublic(pathname: string): boolean {

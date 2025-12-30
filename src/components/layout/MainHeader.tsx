@@ -91,9 +91,12 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </button>
 
               {/* 왼쪽 탭 메뉴 */}
-              <span className="cursor-pointer hover:text-gray-300 font-bold">
+              <Link
+                href="/main/yimili/recommend?gf=A"
+                className="cursor-pointer hover:text-gray-300 font-bold"
+              >
                 {t("topBar.brand")}
-              </span>
+              </Link>
               <span className="cursor-pointer hover:text-gray-300 font-bold">
                 {t("topBar.beauty")}
               </span>
@@ -356,7 +359,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
           <div className="w-full px-4 flex items-center">
             {/* 네비게이션 항목 */}
             <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
-              {/* 🛠️ [수정] TOPSALE 버튼 경로 수정: /main/yimili/recommend?gf=A */}
+              {/* 🛠️ [수정] TOPSALE 버튼 경로 수정 */}
               <Link
                 href="/main/yimili/recommend?gf=A"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
@@ -373,68 +376,68 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
               </Link>
 
               <Link
-                href="#"
+                href="/category/104003"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.women")}
               </Link>
               <Link
-                href="#"
+                href="/category/104002"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.shoes")}
               </Link>
               <Link
-                href="#"
+                href="/category/104009"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.swimwear")}
               </Link>
               <Link
-                href="#"
+                href="/category/104009"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.yoga")}
               </Link>
               <Link
-                href="#"
+                href="/category/104007"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.accessories")}
               </Link>
               <Link
-                href="#"
+                href="/category/104006"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.pants")}
               </Link>
               <Link
-                href="#"
+                href="/features/immediate"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.spot")}
               </Link>
               <Link
-                href="#"
+                href="/features/sale"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.special")}
               </Link>
               <Link
-                href="#"
+                href="/features/new"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.new")}
               </Link>
               <Link
-                href="#"
+                href="/features/event"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.activity")}
               </Link>
               {/* 주황색 텍스트 */}
               <Link
-                href="#"
+                href="/features/proxy"
                 className="text-orange-500 hover:text-orange-400 transition-colors cursor-pointer"
               >
                 {t("nav.agent")}
