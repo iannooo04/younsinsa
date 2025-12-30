@@ -7,7 +7,7 @@ import { Link } from "@/i18n/routing";
 import useLogin from "./hooks/useLogin";
 
 export default function LoginPage() {
-  const { form, onSubmit, isLoading, errorMessage } = useLogin();
+  const { form, onSubmit, isLoading } = useLogin();
   const {
     register,
     handleSubmit,
@@ -33,7 +33,7 @@ export default function LoginPage() {
           <div className="text-center mb-10">
             <h2 className="flex items-center justify-center gap-3 mb-2">
               <span className="text-[28px] font-black tracking-tighter text-black font-sans">
-                MUSINSA
+                YIMILI
               </span>
               <span className="text-[24px] font-thin text-[#E5E5E5] pb-1">
                 |
@@ -43,7 +43,7 @@ export default function LoginPage() {
               </span>
             </h2>
             <p className="text-[13px] text-black tracking-tight font-medium">
-              무신사, 29CM를 하나의 계정으로 로그인하세요.
+              이미리, 29CM를 하나의 계정으로 로그인하세요.
             </p>
           </div>
 
@@ -57,9 +57,8 @@ export default function LoginPage() {
                 placeholder="통합계정 또는 이메일"
                 {...register("email")}
                 // 🛠️ [복원] h-[42px] -> h-[50px] (사진과 같은 높이로 복원)
-                className={`block w-full h-[50px] px-4 border ${
-                  errors.email ? "border-red-500" : "border-[#E5E5E5]"
-                } rounded-[3px] text-[14px] placeholder-[#B2B2B2] text-black focus:outline-none focus:border-black transition-colors`}
+                className={`block w-full h-[50px] px-4 border ${errors.email ? "border-red-500" : "border-[#E5E5E5]"
+                  } rounded-[3px] text-[14px] placeholder-[#B2B2B2] text-black focus:outline-none focus:border-black transition-colors`}
               />
               {errors.email && (
                 <p className="text-red-500 text-[12px] mt-1 text-left pl-1">
@@ -76,9 +75,8 @@ export default function LoginPage() {
                 placeholder="비밀번호"
                 {...register("password")}
                 // 🛠️ [복원] h-[42px] -> h-[50px]
-                className={`block w-full h-[50px] px-4 border ${
-                  errors.password ? "border-red-500" : "border-[#E5E5E5]"
-                } rounded-[3px] text-[14px] placeholder-[#B2B2B2] text-black focus:outline-none focus:border-black transition-colors`}
+                className={`block w-full h-[50px] px-4 border ${errors.password ? "border-red-500" : "border-[#E5E5E5]"
+                  } rounded-[3px] text-[14px] placeholder-[#B2B2B2] text-black focus:outline-none focus:border-black transition-colors`}
               />
               {/* 눈 아이콘 */}
               <button
@@ -112,12 +110,6 @@ export default function LoginPage() {
               )}
             </div>
 
-            {/* 에러 메시지 */}
-            {errorMessage && (
-              <div className="text-red-500 text-[13px] text-center py-1">
-                {errorMessage}
-              </div>
-            )}
 
             {/* 로그인 버튼 */}
             <button
@@ -206,7 +198,7 @@ export default function LoginPage() {
               신규 가입 즉시 할인 쿠폰 지급
             </span>
             <Link
-              href="/auth/signup"
+              href="/member/join"
               className="inline-block text-[11px] font-bold border border-[#E5E5E5] rounded-[3px] px-3 py-[6px] text-[#333] bg-white hover:text-black hover:border-black transition-colors"
             >
               이메일 회원가입

@@ -15,7 +15,7 @@ function pickFirst(v: string | string[] | undefined): string | undefined {
 }
 
 function isSafeBrandSlug(slug: string): boolean {
-  // 무신사 예시(adidas 등)에 맞춰 보수적으로 제한
+  // 이미리 예시(adidas 등)에 맞춰 보수적으로 제한
   // 필요하면 허용 범위 넓혀도 됨(예: 한글, % 인코딩 등)
   return /^[a-z0-9][a-z0-9-_]{0,63}$/i.test(slug);
 }

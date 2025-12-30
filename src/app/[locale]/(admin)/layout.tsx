@@ -5,6 +5,8 @@ export const revalidate = 0;
 import type { ReactNode } from "react";
 import { headers } from "next/headers";
 
+import AdminSidebar from "@/components/admin/AdminSidebar";
+
 export default async function AdminLayout({
   children,
 }: {
@@ -17,17 +19,26 @@ export default async function AdminLayout({
   const userLevel = Number.isFinite(Number(rawLevel)) ? Number(rawLevel) : 0;
 
   return (
-    <div className="min-h-dvh bg-base-200 text-base-content">
-      <div className="border-b bg-base-100">
-        <div className="mx-auto max-w-6xl px-4 py-3 flex items-center justify-between">
-          <div className="font-semibold">Admin</div>
-          <div className="text-sm opacity-70">
-            {authed ? `level ${userLevel}` : "guest"}
-          </div>
-        </div>
-      </div>
+    <div className="flex min-h-screen bg-base-200 text-base-content overflow-hidden">
+      <AdminSidebar />
 
-      <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="h-16 border-b bg-base-100 flex items-center justify-between px-8 sticky top-0 z-10">
+          <h1 className="text-xl font-bold">Admin Dashboard</h1>
+          <div className="flex items-center gap-4">
+            <div className="text-sm px-3 py-1 bg-base-200 rounded-full font-medium">
+              {authed ? `Level ${userLevel}` : "Guest"}
+            </div>
+            {/* Additional header items like notifications or user profile can go here */}
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-auto p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

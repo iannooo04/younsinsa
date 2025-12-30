@@ -4,7 +4,7 @@ export const revalidate = 0;
 
 import MainHeader from "@/components/layout/MainHeader";
 import MainFooter from "@/components/layout/MainFooter";
-import { headers } from "next/headers";
+import { auth } from "@/auth";
 import type { ReactNode } from "react";
 
 export default async function SiteLayout({
@@ -12,10 +12,10 @@ export default async function SiteLayout({
 }: {
   children: ReactNode;
 }) {
-  const h = await headers();
-  const authed = Boolean(h.get("x-user-id"));
-  const rawLevel = h.get("x-user-level");
-  const userLevel = Number.isFinite(Number(rawLevel)) ? Number(rawLevel) : 0;
+  const session = await auth();
+  const authed = !!session?.user;
+  const user = session?.user as any;
+  const userLevel = user?.level || 1;
 
   return (
     <div className="min-h-dvh bg-base-200 text-base-content flex flex-col">

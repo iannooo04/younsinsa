@@ -1,6 +1,6 @@
 {
   "tabs": {
-    "musinsa": "MUSINSA",
+    "yimili": "YIMILI",
     "beauty": "BEAUTY",
     "player": "PLAYER",
     "outlet": "OUTLET",
@@ -13,8 +13,8 @@
     "title": "公告",
     "viewAll": "查看全部",
     "items": {
-      "0": "关于变更 MUSINSA USED 不可销售商品处理方式的通知",
-      "1": "[Musinsa Store/29CM] 综合服务条款修订通知",
+      "0": "关于变更 YIMILI USED 不可销售商品处理方式的通知",
+      "1": "[Yimili Store/29CM] 综合服务条款修订通知",
       "2": "个人信息处理方针修订预告 (12/15 施行)"
     },
     "dates": {
@@ -28,7 +28,7 @@
     "viewAll": "查看全部",
     "items": {
       "0": "KakaoPay x 新韩卡 支付满 13万韩元 立减 5千韩元",
-      "1": "Musinsa Pay x 三星卡 支付满 15万韩元 立减 5千韩元",
+      "1": "Yimili Pay x 三星卡 支付满 15万韩元 立减 5千韩元",
       "2": "KakaoPay x Pay Money 支付满 10万韩元 立减 4千韩元"
     },
     "badges": {
@@ -39,7 +39,7 @@
   },
   "sitemap": {
     "about": {
-      "title": "关于 Musinsa",
+      "title": "关于 Yimili",
       "items": {
         "0": "公司介绍",
         "1": "业务介绍",
@@ -51,13 +51,13 @@
     "store": {
       "title": "线下门店",
       "items": {
-        "0": "Musinsa Store",
-        "1": "Musinsa Standard",
+        "0": "Yimili Store",
+        "1": "Yimili Standard",
         "2": "29CM",
-        "3": "Musinsa Empty",
-        "4": "Musinsa Square",
-        "5": "Musinsa Beauty",
-        "6": "Musinsa Terrace",
+        "3": "Yimili Empty",
+        "4": "Yimili Square",
+        "5": "Yimili Beauty",
+        "6": "Yimili Terrace",
         "7": "Asnisum"
       }
     },
@@ -67,10 +67,10 @@
         "0": "29CM",
         "1": "Soldout",
         "2": "Empty",
-        "3": "Musinsa Partners",
-        "4": "Musinsa Studio",
-        "5": "Musinsa Trading",
-        "6": "Musinsa Logistics"
+        "3": "Yimili Partners",
+        "4": "Yimili Studio",
+        "5": "Yimili Trading",
+        "6": "Yimili Logistics"
       }
     },
     "partner": {
@@ -91,16 +91,16 @@
       },
       "phone": "客户中心 1544-7199",
       "time": "运营时间 : 平日 09:00 - 18:00 (午休 12:00 - 13:00 除外)",
-      "email": "cs@musinsa.com"
+      "email": "cs@yimili.com"
     }
   },
   "legal": {
-    "copyright": "© MUSINSA ALL RIGHTS RESERVED",
-    "companyInfo": "(株) Musinsa | 代表人 : 赵万浩, 朴俊模 | 地址 : 首尔特别市城东区阿且山路13街11, 1层 (圣水洞2街, Musinsa Campus N1)",
-    "bizInfo": "商业登记号 : 211-88-79575 | 通信销售业 : 2022-首尔城东-01952 | 托管服务商 : (株)Musinsa",
+    "copyright": "© YIMILI ALL RIGHTS RESERVED",
+    "companyInfo": "(株) Yimili | 代表人 : 赵万浩, 朴俊模 | 地址 : 首尔特别市城东区阿且山路13街11, 1层 (圣水洞2街, Yimili Campus N1)",
+    "bizInfo": "商业登记号 : 211-88-79575 | 通信销售业 : 2022-首尔城东-01952 | 托管服务商 : (株)Yimili",
     "guarantee": "本公司已与友利银行签订债务支付担保合同，保障客户现金支付金额的安全交易。",
     "guaranteeCheck": "确认服务加入事实",
-    "disclaimer": "对于部分商品，(株)Musinsa 仅作为通信销售中介者，并非通信销售的当事人。因此，关于商品、商品信息及交易的责任可能会受到限制，具体内容请在各商品页面确认。",
+    "disclaimer": "对于部分商品，(株)Yimili 仅作为通信销售中介者，并非通信销售的当事人。因此，关于商品、商品信息及交易的责任可能会受到限制，具体内容请在各商品页面确认。",
     "links": {
       "0": "个人信息处理方针",
       "1": "使用条款",

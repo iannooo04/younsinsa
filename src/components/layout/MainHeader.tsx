@@ -2,9 +2,11 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { signOut } from "next-auth/react";
 import CategoryPopup from "./CategoryPopup"; // 분리한 컴포넌트 import
 import SearchPopup from "./SearchPopup"; // 🛠️ [신규] 검색 팝업 import
 
@@ -13,11 +15,21 @@ interface MainHeaderProps {
   userLevel?: number; // 유저 레벨
 }
 
-export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
+export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
   const t = useTranslations("header");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // 🚻 성별 필터 상태 (gf: A, M, W)
+  const currentGf = searchParams.get("gf") || "A";
+
+  const getGenderUrl = (gf: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("gf", gf);
+    return `${pathname}?${params.toString()}`;
+  };
 
   // 🍔 햄버거 메뉴 토글 상태 관리
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,8 +49,28 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
 
   // 언어 변경 핸들러
   const handleLanguageChange = (newLocale: string) => {
-    router.replace(pathname, { locale: newLocale });
+    const params = searchParams.toString();
+    const url = params ? `${pathname}?${params}` : pathname;
+    router.replace(url, { locale: newLocale });
   };
+
+  // 로그아웃 핸들러
+  const handleLogout = async () => {
+    // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
+    const homeUrl = `/${locale}/main/yimili/recommend?gf=${currentGf}`;
+    await signOut({ callbackUrl: homeUrl });
+  };
+
+  // 🖱️ 스크롤 상태 관리 (최상단 여부)
+  const [isAtTop, setIsAtTop] = useState(true);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsAtTop(window.scrollY < 10);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   // ✅ [수정] 심플 헤더를 보여줄 경로인지 확인
   // 마이페이지, 장바구니, 오프라인, 좋아요 페이지만 심플 헤더(검색창 숨김) 적용
@@ -52,17 +84,17 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
   return (
     // 배경: 검정, 텍스트: 흰색
     <header className="border-b border-gray-800 bg-black text-white relative z-40">
+
       {/* 1. Top Bar */}
       <div
-        className={`w-full px-4 text-xs flex justify-between items-center relative z-50 ${
-          isSimplePage ? "py-4" : "py-3 border-b border-gray-900"
-        }`}
+        className={`w-full px-4 text-xs flex justify-between items-center relative z-50 ${isSimplePage ? "py-4" : "py-3 border-b border-gray-900"
+          }`}
       >
         <div className="flex gap-6 items-center">
           {/* ✅ [수정 1] 상단 바(Top Bar)에 있는 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
           {isSimplePage ? (
             <Link
-              href="/main/yimili/recommend?gf=A"
+              href={`/main/yimili/recommend?gf=${currentGf}`}
               className="text-xl font-black tracking-tighter text-white cursor-pointer"
             >
               YIMILI
@@ -92,7 +124,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
 
               {/* 왼쪽 탭 메뉴 */}
               <Link
-                href="/main/yimili/recommend?gf=A"
+                href={`/main/yimili/recommend?gf=${currentGf}`}
                 className="cursor-pointer hover:text-gray-300 font-bold"
               >
                 {t("topBar.brand")}
@@ -211,12 +243,28 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
           </Link>
 
           {/* 로그인 버튼 (비로그인 시 노출) */}
-          {!authed && (
+          {!authed ? (
             <Link href="/member/login">
               <button className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer">
                 로그인 / 회원가입
               </button>
             </Link>
+          ) : (
+            <div className="flex items-center gap-1 ml-1">
+              {userLevel >= 21 && (
+                <Link href="/admin">
+                  <button className="border border-orange-500 bg-[#1A1A1A] text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-orange-950 transition-colors tracking-tight cursor-pointer">
+                    관리
+                  </button>
+                </Link>
+              )}
+              <button
+                onClick={handleLogout}
+                className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight cursor-pointer"
+              >
+                로그아웃
+              </button>
+            </div>
           )}
 
           {/* 🌐 언어 변경 드롭다운 */}
@@ -318,7 +366,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
             {/* Logo */}
             {/* ✅ [수정 2] 검색창 왼쪽의 큰 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
             <Link
-              href="/main/yimili/recommend?gf=A"
+              href={`/main/yimili/recommend?gf=${currentGf}`}
               className="text-3xl font-black tracking-tighter text-white shrink-0"
             >
               YIMILI
@@ -361,7 +409,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
             <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
               {/* 🛠️ [수정] TOPSALE 버튼 경로 수정 */}
               <Link
-                href="/main/yimili/recommend?gf=A"
+                href={`/main/yimili/recommend?gf=${currentGf}`}
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.bestseller")}
@@ -369,7 +417,7 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
 
               {/* 🛠️ [추가] Special Offer 버튼 경로 수정: /main/yimili/sale?gf=A */}
               <Link
-                href="/main/yimili/sale?gf=A"
+                href={`/main/yimili/sale?gf=${currentGf}`}
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 Special Offer
@@ -457,6 +505,34 @@ export default function MainHeader({ authed, userLevel }: MainHeaderProps) {
 
       {/* 🔍 [신규] 검색 팝업 (전체 화면 오버레이) */}
       {isSearchOpen && <SearchPopup onClose={() => setIsSearchOpen(false)} />}
+
+      {/* 🚻 [신규] 플로팅 젠더 필터 (하단 중앙 고정) */}
+      {/* yimili 추천/세일 페이지 등 필터가 필요한 곳에서만 노출 (필요 시 조건 추가) */}
+      {!isSimplePage && (
+        <div
+          className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform ${isAtTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"
+            }`}
+        >
+          <div className="bg-white border border-gray-200 rounded-full flex shadow-xl overflow-hidden p-1.5 gap-1">
+            {[
+              { id: "A", label: t("gender.all") },
+              { id: "M", label: t("gender.men") },
+              { id: "W", label: t("gender.women") },
+            ].map((g) => (
+              <Link
+                key={g.id}
+                href={getGenderUrl(g.id)}
+                className={`px-4 py-1.5 text-[12px] font-bold rounded-full transition-all duration-200 ${currentGf === g.id
+                  ? "bg-black text-white shadow-sm"
+                  : "text-gray-500 hover:text-black hover:bg-gray-50"
+                  }`}
+              >
+                {g.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </header>
   );
 }

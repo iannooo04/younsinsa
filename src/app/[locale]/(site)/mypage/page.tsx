@@ -202,10 +202,10 @@ export default function MyPage() {
               <span className="text-[16px] font-bold text-black">5,637원</span>
             </div>
 
-            {/* 무신사머니 */}
+            {/* 이미리머니 */}
             <div className="flex flex-col px-5 border-r border-gray-100 cursor-pointer">
               <div className="flex items-center gap-1 mb-1">
-                <span className="text-[12px] text-gray-800">무신사머니</span>
+                <span className="text-[12px] text-gray-800">이미리머니</span>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 20 20"
@@ -255,7 +255,7 @@ export default function MyPage() {
             {/* 배너 텍스트 */}
             <div className="z-10 ml-[80px]">
               <p className="text-white text-[14px] font-bold">
-                무신사 AI 포토부스
+                이미리 AI 포토부스
               </p>
               <p className="text-white text-[12px] opacity-90">
                 AI로 내 사진을 특별하게 만들어보세요
@@ -301,7 +301,7 @@ export default function MyPage() {
           <MenuItem title="재입고 알림 내역" />
           <MenuItem title="최근 본 상품" />
           <MenuItem
-            title="무신사 USED"
+            title="이미리 USED"
             badge="신규"
             subText="무지 쉬운 중고 거래"
           />
@@ -340,20 +340,20 @@ export default function MyPage() {
           <MenuItem title="체험단 신청/응모 내역" />
           <MenuItem title="래플 응모 내역" />
           <MenuItem title="크리에이터 마켓플레이스" badge="신규" />
-          <MenuItem title="무신사 큐레이터 서비스" badge="신규" />
+          <MenuItem title="이미리 큐레이터 서비스" badge="신규" />
           <MenuItem
-            title="무신사머니/머니 상품권 등록"
+            title="이미리머니/머니 상품권 등록"
             badge="신규"
-            subText="친구에게 무신사를 선물하세요"
+            subText="친구에게 이미리를 선물하세요"
           />
         </section>
 
         {/* ================= Menu Group 3 ================= */}
         <section className="mt-2 bg-white flex flex-col divide-y divide-gray-50">
-          <MenuItem title="무신사페이 관리" />
+          <MenuItem title="이미리페이 관리" />
           <MenuItem
-            title="무신사 현대카드 할인 정보"
-            subText="무신사 첫 결제 즉시 할인과 카드 5% 청구할인받기"
+            title="이미리 현대카드 할인 정보"
+            subText="이미리 첫 결제 즉시 할인과 카드 5% 청구할인받기"
           />
         </section>
 

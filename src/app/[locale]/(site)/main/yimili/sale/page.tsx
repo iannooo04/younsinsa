@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -48,11 +49,10 @@ const FilterChips = ({
     {items.map((item, idx) => (
       <button
         key={idx}
-        className={`px-3 py-1.5 text-[12px] border rounded-[2px] transition-colors ${
-          item === activeItem || (idx === 0 && !activeItem)
+        className={`px-3 py-1.5 text-[12px] border rounded-[2px] transition-colors ${item === activeItem || (idx === 0 && !activeItem)
             ? "bg-black text-white border-black font-bold"
             : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50 hover:text-black"
-        }`}
+          }`}
       >
         {item}
       </button>
@@ -80,6 +80,7 @@ interface ProductProps {
   stockLeft?: number; // 남은 수량
   totalStock?: number; // 전체 수량
   tags?: string[];
+  gender: string;
 }
 
 const ProductCard = ({ item }: { item: ProductProps }) => {
@@ -191,6 +192,7 @@ const LIMITED_ITEMS = [
     isLimited: true,
     stockLeft: 75,
     totalStock: 100,
+    gender: "M",
   },
   {
     id: 2,
@@ -204,6 +206,7 @@ const LIMITED_ITEMS = [
     isLimited: true,
     stockLeft: 30,
     totalStock: 85,
+    gender: "M",
   },
   {
     id: 3,
@@ -217,6 +220,7 @@ const LIMITED_ITEMS = [
     isLimited: true,
     stockLeft: 83,
     totalStock: 100,
+    gender: "M",
   },
   {
     id: 4,
@@ -230,6 +234,7 @@ const LIMITED_ITEMS = [
     isLimited: true,
     stockLeft: 127,
     totalStock: 230,
+    gender: "M",
   },
   {
     id: 5,
@@ -243,6 +248,7 @@ const LIMITED_ITEMS = [
     isLimited: true,
     stockLeft: 103,
     totalStock: 153,
+    gender: "M",
   },
   {
     id: 6,
@@ -256,6 +262,7 @@ const LIMITED_ITEMS = [
     isLimited: true,
     stockLeft: 25,
     totalStock: 50,
+    gender: "M",
   },
 ];
 
@@ -270,6 +277,7 @@ const DAILY_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20210902/2105676/2105676_4_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 12,
@@ -281,6 +289,7 @@ const DAILY_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20220222/2376605/2376605_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 13,
@@ -292,6 +301,7 @@ const DAILY_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20230220/3089602/3089602_16768727823469_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 14,
@@ -303,6 +313,7 @@ const DAILY_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20220901/2763865/2763865_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 15,
@@ -314,6 +325,7 @@ const DAILY_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20230327/3181677/3181677_16798993883398_500.jpg",
     isLimited: false,
+    gender: "W",
   },
 ];
 
@@ -338,7 +350,7 @@ const BRAND_WEEK_BANNERS = [
 const SEASON_OFF_ITEMS = [
   {
     id: 21,
-    brand: "무신사 스탠다드",
+    brand: "이미리 스탠다드",
     name: "캐시미어 블렌드 오버사이즈 싱글 코트 [블랙]",
     price: 139000,
     originalPrice: 0,
@@ -346,10 +358,11 @@ const SEASON_OFF_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20200820/1558847/1558847_3_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 22,
-    brand: "무신사 스탠다드",
+    brand: "이미리 스탠다드",
     name: "캐시미어 100 머플러 [블랙]",
     price: 49900,
     originalPrice: 0,
@@ -357,10 +370,11 @@ const SEASON_OFF_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20201026/1663445/1663445_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 23,
-    brand: "무신사 스탠다드",
+    brand: "이미리 스탠다드",
     name: "와치 캡 [블랙]",
     price: 12900,
     originalPrice: 0,
@@ -368,10 +382,11 @@ const SEASON_OFF_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20191127/1236166/1236166_2_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 24,
-    brand: "무신사 스탠다드",
+    brand: "이미리 스탠다드",
     name: "캐시미어 블렌드 머플러 [그레이]",
     price: 29900,
     originalPrice: 0,
@@ -379,10 +394,11 @@ const SEASON_OFF_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20181023/885642/885642_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 25,
-    brand: "무신사 스탠다드",
+    brand: "이미리 스탠다드",
     name: "미니 어그 부츠 [그레이]",
     price: 39900,
     originalPrice: 0,
@@ -390,6 +406,7 @@ const SEASON_OFF_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221012/2852899/2852899_1_500.jpg",
     isLimited: false,
+    gender: "W",
   },
 ];
 
@@ -404,6 +421,7 @@ const CATEGORY_SALE_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20231018/3638202/3638202_16976100523293_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 32,
@@ -415,6 +433,7 @@ const CATEGORY_SALE_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221102/2916962/2916962_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 33,
@@ -426,6 +445,7 @@ const CATEGORY_SALE_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221013/2855239/2855239_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 34,
@@ -437,6 +457,7 @@ const CATEGORY_SALE_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20220921/2808796/2808796_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 35,
@@ -448,6 +469,7 @@ const CATEGORY_SALE_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221020/2876652/2876652_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
 ];
 
@@ -462,6 +484,7 @@ const COUPON_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221110/2932970/2932970_1_500.jpg",
     isLimited: false,
+    gender: "W",
   },
   {
     id: 42,
@@ -473,6 +496,7 @@ const COUPON_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221110/2932968/2932968_1_500.jpg",
     isLimited: false,
+    gender: "W",
   },
   {
     id: 43,
@@ -484,6 +508,7 @@ const COUPON_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20210310/1836286/1836286_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 44,
@@ -495,6 +520,7 @@ const COUPON_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20230414/3233376/3233376_16814402322313_500.jpg",
     isLimited: false,
+    gender: "A",
   },
   {
     id: 45,
@@ -506,6 +532,7 @@ const COUPON_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20221025/2889240/2889240_1_500.jpg",
     isLimited: false,
+    gender: "W",
   },
 ];
 
@@ -520,6 +547,7 @@ const REWARD_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20210930/2157096/2157096_1_500.jpg",
     isLimited: false,
+    gender: "W",
   },
   {
     id: 52,
@@ -531,6 +559,7 @@ const REWARD_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20230821/3472096/3472096_16925828456885_500.jpg",
     isLimited: false,
+    gender: "W",
   },
   {
     id: 53,
@@ -542,6 +571,7 @@ const REWARD_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20230117/3028308/3028308_16739379899380_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 54,
@@ -553,6 +583,7 @@ const REWARD_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20220905/2769979/2769979_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
   {
     id: 55,
@@ -564,6 +595,7 @@ const REWARD_ITEMS = [
     image:
       "https://image.msscdn.net/images/goods_img/20210825/2085375/2085375_1_500.jpg",
     isLimited: false,
+    gender: "M",
   },
 ];
 
@@ -601,6 +633,31 @@ export default function YimiliSalePage() {
     timeLeft.minutes
   ).padStart(2, "0")}:${String(timeLeft.seconds).padStart(2, "0")}`;
 
+  // 🚻 필터링 로직
+  const searchParams = useSearchParams();
+  const gf = searchParams.get("gf") || "A";
+
+  const filterByGf = (items: any[]) => {
+    if (gf === "A") return items;
+    return items.filter((item) => item.gender === gf || item.gender === "A");
+  };
+
+  const filteredLimitedItems = useMemo(
+    () => filterByGf(LIMITED_ITEMS),
+    [gf]
+  );
+  const filteredDailyItems = useMemo(() => filterByGf(DAILY_ITEMS), [gf]);
+  const filteredSeasonOffItems = useMemo(
+    () => filterByGf(SEASON_OFF_ITEMS),
+    [gf]
+  );
+  const filteredCategorySaleItems = useMemo(
+    () => filterByGf(CATEGORY_SALE_ITEMS),
+    [gf]
+  );
+  const filteredCouponItems = useMemo(() => filterByGf(COUPON_ITEMS), [gf]);
+  const filteredRewardItems = useMemo(() => filterByGf(REWARD_ITEMS), [gf]);
+
   return (
     <div className="bg-white min-h-screen pb-20">
       <div className="w-full">
@@ -612,7 +669,7 @@ export default function YimiliSalePage() {
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 px-4">
             {" "}
             {/* 그리드 내부에만 여백 추가 */}
-            {LIMITED_ITEMS.map((item) => (
+            {filteredLimitedItems.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>
@@ -636,7 +693,7 @@ export default function YimiliSalePage() {
             activeItem="전체"
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
-            {DAILY_ITEMS.map((item) => (
+            {filteredDailyItems.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>
@@ -664,11 +721,10 @@ export default function YimiliSalePage() {
             ].map((tag, idx) => (
               <button
                 key={idx}
-                className={`px-3 py-1 text-[12px] border rounded-full ${
-                  idx === 0
+                className={`px-3 py-1 text-[12px] border rounded-full ${idx === 0
                     ? "border-black font-bold"
                     : "border-gray-200 text-gray-500"
-                }`}
+                  }`}
               >
                 {tag}
               </button>
@@ -698,7 +754,7 @@ export default function YimiliSalePage() {
           {/* 브랜드 위크 하단 상품 리스트 (예시로 5개만) */}
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
             {/* 데이터 재사용 */}
-            {DAILY_ITEMS.slice(0, 5).map((item) => (
+            {filteredDailyItems.slice(0, 5).map((item) => (
               <ProductCard
                 key={item.id}
                 item={{
@@ -727,7 +783,7 @@ export default function YimiliSalePage() {
             activeItem="무탠다드"
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
-            {SEASON_OFF_ITEMS.map((item) => (
+            {filteredSeasonOffItems.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>
@@ -750,7 +806,7 @@ export default function YimiliSalePage() {
             <BlueBanner text="인기 카테고리를 할인 가격으로" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
-            {CATEGORY_SALE_ITEMS.map((item) => (
+            {filteredCategorySaleItems.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>
@@ -772,7 +828,7 @@ export default function YimiliSalePage() {
             activeItem="전체"
           />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
-            {COUPON_ITEMS.map((item) => (
+            {filteredCouponItems.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>
@@ -794,10 +850,10 @@ export default function YimiliSalePage() {
             activeItem="전체"
           />
           <div className="px-4">
-            <BlueBanner text="무신사 최대 혜택가, 차액 적립금 보상" />
+            <BlueBanner text="이미리 최대 혜택가, 차액 적립금 보상" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
-            {REWARD_ITEMS.map((item) => (
+            {filteredRewardItems.map((item) => (
               <ProductCard key={item.id} item={item} />
             ))}
           </div>

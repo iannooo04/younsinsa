@@ -1,6 +1,6 @@
 {
   "tabs": {
-    "musinsa": "MUSINSA",
+    "yimili": "YIMILI",
     "beauty": "BEAUTY",
     "player": "PLAYER",
     "outlet": "OUTLET",
@@ -13,8 +13,8 @@
     "title": "Notice",
     "viewAll": "View All",
     "items": {
-      "0": "Notice regarding changes to handling unsold MUSINSA USED items",
-      "1": "[Musinsa Store/29CM] Notice of Revision to Integrated Service Terms",
+      "0": "Notice regarding changes to handling unsold YIMILI USED items",
+      "1": "[Yimili Store/29CM] Notice of Revision to Integrated Service Terms",
       "2": "Notice of Privacy Policy Revision (Effective Dec 15)"
     },
     "dates": {
@@ -28,7 +28,7 @@
     "viewAll": "View All",
     "items": {
       "0": "5,000 KRW off on KakaoPay x Shinhan Card orders over 130,000 KRW",
-      "1": "5,000 KRW off on Musinsa Pay x Samsung Card orders over 150,000 KRW",
+      "1": "5,000 KRW off on Yimili Pay x Samsung Card orders over 150,000 KRW",
       "2": "4,000 KRW off on KakaoPay x Pay Money orders over 100,000 KRW"
     },
     "badges": {
@@ -39,7 +39,7 @@
   },
   "sitemap": {
     "about": {
-      "title": "About Musinsa",
+      "title": "About Yimili",
       "items": {
         "0": "Company Info",
         "1": "Business Info",
@@ -51,13 +51,13 @@
     "store": {
       "title": "Offline Stores",
       "items": {
-        "0": "Musinsa Store",
-        "1": "Musinsa Standard",
+        "0": "Yimili Store",
+        "1": "Yimili Standard",
         "2": "29CM",
-        "3": "Musinsa Empty",
-        "4": "Musinsa Square",
-        "5": "Musinsa Beauty",
-        "6": "Musinsa Terrace",
+        "3": "Yimili Empty",
+        "4": "Yimili Square",
+        "5": "Yimili Beauty",
+        "6": "Yimili Terrace",
         "7": "Asnisum"
       }
     },
@@ -67,10 +67,10 @@
         "0": "29CM",
         "1": "Soldout",
         "2": "Empty",
-        "3": "Musinsa Partners",
-        "4": "Musinsa Studio",
-        "5": "Musinsa Trading",
-        "6": "Musinsa Logistics"
+        "3": "Yimili Partners",
+        "4": "Yimili Studio",
+        "5": "Yimili Trading",
+        "6": "Yimili Logistics"
       }
     },
     "partner": {
@@ -91,16 +91,16 @@
       },
       "phone": "Customer Center 1544-7199",
       "time": "Hours: Weekdays 09:00 - 18:00 (Lunch 12:00 - 13:00 excluded)",
-      "email": "cs@musinsa.com"
+      "email": "cs@yimili.com"
     }
   },
   "legal": {
-    "copyright": "© MUSINSA ALL RIGHTS RESERVED",
-    "companyInfo": "Musinsa Co., Ltd. | CEO: Man-ho Cho, Jun-mo Park | Address: 1F, 13 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Musinsa Campus N1)",
-    "bizInfo": "Business Registration: 211-88-79575 | E-commerce Permit: 2022-Seoul Seongdong-01952 | Hosting: Musinsa Co., Ltd.",
+    "copyright": "© YIMILI ALL RIGHTS RESERVED",
+    "companyInfo": "Yimili Co., Ltd. | CEO: Man-ho Cho, Jun-mo Park | Address: 1F, 13 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Yimili Campus N1)",
+    "bizInfo": "Business Registration: 211-88-79575 | E-commerce Permit: 2022-Seoul Seongdong-01952 | Hosting: Yimili Co., Ltd.",
     "guarantee": "We guarantee safe transactions through a debt payment guarantee contract with Woori Bank for cash payments.",
     "guaranteeCheck": "Check Service Status",
-    "disclaimer": "For some products, Musinsa Co., Ltd. acts only as a mail-order intermediary and is not a party to the mail-order. Therefore, responsibility for the product, product information, and transaction may be limited. Please check the specific details on each product page.",
+    "disclaimer": "For some products, Yimili Co., Ltd. acts only as a mail-order intermediary and is not a party to the mail-order. Therefore, responsibility for the product, product information, and transaction may be limited. Please check the specific details on each product page.",
     "links": {
       "0": "Privacy Policy",
       "1": "Terms of Service",

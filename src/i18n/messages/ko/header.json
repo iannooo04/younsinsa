@@ -1,4 +1,9 @@
 {
+  "gender": {
+    "all": "전체",
+    "men": "남성",
+    "women": "여성"
+  },
   "topBar": {
     "brand": "YIMILI",
     "beauty": "BEAUTY",

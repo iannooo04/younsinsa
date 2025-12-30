@@ -10,49 +10,49 @@ import Link from "next/link";
 // ----------------------------------------------------------------------
 const TABS = [
   "전체",
-  "무신사 스토어",
-  "무신사 스탠다드",
+  "이미리 스토어",
+  "이미리 스탠다드",
   "29CM",
-  "무신사 엠프티",
-  "무신사 스페이스",
+  "이미리 엠프티",
+  "이미리 스페이스",
   "아즈니섬",
-  "무신사 테라스",
+  "이미리 테라스",
 ];
 
 const STORES = [
   {
     id: 1,
-    name: "무신사 스토어 성수",
+    name: "이미리 스토어 성수",
     address: "서울 성동구 성수동2가 322-13 1F",
   },
   {
     id: 2,
-    name: "무신사 스토어 홍대",
+    name: "이미리 스토어 홍대",
     address: "서울 마포구 양화로 164 (유림빌딩) B1F-3F",
   },
   {
     id: 3,
-    name: "무신사 스토어 대구",
+    name: "이미리 스토어 대구",
     address: "대구 중구 동성로6길 12-13 1F-3F",
   },
   {
     id: 4,
-    name: "무신사 스토어 강남",
+    name: "이미리 스토어 강남",
     address: "서울 서초구 강남대로 441 (서산빌딩) B1F-2F",
   },
   {
     id: 5,
-    name: "무신사 걸즈 타임스퀘어 영등포점",
+    name: "이미리 걸즈 타임스퀘어 영등포점",
     address: "서울 영등포구 영중로 15 (타임스퀘어) 3F",
   },
   {
     id: 6,
-    name: "무신사 메가스토어 용산",
+    name: "이미리 메가스토어 용산",
     address: "서울 용산구 한강대로23길 55 (용산역) 아이파크몰 패션파크 2F",
   },
   {
     id: 7,
-    name: "무신사 킥스 홍대(26.01.09 오픈 예정)",
+    name: "이미리 킥스 홍대(26.01.09 오픈 예정)",
     address: "서울 마포구 양화로 164 (유림빌딩) B1F-3F", // 주소는 예시로 홍대와 동일하게 설정
   },
 ];
@@ -140,7 +140,7 @@ export default function OfflineStorePage() {
               {/* 로고 박스 */}
               <div className="w-10 h-10 bg-[#333333] rounded-md flex flex-col items-center justify-center text-white">
                 <span className="text-[8px] font-light leading-none mb-0.5">
-                  musinsa
+                  yimili
                 </span>
                 <span className="text-[8px] font-bold leading-none">
                   standard
@@ -148,7 +148,7 @@ export default function OfflineStorePage() {
               </div>
               <div className="flex flex-col">
                 <span className="text-[14px] font-bold text-black">
-                  무신사 스탠다드
+                  이미리 스탠다드
                 </span>
                 <span className="text-[12px] text-gray-500">
                   오프라인 크루 채용 공고

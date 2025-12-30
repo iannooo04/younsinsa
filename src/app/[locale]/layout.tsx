@@ -6,13 +6,16 @@ import { notFound } from "next/navigation";
 import { locales, type AppLocale } from "@/i18n/routing";
 
 export const metadata = {
-  title: "Global Trading Bot",
-  description: "AI 기반 자동 거래 시스템",
+  title: "YIMILI | No.1 패션 플랫폼",
+  description: "브랜드 패션부터 뷰티, 라이프스타일까지. 이미리에서 당신만의 스타일을 완성하세요.",
 };
 
 function isAppLocale(value: string): value is AppLocale {
   return (locales as readonly string[]).includes(value);
 }
+
+import SessionProvider from "@/components/auth/SessionProvider";
+import { ToastProvider } from "@/lib/contexts/ToastContext";
 
 export default async function LocaleLayout({
   children,
@@ -34,7 +37,9 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider locale={localeParam} messages={messages}>
-      {children}
+      <SessionProvider>
+        <ToastProvider>{children}</ToastProvider>
+      </SessionProvider>
     </NextIntlClientProvider>
   );
 }

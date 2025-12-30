@@ -1,6 +1,6 @@
 {
   "tabs": {
-    "musinsa": "MUSINSA",
+    "yimili": "YIMILI",
     "beauty": "BEAUTY",
     "player": "PLAYER",
     "outlet": "OUTLET",
@@ -13,8 +13,8 @@
     "title": "Thông báo",
     "viewAll": "Xem tất cả",
     "items": {
-      "0": "Thay đổi quy trình xử lý sản phẩm MUSINSA USED không thể bán",
-      "1": "[Musinsa Store/29CM] Thông báo sửa đổi Điều khoản dịch vụ tích hợp",
+      "0": "Thay đổi quy trình xử lý sản phẩm YIMILI USED không thể bán",
+      "1": "[Yimili Store/29CM] Thông báo sửa đổi Điều khoản dịch vụ tích hợp",
       "2": "Thông báo sửa đổi Chính sách bảo mật (Hiệu lực từ 15/12)"
     },
     "dates": {
@@ -28,7 +28,7 @@
     "viewAll": "Xem tất cả",
     "items": {
       "0": "Giảm 5.000 KRW khi thanh toán KakaoPay x Shinhan Card trên 130.000 KRW",
-      "1": "Giảm 5.000 KRW khi thanh toán Musinsa Pay x Samsung Card trên 150.000 KRW",
+      "1": "Giảm 5.000 KRW khi thanh toán Yimili Pay x Samsung Card trên 150.000 KRW",
       "2": "Giảm 4.000 KRW khi thanh toán KakaoPay x Pay Money trên 100.000 KRW"
     },
     "badges": {
@@ -39,7 +39,7 @@
   },
   "sitemap": {
     "about": {
-      "title": "Về Musinsa",
+      "title": "Về Yimili",
       "items": {
         "0": "Giới thiệu công ty",
         "1": "Giới thiệu kinh doanh",
@@ -51,13 +51,13 @@
     "store": {
       "title": "Cửa hàng Offline",
       "items": {
-        "0": "Musinsa Store",
-        "1": "Musinsa Standard",
+        "0": "Yimili Store",
+        "1": "Yimili Standard",
         "2": "29CM",
-        "3": "Musinsa Empty",
-        "4": "Musinsa Square",
-        "5": "Musinsa Beauty",
-        "6": "Musinsa Terrace",
+        "3": "Yimili Empty",
+        "4": "Yimili Square",
+        "5": "Yimili Beauty",
+        "6": "Yimili Terrace",
         "7": "Asnisum"
       }
     },
@@ -67,10 +67,10 @@
         "0": "29CM",
         "1": "Soldout",
         "2": "Empty",
-        "3": "Musinsa Partners",
-        "4": "Musinsa Studio",
-        "5": "Musinsa Trading",
-        "6": "Musinsa Logistics"
+        "3": "Yimili Partners",
+        "4": "Yimili Studio",
+        "5": "Yimili Trading",
+        "6": "Yimili Logistics"
       }
     },
     "partner": {
@@ -91,16 +91,16 @@
       },
       "phone": "Trung tâm CSKH 1544-7199",
       "time": "Giờ làm việc: Ngày thường 09:00 - 18:00 (Nghỉ trưa 12:00 - 13:00)",
-      "email": "cs@musinsa.com"
+      "email": "cs@yimili.com"
     }
   },
   "legal": {
-    "copyright": "© MUSINSA ALL RIGHTS RESERVED",
-    "companyInfo": "Công ty TNHH Musinsa | Đại diện: Cho Man-ho, Park Jun-mo | Địa chỉ: Tầng 1, 11 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Musinsa Campus N1)",
-    "bizInfo": "ĐKKD: 211-88-79575 | Giấy phép TMĐT: 2022-Seoul Seongdong-01952 | Đơn vị lưu trữ: Công ty TNHH Musinsa",
+    "copyright": "© YIMILI ALL RIGHTS RESERVED",
+    "companyInfo": "Công ty TNHH Yimili | Đại diện: Cho Man-ho, Park Jun-mo | Địa chỉ: Tầng 1, 11 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Yimili Campus N1)",
+    "bizInfo": "ĐKKD: 211-88-79575 | Giấy phép TMĐT: 2022-Seoul Seongdong-01952 | Đơn vị lưu trữ: Công ty TNHH Yimili",
     "guarantee": "Chúng tôi đảm bảo giao dịch an toàn thông qua hợp đồng bảo lãnh thanh toán nợ với Woori Bank cho các khoản thanh toán bằng tiền mặt.",
     "guaranteeCheck": "Kiểm tra đăng ký dịch vụ",
-    "disclaimer": "Đối với một số sản phẩm, Musinsa chỉ đóng vai trò trung gian và không phải là bên bán hàng trực tiếp. Do đó, trách nhiệm về sản phẩm, thông tin sản phẩm và giao dịch có thể bị giới hạn. Vui lòng kiểm tra chi tiết trên trang sản phẩm.",
+    "disclaimer": "Đối với một số sản phẩm, Yimili chỉ đóng vai trò trung gian và không phải là bên bán hàng trực tiếp. Do đó, trách nhiệm về sản phẩm, thông tin sản phẩm và giao dịch có thể bị giới hạn. Vui lòng kiểm tra chi tiết trên trang sản phẩm.",
     "links": {
       "0": "Chính sách bảo mật",
       "1": "Điều khoản sử dụng",

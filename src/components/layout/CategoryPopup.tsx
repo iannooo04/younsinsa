@@ -181,7 +181,7 @@ type BrandData = {
 };
 
 const ALL_BRANDS_DATA: BrandData[] = [
-  { name: "무신사 스탠다드 우먼", enName: "MUSINSA STANDARD WOMAN", slug: "musinsa-standard", category: "의류", tag: "단독" },
+  { name: "이미리 스탠다드 우먼", enName: "YIMILI STANDARD WOMAN", slug: "yimili-standard", category: "의류", tag: "단독" },
   { name: "아디다스", enName: "ADIDAS", slug: "adidas", category: "스포츠/레저" },
   { name: "노스페이스", enName: "THE NORTH FACE", slug: "northface", category: "스포츠/레저" },
   { name: "뉴발란스", enName: "NEW BALANCE", slug: "newbalance", category: "신발" },
@@ -712,8 +712,8 @@ export default function CategoryPopup({
                             {/* Brand Logo Placeholder */}
                             <div className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0">
                               {/* In a real app, use <Image> */}
-                              {brand.slug === "musinsa-standard" ? (
-                                <span className="text-black">MUSINSA</span>
+                              {brand.slug === "yimili-standard" ? (
+                                <span className="text-black">YIMILI</span>
                               ) : (
                                 brand.name.substring(0, 2)
                               )}

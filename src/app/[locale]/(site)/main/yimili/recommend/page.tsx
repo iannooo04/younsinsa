@@ -1,7 +1,8 @@
 // src/app/[locale]/(site)/main/recommend/page.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/i18n/routing";
 
@@ -133,14 +134,14 @@ export default function HomePage() {
       icon: "🎫",
       bg: "bg-yellow-100",
     },
-    { id: 2, title: "무신사 AI 포토부스", icon: "🤖", bg: "bg-blue-100" },
+    { id: 2, title: "이미리 AI 포토부스", icon: "🤖", bg: "bg-blue-100" },
     { id: 3, title: "100원 래플 x 투썸", icon: "🍰", bg: "bg-red-50" },
     { id: 4, title: "최저가 보상제", icon: "💰", bg: "bg-orange-50" },
     { id: 5, title: "매일 아울렛 입고", icon: "🧥", bg: "bg-orange-100" },
     { id: 6, title: "최대 8% 적립", icon: "M", bg: "bg-black text-white" },
     { id: 7, title: "타임세일", icon: "⏰", bg: "bg-gray-100" },
     { id: 8, title: "라이브", icon: "📺", bg: "bg-gray-100" },
-    { id: 9, title: "무신사 월간 랭킹", icon: "🏆", bg: "bg-yellow-50" },
+    { id: 9, title: "이미리 월간 랭킹", icon: "🏆", bg: "bg-yellow-50" },
     { id: 10, title: "체험단", icon: "🧢", bg: "bg-blue-50" },
   ];
 
@@ -153,6 +154,7 @@ export default function HomePage() {
       price: "53,100원",
       discount: "10%",
       img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 2,
@@ -161,6 +163,7 @@ export default function HomePage() {
       price: "79,900원",
       discount: "58%",
       img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 3,
@@ -169,6 +172,7 @@ export default function HomePage() {
       price: "99,000원",
       discount: "",
       img: "https://images.unsplash.com/photo-1614252235316-06f87760bca8?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 4,
@@ -177,6 +181,7 @@ export default function HomePage() {
       price: "39,900원",
       discount: "50%",
       img: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 5,
@@ -185,6 +190,7 @@ export default function HomePage() {
       price: "141,550원",
       discount: "29%",
       img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 6,
@@ -193,6 +199,7 @@ export default function HomePage() {
       price: "178,200원",
       discount: "10%",
       img: "https://images.unsplash.com/photo-1551488852-d81a2506e3df?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 7,
@@ -201,6 +208,7 @@ export default function HomePage() {
       price: "289,000원",
       discount: "15%",
       img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 8,
@@ -209,6 +217,7 @@ export default function HomePage() {
       price: "210,000원",
       discount: "",
       img: "https://images.unsplash.com/photo-1605034313761-73ea4a0cfbf3?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 9,
@@ -217,6 +226,7 @@ export default function HomePage() {
       price: "228,000원",
       discount: "10%",
       img: "https://images.unsplash.com/photo-1520975661595-64536ef86809?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
     },
     {
       id: 10,
@@ -225,8 +235,37 @@ export default function HomePage() {
       price: "49,000원",
       discount: "12%",
       img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80",
+      gender: "M",
+    },
+    // 여성 상품 추가 (필터링 테스트용)
+    {
+      id: 11,
+      brand: "닉앤니콜",
+      name: "에센셜 부클 가디건_WHITE",
+      price: "45,000원",
+      discount: "20%",
+      img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80",
+      gender: "W",
+    },
+    {
+      id: 12,
+      brand: "시티브리즈",
+      name: "링클 프리 셔츠_SKY BLUE",
+      price: "39,000원",
+      discount: "15%",
+      img: "https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?auto=format&fit=crop&w=600&q=80",
+      gender: "W",
     },
   ];
+
+  // 3. 필터링 로직
+  const searchParams = useSearchParams();
+  const gf = searchParams.get("gf") || "A";
+
+  const filteredProducts = useMemo(() => {
+    if (gf === "A") return products;
+    return products.filter((p) => p.gender === gf);
+  }, [gf]);
 
   return (
     <div className="bg-white min-h-screen text-black">
@@ -427,7 +466,7 @@ export default function HomePage() {
 
         {/* 🛠️ [수정] 그리드 디자인: md:grid-cols-5로 변경하여 한 줄에 5개 표시 */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-10">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <div
               key={product.id}
               className="group cursor-pointer flex flex-col"

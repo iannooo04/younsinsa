@@ -20,7 +20,7 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
     { rank: 5, keyword: "코트", status: "-" },
     { rank: 6, keyword: "맨투맨", status: "-" },
     { rank: 7, keyword: "경량패딩", status: "-" },
-    { rank: 8, keyword: "무신사 스탠다드", status: "-" },
+    { rank: 8, keyword: "이미리 스탠다드", status: "-" },
     { rank: 9, keyword: "어그", status: "up" },
     { rank: 10, keyword: "목도리", status: "up" },
   ];

@@ -1,4 +1,9 @@
 {
+  "gender": {
+    "all": "全部",
+    "men": "男装",
+    "women": "女装"
+  },
   "topBar": {
     "brand": "YIMILI",
     "beauty": "BEAUTY",
