@@ -10,7 +10,8 @@ import {
     Tags,
     Settings,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Image,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -20,6 +21,7 @@ const menuItems = [
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Orders", href: "/admin/orders", icon: ListOrdered },
     { name: "Categories", href: "/admin/categories", icon: Tags },
+    { name: "Images", href: "/admin/images", icon: Image },
     { name: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

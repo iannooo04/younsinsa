@@ -8,11 +8,11 @@ import { Readable } from "stream";
 // Actually, it's better to export s3Client from lib/s3.ts to DRY.
 // For now, I'll duplicate the config to be safe and independent.
 
-const accessKeyId = (process.env.S3_ACCESS_KEY || "").trim();
-const secretAccessKey = (process.env.S3_SECRET_KEY || "").trim();
-const endpoint = (process.env.S3_ENDPOINT || "").trim();
-const region = (process.env.S3_REGION || "us-east-1").trim();
-const bucketName = (process.env.S3_BUCKET_NAME || "").trim();
+const accessKeyId = (process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || "").trim();
+const secretAccessKey = (process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || "").trim();
+const endpoint = (process.env.AWS_ENDPOINT_URL || process.env.S3_ENDPOINT || "").trim();
+const region = (process.env.AWS_DEFAULT_REGION || process.env.S3_REGION || "us-east-1").trim();
+const bucketName = (process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME || "").trim();
 
 const s3Client = new S3Client({
     region,
