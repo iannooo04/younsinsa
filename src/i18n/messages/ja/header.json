@@ -16,7 +16,16 @@
     "userPrefix": "会員",
     "userSuffix": "様"
   },
-  "searchPlaceholder": "商品番号 / 商品ID",
+  "menu": {
+    "offline": "オフラインストア",
+    "search": "検索",
+    "like": "お気に入り",
+    "my": "マイページ",
+    "cart": "カート",
+    "admin": "管理",
+    "loginSignup": "ログイン / 会員登録"
+  },
+  "searchPlaceholder": "製品番号 / 製品ID",
   "nav": {
     "bestseller": "トップセール",
     "women": "レディース",

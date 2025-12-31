@@ -16,6 +16,15 @@
     "userPrefix": "Thành viên ",
     "userSuffix": ""
   },
+  "menu": {
+    "offline": "Cửa hàng",
+    "search": "Tìm kiếm",
+    "like": "Yêu thích",
+    "my": "Cá nhân",
+    "cart": "Giỏ hàng",
+    "admin": "Quản trị",
+    "loginSignup": "Đăng nhập / Đăng ký"
+  },
   "searchPlaceholder": "Mã sản phẩm / ID sản phẩm",
   "nav": {
     "bestseller": "Bán chạy",

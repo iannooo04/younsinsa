@@ -16,6 +16,15 @@
     "userPrefix": "회원",
     "userSuffix": "님"
   },
+  "menu": {
+    "offline": "오프라인 스토어",
+    "search": "검색",
+    "like": "좋아요",
+    "my": "마이",
+    "cart": "장바구니",
+    "admin": "관리",
+    "loginSignup": "로그인 / 회원가입"
+  },
   "searchPlaceholder": "제품 번호/제품 ID",
   "nav": {
     "bestseller": "TOPSALE",

@@ -16,6 +16,15 @@
     "userPrefix": "Hello, ",
     "userSuffix": ""
   },
+  "menu": {
+    "offline": "Offline Store",
+    "search": "Search",
+    "like": "Like",
+    "my": "My",
+    "cart": "Cart",
+    "admin": "Admin",
+    "loginSignup": "Login / Sign up"
+  },
   "searchPlaceholder": "Product No / Product ID",
   "nav": {
     "bestseller": "Top Sale",

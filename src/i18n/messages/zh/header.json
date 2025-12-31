@@ -16,6 +16,15 @@
     "userPrefix": "会员",
     "userSuffix": "您好"
   },
+  "menu": {
+    "offline": "线下门店",
+    "search": "搜索",
+    "like": "收藏",
+    "my": "我的",
+    "cart": "购物车",
+    "admin": "管理",
+    "loginSignup": "登录 / 注册"
+  },
   "searchPlaceholder": "商品编号 / 商品ID",
   "nav": {
     "bestseller": "热销榜",
