@@ -361,7 +361,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
 
       {/* 2. Main Header (로고 & 검색창 영역) - ✅ [수정] 심플 페이지가 아닐 때만 노출 */}
       {!isSimplePage && (
-        <div className="w-full px-4 py-6">
+        <div className="w-full px-4 pt-4 pb-0">
           <div className="flex items-center justify-between gap-8">
             {/* Logo */}
             {/* ✅ [수정 2] 검색창 왼쪽의 큰 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
