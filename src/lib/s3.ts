@@ -1,12 +1,13 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, DeleteObjectsCommand, ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
 
-const accessKeyId = (process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || "").trim();
-const secretAccessKey = (process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || "").trim();
-const endpoint = (process.env.AWS_ENDPOINT_URL || process.env.S3_ENDPOINT || "").trim();
-const bucketName = (process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME || "").trim();
-const region = (process.env.AWS_DEFAULT_REGION || process.env.S3_REGION || "us-east-1").trim();
+const accessKeyId = (process.env.R2_ACCESS_KEY_ID || process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || "").trim();
+const secretAccessKey = (process.env.R2_SECRET_ACCESS_KEY || process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || "").trim();
+const endpoint = (process.env.R2_ENDPOINT || process.env.AWS_ENDPOINT_URL || process.env.S3_ENDPOINT || "").trim();
+export const bucketName = (process.env.R2_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME || "").trim();
+const region = (process.env.AWS_DEFAULT_REGION || process.env.S3_REGION || "auto").trim();
+const cdnUrl = (process.env.NEXT_PUBLIC_CDN_URL || "").trim();
 
-const s3Client = new S3Client({
+export const s3Client = new S3Client({
   region: region,
   endpoint: endpoint,
   credentials: {
@@ -17,9 +18,9 @@ const s3Client = new S3Client({
 });
 
 export async function uploadFile(file: Buffer, filename: string, contentType: string) {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
+  const bucketName = process.env.R2_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
   if (!bucketName) {
-    throw new Error("AWS_S3_BUCKET_NAME is not defined");
+    throw new Error("Bucket name is not defined");
   }
 
   const command = new PutObjectCommand({
@@ -32,14 +33,16 @@ export async function uploadFile(file: Buffer, filename: string, contentType: st
 
   await s3Client.send(command);
 
-  // Return Proxy URL
-  // Format: /api/images?key=filename
-  // We use encodeURIComponent to ensure the key is safe (though filename is usually safe)
+  // Return CDN URL if available, otherwise Proxy URL
+  if (cdnUrl) {
+    return `${cdnUrl}/${filename}`;
+  }
+
   return `/api/images?key=${encodeURIComponent(filename)}`;
 }
 
 export async function deleteFile(fileUrl: string) {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
+  const bucketName = process.env.R2_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
   if (!bucketName) return;
 
   try {
@@ -69,38 +72,38 @@ export async function deleteFile(fileUrl: string) {
 }
 
 export async function deleteFolder(prefix: string) {
-    const bucketName = process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
-    if (!bucketName) return;
+  const bucketName = process.env.R2_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
+  if (!bucketName) return;
 
-    try {
-        let continuationToken: string | undefined = undefined;
-        do {
-            const listCommand = new ListObjectsV2Command({
-                Bucket: bucketName,
-                Prefix: prefix,
-                ContinuationToken: continuationToken,
-            });
-            const listResponse: ListObjectsV2CommandOutput = await s3Client.send(listCommand);
+  try {
+    let continuationToken: string | undefined = undefined;
+    do {
+      const listCommand = new ListObjectsV2Command({
+        Bucket: bucketName,
+        Prefix: prefix,
+        ContinuationToken: continuationToken,
+      });
+      const listResponse: ListObjectsV2CommandOutput = await s3Client.send(listCommand);
 
-            if (listResponse.Contents && listResponse.Contents.length > 0) {
-                const deleteParams = {
-                    Bucket: bucketName,
-                    Delete: {
-                        Objects: listResponse.Contents.map((content) => ({ Key: content.Key! })),
-                        Quiet: true,
-                    },
-                };
-                await s3Client.send(new DeleteObjectsCommand(deleteParams));
-            }
-            continuationToken = listResponse.NextContinuationToken;
-        } while (continuationToken);
-    } catch (error) {
-        console.error("Error deleting folder from S3:", error);
-    }
+      if (listResponse.Contents && listResponse.Contents.length > 0) {
+        const deleteParams = {
+          Bucket: bucketName,
+          Delete: {
+            Objects: listResponse.Contents.map((content) => ({ Key: content.Key! })),
+            Quiet: true,
+          },
+        };
+        await s3Client.send(new DeleteObjectsCommand(deleteParams));
+      }
+      continuationToken = listResponse.NextContinuationToken;
+    } while (continuationToken);
+  } catch (error) {
+    console.error("Error deleting folder from S3:", error);
+  }
 }
 
 export async function listFiles(prefix = "") {
-  const bucketName = process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
+  const bucketName = process.env.R2_BUCKET_NAME || process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
   if (!bucketName) return { folders: [], files: [] };
 
   try {
