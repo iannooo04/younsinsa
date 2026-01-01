@@ -438,8 +438,13 @@ export default function CategoryPopup({
                    </Link>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 custom-scroll">
-                  <div className="space-y-2">
+                <div className="flex-1 overflow-y-auto p-8 custom-scroll">
+                  {currentSubItems.length === 0 ? (
+                      <div className="h-full flex items-center justify-center text-gray-400">
+                          {t("noItems")}
+                      </div>
+                  ) : (
+                  <div className="grid grid-cols-4 gap-6 pb-10">
                   {currentSubItems.map((sub) => {
                     const subHref = buildCategoryHref(
                       currentCategoryInfo.categoryId,
@@ -452,35 +457,27 @@ export default function CategoryPopup({
                         key={sub.id}
                         href={subHref}
                         onClick={onClose}
-                        className="flex items-center justify-between group cursor-pointer py-1"
+                        className="flex flex-col items-center group cursor-pointer"
                       >
-                        <div className="flex items-center gap-3">
-                           {/* Icon */}
-                           <div className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] overflow-hidden shrink-0">
+                        <div className="w-16 h-16 mb-3 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
                              {sub.icon.startsWith("http") || sub.icon.startsWith("/") ? (
                                <img
                                  src={sub.icon}
                                  alt={sub.name}
-                                 className="w-full h-full object-cover"
+                                 className="h-full w-auto object-contain"
                                />
                              ) : (
-                               <span className="text-gray-400">{sub.icon}</span>
+                               <span className="text-4xl text-gray-400 group-hover:text-black transition-colors">{sub.icon}</span>
                              )}
-                           </div>
-                           <span className="text-sm font-bold text-black group-hover:underline">
-                             {sub.name || t(`${activeCategory}Sub.${sub.id}`)}
-                           </span>
                         </div>
-                        {/* Arrow Icon for navigation indication */}
-                         <div className="text-gray-300 group-hover:text-black transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
-                            </svg>
-                         </div>
+                        <span className="text-xs font-medium text-gray-600 text-center group-hover:text-black group-hover:font-bold break-keep leading-tight px-1">
+                             {sub.name || t(`${activeCategory}Sub.${sub.id}`)}
+                        </span>
                       </Link>
                     );
                   })}
                   </div>
+                  )}
                 </div>
               </div>
             </div>
