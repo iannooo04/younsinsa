@@ -95,12 +95,12 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
           {isSimplePage ? (
             <Link
               href={`/main/nkbus/recommend?gf=${currentGf}`}
-              className="cursor-pointer relative block w-[120px] h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
+              className="cursor-pointer relative block w-[100px] h-[30px] md:w-[120px] md:h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
             >
               <img 
                 src="/images/nkbus_logo_white.png" 
                 alt="NKBUS" 
-                className="absolute top-1/2 left-0 -translate-y-1/2 h-[80px] w-auto max-w-none object-contain" // 이미지는 크게 (부모 영역 무시)
+                className="absolute top-1/2 left-0 -translate-y-1/2 h-[60px] md:h-[80px] w-auto max-w-none object-contain" // 이미지는 크게 (부모 영역 무시)
               />
             </Link>
           ) : (
@@ -129,17 +129,17 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               {/* 왼쪽 탭 메뉴 */}
               <Link
                 href={`/main/nkbus/recommend?gf=${currentGf}`}
-                className="cursor-pointer hover:text-gray-300 font-bold"
+                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
               >
                 {t("topBar.brand")}
               </Link>
-              <span className="cursor-pointer hover:text-gray-300 font-bold">
+              <span className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">
                 {t("topBar.beauty")}
               </span>
-              <span className="cursor-pointer hover:text-gray-300 font-bold">
+              <span className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">
                 {t("topBar.player")}
               </span>
-              <span className="cursor-pointer hover:text-gray-300 font-bold">
+              <span className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">
                 {t("topBar.outlet")}
               </span>
             </>
@@ -149,9 +149,10 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
         {/* 🛠️ 우측 메뉴 영역 */}
         <div className="flex gap-5 items-center text-xs">
           {/* 오프라인 스토어 */}
+          {/* 오프라인 스토어 */}
           <Link
             href="/offline"
-            className="flex items-center gap-5 border-r border-gray-700 pr-5 cursor-pointer"
+            className="flex items-center gap-5 border-r border-gray-700 pr-5 cursor-pointer hidden md:flex"
           >
             <span className="hover:text-gray-300 font-medium">
               {t("menu.offline")}
@@ -177,7 +178,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
                 d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
               />
             </svg>
-            <span>{t("menu.search")}</span>
+            <span className="hidden md:inline">{t("menu.search")}</span>
           </button>
 
           {/* 좋아요 (아이콘 + 텍스트) */}
@@ -199,7 +200,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
                 d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
               />
             </svg>
-            <span>{t("menu.like")}</span>
+            <span className="hidden md:inline">{t("menu.like")}</span>
           </Link>
 
           {/* 마이 (아이콘 + 텍스트) */}
@@ -221,7 +222,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
               />
             </svg>
-            <span>{t("menu.my")}</span>
+            <span className="hidden md:inline">{t("menu.my")}</span>
           </Link>
 
           {/* 장바구니 (아이콘 + 텍스트) */}
@@ -243,7 +244,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
                 d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
               />
             </svg>
-            <span>{t("menu.cart")}</span>
+            <span className="hidden md:inline">{t("menu.cart")}</span>
           </Link>
 
           {/* 로그인 버튼 (비로그인 시 노출) */}
@@ -366,17 +367,17 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
       {/* 2. Main Header (로고 & 검색창 영역) - ✅ [수정] 심플 페이지가 아닐 때만 노출 */}
       {!isSimplePage && (
         <div className="w-full px-4 pt-4 pb-0">
-          <div className="flex items-center justify-between gap-8">
+          <div className="flex items-center justify-between gap-2 md:gap-8">
             {/* Logo */}
             {/* ✅ [수정 2] 검색창 왼쪽의 큰 NKBUS 로고 클릭 시 추천 페이지로 이동 */}
             <Link
               href={`/main/nkbus/recommend?gf=${currentGf}`}
-              className="shrink-0 cursor-pointer relative block w-[160px] h-[60px]" // 부모 높이는 작게
+              className="shrink-0 cursor-pointer relative block w-[120px] h-[40px] md:w-[160px] md:h-[60px]" // 부모 높이는 작게
             >
               <img 
                 src="/images/nkbus_logo_white.png" 
                 alt="NKBUS" 
-                className="absolute top-1/2 left-0 -translate-y-1/2 h-[120px] w-auto max-w-none object-contain" // 이미지는 크게
+                className="absolute top-1/2 left-0 -translate-y-1/2 h-[80px] md:h-[120px] w-auto max-w-none object-contain" // 이미지는 크게
               />
             </Link>
 

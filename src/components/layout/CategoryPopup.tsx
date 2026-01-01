@@ -640,8 +640,9 @@ export default function CategoryPopup({
                           <div className="flex items-center gap-3">
                             {/* Brand Logo Placeholder */}
                             <div className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0">
-                              {/* In a real app, use <Image> */}
-                              {brand.slug === "nkbus-standard" ? (
+                              {brand.logoUrl ? (
+                                <img src={brand.logoUrl} alt={brand.name} className="w-full h-full object-cover" />
+                              ) : brand.slug === "nkbus-standard" ? (
                                 <span className="text-black">NKBUS</span>
                               ) : (
                                 brand.name.substring(0, 2)
