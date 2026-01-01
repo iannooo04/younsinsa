@@ -142,7 +142,7 @@ export default function CategoryPopup({
                     id: b.id,
                     parentId: b.parentId,
                     name: b.name,
-                    enName: "", 
+                    enName: b.enName, 
                     slug: b.slug || b.id,
                     category: b.category || "기타",
                     logoUrl: b.logoUrl,
@@ -282,7 +282,7 @@ export default function CategoryPopup({
     if (selectedConsonant !== "인기") {
       if (selectedConsonant === "A-Z") {
         // 영문 시작
-        result = result.filter((brand) => brand.enName && /^[A-Z]/i.test(brand.enName));
+        result = result.filter((brand) => /^[A-Za-z]/.test(brand.name) || (brand.enName && /^[A-Za-z]/.test(brand.enName)));
       } else if (selectedConsonant === "0-9") {
         // 숫자 시작
         result = result.filter((brand) => /^[0-9]/.test(brand.name) || (brand.enName && /^[0-9]/.test(brand.enName)));
@@ -304,7 +304,7 @@ export default function CategoryPopup({
     >
       {/* 팝업 본문 */}
       <div
-        className="bg-white text-black shadow-2xl border border-gray-200 rounded-lg w-150 h-150 overflow-hidden relative flex flex-col"
+        className="bg-white text-black shadow-2xl border border-gray-200 rounded-lg w-150 h-[700px] overflow-hidden relative flex flex-col"
         onClick={(e) => e.stopPropagation()}
         onWheel={handleWheel}
       >
@@ -403,50 +403,43 @@ export default function CategoryPopup({
         <div className="flex-1 overflow-hidden min-h-0 relative">
           {selectedTab === "category" && (
             <div className="flex h-full">
-              {/* 왼쪽 카테고리 리스트 */}
-              {/* 왼쪽 카테고리 리스트 */}
-              <ul className="w-48 border-r border-gray-100 pr-4 shrink-0 space-y-1 h-full overflow-y-auto px-4 custom-scroll">
+              {/* 왼쪽 카테고리 리스트 (Brand 스타일 적용) */}
+              <ul className="w-32 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
                 {rootCategories.length === 0 && (
-                     <li className="text-gray-400 text-sm px-4 py-2">Loading...</li>
+                     <li className="text-gray-400 text-sm px-4 py-3">Loading...</li>
                 )}
                 {rootCategories.map((item) => (
                   <li
                     key={item.id}
                     onClick={() => setActiveCategory(item.id)}
-                    className={`cursor-pointer px-4 py-2 text-sm font-medium rounded-md flex justify-between items-center transition-colors ${
+                    className={`cursor-pointer px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
                       activeCategory === item.id
-                        ? "bg-black text-white"
-                        : "text-gray-600 hover:bg-gray-100"
+                        ? "bg-white text-black font-bold"
+                        : ""
                     }`}
                   >
                     {item.name}
-                    {activeCategory === item.id && <span>›</span>}
                   </li>
                 ))}
               </ul>
 
-              {/* 오른쪽 상세 아이템 리스트 */}
-              <div className="flex-1 pl-8 pr-4 h-full overflow-y-auto custom-scroll">
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-lg flex items-center gap-1">
-                    <span
-                      className={`${currentCategoryInfo.color} text-white text-[10px] px-1 rounded-sm`}
-                    >
-                      {currentCategoryInfo.label}
-                    </span>
-                    {currentCategoryInfo.id && rootCategories.find(c => c.id === currentCategoryInfo.id)?.name}
-                  </h3>
-
-                  <Link
+              {/* 오른쪽 상세 아이템 리스트 (Brand 리스트 스타일 적용) */}
+              <div className="flex-1 flex flex-col h-full overflow-hidden pl-0">
+                <div className="px-6 pt-5 pb-3 shrink-0 flex justify-between items-end border-b border-gray-50">
+                   <div className="text-xs text-gray-500">
+                        {rootCategories.find(c => c.id === activeCategory)?.name} <span className="text-gray-300">|</span> {currentSubItems.length}개
+                   </div>
+                   <Link
                     href={categoryHref}
                     onClick={onClose}
-                    className="text-xs text-gray-400 cursor-pointer hover:underline"
-                  >
+                    className="text-xs text-gray-400 hover:underline"
+                   >
                     {t("headings.viewAll")}
-                  </Link>
+                   </Link>
                 </div>
 
-                <div className="grid grid-cols-4 gap-y-8 gap-x-4 pb-10">
+                <div className="flex-1 overflow-y-auto p-6 custom-scroll">
+                  <div className="space-y-2">
                   {currentSubItems.map((sub) => {
                     const subHref = buildCategoryHref(
                       currentCategoryInfo.categoryId,
@@ -459,25 +452,35 @@ export default function CategoryPopup({
                         key={sub.id}
                         href={subHref}
                         onClick={onClose}
-                        className="flex flex-col items-center group cursor-pointer"
+                        className="flex items-center justify-between group cursor-pointer py-1"
                       >
-                        <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center text-xl mb-2 group-hover:scale-110 transition-transform overflow-hidden">
-                          {sub.icon.startsWith("http") || sub.icon.startsWith("/") ? (
-                            <img
-                              src={sub.icon}
-                              alt={sub.name || t(`${activeCategory}Sub.${sub.id}`)}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            sub.icon
-                          )}
+                        <div className="flex items-center gap-3">
+                           {/* Icon */}
+                           <div className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] overflow-hidden shrink-0">
+                             {sub.icon.startsWith("http") || sub.icon.startsWith("/") ? (
+                               <img
+                                 src={sub.icon}
+                                 alt={sub.name}
+                                 className="w-full h-full object-cover"
+                               />
+                             ) : (
+                               <span className="text-gray-400">{sub.icon}</span>
+                             )}
+                           </div>
+                           <span className="text-sm font-bold text-black group-hover:underline">
+                             {sub.name || t(`${activeCategory}Sub.${sub.id}`)}
+                           </span>
                         </div>
-                        <span className="text-xs font-medium text-gray-700 group-hover:text-black text-center">
-                          {sub.name || t(`${activeCategory}Sub.${sub.id}`)}
-                        </span>
+                        {/* Arrow Icon for navigation indication */}
+                         <div className="text-gray-300 group-hover:text-black transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+                            </svg>
+                         </div>
                       </Link>
                     );
                   })}
+                  </div>
                 </div>
               </div>
             </div>
@@ -486,10 +489,10 @@ export default function CategoryPopup({
           {selectedTab === "brand" && (
             <div className="flex h-full">
               {/* 1. Left Sidebar (Brand Categories) */}
-               <ul className="w-40 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
+               <ul className="w-32 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
                  <li
                    onClick={() => setSelectedBrandCategory("전체")}
-                   className={`cursor-pointer px-5 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
+                   className={`cursor-pointer px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
                      selectedBrandCategory === "전체"
                        ? "bg-white text-black font-bold"
                        : ""
@@ -501,7 +504,7 @@ export default function CategoryPopup({
                    <li
                      key={brand.id}
                      onClick={() => setSelectedBrandCategory(brand.name)}
-                     className={`cursor-pointer px-5 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
+                     className={`cursor-pointer px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
                        selectedBrandCategory === brand.name
                          ? "bg-white text-black font-bold"
                          : ""
@@ -556,11 +559,16 @@ export default function CategoryPopup({
                     인기
                   </span>
                   
-                  {/* (옵션) 하트 필터 아이콘 - 현재는 기능 없음 */}
-                  <span className="text-gray-400 cursor-pointer shrink-0">
+                  {/* (옵션) 하트 필터 아이콘 - 좋아요 필터 기능 활성화 */}
+                  <span 
+                    onClick={() => setSelectedConsonant("좋아요")}
+                    className={`cursor-pointer shrink-0 ${
+                      selectedConsonant === "좋아요" ? "text-red-500" : "text-gray-400"
+                    }`}
+                  >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
+                      fill={selectedConsonant === "좋아요" ? "currentColor" : "none"}
                       viewBox="0 0 24 24"
                       strokeWidth={1.5}
                       stroke="currentColor"
@@ -612,7 +620,11 @@ export default function CategoryPopup({
                 {/* Brand List */}
                 <div className="flex-1 overflow-y-auto p-6 custom-scroll">
                   <div className="text-xs text-gray-500 mb-4">
-                    {selectedBrandCategory === "전체" ? "인기" : selectedBrandCategory} <span className="text-gray-300">|</span> {filteredBrands.length}개
+                    {selectedConsonant === "좋아요" 
+                      ? "좋아요" 
+                      : selectedConsonant !== "인기" 
+                        ? selectedConsonant 
+                        : (selectedBrandCategory === "전체" ? "인기" : selectedBrandCategory)} <span className="text-gray-300">|</span> {filteredBrands.length}개
                   </div>
 
                   {filteredBrands.length === 0 ? (
@@ -620,17 +632,17 @@ export default function CategoryPopup({
                       검색 결과가 없습니다.
                     </div>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-2">
                       {filteredBrands.map((brand, idx) => (
                         <Link
                           key={idx}
                           href={buildBrandHref(brand.slug, "A")}
                           onClick={onClose}
-                          className="flex items-center justify-between group cursor-pointer"
+                          className="flex items-center justify-between group cursor-pointer py-1"
                         >
-                          <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-3">
                             {/* Brand Logo Placeholder */}
-                            <div className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0">
+                            <div className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0">
                               {/* In a real app, use <Image> */}
                               {brand.slug === "nkbus-standard" ? (
                                 <span className="text-black">NKBUS</span>
