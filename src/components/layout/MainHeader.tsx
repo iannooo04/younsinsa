@@ -57,7 +57,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
   // 로그아웃 핸들러
   const handleLogout = async () => {
     // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
-    const homeUrl = `/${locale}/main/yimili/recommend?gf=${currentGf}`;
+    const homeUrl = `/${locale}/main/nkbus/recommend?gf=${currentGf}`;
     await signOut({ callbackUrl: homeUrl });
   };
 
@@ -74,7 +74,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
 
   // ✅ [수정] 심플 헤더를 보여줄 경로인지 확인
   // 마이페이지, 장바구니, 오프라인, 좋아요 페이지만 심플 헤더(검색창 숨김) 적용
-  // yimili 관련 페이지는 포함되지 않으므로 검색창이 나옵니다.
+  // nkbus 관련 페이지는 포함되지 않으므로 검색창이 나옵니다.
   const isSimplePage =
     pathname.includes("/mypage") ||
     pathname.includes("/orders/cart") ||
@@ -94,10 +94,14 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
           {/* ✅ [수정 1] 상단 바(Top Bar)에 있는 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
           {isSimplePage ? (
             <Link
-              href={`/main/yimili/recommend?gf=${currentGf}`}
-              className="cursor-pointer"
+              href={`/main/nkbus/recommend?gf=${currentGf}`}
+              className="cursor-pointer relative block w-[120px] h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
             >
-              <img src="/images/logo_white.png" alt="YIMILI" className="h-[60px] object-contain" />
+              <img 
+                src="/images/logo_white.png" 
+                alt="NKBUS" 
+                className="absolute top-1/2 left-0 -translate-y-1/2 h-[80px] w-auto max-w-none object-contain" // 이미지는 크게 (부모 영역 무시)
+              />
             </Link>
           ) : (
             <>
@@ -124,7 +128,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
 
               {/* 왼쪽 탭 메뉴 */}
               <Link
-                href={`/main/yimili/recommend?gf=${currentGf}`}
+                href={`/main/nkbus/recommend?gf=${currentGf}`}
                 className="cursor-pointer hover:text-gray-300 font-bold"
               >
                 {t("topBar.brand")}
@@ -364,13 +368,16 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
         <div className="w-full px-4 pt-4 pb-0">
           <div className="flex items-center justify-between gap-8">
             {/* Logo */}
-            {/* ✅ [수정 2] 검색창 왼쪽의 큰 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
-            {/* ✅ [수정 2] 검색창 왼쪽의 큰 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
+            {/* ✅ [수정 2] 검색창 왼쪽의 큰 NKBUS 로고 클릭 시 추천 페이지로 이동 */}
             <Link
-              href={`/main/yimili/recommend?gf=${currentGf}`}
-              className="shrink-0 cursor-pointer"
+              href={`/main/nkbus/recommend?gf=${currentGf}`}
+              className="shrink-0 cursor-pointer relative block w-[160px] h-[60px]" // 부모 높이는 작게
             >
-              <img src="/images/logo_white.png" alt="YIMILI" className="h-24 object-contain" />
+              <img 
+                src="/images/logo_white.png" 
+                alt="NKBUS" 
+                className="absolute top-1/2 left-0 -translate-y-1/2 h-[120px] w-auto max-w-none object-contain" // 이미지는 크게
+              />
             </Link>
 
             {/* Search Bar */}
@@ -410,15 +417,15 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
             <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
               {/* 🛠️ [수정] TOPSALE 버튼 경로 수정 */}
               <Link
-                href={`/main/yimili/recommend?gf=${currentGf}`}
+                href={`/main/nkbus/recommend?gf=${currentGf}`}
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 TOPSALE
               </Link>
 
-              {/* 🛠️ [추가] Special Offer 버튼 경로 수정: /main/yimili/sale?gf=A */}
+              {/* 🛠️ [추가] Special Offer 버튼 경로 수정: /main/nkbus/sale?gf=A */}
               <Link
-                href={`/main/yimili/sale?gf=${currentGf}`}
+                href={`/main/nkbus/sale?gf=${currentGf}`}
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 Special Offer
@@ -554,7 +561,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
       {isSearchOpen && <SearchPopup onClose={() => setIsSearchOpen(false)} />}
 
       {/* 🚻 [신규] 플로팅 젠더 필터 (하단 중앙 고정) */}
-      {/* yimili 추천/세일 페이지 등 필터가 필요한 곳에서만 노출 (필요 시 조건 추가) */}
+      {/* nkbus 추천/세일 페이지 등 필터가 필요한 곳에서만 노출 (필요 시 조건 추가) */}
       {!isSimplePage && (
         <div
           className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 transform ${isAtTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10 pointer-events-none"

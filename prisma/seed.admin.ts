@@ -9,7 +9,7 @@ import { randomBytes } from "crypto";
  */
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "Admin1234!@";
-const ADMIN_EMAIL = "admin@yimili.com"; // 필요한 실제 이메일로 교체
+const ADMIN_EMAIL = "admin@nkbus.com"; // 필요한 실제 이메일로 교체
 const ADMIN_NAME = "admin"; // 필요 시 변경
 const ADMIN_LEVEL = 31;
 

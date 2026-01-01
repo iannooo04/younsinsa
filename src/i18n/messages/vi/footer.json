@@ -1,6 +1,6 @@
 {
   "tabs": {
-    "yimili": "YIMILI",
+    "nkbus": "NKBUS",
     "beauty": "BEAUTY",
     "player": "PLAYER",
     "outlet": "OUTLET",
@@ -13,7 +13,7 @@
     "title": "Thông báo",
     "viewAll": "Xem tất cả",
     "items": {
-      "0": "Thay đổi quy trình xử lý sản phẩm YIMILI USED không thể bán",
+      "0": "Thay đổi quy trình xử lý sản phẩm NKBUS USED không thể bán",
       "1": "[Yimili Store/29CM] Thông báo sửa đổi Điều khoản dịch vụ tích hợp",
       "2": "Thông báo sửa đổi Chính sách bảo mật (Hiệu lực từ 15/12)"
     },
@@ -91,11 +91,11 @@
       },
       "phone": "Trung tâm CSKH 1544-7199",
       "time": "Giờ làm việc: Ngày thường 09:00 - 18:00 (Nghỉ trưa 12:00 - 13:00)",
-      "email": "cs@yimili.com"
+      "email": "cs@nkbus.com"
     }
   },
   "legal": {
-    "copyright": "© YIMILI ALL RIGHTS RESERVED",
+    "copyright": "© NKBUS ALL RIGHTS RESERVED",
     "companyInfo": "Công ty TNHH Yimili | Đại diện: Cho Man-ho, Park Jun-mo | Địa chỉ: Tầng 1, 11 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Yimili Campus N1)",
     "bizInfo": "ĐKKD: 211-88-79575 | Giấy phép TMĐT: 2022-Seoul Seongdong-01952 | Đơn vị lưu trữ: Công ty TNHH Yimili",
     "guarantee": "Chúng tôi đảm bảo giao dịch an toàn thông qua hợp đồng bảo lãnh thanh toán nợ với Woori Bank cho các khoản thanh toán bằng tiền mặt.",

@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, DeleteObjectCommand, ListObjectsV2Command, DeleteObjectsCommand, ListObjectsV2CommandOutput } from "@aws-sdk/client-s3";
 
 const accessKeyId = (process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY || "").trim();
 const secretAccessKey = (process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_KEY || "").trim();
@@ -68,24 +68,62 @@ export async function deleteFile(fileUrl: string) {
   }
 }
 
-export async function listFiles() {
+export async function deleteFolder(prefix: string) {
+    const bucketName = process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
+    if (!bucketName) return;
+
+    try {
+        let continuationToken: string | undefined = undefined;
+        do {
+            const listCommand = new ListObjectsV2Command({
+                Bucket: bucketName,
+                Prefix: prefix,
+                ContinuationToken: continuationToken,
+            });
+            const listResponse: ListObjectsV2CommandOutput = await s3Client.send(listCommand);
+
+            if (listResponse.Contents && listResponse.Contents.length > 0) {
+                const deleteParams = {
+                    Bucket: bucketName,
+                    Delete: {
+                        Objects: listResponse.Contents.map((content) => ({ Key: content.Key! })),
+                        Quiet: true,
+                    },
+                };
+                await s3Client.send(new DeleteObjectsCommand(deleteParams));
+            }
+            continuationToken = listResponse.NextContinuationToken;
+        } while (continuationToken);
+    } catch (error) {
+        console.error("Error deleting folder from S3:", error);
+    }
+}
+
+export async function listFiles(prefix = "") {
   const bucketName = process.env.AWS_S3_BUCKET_NAME || process.env.S3_BUCKET_NAME;
-  if (!bucketName) return [];
+  if (!bucketName) return { folders: [], files: [] };
 
   try {
     const command = new ListObjectsV2Command({
       Bucket: bucketName,
+      Prefix: prefix,
+      Delimiter: "/",
     });
     const response = await s3Client.send(command);
 
-    return (response.Contents || []).map((item) => ({
-      key: item.Key || "",
-      size: item.Size || 0,
-      lastModified: item.LastModified ? item.LastModified.toISOString() : "",
-      url: `/api/images?key=${encodeURIComponent(item.Key || "")}`,
-    }));
+    const folders = (response.CommonPrefixes || []).map((p) => p.Prefix || "");
+    const files = (response.Contents || [])
+      .filter((item) => item.Key !== prefix) // Filter out the directory placeholder itself if it exists
+      .map((item) => ({
+        key: item.Key || "",
+        size: item.Size || 0,
+        lastModified: item.LastModified ? item.LastModified.toISOString() : "",
+        url: `/api/images?key=${encodeURIComponent(item.Key || "")}`,
+      }));
+
+    return { folders, files };
   } catch (error) {
     console.error("Error listing files from S3:", error);
-    return [];
+    return { folders: [], files: [] };
   }
 }

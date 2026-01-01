@@ -26,7 +26,7 @@ export default function MainFooter() {
         <div className="container mx-auto px-4">
           <div className="flex flex-wrap gap-2 py-3">
             {[
-              "yimili",
+              "nkbus",
               "beauty",
               "player",
               "outlet",

@@ -7,8 +7,13 @@ enum Gender {
 model Brand {
   id          String    @id @default(cuid())
   name        String    @unique
+  slug        String?   @unique
+  category    String? // Main category name for filtering
   logoUrl     String?
   description String?
+  parentId    String?
+  parent      Brand?    @relation("BrandToBrand", fields: [parentId], references: [id])
+  children    Brand[]   @relation("BrandToBrand")
   products    Product[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt

@@ -43,61 +43,19 @@ function getInitialConsonant(text: string) {
 
 // 🗂️ [데이터] 전체 브랜드 리스트 (확장)
 type BrandData = {
+  id: string;
+  parentId?: string | null;
   name: string;
-  enName: string;
+  enName?: string;
   slug: string;
   category: string; // 필터링용 카테고리
   tag?: string;     // 뱃지 (단독 등)
   initial?: string; // 초성 (자동 계산 가능하지만 편의상)
+  logoUrl?: string;
+  description?: string;
 };
 
-const ALL_BRANDS_DATA: BrandData[] = [
-  { name: "이미리 스탠다드 우먼", enName: "YIMILI STANDARD WOMAN", slug: "yimili-standard", category: "의류", tag: "단독" },
-  { name: "아디다스", enName: "ADIDAS", slug: "adidas", category: "스포츠/레저" },
-  { name: "노스페이스", enName: "THE NORTH FACE", slug: "northface", category: "스포츠/레저" },
-  { name: "뉴발란스", enName: "NEW BALANCE", slug: "newbalance", category: "신발" },
-  { name: "나이키", enName: "NIKE", slug: "nike", category: "스포츠/레저" },
-  { name: "리", enName: "LEE", slug: "lee", category: "의류" },
-  { name: "마뗑킴", enName: "MATIN KIM", slug: "matin-kim", category: "패션소품" },
-  { name: "디미트리블랙", enName: "DIMITRI BLACK", slug: "dimitri-black", category: "의류", tag: "단독" },
-  { name: "엠엘비", enName: "MLB", slug: "mlb", category: "의류" },
-  { name: "스파오", enName: "SPAO", slug: "spao", category: "의류" },
-  { name: "코드그라피", enName: "CODEGRAPHY", slug: "codegraphy", category: "의류" },
-  { name: "커버낫", enName: "COVERNAT", slug: "covernat", category: "의류" },
-  { name: "푸마", enName: "PUMA", slug: "puma", category: "스포츠/레저" },
-  { name: "닥터마틴", enName: "DR. MARTENS", slug: "drmartens", category: "신발" },
-  { name: "반스", enName: "VANS", slug: "vans", category: "스니커즈" },
-  { name: "컨버스", enName: "CONVERSE", slug: "converse", category: "스니커즈" },
-  { name: "크록스", enName: "CROCS", slug: "crocs", category: "신발" },
-  { name: "살로몬", enName: "SALOMON", slug: "salomon", category: "스포츠/레저" },
-  { name: "아식스", enName: "ASICS", slug: "asics", category: "신발" },
-  { name: "오니츠카타이거", enName: "ONITSUKA TIGER", slug: "onitsuka", category: "신발" },
-  { name: "젠틀몬스터", enName: "GENTLE MONSTER", slug: "gentlemonster", category: "패션소품" },
-  { name: "탬버린즈", enName: "TAMBURINS", slug: "tamburins", category: "뷰티" },
-  { name: "설화수", enName: "SULWHASOO", slug: "sulwhasoo", category: "뷰티" },
-  { name: "헤라", enName: "HERA", slug: "hera", category: "뷰티" },
-  { name: "롬앤", enName: "ROMAND", slug: "romand", category: "뷰티" },
-  { name: "삼성전자", enName: "SAMSUNG", slug: "samsung", category: "디지털/라이프" },
-  { name: "소니", enName: "SONY", slug: "sony", category: "디지털/라이프" },
-  { name: "애플", enName: "APPLE", slug: "apple", category: "디지털/라이프" },
-  { name: "젤리캣", enName: "JELLYCAT", slug: "jellycat", category: "키즈" },
-  { name: "폴로 랄프 로젠", enName: "POLO RALPH LAUREN", slug: "polo", category: "의류" },
-  // ⛳️ [신규] 골프 브랜드 추가
-  { name: "말본골프", enName: "Malbon Golf", slug: "malbon-golf", category: "골프" },
-  { name: "지포어", enName: "G/FORE", slug: "g-fore", category: "골프" },
-  { name: "타이틀리스트", enName: "Titleist", slug: "titleist", category: "골프" },
-  { name: "랑방블랑", enName: "LANVIN BLANC", slug: "lanvin-blanc", category: "골프" },
-  { name: "풋조이", enName: "FootJoy", slug: "footjoy", category: "골프" },
-  { name: "사우스케이프", enName: "SOUTHCAPE", slug: "southcape", category: "골프" },
-  { name: "피엑스지", enName: "PXG", slug: "pxg", category: "골프" },
-  { name: "데상트골프", enName: "DESCENTE Golf", slug: "descente-golf", category: "골프" },
-  { name: "세인트앤드류스", enName: "St.Andrews", slug: "st-andrews", category: "골프" },
-  { name: "파리게이츠", enName: "Pearly Gates", slug: "pearly-gates", category: "골프" },
-  { name: "마스터바니에디션", enName: "Master Bunny Edition", slug: "master-bunny-edition", category: "골프" },
-  { name: "어메이징크리", enName: "AmazingCre", slug: "amazingcre", category: "골프" },
-  { name: "보스골프", enName: "BOSS Golf", slug: "boss-golf", category: "골프" },
-  { name: "아페쎄골프", enName: "A.P.C Golf", slug: "apc-golf", category: "골프" },
-];
+const ALL_BRANDS_DATA: BrandData[] = [];
 
 
 interface CategoryPopupProps {
@@ -155,7 +113,9 @@ export default function CategoryPopup({
 
   // 🔹 [Admin Data State]
   const [adminCategories, setAdminCategories] = useState<any[]>([]);
+  const [brandsData, setBrandsData] = useState<BrandData[]>([]);
 
+  // 📡 [Data Fetching]
   // 📡 [Data Fetching]
   useEffect(() => {
     fetch("/api/popup/categories")
@@ -172,6 +132,26 @@ export default function CategoryPopup({
         }
       })
       .catch((err) => console.error("Failed to fetch admin categories:", err));
+
+      // Fetch Brands
+      fetch("/api/popup/brands")
+        .then((res) => res.json())
+        .then((data) => {
+             if (Array.isArray(data)) {
+                 const mapped = data.map((b: any) => ({
+                    id: b.id,
+                    parentId: b.parentId,
+                    name: b.name,
+                    enName: "", 
+                    slug: b.slug || b.id,
+                    category: b.category || "기타",
+                    logoUrl: b.logoUrl,
+                    description: b.description
+                 }));
+                 setBrandsData(mapped);
+             }
+        })
+        .catch((err) => console.error("Failed to fetch brands:", err));
   }, []);
 
   //  [스크롤 잠금] 팝업이 열릴 때 백그라운드 스크롤 방지
@@ -186,6 +166,11 @@ export default function CategoryPopup({
   const rootCategories = useMemo(() => {
     return adminCategories.filter(c => !c.parentId);
   }, [adminCategories]);
+
+  // 🏷️ [Brand Logic] Top Level Brands for Sidebar
+  const topLevelBrands = useMemo(() => {
+    return brandsData.filter(b => !b.parentId);
+  }, [brandsData]);
 
   const currentCategoryInfo = useMemo(() => {
     const found = rootCategories.find(c => c.id === activeCategory);
@@ -264,13 +249,21 @@ export default function CategoryPopup({
 
   // 🔍 [필터 로직] 브랜드 필터링
   const filteredBrands = useMemo(() => {
-    let result = ALL_BRANDS_DATA;
+    let result = brandsData;
 
     // 1. 카테고리 필터
+    // 1. 브랜드 계층 필터 (Left Sidebar)
     if (selectedBrandCategory !== "전체") {
-      result = result.filter(
-        (brand) => brand.category === selectedBrandCategory
-      );
+      // selectedBrandCategory contains the NAME of the parent brand
+      const parentBrand = topLevelBrands.find(b => b.name === selectedBrandCategory);
+      
+      if (parentBrand) {
+        // Show children OR the parent itself associated items
+        result = result.filter(b => b.parentId === parentBrand.id || b.id === parentBrand.id);
+      } else {
+        // Fallback: name matching if we missed something, or empty
+         result = []; 
+      }
     }
 
     // 2. 검색어 필터
@@ -279,7 +272,7 @@ export default function CategoryPopup({
       result = result.filter(
         (brand) =>
           brand.name.toLowerCase().includes(query) ||
-          brand.enName.toLowerCase().includes(query)
+          (brand.enName && brand.enName.toLowerCase().includes(query))
       );
     }
 
@@ -287,10 +280,10 @@ export default function CategoryPopup({
     if (selectedConsonant !== "인기") {
       if (selectedConsonant === "A-Z") {
         // 영문 시작
-        result = result.filter((brand) => /^[A-Z]/i.test(brand.enName));
+        result = result.filter((brand) => brand.enName && /^[A-Z]/i.test(brand.enName));
       } else if (selectedConsonant === "0-9") {
         // 숫자 시작
-        result = result.filter((brand) => /^[0-9]/.test(brand.name) || /^[0-9]/.test(brand.enName));
+        result = result.filter((brand) => /^[0-9]/.test(brand.name) || (brand.enName && /^[0-9]/.test(brand.enName)));
       } else {
         // 한글 초성 (ㄱ, ㄴ, ...)
         result = result.filter((brand) => getInitialConsonant(brand.name) === selectedConsonant);
@@ -298,7 +291,7 @@ export default function CategoryPopup({
     }
 
     return result;
-  }, [selectedBrandCategory, searchQuery, selectedConsonant]);
+  }, [brandsData, selectedBrandCategory, searchQuery, selectedConsonant]);
 
 
   return (
@@ -491,33 +484,31 @@ export default function CategoryPopup({
           {selectedTab === "brand" && (
             <div className="flex h-full">
               {/* 1. Left Sidebar (Brand Categories) */}
-              <ul className="w-40 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
-                {[
-                  "전체",
-                  "의류",
-                  "골프", // 뷰티 -> 골프 교체
-                  "신발",
-                  "스니커즈",
-                  "가방",
-                  "패션소품",
-                  "속옷/홈웨어",
-                  "스포츠/레저",
-                  "디지털/라이프",
-                  "키즈",
-                ].map((cat) => (
-                  <li
-                    key={cat}
-                    onClick={() => setSelectedBrandCategory(cat)}
-                    className={`cursor-pointer px-5 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
-                      selectedBrandCategory === cat
-                        ? "bg-white text-black font-bold"
-                        : ""
-                    }`}
-                  >
-                    {cat}
-                  </li>
-                ))}
-              </ul>
+               <ul className="w-40 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
+                 <li
+                   onClick={() => setSelectedBrandCategory("전체")}
+                   className={`cursor-pointer px-5 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
+                     selectedBrandCategory === "전체"
+                       ? "bg-white text-black font-bold"
+                       : ""
+                   }`}
+                 >
+                   전체
+                 </li>
+                 {topLevelBrands.map((brand) => (
+                   <li
+                     key={brand.id}
+                     onClick={() => setSelectedBrandCategory(brand.name)}
+                     className={`cursor-pointer px-5 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors ${
+                       selectedBrandCategory === brand.name
+                         ? "bg-white text-black font-bold"
+                         : ""
+                     }`}
+                   >
+                     {brand.name}
+                   </li>
+                 ))}
+               </ul>
 
               {/* 2. Right Content Area */}
               <div className="flex-1 flex flex-col h-full overflow-hidden">
@@ -639,8 +630,8 @@ export default function CategoryPopup({
                             {/* Brand Logo Placeholder */}
                             <div className="w-12 h-12 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0">
                               {/* In a real app, use <Image> */}
-                              {brand.slug === "yimili-standard" ? (
-                                <span className="text-black">YIMILI</span>
+                              {brand.slug === "nkbus-standard" ? (
+                                <span className="text-black">NKBUS</span>
                               ) : (
                                 brand.name.substring(0, 2)
                               )}

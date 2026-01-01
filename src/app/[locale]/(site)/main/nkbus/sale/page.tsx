@@ -350,7 +350,7 @@ const BRAND_WEEK_BANNERS = [
 const SEASON_OFF_ITEMS = [
   {
     id: 21,
-    brand: "이미리 스탠다드",
+    brand: "NKBUS 스탠다드",
     name: "캐시미어 블렌드 오버사이즈 싱글 코트 [블랙]",
     price: 139000,
     originalPrice: 0,
@@ -362,7 +362,7 @@ const SEASON_OFF_ITEMS = [
   },
   {
     id: 22,
-    brand: "이미리 스탠다드",
+    brand: "NKBUS 스탠다드",
     name: "캐시미어 100 머플러 [블랙]",
     price: 49900,
     originalPrice: 0,
@@ -374,7 +374,7 @@ const SEASON_OFF_ITEMS = [
   },
   {
     id: 23,
-    brand: "이미리 스탠다드",
+    brand: "NKBUS 스탠다드",
     name: "와치 캡 [블랙]",
     price: 12900,
     originalPrice: 0,
@@ -386,7 +386,7 @@ const SEASON_OFF_ITEMS = [
   },
   {
     id: 24,
-    brand: "이미리 스탠다드",
+    brand: "NKBUS 스탠다드",
     name: "캐시미어 블렌드 머플러 [그레이]",
     price: 29900,
     originalPrice: 0,
@@ -398,7 +398,7 @@ const SEASON_OFF_ITEMS = [
   },
   {
     id: 25,
-    brand: "이미리 스탠다드",
+    brand: "NKBUS 스탠다드",
     name: "미니 어그 부츠 [그레이]",
     price: 39900,
     originalPrice: 0,
@@ -602,7 +602,7 @@ const REWARD_ITEMS = [
 // =============================================================================
 // [메인 페이지]
 // =============================================================================
-export default function YimiliSalePage() {
+export default function NkbusSalePage() {
   const [timeLeft, setTimeLeft] = useState({
     hours: 6,
     minutes: 20,
@@ -850,7 +850,7 @@ export default function YimiliSalePage() {
             activeItem="전체"
           />
           <div className="px-4">
-            <BlueBanner text="이미리 최대 혜택가, 차액 적립금 보상" />
+            <BlueBanner text="NKBUS 최대 혜택가, 차액 적립금 보상" />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-4">
             {filteredRewardItems.map((item) => (

@@ -8,6 +8,7 @@ import {
     ShoppingBag,
     ListOrdered,
     Tags,
+    Tag,
     Settings,
     ChevronLeft,
     ChevronRight,
@@ -21,6 +22,7 @@ const menuItems = [
     { name: "Products", href: "/admin/products", icon: ShoppingBag },
     { name: "Orders", href: "/admin/orders", icon: ListOrdered },
     { name: "Categories", href: "/admin/categories", icon: Tags },
+    { name: "Brands", href: "/admin/brands", icon: Tag },
     { name: "Images", href: "/admin/images", icon: Image },
     { name: "Settings", href: "/admin/settings", icon: Settings },
 ];

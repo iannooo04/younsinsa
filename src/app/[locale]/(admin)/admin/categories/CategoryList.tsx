@@ -134,6 +134,21 @@ export default function CategoryList({ initialCategories }: Props) {
             });
     };
 
+    const renderCategoryOptions = (cats: CategoryWithChildren[], parentId: string | null = null, level = 0): React.ReactNode[] => {
+        const nodes: React.ReactNode[] = [];
+        cats
+            .filter((c) => c.parentId === parentId)
+            .forEach((category) => {
+                nodes.push(
+                    <option key={category.id} value={category.id}>
+                        {level > 0 ? "\u00A0\u00A0".repeat(level) + "└ " : ""}{category.name}
+                    </option>
+                );
+                nodes.push(...renderCategoryOptions(cats, category.id, level + 1));
+            });
+        return nodes;
+    };
+
     return (
         <div className="space-y-6">
             <div className="card bg-base-100 shadow-sm border border-base-200">
@@ -173,11 +188,7 @@ export default function CategoryList({ initialCategories }: Props) {
                             </label>
                             <select name="parentId" className="select select-bordered w-full" defaultValue="">
                                 <option value="">None (Top Level)</option>
-                                {categories.map((c) => (
-                                    <option key={c.id} value={c.id}>
-                                        {c.name}
-                                    </option>
-                                ))}
+                                {renderCategoryOptions(categories)}
                             </select>
                         </div>
                         <button type="submit" className="btn btn-primary" disabled={loading}>

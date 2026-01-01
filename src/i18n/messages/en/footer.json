@@ -1,6 +1,6 @@
 {
   "tabs": {
-    "yimili": "YIMILI",
+    "nkbus": "NKBUS",
     "beauty": "BEAUTY",
     "player": "PLAYER",
     "outlet": "OUTLET",
@@ -13,7 +13,7 @@
     "title": "Notice",
     "viewAll": "View All",
     "items": {
-      "0": "Notice regarding changes to handling unsold YIMILI USED items",
+      "0": "Notice regarding changes to handling unsold NKBUS USED items",
       "1": "[Yimili Store/29CM] Notice of Revision to Integrated Service Terms",
       "2": "Notice of Privacy Policy Revision (Effective Dec 15)"
     },
@@ -91,11 +91,11 @@
       },
       "phone": "Customer Center 1544-7199",
       "time": "Hours: Weekdays 09:00 - 18:00 (Lunch 12:00 - 13:00 excluded)",
-      "email": "cs@yimili.com"
+      "email": "cs@nkbus.com"
     }
   },
   "legal": {
-    "copyright": "© YIMILI ALL RIGHTS RESERVED",
+    "copyright": "© NKBUS ALL RIGHTS RESERVED",
     "companyInfo": "Yimili Co., Ltd. | CEO: Man-ho Cho, Jun-mo Park | Address: 1F, 13 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Yimili Campus N1)",
     "bizInfo": "Business Registration: 211-88-79575 | E-commerce Permit: 2022-Seoul Seongdong-01952 | Hosting: Yimili Co., Ltd.",
     "guarantee": "We guarantee safe transactions through a debt payment guarantee contract with Woori Bank for cash payments.",

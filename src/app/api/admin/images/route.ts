@@ -4,13 +4,41 @@ import { deleteFile, listFiles } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+import { uploadFile } from "@/lib/s3"; // Ensure uploadFile is imported
+
+export async function GET(request: NextRequest) {
     try {
-        const files = await listFiles();
-        return NextResponse.json(files);
+        const { searchParams } = new URL(request.url);
+        const prefix = searchParams.get("prefix") || "";
+        const data = await listFiles(prefix);
+        return NextResponse.json(data);
     } catch (error) {
         console.error("List Images Error:", error);
         return NextResponse.json({ error: "Failed to list images" }, { status: 500 });
+    }
+}
+
+export async function POST(request: NextRequest) {
+    try {
+        const formData = await request.formData();
+        const file = formData.get("file") as File | null;
+        const folder = formData.get("folder") as string || ""; // e.g., "brands/"
+
+        if (!file) {
+            return NextResponse.json({ error: "File is required" }, { status: 400 });
+        }
+
+        const buffer = Buffer.from(await file.arrayBuffer());
+        // Clean folder path: ensure it ends with / if not empty
+        const folderPath = folder ? (folder.endsWith("/") ? folder : `${folder}/`) : "";
+        const fileName = `${folderPath}${file.name}`;
+        
+        await uploadFile(buffer, fileName, file.type);
+
+        return NextResponse.json({ success: true, key: fileName });
+    } catch (error) {
+        console.error("Upload Image Error:", error);
+        return NextResponse.json({ error: "Failed to upload image" }, { status: 500 });
     }
 }
 

@@ -1,6 +1,6 @@
 {
   "tabs": {
-    "yimili": "YIMILI",
+    "nkbus": "NKBUS",
     "beauty": "BEAUTY",
     "player": "PLAYER",
     "outlet": "OUTLET",
@@ -13,7 +13,7 @@
     "title": "お知らせ",
     "viewAll": "すべて見る",
     "items": {
-      "0": "YIMILI USED 販売不可商品の処理方法変更のご案内",
+      "0": "NKBUS USED 販売不可商品の処理方法変更のご案内",
       "1": "[ムシンサストア/29CM] 統合サービス利用規約改定のご案内",
       "2": "個人情報処理方針改定の事前案内(12/15施行)"
     },
@@ -39,7 +39,7 @@
   },
   "sitemap": {
     "about": {
-      "title": "About YIMILI",
+      "title": "About NKBUS",
       "items": {
         "0": "会社概要",
         "1": "事業紹介",
@@ -91,11 +91,11 @@
       },
       "phone": "カスタマーセンター 1544-7199",
       "time": "営業時間：平日 09:00 - 18:00 (昼休み 12:00 - 13:00 除く)",
-      "email": "cs@yimili.com"
+      "email": "cs@nkbus.com"
     }
   },
   "legal": {
-    "copyright": "© YIMILI ALL RIGHTS RESERVED",
+    "copyright": "© NKBUS ALL RIGHTS RESERVED",
     "companyInfo": "(株)ムシンサ | 代表者：チョ・マンホ、パク・ジュンモ | 住所：ソウル特別市城東区アチャサン路13ギル11、1階（聖水洞2街、ムシンサキャンパスN1）",
     "bizInfo": "事業者登録番号：211-88-79575 | 通信販売業：2022-ソウル城東-01952 | ホスティング事業者：(株)ムシンサ",
     "guarantee": "当社はお客様の現金決済金額について、ウリ銀行と債務支払保証契約を締結し、安全な取引を保証しています。",

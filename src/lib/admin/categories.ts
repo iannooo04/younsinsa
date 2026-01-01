@@ -70,3 +70,20 @@ export async function deleteCategory(id: string) {
         where: { id },
     });
 }
+
+export async function getCategoryDescendants(id: string): Promise<{ id: string, imageUrl: string | null }[]> {
+    const children = await prisma.category.findMany({
+        where: { parentId: id },
+        select: { id: true, imageUrl: true }
+    });
+
+    let descendants: { id: string, imageUrl: string | null }[] = [];
+
+    for (const child of children) {
+        const grandChildren = await getCategoryDescendants(child.id);
+        descendants = [...descendants, ...grandChildren];
+        descendants.push(child);
+    }
+    
+    return descendants;
+}
