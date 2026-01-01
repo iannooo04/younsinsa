@@ -98,7 +98,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               className="cursor-pointer relative block w-[120px] h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
             >
               <img 
-                src="/images/logo_white.png" 
+                src="/images/nkbus_logo_white.png" 
                 alt="NKBUS" 
                 className="absolute top-1/2 left-0 -translate-y-1/2 h-[80px] w-auto max-w-none object-contain" // 이미지는 크게 (부모 영역 무시)
               />
@@ -374,7 +374,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               className="shrink-0 cursor-pointer relative block w-[160px] h-[60px]" // 부모 높이는 작게
             >
               <img 
-                src="/images/logo_white.png" 
+                src="/images/nkbus_logo_white.png" 
                 alt="NKBUS" 
                 className="absolute top-1/2 left-0 -translate-y-1/2 h-[120px] w-auto max-w-none object-contain" // 이미지는 크게
               />

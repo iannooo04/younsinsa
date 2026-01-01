@@ -249,7 +249,8 @@ export default function CategoryPopup({
 
   // 🔍 [필터 로직] 브랜드 필터링
   const filteredBrands = useMemo(() => {
-    let result = brandsData;
+    // Top-level items are folders; exclude them from the brand list/search
+    let result = brandsData.filter(b => b.parentId);
 
     // 1. 카테고리 필터
     // 1. 브랜드 계층 필터 (Left Sidebar)
@@ -258,8 +259,9 @@ export default function CategoryPopup({
       const parentBrand = topLevelBrands.find(b => b.name === selectedBrandCategory);
       
       if (parentBrand) {
-        // Show children OR the parent itself associated items
-        result = result.filter(b => b.parentId === parentBrand.id || b.id === parentBrand.id);
+        // Show ONLY children (sub-brands) of the selected parent
+        // Exclude the parent brand itself from the list
+        result = result.filter(b => b.parentId === parentBrand.id);
       } else {
         // Fallback: name matching if we missed something, or empty
          result = []; 
@@ -610,7 +612,7 @@ export default function CategoryPopup({
                 {/* Brand List */}
                 <div className="flex-1 overflow-y-auto p-6 custom-scroll">
                   <div className="text-xs text-gray-500 mb-4">
-                    브랜드 <span className="text-gray-300">|</span> {filteredBrands.length}개
+                    {selectedBrandCategory === "전체" ? "인기" : selectedBrandCategory} <span className="text-gray-300">|</span> {filteredBrands.length}개
                   </div>
 
                   {filteredBrands.length === 0 ? (

@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { Folder, Trash2, Plus, Tag } from "lucide-react"; 
-import { type CategoryWithChildren } from "@/lib/admin/categories"; 
+import { useState } from "react";
+import { Folder, Trash2, Plus, Tag, ChevronDown, ChevronRight } from "lucide-react";
 
 interface BrandWithCount {
     id: string;
@@ -10,8 +9,8 @@ interface BrandWithCount {
     slug: string | null;
     category: string | null;
     logoUrl: string | null;
-    description: string | null; 
-    parentId?: string | null; // Add parentId (optional in type for now)
+    description: string | null;
+    parentId?: string | null;
     _count: {
         products: number;
     }
@@ -19,22 +18,21 @@ interface BrandWithCount {
 
 interface Props {
     initialBrands: BrandWithCount[];
-    // categories: CategoryWithChildren[]; // Removed
 }
 
 export default function BrandList({ initialBrands }: Props) {
     const [brands, setBrands] = useState<BrandWithCount[]>(initialBrands);
     const [loading, setLoading] = useState(false);
+    const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-    // Recursive function to show brand hierarchy in dropdown
+    const toggleExpand = (id: string) => {
+        setExpanded((prev) => ({ ...prev, [id]: !prev[id] }));
+    };
+
     const renderBrandOptions = (allBrands: BrandWithCount[], parentId: string | null = null, level = 0): React.ReactNode[] => {
         const nodes: React.ReactNode[] = [];
         allBrands
-            .filter((b) => b.parentId == parentId) // This requires brands to have parentId property loaded. 
-            // Warning: initialBrands sent from server need to include parentId. 
-            // If API didn't fetch parentId, this filtering will fail (all undefined == undefined -> infinite loop or wrong).
-            // Let's assume getBrands() fetches ALL fields. Prisma findMany returns all scalar fields by default.
-            // But 'parentId' is scalar, so it should be there.
+            .filter((b) => b.parentId == parentId)
             .forEach((brand) => {
                 nodes.push(
                     <option key={brand.id} value={brand.id}>
@@ -44,6 +42,58 @@ export default function BrandList({ initialBrands }: Props) {
                 nodes.push(...renderBrandOptions(allBrands, brand.id, level + 1));
             });
         return nodes;
+    };
+
+    const renderTree = (allBrands: BrandWithCount[], parentId: string | null = null, level = 0) => {
+        return allBrands
+            .filter((b) => b.parentId == parentId)
+            .map((brand) => {
+                const hasChildren = allBrands.some((b) => b.parentId === brand.id);
+                const isExpanded = expanded[brand.id];
+
+                return (
+                    <div key={brand.id} className="select-none">
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg hover:bg-base-200 border-b border-base-200/50 ${level > 0 ? "ml-6 border-l-2 border-l-base-300" : ""}`}
+                        >
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={() => toggleExpand(brand.id)}
+                                    className={`btn btn-ghost btn-xs btn-square ${!hasChildren && "invisible"}`}
+                                >
+                                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                </button>
+                                <Folder size={18} className="text-secondary" />
+                                {brand.logoUrl && (
+                                    <div className="avatar mr-2">
+                                        <div className="w-8 h-8 rounded border border-base-300">
+                                            <img src={brand.logoUrl} alt={brand.name} className="object-cover" />
+                                        </div>
+                                    </div>
+                                )}
+                                <div className="flex flex-col">
+                                    <div className="flex items-center gap-2">
+                                        <span className="font-medium">{brand.name}</span>
+                                        {brand.slug && <span className="badge badge-sm badge-ghost text-xs">{brand.slug}</span>}
+                                    </div>
+                                    <span className="text-xs text-muted-foreground ml-2">
+                                        ({brand._count.products} products)
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <button
+                                onClick={() => handleDelete(brand.id, brand.name)}
+                                className="btn btn-ghost btn-xs text-error hover:bg-error/10"
+                                title="Delete"
+                            >
+                                <Trash2 size={14} />
+                            </button>
+                        </div>
+                        {isExpanded && renderTree(allBrands, brand.id, level + 1)}
+                    </div>
+                );
+            });
     };
 
     const handleCreate = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -174,41 +224,7 @@ export default function BrandList({ initialBrands }: Props) {
                             <div className="text-center py-8 text-muted-foreground">No brands found.</div>
                         ) : (
                             <div className="space-y-1">
-                                {brands.map((brand) => (
-                                    <div key={brand.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-base-200 border-b border-base-200/50">
-                                        <div className="flex items-center gap-3">
-                                            {brand.logoUrl ? (
-                                                <div className="avatar">
-                                                    <div className="w-8 rounded-full border border-base-300">
-                                                        <img src={brand.logoUrl} alt={brand.name} />
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                 <div className="w-8 h-8 rounded-full bg-base-300 flex items-center justify-center text-xs font-bold text-base-content/50">
-                                                    {brand.name.substring(0, 2).toUpperCase()}
-                                                 </div>
-                                            )}
-                                            
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span className="font-medium">{brand.name}</span>
-                                                    {brand.slug && <span className="badge badge-sm badge-ghost text-xs">{brand.slug}</span>}
-                                                </div>
-                                                 <span className="text-xs text-muted-foreground ml-2">
-                                                    ({brand._count.products} products)
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        <button
-                                            onClick={() => handleDelete(brand.id, brand.name)}
-                                            className="btn btn-ghost btn-xs text-error hover:bg-error/10"
-                                            title="Delete"
-                                        >
-                                            <Trash2 size={14} />
-                                        </button>
-                                    </div>
-                                ))}
+                                {renderTree(brands)}
                             </div>
                         )}
                     </div>
