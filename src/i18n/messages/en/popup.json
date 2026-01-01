@@ -128,5 +128,6 @@
     "speaker": "Speaker",
     "camera": "Camera"
   },
-  "servicePlaceholder": "Service coming soon."
+  "servicePlaceholder": "Service coming soon.",
+  "noItems": "No items found."
 }
