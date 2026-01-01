@@ -40,12 +40,28 @@ model Product {
   id            String   @id @default(cuid())
   name          String
   description   String?
+  detailContent String?
   price         Int
   originalPrice Int      @default(0)
   discount      Int      @default(0)
   gender        Gender   @default(UNISEX)
   isLimited     Boolean  @default(false)
   tags          String[]
+
+  supplyPrice   Int      @default(0)
+  videoUrl      String?
+  
+  // Shipping
+  shippingFee      Int      @default(0)
+  shippingMethod   String?
+  shippingDuration String?
+
+  // Legal / Notices
+  material      String?
+  origin        String?
+  manufacturer  String?
+  washCare      String?
+  asInfo        String?
 
   brandId       String
   brand         Brand    @relation(fields: [brandId], references: [id])

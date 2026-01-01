@@ -154,7 +154,7 @@ export default function CategoryList({ initialCategories }: Props) {
             <div className="card bg-base-100 shadow-sm border border-base-200">
                 <div className="card-body">
                     <h3 className="card-title text-lg mb-4">Add New Category</h3>
-                    <form onSubmit={handleCreate} className="flex gap-4 items-end">
+                    <form onSubmit={handleCreate} className="flex gap-4 items-end flex-wrap">
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
                                 <span className="label-text">Name</span>
@@ -168,7 +168,17 @@ export default function CategoryList({ initialCategories }: Props) {
                             />
                         </div>
 
-
+                        <div className="form-control w-full max-w-xs">
+                            <label className="label">
+                                <span className="label-text">Slug (Optional)</span>
+                            </label>
+                            <input
+                                type="text"
+                                name="slug"
+                                placeholder="category-slug"
+                                className="input input-bordered w-full"
+                            />
+                        </div>
 
                         <div className="form-control w-full max-w-xs">
                             <label className="label">
@@ -191,6 +201,7 @@ export default function CategoryList({ initialCategories }: Props) {
                                 {renderCategoryOptions(categories)}
                             </select>
                         </div>
+
                         <button type="submit" className="btn btn-primary" disabled={loading}>
                             {loading ? <span className="loading loading-spinner loading-xs"></span> : <Plus size={16} />}
                             Add

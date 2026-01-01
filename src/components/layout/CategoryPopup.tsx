@@ -368,7 +368,7 @@ export default function CategoryPopup({
               </button>
             </div>
 
-            {selectedTab === "category" && (
+            {(selectedTab === "category" || selectedTab === "brand") && (
               <div className="flex gap-3 text-sm text-gray-500 pb-1.5 mr-8">
                 <span
                   onClick={() => setSelectedGender("all")}
@@ -633,7 +633,7 @@ export default function CategoryPopup({
                       {filteredBrands.map((brand, idx) => (
                         <Link
                           key={idx}
-                          href={buildBrandHref(brand.slug, "A")}
+                          href={buildBrandHref(brand.slug, selectedGender === "men" ? "M" : selectedGender === "women" ? "W" : "A")}
                           onClick={onClose}
                           className="flex items-center justify-between group cursor-pointer py-1"
                         >
