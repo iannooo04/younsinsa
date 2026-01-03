@@ -86,10 +86,29 @@ export async function POST(request: NextRequest) {
             }
         }
         
+        // 3. Create Options
+        const optionsStr = formData.get("options") as string;
+        if (optionsStr) {
+            const options = JSON.parse(optionsStr);
+            for (const opt of options) {
+                if (opt.name && opt.values.length > 0) {
+                    await prisma.productOption.create({
+                        data: {
+                            productId: product.id,
+                            name: opt.name,
+                            values: {
+                                create: opt.values.map((val: any) => ({ name: val.name }))
+                            }
+                        }
+                    });
+                }
+            }
+        }
+        
         // Return updated product with images
         const updatedProduct = await prisma.product.findUnique({
             where: { id: product.id },
-            include: { images: true, brand: true, category: true }
+            include: { images: true, brand: true, category: true, options: { include: { values: true } } }
         });
 
         return NextResponse.json(updatedProduct);

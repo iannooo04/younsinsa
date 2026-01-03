@@ -79,7 +79,8 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
     pathname.includes("/mypage") ||
     pathname.includes("/orders/cart") ||
     pathname.includes("/offline") ||
-    pathname.includes("/like");
+    pathname.includes("/like") ||
+    pathname.includes("/player");
 
   return (
     // 배경: 검정, 텍스트: 흰색
@@ -445,16 +446,10 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
                 {t("nav.shoes")}
               </Link>
               <Link
-                href="/category/104009"
+                href={`/main/player/recommend?gf=${currentGf}`}
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
-                {t("nav.swimwear")}
-              </Link>
-              <Link
-                href="/category/104009"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.yoga")}
+                {t("nav.sports")}
               </Link>
               <Link
                 href="/category/104007"
@@ -474,12 +469,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               >
                 {t("nav.spot")}
               </Link>
-              <Link
-                href="/features/sale"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.special")}
-              </Link>
+
               <Link
                 href="/features/new"
                 className="hover:text-gray-300 transition-colors cursor-pointer"

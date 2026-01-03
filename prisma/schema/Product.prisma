@@ -149,3 +149,11 @@ model ProductReview {
   @@index([productId])
   @@index([userId])
 }
+
+model OptionTemplate {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  options   Json     // Stores array of { name: string, values: string[] }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
