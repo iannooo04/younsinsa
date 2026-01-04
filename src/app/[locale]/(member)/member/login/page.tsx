@@ -33,17 +33,11 @@ export default function LoginPage() {
           <div className="text-center mb-10">
             <h2 className="flex items-center justify-center gap-3 mb-2">
               <span className="text-[28px] font-black tracking-tighter text-black font-sans">
-                YIMILI
-              </span>
-              <span className="text-[24px] font-thin text-[#E5E5E5] pb-1">
-                |
-              </span>
-              <span className="text-[26px] font-medium tracking-[0.15em] text-black font-sans">
-                29CM
+                NKBUS
               </span>
             </h2>
             <p className="text-[13px] text-black tracking-tight font-medium">
-              이미리, 29CM를 하나의 계정으로 로그인하세요.
+              NKBUS를 하나의 계정으로 로그인하세요.
             </p>
           </div>
 

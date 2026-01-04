@@ -134,15 +134,24 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               >
                 {t("topBar.brand")}
               </Link>
-              <span className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">
+              <Link
+                href={`/main/golf/recommend?gf=${currentGf}`}
+                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
+              >
                 {t("topBar.beauty")}
-              </span>
-              <span className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">
+              </Link>
+              <Link
+                href={`/main/player/recommend?gf=${currentGf}`}
+                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
+              >
                 {t("topBar.player")}
-              </span>
-              <span className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">
+              </Link>
+              <Link
+                href={`/main/women/recommend?gf=${currentGf}`}
+                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
+              >
                 {t("topBar.outlet")}
-              </span>
+              </Link>
             </>
           )}
         </div>
@@ -434,31 +443,26 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               </Link>
 
               <Link
-                href="/category/104003"
+                href="/women"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.women")}
               </Link>
               <Link
-                href="/category/104002"
+                href="/shoes"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.shoes")}
               </Link>
+
               <Link
-                href={`/main/player/recommend?gf=${currentGf}`}
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.sports")}
-              </Link>
-              <Link
-                href="/category/104007"
+                href="/accessories"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.accessories")}
               </Link>
               <Link
-                href="/category/104006"
+                href="/bag"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
               >
                 {t("nav.pants")}

@@ -54,13 +54,15 @@ export default function useLogin() {
 
         showToast(msg, "error");
         setErrorMessage(msg);
-        throw new Error(msg);
+        return;
       }
 
-      showToast("성공적으로 로그인되었습니다.", "success");
-      // 로그인 성공 시 메인 페이지로 이동
-      router.push("/");
-      router.refresh();
+      if (result?.ok) {
+        showToast("성공적으로 로그인되었습니다.", "success");
+        // 로그인 성공 시 메인 페이지로 이동
+        router.push("/");
+        router.refresh();
+      }
     } catch (error: any) {
       console.error("로그인 실패:", error);
     } finally {
