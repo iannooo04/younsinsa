@@ -4,11 +4,32 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { usePathname } from "next/navigation"; // 경로 확인 훅
+import { usePathname, useSearchParams } from "next/navigation"; // 경로 확인 훅
 
 export default function MainFooter() {
   const t = useTranslations("footer");
   const pathname = usePathname(); // 현재 경로 가져오기
+  const searchParams = useSearchParams();
+  const currentGf = searchParams?.get("gf") || "A";
+
+  const getTabUrl = (key: string) => {
+    switch (key) {
+      case "nkbus":
+        return `/main/nkbus/recommend?gf=${currentGf}`;
+      case "golf":
+        return `/main/golf/recommend?gf=${currentGf}`;
+      case "player":
+        return `/main/player/recommend?gf=${currentGf}`;
+      case "women":
+        return `/main/women/recommend?gf=${currentGf}`;
+      case "shoes":
+        return "/shoes";
+      case "boutique":
+        return "/boutique";
+      default:
+        return "#";
+    }
+  };
 
   // ✅ [수정] 장바구니(/orders/cart) 또는 좋아요(/like) 경로가 포함되면 푸터를 렌더링하지 않음
   if (
@@ -27,16 +48,15 @@ export default function MainFooter() {
           <div className="flex flex-wrap gap-2 py-3">
             {[
               "nkbus",
-              "beauty",
+              "golf",
               "player",
-              "outlet",
+              "women",
               "boutique",
               "shoes",
-              "kids",
-              "used",
             ].map((key, idx) => (
-              <span
+              <Link
                 key={idx}
+                href={getTabUrl(key)}
                 className={`px-3 py-1 font-bold cursor-pointer ${
                   idx === 0
                     ? "bg-black text-white"
@@ -44,7 +64,7 @@ export default function MainFooter() {
                 }`}
               >
                 {t(`tabs.${key}`)}
-              </span>
+              </Link>
             ))}
           </div>
         </div>
@@ -124,10 +144,8 @@ export default function MainFooter() {
               "Master",
               "JCB",
               "AMEX",
-              "PAYCO",
-              "Toss",
-              "NAVER",
-              "Kakao",
+              "AliPay",
+              "WeChat",
             ].map((pay, i) => (
               <div
                 key={i}
@@ -165,7 +183,7 @@ export default function MainFooter() {
                 {t("sitemap.store.title")}
               </h5>
               <ul className="space-y-2 text-gray-500">
-                {[0, 1, 2, 3, 4, 5, 6, 7].map((idx) => (
+                {[0, 1, 2, 3, 4, 5, 6].map((idx) => (
                   <li key={idx} className="hover:text-black cursor-pointer">
                     {t(`sitemap.store.items.${idx}`)}
                   </li>

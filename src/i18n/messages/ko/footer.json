@@ -1,13 +1,11 @@
 {
   "tabs": {
     "nkbus": "NKBUS",
-    "beauty": "BEAUTY",
+    "golf": "GOLF",
     "player": "PLAYER",
-    "outlet": "OUTLET",
+    "women": "WOMEN",
     "boutique": "BOUTIQUE",
-    "shoes": "SHOES",
-    "kids": "kids",
-    "used": "USED"
+    "shoes": "SHOES"
   },
   "notice": {
     "title": "공지사항",
@@ -53,12 +51,11 @@
       "items": {
         "0": "NKBUS 스토어",
         "1": "NKBUS 스탠다드",
-        "2": "29CM",
-        "3": "NKBUS 엠프티",
-        "4": "NKBUS 스퀘어",
-        "5": "NKBUS 뷰티",
-        "6": "NKBUS 테라스",
-        "7": "아즈니섬"
+        "2": "NKBUS 엠프티",
+        "3": "NKBUS 스퀘어",
+        "4": "NKBUS 테라스",
+        "5": "아즈니섬",
+        "6": "NKBUS 골프"
       }
     },
     "business": {

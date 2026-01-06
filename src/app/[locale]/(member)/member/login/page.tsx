@@ -143,48 +143,7 @@ export default function LoginPage() {
             </div>
           </form>
 
-          {/* 소셜 로그인 버튼들 */}
-          <div className="mt-10 space-y-3">
-            {/* 카카오 */}
-            <button
-              type="button"
-              // 🛠️ [복원] h-[42px] -> h-[50px]
-              className="w-full h-[50px] flex justify-center items-center bg-[#FEE500] hover:bg-[#FDD835] rounded-[3px] focus:outline-none relative"
-            >
-              <div className="absolute left-5 top-1/2 -translate-y-1/2">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="w-[20px] h-[20px]"
-                  fill="#000000"
-                >
-                  <path d="M12 3C5.925 3 1 6.925 1 11.775c0 3.125 2.05 5.875 5.175 7.425-.225.85-.825 3.05-1 3.5-.15.425.15.425.325.3.275-.175 2.925-2 4.1-2.8.725.1 1.475.175 2.225.175 6.075 0 11-3.925 11-8.775C23 6.925 18.075 3 12 3z" />
-                </svg>
-              </div>
-              <span className="text-[14px] font-bold text-[#191919]">
-                카카오 시작하기
-              </span>
-            </button>
 
-            {/* Apple */}
-            <button
-              type="button"
-              // 🛠️ [복원] h-[42px] -> h-[50px]
-              className="w-full h-[50px] flex justify-center items-center bg-white border border-[#E5E5E5] hover:bg-gray-50 rounded-[3px] focus:outline-none relative"
-            >
-              <div className="absolute left-5 top-1/2 -translate-y-1/2">
-                <svg
-                  viewBox="0 0 24 24"
-                  className="w-[20px] h-[20px]"
-                  fill="currentColor"
-                >
-                  <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-.68-.32-1.35-.32-2.03 0-1.03.48-2.1.55-3.08-.4-1.92-1.87-2.92-4.75-1.93-7.5.76-2.12 2.63-3.1 4.58-3.1.95 0 1.77.37 2.45.65.68.27 1.3.27 1.98 0 .68-.28 1.5-.65 2.45-.65 1.7 0 3.27.75 4.18 2.05-3.62 1.75-3.03 6.3 1.05 7.95-.53 1.4-1.2 2.7-2.08 3.55zM12.03 7.25c-.15-2.23 1.68-4.08 3.75-4.25.25 2.3-2.03 4.38-3.75 4.25z" />
-                </svg>
-              </div>
-              <span className="text-[14px] font-bold text-black">
-                Apple로 시작하기
-              </span>
-            </button>
-          </div>
 
           {/* 하단 회원가입 유도 */}
           <div className="mt-8 text-center flex items-center justify-center gap-2">

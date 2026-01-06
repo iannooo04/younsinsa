@@ -1,13 +1,11 @@
 {
   "tabs": {
     "nkbus": "NKBUS",
-    "beauty": "BEAUTY",
+    "golf": "GOLF",
     "player": "PLAYER",
-    "outlet": "OUTLET",
+    "women": "WOMEN",
     "boutique": "BOUTIQUE",
-    "shoes": "SHOES",
-    "kids": "kids",
-    "used": "USED"
+    "shoes": "SHOES"
   },
   "notice": {
     "title": "Notice",
@@ -53,12 +51,11 @@
       "items": {
         "0": "Yimili Store",
         "1": "Yimili Standard",
-        "2": "29CM",
-        "3": "Yimili Empty",
-        "4": "Yimili Square",
-        "5": "Yimili Beauty",
-        "6": "Yimili Terrace",
-        "7": "Asnisum"
+        "2": "Yimili Empty",
+        "3": "Yimili Square",
+        "4": "Yimili Terrace",
+        "5": "Asnisum",
+        "6": "NKBUS Golf"
       }
     },
     "business": {

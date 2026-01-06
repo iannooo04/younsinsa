@@ -79,8 +79,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
     pathname.includes("/mypage") ||
     pathname.includes("/orders/cart") ||
     pathname.includes("/offline") ||
-    pathname.includes("/like") ||
-    pathname.includes("/player");
+    pathname.includes("/like");
 
   return (
     // 배경: 검정, 텍스트: 흰색
