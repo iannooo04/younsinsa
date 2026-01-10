@@ -79,12 +79,12 @@ SelectTrigger.displayName = "SelectTrigger";
 const SelectValue = React.forwardRef<
   HTMLSpanElement,
   React.HTMLAttributes<HTMLSpanElement> & { placeholder?: string }
->(({ className = "", placeholder, ...props }, ref) => {
+>(({ className = "", placeholder, children, ...props }, ref) => {
   const context = React.useContext(SelectContext);
   // Display the selected label or placeholder
   return (
     <span className={`block truncate ${className}`} ref={ref} {...props}>
-      {context?.label || context?.value || placeholder}
+      {children || context?.label || placeholder}
     </span>
   );
 });

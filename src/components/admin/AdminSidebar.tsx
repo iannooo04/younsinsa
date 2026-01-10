@@ -49,62 +49,62 @@ const menuItems: MenuItem[] = [
                     { name: "금액 / 단위 기준 설정", href: "/admin/settings/currency" },
                     { name: "파일 저장소 관리", href: "/admin/settings/storage" },
                     { name: "저장소 경로 일괄 관리", href: "/admin/settings/storage-path" },
-                    { name: "코드 관리", href: "#" },
-                    { name: "외부서비스 설정", href: "#" },
-                    { name: "검색엔진 최적화(SEO) 설정", href: "#" },
+                    { name: "코드 관리", href: "/admin/settings/code" },
+                    { name: "외부서비스 설정", href: "/admin/settings/external" },
+                    { name: "검색엔진 최적화(SEO) 설정", href: "/admin/settings/seo" },
                 ]
             },
             {
                 title: "관리 정책",
                 items: [
-                    { name: "운영자 관리", href: "#" },
-                    { name: "운영자 권한 설정", href: "#" },
-                    { name: "운영 보안 설정", href: "#" },
-                    { name: "쇼핑몰 이용 설정", href: "#" },
-                    { name: "비밀번호 찾기 설정", href: "#" },
-                    { name: "비밀번호 변경안내 설정", href: "#" },
+                    { name: "운영자 관리", href: "/admin/settings/manager" },
+                    { name: "운영자 권한 설정", href: "/admin/settings/manager-permission" },
+                    { name: "운영 보안 설정", href: "/admin/settings/security" },
+                    { name: "쇼핑몰 이용 설정", href: "/admin/settings/mall-usage" },
+                    { name: "비밀번호 찾기 설정", href: "/admin/settings/password-search" },
+                    { name: "비밀번호 변경안내 설정", href: "/admin/settings/password-change-guide" },
                 ]
             },
             {
                 title: "해외상점",
                 items: [
-                    { name: "해외 상점 설정", href: "#" },
-                    { name: "환율 설정", href: "#" },
-                    { name: "해외 배송조건 관리", href: "#" },
-                    { name: "해외 배송그룹 관리", href: "#" },
-                    { name: "해외 결제 설정", href: "#" },
+                    { name: "해외 상점 설정", href: "/admin/settings/global" },
+                    { name: "환율 설정", href: "/admin/settings/exchange-rate" },
+                    { name: "해외 배송조건 관리", href: "/admin/settings/overseas-shipping-condition" },
+                    { name: "해외 배송그룹 관리", href: "/admin/settings/overseas-shipping-group" },
+                    { name: "해외 결제 설정", href: "/admin/settings/overseas-payment" },
                 ]
             },
             {
                 title: "상품 정책",
                 items: [
-                    { name: "상품 기본 설정", href: "#" },
-                    { name: "상품 이미지 사이즈 설정", href: "#" },
-                    { name: "상품 상세 이용안내 관리", href: "#" },
-                    { name: "최근 본 상품 설정", href: "#" },
+                    { name: "상품 기본 설정", href: "/admin/settings/product-basic" },
+                    { name: "상품 이미지 사이즈 설정", href: "/admin/settings/product-image-size" },
+                    { name: "상품 상세 이용안내 관리", href: "/admin/settings/product-usage-guide" },
+                    { name: "최근 본 상품 설정", href: "/admin/settings/recent-products" },
                 ]
             },
             {
                 title: "본인확인 인증 서비스",
                 items: [
-                    { name: "휴대폰인증 설정", href: "#" },
+                    { name: "휴대폰인증 설정", href: "/admin/settings/mobile-auth" },
                 ]
             },
             {
                 title: "주문 정책",
                 items: [
-                    { name: "주문 기본 설정", href: "#" },
-                    { name: "주문 상태 설정", href: "#" },
-                    { name: "장바구니 / 관심상품 설정", href: "#" },
-                    { name: "주문서 추가정보 관리", href: "#" },
-                    { name: "주문서 인쇄 설정", href: "#" },
+                    { name: "주문 기본 설정", href: "/admin/settings/order-basic" },
+                    { name: "주문 상태 설정", href: "/admin/settings/order-status" },
+                    { name: "장바구니 / 관심상품 설정", href: "/admin/settings/cart-wishlist" },
+                    { name: "주문서 추가정보 관리", href: "/admin/settings/order-additional-info" },
+                    { name: "주문서 인쇄 설정", href: "/admin/settings/order-print" },
                 ]
             },
             {
                 title: "결제 정책",
                 items: [
-                    { name: "결제 수단 설정", href: "#" },
-                    { name: "전자결제(PG) 설정", href: "#" },
+                    { name: "결제 수단 설정", href: "/admin/settings/payment-methods" },
+                    { name: "전자결제(PG) 설정", href: "/admin/settings/pg-settings" },
                     { name: "알리페이 설정", href: "#" },
                     { name: "위챗페이 설정", href: "#" },
                 ]
@@ -112,9 +112,9 @@ const menuItems: MenuItem[] = [
             {
                 title: "보안서버관리",
                 items: [
-                    { name: "관리자 보안서버 관리", href: "#" },
-                    { name: "PC쇼핑몰 보안서버 관리", href: "#" },
-                    { name: "모바일쇼핑몰 보안서버 관리", href: "#" },
+                    { name: "관리자 보안서버 관리", href: "/admin/settings/ssl-admin" },
+                    { name: "PC쇼핑몰 보안서버 관리", href: "/admin/settings/ssl-pc" },
+                    { name: "모바일쇼핑몰 보안서버 관리", href: "/admin/settings/ssl-mobile" },
                 ]
             }
         ]
@@ -138,28 +138,28 @@ const menuItems: MenuItem[] = [
             {
                 title: "상품 일괄 관리",
                 items: [
-                    { name: "상품 가격 관리", href: "#" },
-                    { name: "상품 품절/노출/재고 관리", href: "#" },
-                    { name: "상품 이동/복사/삭제 관리", href: "#" },
-                    { name: "상품 배송 관리", href: "#" },
-                    { name: "상품 이미지 일괄 처리", href: "#" },
-                    { name: "이미지호스팅 일괄전환", href: "#" },
+                    { name: "상품 가격 관리", href: "/admin/products/price" },
+                    { name: "상품 품절/노출/재고 관리", href: "/admin/products/stock-display" },
+                    { name: "상품 이동/복사/삭제 관리", href: "/admin/products/move-copy-delete" },
+                    { name: "상품 배송 관리", href: "/admin/products/shipping" },
+                    { name: "상품 이미지 일괄 처리", href: "/admin/products/image-bulk-process" },
+                    { name: "이미지호스팅 일괄전환", href: "/admin/products/image-hosting-conversion" },
                 ]
             },
             {
                 title: "상품 진열 관리",
                 items: [
-                    { name: "메인페이지 상품진열", href: "#" },
-                    { name: "카테고리페이지 상품진열", href: "#" },
-                    { name: "브랜드페이지 상품진열", href: "#" },
-                    { name: "검색페이지 상품진열", href: "#" },
-                    { name: "품절상품 진열설정", href: "#" },
+                    { name: "메인페이지 상품진열", href: "/admin/products/main-display" },
+                    { name: "카테고리페이지 상품진열", href: "/admin/products/category-display" },
+                    { name: "브랜드페이지 상품진열", href: "/admin/products/brand-display" },
+                    { name: "검색페이지 상품진열", href: "/admin/products/search-display" },
+                    { name: "품절상품 진열설정", href: "/admin/products/sold-out-display" },
                 ]
             },
             {
                 title: "상품 분류 관리",
                 items: [
-                    { name: "분류 설정 관리", href: "#" },
+                    { name: "분류 설정 관리", href: "/admin/products/classification-settings" },
                     { name: "카테고리 관리", href: "/admin/categories" },
                     { name: "브랜드 관리", href: "/admin/brands" },
                 ]
@@ -167,27 +167,27 @@ const menuItems: MenuItem[] = [
             {
                 title: "상품 노출형태 관리",
                 items: [
-                    { name: "테마 관리", href: "#" },
-                    { name: "관련상품 노출 설정", href: "#" },
-                    { name: "상품상세 노출항목 설정", href: "#" },
-                    { name: "상품상세 공통정보 관리", href: "#" },
-                    { name: "검색창 관련 설정", href: "#" },
-                    { name: "인기상품 노출 관리", href: "#" },
-                    { name: "검색창 추천상품 노출 설정", href: "#" },
+                    { name: "테마 관리", href: "/admin/products/themes" },
+                    { name: "관련상품 노출 설정", href: "/admin/products/related-product-exposure" },
+                    { name: "상품상세 노출항목 설정", href: "/admin/products/product-detail-exposure-items" },
+                    { name: "상품상세 공통정보 관리", href: "/admin/products/common-info" },
+                    { name: "검색창 관련 설정", href: "/admin/products/search-settings" },
+                    { name: "인기상품 노출 관리", href: "/admin/products/popular-products" },
+                    { name: "검색창 추천상품 노출 설정", href: "/admin/products/search-recommendation" },
                 ]
             },
             {
                 title: "추가상품 관리",
                 items: [
-                    { name: "추가상품 관리", href: "#" },
-                    { name: "추가상품 그룹 관리", href: "#" },
+                    { name: "추가상품 관리", href: "/admin/products/add-on-products" },
+                    { name: "추가상품 그룹 관리", href: "/admin/products/add-on-group" },
                 ]
             },
             {
                 title: "상품 엑셀 관리",
                 items: [
-                    { name: "상품 다운로드", href: "#" },
-                    { name: "상품 업로드", href: "#" },
+                    { name: "상품 다운로드", href: "/admin/products/excel-download" },
+                    { name: "상품 업로드", href: "/admin/products/excel-upload" },
                 ]
             }
         ]
@@ -201,56 +201,56 @@ const menuItems: MenuItem[] = [
                 title: "주문 관리",
                 items: [
                     { name: "주문통합리스트", href: "/admin/orders" },
-                    { name: "입금대기 리스트", href: "#" },
-                    { name: "결제완료 리스트", href: "#" },
-                    { name: "상품준비중 리스트", href: "#" },
-                    { name: "배송중 리스트", href: "#" },
-                    { name: "배송완료 리스트", href: "#" },
-                    { name: "구매확정 리스트", href: "#" },
-                    { name: "결제 중단/실패 리스트", href: "#" },
-                    { name: "송장일괄등록", href: "#" },
-                    { name: "주문 내역 삭제", href: "#" },
+                    { name: "입금대기 리스트", href: "/admin/orders/deposit-wait" },
+                    { name: "결제완료 리스트", href: "/admin/orders/payment-confirm" },
+                    { name: "상품준비중 리스트", href: "/admin/orders/product-prep" },
+                    { name: "배송중 리스트", href: "/admin/orders/in-delivery" },
+                    { name: "배송완료 리스트", href: "/admin/orders/delivery-complete" },
+                    { name: "구매확정 리스트", href: "/admin/orders/purchase-confirm" },
+                    { name: "결제 중단/실패 리스트", href: "/admin/orders/payment-fail" },
+                    { name: "송장일괄등록", href: "/admin/orders/invoice-bulk" },
+                    { name: "주문 내역 삭제", href: "/admin/orders/delete-history" },
                 ]
             },
             {
                 title: "취소/교환/반품/환불 관리",
                 items: [
-                    { name: "취소 리스트", href: "#" },
-                    { name: "교환 리스트", href: "#" },
-                    { name: "반품 리스트", href: "#" },
-                    { name: "환불 리스트", href: "#" },
-                    { name: "고객 교환/반품/환불신청 관리", href: "#" },
+                    { name: "취소 리스트", href: "/admin/orders/cancellation" },
+                    { name: "교환 리스트", href: "/admin/orders/exchange" },
+                    { name: "반품 리스트", href: "/admin/orders/return" },
+                    { name: "환불 리스트", href: "/admin/orders/refund" },
+                    { name: "고객 교환/반품/환불신청 관리", href: "/admin/orders/customer-claims" },
                 ]
             },
             {
                 title: "수기주문 관리",
                 items: [
-                    { name: "수기주문 등록", href: "#" },
-                    { name: "자주쓰는 주소 관리", href: "#" },
+                    { name: "수기주문 등록", href: "/admin/orders/manual" },
+                    { name: "자주쓰는 주소 관리", href: "/admin/orders/address-book" },
                 ]
             },
             {
                 title: "자동입금확인 서비스",
                 items: [
-                    { name: "자동입금확인 서비스 안내", href: "#" },
-                    { name: "자동입금확인 서비스 신청", href: "#" },
-                    { name: "입금조회/실시간입금확인", href: "#" },
-                    { name: "미확인 입금자 관리", href: "#" },
+                    { name: "자동입금확인 서비스 안내", href: "/admin/orders/auto-deposit-guide" },
+                    { name: "자동입금확인 서비스 신청", href: "/admin/orders/auto-deposit-apply" },
+                    { name: "입금조회/실시간입금확인", href: "/admin/orders/deposit-check" },
+                    { name: "미확인 입금자 관리", href: "/admin/orders/unknown-deposit" },
                 ]
             },
             {
                 title: "현금영수증 관리",
                 items: [
-                    { name: "현금영수증 발급/조회", href: "#" },
-                    { name: "현금영수증 개별발급", href: "#" },
+                    { name: "현금영수증 발급/조회", href: "/admin/orders/receipt-apply" },
+                    { name: "현금영수증 개별발급", href: "/admin/orders/receipt-individual" },
                 ]
             },
             {
                 title: "세금계산서 관리(일반/전자)",
                 items: [
-                    { name: "세금계산서 설정", href: "#" },
-                    { name: "발행 요청 리스트", href: "#" },
-                    { name: "발행 내역 리스트", href: "#" },
+                    { name: "세금계산서 설정", href: "/admin/orders/invoice-setting" },
+                    { name: "발행 요청 리스트", href: "/admin/orders/invoice-request" },
+                    { name: "발행 내역 리스트", href: "/admin/orders/invoice-history" },
                 ]
             }
         ]
@@ -264,68 +264,53 @@ const menuItems: MenuItem[] = [
                 title: "회원 관리",
                 items: [
                     { name: "회원 리스트", href: "/admin/users" },
-                    { name: "회원 등록", href: "#" },
-                    { name: "회원 엑셀 업로드", href: "#" },
-                    { name: "회원 가입 정책 관리", href: "#" },
-                    { name: "회원 가입 항목 관리", href: "#" },
-                    { name: "회원 등급 관리", href: "#" },
-                    { name: "회원등급 평가방법 설정", href: "#" },
-                    { name: "가입승인/등급변경", href: "#" },
-                    { name: "회원정보 이벤트", href: "#" },
-                    { name: "회원가입 이벤트", href: "#" },
-                    { name: "휴면 회원 정책", href: "#" },
-                    { name: "휴면 회원 관리", href: "#" },
-                    { name: "회원 탈퇴 / 삭제 관리", href: "#" },
+                    { name: "회원 등록", href: "/admin/users/create" },
+                    { name: "회원 엑셀 업로드", href: "/admin/users/excel-upload" },
+                    { name: "회원 가입 정책 관리", href: "/admin/users/join-policy" },
+                    { name: "회원 가입 항목 관리", href: "/admin/users/join-items" },
+                    { name: "회원 등급 관리", href: "/admin/users/grade" },
+                    { name: "회원등급 평가방법 설정", href: "/admin/users/grade/evaluation" },
+                    { name: "가입승인/등급변경", href: "/admin/users/approval-change" },
+                    { name: "회원정보 이벤트", href: "/admin/users/info-event" },
+                    { name: "회원가입 이벤트", href: "/admin/users/join-event" },
+                    { name: "휴면 회원 정책", href: "/admin/users/dormant-policy" },
+                    { name: "휴면 회원 관리", href: "/admin/users/dormant-management" },
+                    { name: "회원 탈퇴 / 삭제 관리", href: "/admin/users/withdrawal-management" },
                 ]
             },
+
             {
                 title: "마일리지 / 예치금 관리",
                 items: [
-                    { name: "마일리지 기본 설정", href: "#" },
-                    { name: "마일리지 사용 설정", href: "#" },
-                    { name: "마일리지 지급 설정", href: "#" },
-                    { name: "마일리지 지급/차감", href: "#" },
-                    { name: "예치금 설정", href: "#" },
-                    { name: "예치금 지급/차감", href: "#" },
+                    { name: "마일리지 기본 설정", href: "/admin/users/mileage/basic" },
+                    { name: "마일리지 사용 설정", href: "/admin/users/mileage/use" },
+                    { name: "마일리지 지급 설정", href: "/admin/users/mileage/provision" },
+                    { name: "마일리지 지급/차감", href: "/admin/users/mileage/give-deduct" },
+                    { name: "예치금 설정", href: "/admin/users/deposit/settings" },
+                    { name: "예치금 지급/차감", href: "/admin/users/deposit/give-deduct" },
                 ]
             },
             {
                 title: "CRM 그룹 관리",
                 items: [
-                    { name: "CRM 그룹 리스트", href: "#" },
-                    { name: "CRM 그룹 등록", href: "#" },
+                    { name: "CRM 그룹 리스트", href: "/admin/users/crm-group" },
+                    { name: "CRM 그룹 등록", href: "/admin/users/crm-group/create" },
                 ]
             },
 
             {
                 title: "SMS 관리",
                 items: [
-                    { name: "SMS 설정", href: "#" },
-                    { name: "개별/전체 SMS 발송", href: "#" },
-                    { name: "SMS 발송 내역 보기", href: "#" },
-                    { name: "SMS 포인트 충전", href: "#" },
-                    { name: "080 수신거부 설정", href: "#" },
-                    { name: "080 수신거부 리스트", href: "#" },
-                ]
-            },
-            {
-                title: "메일 관리",
-                items: [
-                    { name: "이메일 마케팅", href: "#" },
-                    { name: "대량 메일 설정", href: "#" },
-                    { name: "대량 메일 발송", href: "#" },
-                    { name: "개별/전체 메일 발송", href: "#" },
-                    { name: "자동 메일 설정", href: "#" },
-                    { name: "메일 발송 내역 보기", href: "#" },
+                    { name: "SMS 설정", href: "/admin/sms/settings" },
+                    { name: "개별/전체 SMS 발송", href: "/admin/sms/send" },
+                    { name: "SMS 발송 내역 보기", href: "/admin/sms/history" },
+                    { name: "SMS 포인트 충전", href: "/admin/sms/charge" },
                 ]
             },
             {
                 title: "간편 로그인",
                 items: [
-                    { name: "페이코 아이디 로그인 설정", href: "#" },
-                    { name: "네이버 아이디 로그인 설정", href: "#" },
-                    { name: "카카오 아이디 로그인 설정", href: "#" },
-                    { name: "구글 아이디 로그인 설정", href: "#" },
+                    { name: "구글 아이디 로그인 설정", href: "/admin/settings/google-login" },
                 ]
             }
         ]
@@ -339,11 +324,12 @@ const menuItems: MenuItem[] = [
                 title: "게시판 관리",
                 items: [
                     { name: "게시판 리스트", href: "/admin/boards" },
-                    { name: "게시판 등록", href: "#" },
-                    { name: "게시글 관리", href: "#" },
-                    { name: "게시판 금칙어 관리", href: "#" },
-                    { name: "게시글 양식 관리", href: "#" },
-                    { name: "FAQ 관리", href: "#" },
+                    { name: "게시판 등록", href: "/admin/boards/create" },
+                    { name: "게시글 관리", href: "/admin/boards/posts" },
+                    { name: "게시판 스킨 관리", href: "/admin/boards/skins" },
+                    { name: "게시판 금칙어 관리", href: "/admin/boards/banned-words" },
+                    { name: "게시글 양식 관리", href: "/admin/boards/templates" },
+                    { name: "FAQ 관리", href: "/admin/boards/faq" },
                 ]
             }
         ]
@@ -357,29 +343,29 @@ const menuItems: MenuItem[] = [
                 title: "애널리틱스",
                 items: [
                     { name: "애널리틱스 메인페이지", href: "/admin/statistics" },
-                    { name: "전체 방문자 수", href: "#" },
-                    { name: "전체 페이지뷰", href: "#" },
-                    { name: "주문 종합 분석", href: "#" },
-                    { name: "유입 경로", href: "#" },
-                    { name: "인기 페이지", href: "#" },
-                    { name: "회원가입 수", href: "#" },
-                    { name: "최근 방문자", href: "#" },
-                    { name: "쇼핑몰 체류시간", href: "#" },
+                    { name: "전체 방문자 수", href: "/admin/statistics/total-visitors" },
+                    { name: "전체 페이지뷰", href: "/admin/statistics/total-pageviews" },
+                    { name: "주문 종합 분석", href: "/admin/statistics/order-analysis" },
+                    { name: "유입 경로", href: "/admin/statistics/traffic-source" },
+                    { name: "인기 페이지", href: "/admin/statistics/popular-pages" },
+                    { name: "회원가입 수", href: "/admin/statistics/signup-count" },
+                    { name: "최근 방문자", href: "/admin/statistics/recent-visitors" },
+                    { name: "쇼핑몰 체류시간", href: "/admin/statistics/stay-time" },
                 ]
             },
             {
                 title: "회원분석",
                 items: [
-                    { name: "신규 회원분석", href: "#" },
-                    { name: "전체 회원분석", href: "#" },
-                    { name: "회원 마일리지 분석", href: "#" },
-                    { name: "회원 예치금 분석", href: "#" },
+                    { name: "신규 회원분석", href: "/admin/statistics/new-members" },
+                    { name: "전체 회원분석", href: "/admin/statistics/total-members" },
+                    { name: "회원 마일리지 분석", href: "/admin/statistics/mileage" },
+                    { name: "회원 예치금 분석", href: "/admin/statistics/deposit" },
                 ]
             },
             {
                 title: "상품분석",
                 items: [
-                    { name: "카테고리 분석", href: "#" },
+                    { name: "카테고리 분석", href: "/admin/statistics/category" },
                     { name: "판매순위 분석", href: "#" },
                     { name: "메인분류 분석", href: "#" },
                     { name: "검색어순위 분석", href: "#" },

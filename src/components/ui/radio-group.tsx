@@ -3,6 +3,8 @@
 import * as React from "react";
 import { Circle } from "lucide-react";
 
+import { cn } from "@/lib/utils";
+
 const RadioGroupContext = React.createContext<{
   value?: string;
   onValueChange?: (value: string) => void;
@@ -32,7 +34,7 @@ const RadioGroup = React.forwardRef<
 
   return (
     <RadioGroupContext.Provider value={{ value, onValueChange: handleValueChange, name }}>
-      <div className={`grid gap-2 ${className}`} ref={ref} {...props}>
+      <div className={cn("grid gap-2", className)} ref={ref} {...props}>
         {children}
       </div>
     </RadioGroupContext.Provider>
