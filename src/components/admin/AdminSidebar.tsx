@@ -366,36 +366,36 @@ const menuItems: MenuItem[] = [
                 title: "상품분석",
                 items: [
                     { name: "카테고리 분석", href: "/admin/statistics/category" },
-                    { name: "판매순위 분석", href: "#" },
-                    { name: "메인분류 분석", href: "#" },
-                    { name: "검색어순위 분석", href: "#" },
-                    { name: "페이지뷰 분석", href: "#" },
-                    { name: "장바구니 분석", href: "#" },
-                    { name: "관심상품 분석", href: "#" },
+                    { name: "판매순위 분석", href: "/admin/statistics/sales-ranking" },
+                    { name: "메인분류 분석", href: "/admin/statistics/main-classification" },
+                    { name: "검색어순위 분석", href: "/admin/statistics/search-keyword-ranking" },
+                    { name: "페이지뷰 분석", href: "/admin/statistics/pageview-analysis" },
+                    { name: "장바구니 분석", href: "/admin/statistics/cart-analysis" },
+                    { name: "관심상품 분석", href: "/admin/statistics/wishlist-analysis" },
                 ]
             },
             {
                 title: "매출분석",
                 items: [
-                    { name: "매출통계", href: "#" },
-                    { name: "연령별 매출통계", href: "#" },
-                    { name: "결제수단별 매출통계", href: "#" },
-                    { name: "지역별 매출통계", href: "#" },
+                    { name: "매출통계", href: "/admin/statistics/sales" },
+                    { name: "연령별 매출통계", href: "/admin/statistics/sales-by-age" },
+                    { name: "결제수단별 매출통계", href: "/admin/statistics/sales-by-payment" },
+                    { name: "지역별 매출통계", href: "/admin/statistics/sales-by-region" },
                 ]
             },
             {
                 title: "주문분석",
                 items: [
-                    { name: "주문통계", href: "#" },
-                    { name: "연령별 주문통계", href: "#" },
-                    { name: "지역별 주문통계", href: "#" },
-                    { name: "성별 주문통계", href: "#" },
+                    { name: "주문통계", href: "/admin/statistics/orders" },
+                    { name: "연령별 주문통계", href: "/admin/statistics/orders-by-age" },
+                    { name: "지역별 주문통계", href: "/admin/statistics/orders-by-region" },
+                    { name: "성별 주문통계", href: "/admin/statistics/orders-by-gender" },
                 ]
             },
             {
                 title: "에이스카운터",
                 items: [
-                    { name: "에이스카운터 신청/관리", href: "#" },
+                    { name: "에이스카운터 신청/관리", href: "/admin/statistics/acecounter" },
                     { name: "에이스카운터 관리자", href: "#" },
                 ]
             }
