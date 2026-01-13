@@ -28,7 +28,7 @@ export default function RefundListPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
 
   return (
-    <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
+    <div className="font-sans text-xs pb-24 relative">
       <div className="flex items-center justify-between pb-4 border-b border-gray-400 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">환불 리스트</h1>
       </div>

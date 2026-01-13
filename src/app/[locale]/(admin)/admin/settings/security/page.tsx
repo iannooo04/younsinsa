@@ -42,10 +42,7 @@ export default function OperationSecuritySettingsPage() {
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">인증수단</div>
                         <div className="p-4 space-y-2">
                             <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="auth-sms" className="rounded-sm border-gray-300" />
-                                    <Label htmlFor="auth-sms" className="font-normal">SMS인증</Label>
-                                </div>
+
                                 <div className="flex items-center gap-2">
                                     <Checkbox id="auth-email" className="rounded-sm border-gray-300" />
                                     <Label htmlFor="auth-email" className="font-normal">이메일인증</Label>
@@ -56,9 +53,7 @@ export default function OperationSecuritySettingsPage() {
                                 <p className="text-red-500">최고운영자의 인증정보가 등록되지 않으면 보안로그인/화면보안접속 설정과 관계없이 보안인증화면이 노출되지 않습니다</p>
                                 <p className="text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 로그인한 운영자 정보에 인증정보(SMS, 이메일)가 없는 경우, 보안인증화면이 노출되지 않습니다.</p>
                                 <p className="text-gray-500 ml-5">관리자 보안인증 설정을 사용 시, 운영자 정보에 인증정보를 등록해주세요. <a href="#" className="underline text-blue-500">운영자 정보 수정하기 &gt;</a></p>
-                                <p className="text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 인증번호 SMS는 잔여포인트가 있어야 발송됩니다. (잔여포인트 : 0.0) <a href="#" className="underline text-blue-500">SMS포인트 충전하기 &gt;</a></p>
-                                <p className="text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> SMS잔여포인트가 없는 경우 자동으로 이메일이 인증수단으로 노출되며, 포인트 충전 이후 설정한 인증수단으로 노출됩니다.</p>
-                                <p className="text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 이메일인증은 주문처리 및 프로모션 등으로 인해 이메일이 대량으로 발송될 경우 인증번호 전송이 지연될 수 있으므로 SMS인증을 사용하시길 권장합니다.</p>
+
                             </div>
                         </div>
                     </div>
@@ -271,76 +266,7 @@ export default function OperationSecuritySettingsPage() {
             </div>
 
             {/* Section 4: Shopping Mall Security Settings */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-gray-800">쇼핑몰 보안 설정</h2>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
-                </div>
 
-                <div className="border-t border-gray-400">
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">xframe 옵션 설정</div>
-                        <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="used" className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="used" id="xframe-used" />
-                                    <Label htmlFor="xframe-used" className="font-normal cursor-pointer flex items-center gap-1">사용함 <span className="text-red-500">(권고)</span></Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="unused" id="xframe-unused" />
-                                    <Label htmlFor="xframe-unused" className="font-normal cursor-pointer flex items-center gap-1">사용안함 <span className="text-red-500">(DDoS 및 Clickjacking 등 웹보안 취약)</span></Label>
-                                </div>
-                            </RadioGroup>
-                            <div className="text-xs text-gray-500 space-y-1">
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> DDoS 및 Clickjacking 등 웹보안을 지키기 위한 권고사항으로 xframe 옵션을 사용하시기 바랍니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 옵션 설정 사용 시 같은 도메인을 사용할 경우에만 정상 동작되며, 다른 도메인은 사용할 경우 동작되지 않습니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 옵션을 설정하지 않을 경우 모든 도메인에 정상 동작 하지만 웹보안 취약점이 발생될 수 있습니다.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">회원 비밀번호 변경 추<br/>가 검증 설정</div>
-                        <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="used" className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="used" id="pwd-verify-used" />
-                                    <Label htmlFor="pwd-verify-used" className="font-normal cursor-pointer flex items-center gap-1">사용함 <span className="text-red-500">(권고)</span></Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="unused" id="pwd-verify-unused" />
-                                    <Label htmlFor="pwd-verify-unused" className="font-normal cursor-pointer">사용안함</Label>
-                                </div>
-                            </RadioGroup>
-                            <div className="text-xs text-gray-500 space-y-1">
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 회원 비밀번호 변경 시, 세션 정보 탈취를 통해 다른 회원의 비밀번호를 변경할 수 없도록 검증 절차를 추가 합니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 추가 되는 검증 절차는 내부 시스템으로만 진행되며, 쇼핑몰 회원이 별도로 진행하는 단계는 추가되지 않습니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 쇼핑몰의 보안강화를 위해 사용하는 것을 권장 드리며, 사용하지 않을 경우 보안에 취약할 수 있습니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 해당 설정은 반드시 <span className="text-red-500">PC와 모바일 쇼핑몰 모두 스킨패치 적용 후 변경</span>하여 주시기 바랍니다. <a href="#" className="font-bold">바로가기 &gt;</a></p>
-                            </div>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">휴대폰 본인인증정보<br/>보안 설정</div>
-                        <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="used" className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="used" id="phone-auth-used" />
-                                    <Label htmlFor="phone-auth-used" className="font-normal cursor-pointer flex items-center gap-1">사용함 <span className="text-red-500">(권고)</span></Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="unused" id="phone-auth-unused" />
-                                    <Label htmlFor="phone-auth-unused" className="font-normal cursor-pointer">사용안함</Label>
-                                </div>
-                            </RadioGroup>
-                            <div className="text-xs text-gray-500 space-y-1">
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 휴대폰 본인인증 시, 인증 된 정보를 변경하여 가입할 수 없도록 보안 로직을 실행합니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 쇼핑몰의 보안강화를 위해 사용하는 것을 권장 드리며, 사용하지 않을 경우 보안에 취약할 수 있습니다.</p>
-                                <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 해당 설정은 반드시 <span className="text-red-500">PC와 모바일 쇼핑몰 모두 스킨패치 적용 후 변경</span>하여 주시기 바랍니다. <a href="#" className="font-bold">바로가기 &gt;</a></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
              {/* Section 5: Mall Screen Security Settings */}
             <div className="space-y-4">
@@ -403,112 +329,7 @@ export default function OperationSecuritySettingsPage() {
                 </div>
             </div>
 
-            {/* Section 6: Download Security Settings */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-gray-800">다운로드 보안 설정</h2>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
-                </div>
-                <div className="border-t border-gray-400">
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">사용여부</div>
-                        <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="used" className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="used" id="download-sec-used" />
-                                    <Label htmlFor="download-sec-used" className="font-normal cursor-pointer">사용함</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="unused" id="download-sec-unused" />
-                                    <Label htmlFor="download-sec-unused" className="font-normal cursor-pointer">사용안함</Label>
-                                </div>
-                            </RadioGroup>
-                            <p className="text-xs text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-700 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 정보통신망법 개인정보 보호조치에 따라 개인정보의 안전성 확보를 위한 다운로드 보안 설정을 '사용'하시길 권장합니다.</p>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">보안범위 설정</div>
-                        <div className="p-4 space-y-4">
-                            <div className="flex items-center">
-                                <div className="w-24 text-xs font-medium text-gray-700">본사</div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-hq-order" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-hq-order" className="font-normal text-xs">주문/배송</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-hq-member" className="rounded-sm border-gray-300" defaultChecked />
-                                        <Label htmlFor="scope-hq-member" className="font-normal text-xs">회원</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-hq-board" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-hq-board" className="font-normal text-xs">게시판</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-hq-supplier" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-hq-supplier" className="font-normal text-xs">공급사</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-hq-crema" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-hq-crema" className="font-normal text-xs">크리마 간편리뷰</Label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex items-center border-t border-gray-100 pt-4">
-                                <div className="w-24 text-xs font-medium text-gray-700">공급사</div>
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-supplier-order" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-supplier-order" className="font-normal text-xs">주문/배송</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-supplier-board" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-supplier-board" className="font-normal text-xs">게시글</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Checkbox id="scope-supplier-settle" className="rounded-sm border-gray-300" />
-                                        <Label htmlFor="scope-supplier-settle" className="font-normal text-xs">정산</Label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">관리자 인증수단</div>
-                        <div className="p-4 space-y-2">
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="dl-auth-sms" className="rounded-sm border-gray-300" defaultChecked/>
-                                    <Label htmlFor="dl-auth-sms" className="font-normal">SMS인증</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="dl-auth-email" className="rounded-sm border-gray-300" />
-                                    <Label htmlFor="dl-auth-email" className="font-normal">이메일인증</Label>
-                                </div>
-                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="dl-auth-ip" className="rounded-sm border-gray-300" />
-                                    <Label htmlFor="dl-auth-ip" className="font-normal">IP인증</Label>
-                                </div>
-                            </div>
-                             <div className="text-xs space-y-1">
-                                <p className="text-red-500 font-medium flex items-start gap-1"><span className="w-4 flex justify-center bg-red-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 최고운영자 정보에 SMS인증정보(휴대폰번호)가 없습니다. 인증정보를 먼저 등록해주세요. <a href="#" className="underline text-blue-500">최고운영자 정보 수정하기 &gt;</a></p>
-                                <p className="text-red-500 ml-5">운영자 휴대폰 번호 인증은 최고운영자의 휴대폰번호가 등록된 경우에만 사용 가능합니다.</p>
-                                <p className="text-red-500 font-medium flex items-start gap-1"><span className="w-4 flex justify-center bg-red-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 최고운영자 정보에 이메일 인증정보가 없습니다. 인증정보를 먼저 등록해주세요. <a href="#" className="underline text-blue-500">최고운영자 정보 수정하기 &gt;</a></p>
-                                <p className="text-red-500 ml-5">이메일인증은 최고운영자의 이메일 정보가 등록된 경우에만 사용 가능합니다.</p>
-                                <p className="text-gray-500 mt-2 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-700 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 이메일인증은 주문처리 및 프로모션 등으로 인해 이메일이 대량으로 발송될 경우 인증번호 전송이 지연될 수 있으므로 SMS인증을 사용하시길 권장합니다.</p>
-                            </div>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">SMS인증 설정</div>
-                        <div className="p-4 space-y-2">
-                            <p className="font-bold text-gray-800">운영자 정보에 등록된 SMS로 관리자 보안 인증번호가 발송됩니다.</p>
-                            <p className="text-xs text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-700 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 운영자 인증번호 SMS는 잔여포인트가 있어야 발송됩니다. (잔여포인트 : 0) <a href="#" className="underline text-blue-500">SMS포인트 충전하기 &gt;</a></p>
-                            <p className="text-xs text-gray-500 flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-700 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 로그인한 운영자 정보에 SMS 인증정보(휴대폰번호)가 없는 경우, 엑셀 다운로드가 불가합니다.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
             
             <div className="flex justify-center mt-8 text-gray-500 text-xs">
                 © NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-red-500">5.1.23.1206.5ccf2dd6</span>)

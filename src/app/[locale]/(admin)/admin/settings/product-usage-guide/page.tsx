@@ -83,10 +83,7 @@ export default function ProductUsageGuidePage() {
                                     <RadioGroupItem value="delivery" id="type-delivery" />
                                     <Label htmlFor="type-delivery" className="font-normal cursor-pointer">배송안내</Label>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="as" id="type-as" />
-                                    <Label htmlFor="type-as" className="font-normal cursor-pointer">AS안내</Label>
-                                </div>
+
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="refund" id="type-refund" />
                                     <Label htmlFor="type-refund" className="font-normal cursor-pointer">환불안내</Label>
@@ -176,28 +173,7 @@ export default function ProductUsageGuidePage() {
                                     </Button>
                                 </td>
                             </tr>
-                            {/* Row 2 */}
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <div className="flex justify-center">
-                                        <Checkbox className="w-4 h-4 border-gray-300" />
-                                    </div>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200">3</td>
-                                <td className="py-3 px-4 border-r border-gray-200">003001</td>
-                                <td className="py-3 px-4 border-r border-gray-200">[AS안내]</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-4">
-                                    <div className="font-medium text-gray-800">AS안내 - 기본</div>
-                                    <div className="text-xs text-gray-400">(기본설정)</div>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200">니아인터내셔널</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-11-25</td>
-                                <td className="py-3 px-4">
-                                     <Button size="sm" className="h-7 text-xs px-3 bg-[#A3A3A3] hover:bg-[#999999] text-white rounded-sm font-normal">
-                                        수정
-                                    </Button>
-                                </td>
-                            </tr>
+
                             {/* Row 3 */}
                              <tr className="border-b border-gray-200 hover:bg-gray-50">
                                 <td className="py-3 px-4 border-r border-gray-200">

@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { HelpCircle, Youtube, ChevronUp, Book } from "lucide-react";
+import { HelpCircle, Youtube, ChevronUp, Book, Download } from "lucide-react";
 
 export default function OrderPrintSettingsPage() {
     return (
@@ -11,9 +11,17 @@ export default function OrderPrintSettingsPage() {
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">주문서 인쇄 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-10 px-6 font-bold">
-                    저장
-                </Button>
+                <div className="flex gap-2">
+                    <Button variant="outline" className="border-gray-300 bg-white hover:bg-gray-50 rounded-md h-10 px-3 flex items-center gap-2">
+                        <div className="bg-[#E5F9EE] p-1 rounded items-center flex justify-center">
+                            <Download size={14} className="text-[#00C055]" strokeWidth={2.5} />
+                        </div>
+                        <span className="text-[#00C055] font-bold">엑셀다운로드</span>
+                    </Button>
+                    <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-10 px-6 font-bold">
+                        저장
+                    </Button>
+                </div>
             </div>
 
             {/* Section 1: Transaction Statement Print Settings */}
