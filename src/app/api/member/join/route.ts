@@ -15,9 +15,9 @@ function makeReferralCode(username: string): string {
 
 export async function POST(req: Request) {
     try {
-        const { email, password, username, name } = await req.json();
+        const { email, password, username, name, mobile } = await req.json();
 
-        if (!email || !password || !username || !name) {
+        if (!email || !password || !username || !name || !mobile) {
             return NextResponse.json(
                 { ok: false, message: "Missing required fields" },
                 { status: 400 }
@@ -47,16 +47,14 @@ export async function POST(req: Request) {
                     username,
                     name,
                     passwordHash,
+                    mobile, // Added required field
                 },
             });
 
-            const referralCode = makeReferralCode(username);
-
+            // Removed invalid referralCode and level fields
             await tx.userInfo.create({
                 data: {
                     userId: user.id,
-                    referralCode,
-                    level: 1,
                 },
             });
 

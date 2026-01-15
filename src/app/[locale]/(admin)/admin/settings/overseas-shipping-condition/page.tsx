@@ -2,13 +2,80 @@
 
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, BookOpen, ExternalLink, Image as ImageIcon } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { useState, useEffect, useTransition } from "react";
+import { getOverseasShippingSettingsAction, updateOverseasShippingSettingsAction } from "@/actions/basic-policy-actions";
+
+interface ShippingCondition {
+    rateStandard: string;
+    useInsurance: boolean;
+    boxWeight: number | string;
+    countryGroupCount: number;
+}
+
+interface ShippingConditions {
+    [key: string]: ShippingCondition;
+}
 
 export default function OverseasShippingConditionPage() {
+    const [isPending, startTransition] = useTransition();
+    const [conditions, setConditions] = useState<ShippingConditions>({
+        "en_US": { rateStandard: "ems", useInsurance: false, boxWeight: 0.0, countryGroupCount: 1 },
+        "zh_CN": { rateStandard: "ems", useInsurance: false, boxWeight: 0.0, countryGroupCount: 1 },
+        "ja_JP": { rateStandard: "ems", useInsurance: false, boxWeight: 0.0, countryGroupCount: 1 }
+    });
+
+
+    useEffect(() => {
+        const fetchData = async () => {
+             const result = await getOverseasShippingSettingsAction();
+             if (result.success && result.settings && result.settings.conditions) {
+                 setConditions(result.settings.conditions as unknown as ShippingConditions);
+             }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateOverseasShippingSettingsAction({ conditions });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
+    const handleConditionChange = (mallCode: string, field: keyof ShippingCondition, value: any) => {
+        setConditions(prev => ({
+            ...prev,
+            [mallCode]: {
+                ...prev[mallCode],
+                [field]: value
+            }
+        }));
+    };
+
+    const malls = [
+        { code: "en_US", name: "영문몰", flag: "🇺🇸", color: "text-blue-600" },
+        { code: "zh_CN", name: "중문몰", flag: "🇨🇳", color: "text-red-600" },
+        { code: "ja_JP", name: "일문몰", flag: "🇯🇵", color: "text-red-500" },
+    ];
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">해외 배송조건 관리</h1>
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
+                </Button>
             </div>
 
             {/* Table Section */}
@@ -31,82 +98,75 @@ export default function OverseasShippingConditionPage() {
                             </tr>
                         </thead>
                         <tbody className="text-gray-700">
-                            {/* English Mall */}
-                            <tr className="border-b border-gray-200">
-                                <td className="py-4 px-4 border-r border-gray-200">
-                                    <div className="flex items-center justify-center gap-2 font-bold">
-                                        <span className="text-lg">🇺🇸</span>
-                                        <span>영문몰</span>
-                                    </div>
-                                </td>
-                                <td className="py-4 px-4 border-r border-gray-200">우체국 EMS 표준 요율표 사용</td>
-                                <td className="py-4 px-4 border-r border-gray-200">X</td>
-                                <td className="py-4 px-4 border-r border-gray-200">0.00kg</td>
-                                <td className="py-4 px-4 border-r border-gray-200 space-y-1">
-                                    <div>1</div>
-                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                        그룹보기
-                                    </Button>
-                                </td>
-                                <td className="py-4 px-4">
-                                    <Button variant="outline" size="sm" className="h-7 px-3 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                        수정
-                                    </Button>
-                                </td>
-                            </tr>
-                            
-                            {/* Chinese Mall */}
-                            <tr className="border-b border-gray-200">
-                                <td className="py-4 px-4 border-r border-gray-200">
-                                    <div className="flex items-center justify-center gap-2 font-bold">
-                                        <span className="text-lg">🇨🇳</span>
-                                        <span>중문몰</span>
-                                    </div>
-                                </td>
-                                <td className="py-4 px-4 border-r border-gray-200">우체국 EMS 표준 요율표 사용</td>
-                                <td className="py-4 px-4 border-r border-gray-200">X</td>
-                                <td className="py-4 px-4 border-r border-gray-200">0.00kg</td>
-                                <td className="py-4 px-4 border-r border-gray-200 space-y-1">
-                                    <div>1</div>
-                                     <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                        그룹보기
-                                    </Button>
-                                </td>
-                                <td className="py-4 px-4">
-                                    <Button variant="outline" size="sm" className="h-7 px-3 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                        수정
-                                    </Button>
-                                </td>
-                            </tr>
-
-                            {/* Japanese Mall */}
-                             <tr className="border-b border-gray-200">
-                                <td className="py-4 px-4 border-r border-gray-200">
-                                    <div className="flex items-center justify-center gap-2 font-bold">
-                                        <span className="text-lg">🇯🇵</span>
-                                        <span>일문몰</span>
-                                    </div>
-                                </td>
-                                <td className="py-4 px-4 border-r border-gray-200">우체국 EMS 표준 요율표 사용</td>
-                                <td className="py-4 px-4 border-r border-gray-200">X</td>
-                                <td className="py-4 px-4 border-r border-gray-200">0.00kg</td>
-                                <td className="py-4 px-4 border-r border-gray-200 space-y-1">
-                                    <div>1</div>
-                                     <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                        그룹보기
-                                    </Button>
-                                </td>
-                                <td className="py-4 px-4">
-                                    <Button variant="outline" size="sm" className="h-7 px-3 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                        수정
-                                    </Button>
-                                </td>
-                            </tr>
+                            {malls.map((mall) => {
+                                const condition = conditions[mall.code] || { rateStandard: "ems", useInsurance: false, boxWeight: 0, countryGroupCount: 1 };
+                                return (
+                                    <tr key={mall.code} className="border-b border-gray-200">
+                                        <td className="py-4 px-4 border-r border-gray-200">
+                                            <div className="flex items-center justify-center gap-2 font-bold">
+                                                <span className="text-lg">{mall.flag}</span>
+                                                <span>{mall.name}</span>
+                                            </div>
+                                        </td>
+                                        <td className="py-4 px-4 border-r border-gray-200">
+                                            <Select 
+                                                value={condition.rateStandard} 
+                                                onValueChange={(val) => handleConditionChange(mall.code, "rateStandard", val)}
+                                            >
+                                                <SelectTrigger className="w-full h-8 border-gray-300">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="ems">우체국 EMS 표준 요율표 사용</SelectItem>
+                                                    <SelectItem value="custom">직접 설정</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </td>
+                                        <td className="py-4 px-4 border-r border-gray-200">
+                                             <Select 
+                                                value={condition.useInsurance ? "true" : "false"} 
+                                                onValueChange={(val) => handleConditionChange(mall.code, "useInsurance", val === "true")}
+                                            >
+                                                <SelectTrigger className="w-full h-8 border-gray-300">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="true">O</SelectItem>
+                                                    <SelectItem value="false">X</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </td>
+                                        <td className="py-4 px-4 border-r border-gray-200">
+                                             <div className="flex items-center gap-1">
+                                                <Input 
+                                                    value={condition.boxWeight} 
+                                                    onChange={(e) => handleConditionChange(mall.code, "boxWeight", e.target.value)}
+                                                    className="w-full h-8 text-right"
+                                                    type="number"
+                                                    step="0.01"
+                                                />
+                                                <span>kg</span>
+                                             </div>
+                                        </td>
+                                        <td className="py-4 px-4 border-r border-gray-200 space-y-1">
+                                            <div>{condition.countryGroupCount}</div>
+                                            <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
+                                                그룹보기
+                                            </Button>
+                                        </td>
+                                        <td className="py-4 px-4">
+                                            <Button variant="outline" size="sm" className="h-7 px-3 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
+                                                관리
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
 
-                {/* Pagination */}
+                {/* Pagination (Keeping it for now although dynamic list is small) */}
                 <div className="flex justify-center mt-8">
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" className="w-8 h-8 p-0 bg-gray-500 text-white hover:bg-gray-600 rounded-sm">1</Button>

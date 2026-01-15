@@ -1,0 +1,109 @@
+// prisma/schema/OverseasShop.prisma
+
+// ----------------------------------------------------------------------
+// 해외상점 (Overseas Shop) 통합 모델
+// 환율 설정 및 해외 배송조건 등을 관리합니다.
+// ----------------------------------------------------------------------
+
+// ----------------------------------------------------------------------
+// 1. 환율 설정 (Exchange Rate Settings)
+// ----------------------------------------------------------------------
+
+// 각 통화별 환율 설정을 저장할 모델
+// 환율이 매일 갱신될 수 있으므로, 현재 설정값(Current)과 이력(History)를 분리하거나
+// 하나의 테이블에서 이력을 관리할 수 있습니다. 여기서는 설정 테이블과 이력 테이블을 둡니다.
+
+enum CurrencyCode {
+  KRW // Won
+  USD // Dollar
+  CNY // Yuan
+  JPY // Yen
+  EUR // Euro
+}
+
+enum ExchangeRateType {
+  AUTO   // 자동환율
+  MANUAL // 수동환율
+}
+
+model ExchangeRateSetting {
+  id           Int              @id @default(autoincrement())
+  
+  currency     CurrencyCode     @unique // 통화 코드 (KRW는 기준이므로 1로 고정되겠지만 설정은 존재)
+  
+  type         ExchangeRateType @default(AUTO) // 환율처리방식
+  
+  baseRate     Decimal          @default(0)   // 기준 환율 (자동/수동 값)
+  adjustment   Decimal          @default(0)   // 추가환율조정 (+/-)
+  
+  finalRate    Decimal          @default(0)   // 최종적용환율 (baseRate + adjustment), 계산된 값 저장
+  
+  updatedAt    DateTime         @updatedAt
+}
+
+// 환율 변경 이력 (Exchange Rate History)
+// "번호", "작업구분", "화폐", "변경이력", "변경일시", "변경자", "변경IP"
+model ExchangeRateHistory {
+  id           Int      @id @default(autoincrement())
+  
+  actionType   String   // 작업구분 (예: "자동환율저장", "환율설정저장")
+  currency     CurrencyCode? // 화폐 (전체 갱신인 경우 null일 수도 있음, 화면엔 '-'도 있음)
+  
+  description  String   // 변경이력 (예: "자동 환율 데이터 갱신", "변경사항 없음")
+  
+  adminId      String?  // 변경자 (운영자 아이디), 시스템이면 null
+  ipAddress    String?  // 변경IP
+  
+  createdAt    DateTime @default(now()) // 변경일시
+}
+
+
+// ----------------------------------------------------------------------
+// 2. 해외 배송조건 관리 (Overseas Shipping Condition Management)
+// ----------------------------------------------------------------------
+
+// 해외 상점별(영문몰, 중문몰 등) 배송 설정
+// "상점 구분", "배송비기준", "보험료 청구", "박스부여무게", "배송국가그룹 수"
+
+model OverseasShippingCondition {
+  id              Int      @id @default(autoincrement())
+  
+  mallType        String   @unique // 상점 구분 (예: "US_MALL", "CN_MALL", "JP_MALL")
+  
+  shippingStandard String  @default("EMS_STANDARD") // 배송비기준 (예: "우체국 EMS 표준 요율표 사용")
+  
+  useInsurance     Boolean @default(false) // 보험료 청구 여부 (X -> false)
+  
+  boxWeight        Decimal @default(0.00) // 박스부여무게 (kg)
+  
+  // 배송 그룹과의 관계 (1:N)
+  // 하나의 상점(몰)이 여러 배송 그룹을 가질 수 있거나, 
+  // 배송 그룹이 여러 국가를 포함하므로, 여기서는 "배송 그룹" 리스트를 참조
+  shippingGroups   OverseasShippingGroup[]
+
+  updatedAt        DateTime @updatedAt
+}
+
+// 해외 배송 그룹 (Overseas Shipping Group)
+// "배송그룹명", "배송국가그룹 수" 등
+// OverseasShippingConditionPage에서 "그룹보기"를 통해 연결되는 엔티티로 보임
+// 또는 OverseasShippingGroupPage에서 독립적으로 관리되고 Condition과 연결될 수도 있음
+// 구조상 Condition -> Group (1:N) 관계가 적절해 보임
+
+model OverseasShippingGroup {
+  id              Int      @id @default(autoincrement())
+  
+  conditionId     Int
+  condition       OverseasShippingCondition @relation(fields: [conditionId], references: [id])
+  
+  name            String   // 배송그룹명
+  
+  countries       Json     // 포함된 국가 코드 리스트 (예: ["US", "CA", ...])
+                           // 또는 별도 테이블 Relation
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+// 참고: 배송비 테이블(Shipping Cost Table) 등은 "기본설정 > 배송정책" 섹터에서 다룰 것으로 예상되므로
+// 여기서는 "해외 배송조건"에 집중합니다.

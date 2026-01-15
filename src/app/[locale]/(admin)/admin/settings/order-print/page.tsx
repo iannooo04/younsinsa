@@ -1,11 +1,103 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { HelpCircle, Youtube, ChevronUp, Book, Download } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getOrderPrintSettingsAction, updateOrderPrintSettingsAction } from "@/actions/basic-policy-actions";
 
 export default function OrderPrintSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+
+    // State for Transaction Statement Settings
+    const [applyMallTrans, setApplyMallTrans] = useState(true);
+    const [qtyTotalUsed, setQtyTotalUsed] = useState(false);
+    const [prodCodeTrans, setProdCodeTrans] = useState(false);
+    const [ownCodeTrans, setOwnCodeTrans] = useState(false);
+    const [includeShippingFee, setIncludeShippingFee] = useState(true);
+    const [includeDiscount, setIncludeDiscount] = useState(true);
+    const [includeMileage, setIncludeMileage] = useState(false);
+    const [includeDeposit, setIncludeDeposit] = useState(false);
+    const [bizMemberUsed, setBizMemberUsed] = useState(false);
+    const [footerInfoTransUsed, setFooterInfoTransUsed] = useState(false);
+
+    // State for Order Details Settings
+    const [applyMallOrder, setApplyMallOrder] = useState(true);
+    const [prodCodeOrder, setProdCodeOrder] = useState(false);
+    const [ownCodeOrder, setOwnCodeOrder] = useState(false);
+    const [supplierDisplay, setSupplierDisplay] = useState("display");
+    const [imgDisplay, setImgDisplay] = useState("display");
+    const [payDisplay, setPayDisplay] = useState("display");
+    const [memoDisplay, setMemoDisplay] = useState("no-display");
+    const [footerInfoOrderUsed, setFooterInfoOrderUsed] = useState(false);
+    const [footerInfoOrderText, setFooterInfoOrderText] = useState("");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getOrderPrintSettingsAction();
+            if (result.success && result.settings) {
+                const s = result.settings;
+                setApplyMallTrans(s.applyMallTrans);
+                setQtyTotalUsed(s.qtyTotalUsed);
+                setProdCodeTrans(s.prodCodeTrans);
+                setOwnCodeTrans(s.ownCodeTrans);
+                setIncludeShippingFee(s.includeShippingFee);
+                setIncludeDiscount(s.includeDiscount);
+                setIncludeMileage(s.includeMileage);
+                setIncludeDeposit(s.includeDeposit);
+                setBizMemberUsed(s.bizMemberUsed);
+                setFooterInfoTransUsed(s.footerInfoTransUsed);
+
+                setApplyMallOrder(s.applyMallOrder);
+                setProdCodeOrder(s.prodCodeOrder);
+                setOwnCodeOrder(s.ownCodeOrder);
+                setSupplierDisplay(s.supplierDisplay);
+                setImgDisplay(s.imgDisplay);
+                setPayDisplay(s.payDisplay);
+                setMemoDisplay(s.memoDisplay);
+                setFooterInfoOrderUsed(s.footerInfoOrderUsed);
+                setFooterInfoOrderText(s.footerInfoOrderText || "");
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+             const result = await updateOrderPrintSettingsAction({
+                 applyMallTrans,
+                 qtyTotalUsed,
+                 prodCodeTrans,
+                 ownCodeTrans,
+                 includeShippingFee,
+                 includeDiscount,
+                 includeMileage,
+                 includeDeposit,
+                 bizMemberUsed,
+                 footerInfoTransUsed,
+
+                 applyMallOrder,
+                 prodCodeOrder,
+                 ownCodeOrder,
+                 supplierDisplay,
+                 imgDisplay,
+                 payDisplay,
+                 memoDisplay,
+                 footerInfoOrderUsed,
+                 footerInfoOrderText
+             });
+
+             if (result.success) {
+                 alert("저장되었습니다.");
+             } else {
+                 alert("저장 실패: " + result.error);
+             }
+        });
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
@@ -18,8 +110,12 @@ export default function OrderPrintSettingsPage() {
                         </div>
                         <span className="text-[#00C055] font-bold">엑셀다운로드</span>
                     </Button>
-                    <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-10 px-6 font-bold">
-                        저장
+                    <Button 
+                        className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-10 px-6 font-bold"
+                        onClick={handleSave}
+                        disabled={isPending}
+                    >
+                        {isPending ? "저장 중..." : "저장"}
                     </Button>
                 </div>
             </div>
@@ -39,7 +135,12 @@ export default function OrderPrintSettingsPage() {
                         </div>
                         <div className="p-4 space-y-2">
                             <div className="flex items-center gap-2">
-                                <Checkbox id="apply-mall-trans" className="rounded-[2px]" defaultChecked />
+                                <Checkbox 
+                                    id="apply-mall-trans" 
+                                    className="rounded-[2px]" 
+                                    checked={applyMallTrans}
+                                    onCheckedChange={(c) => setApplyMallTrans(c === true)}
+                                />
                                 <Label htmlFor="apply-mall-trans" className="text-gray-700 font-normal">쇼핑몰에 적용 (고객 동일 조건 출력)</Label>
                             </div>
                             <div className="text-xs text-gray-500 flex items-start gap-1">
@@ -58,7 +159,11 @@ export default function OrderPrintSettingsPage() {
                             수량 합계 표시
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={qtyTotalUsed ? "used" : "unused"} 
+                                onValueChange={(v) => setQtyTotalUsed(v === "used")}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="qty-total-used" />
                                     <Label htmlFor="qty-total-used" className="font-normal text-gray-700">사용함</Label>
@@ -78,11 +183,21 @@ export default function OrderPrintSettingsPage() {
                         </div>
                         <div className="p-4 flex items-center gap-6">
                             <div className="flex items-center gap-2">
-                                <Checkbox id="prod-code-trans" className="rounded-[2px]" />
+                                <Checkbox 
+                                    id="prod-code-trans" 
+                                    className="rounded-[2px]" 
+                                    checked={prodCodeTrans}
+                                    onCheckedChange={(c) => setProdCodeTrans(c === true)}
+                                />
                                 <Label htmlFor="prod-code-trans" className="text-gray-700 font-normal">상품코드</Label>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Checkbox id="own-code-trans" className="rounded-[2px]" />
+                                <Checkbox 
+                                    id="own-code-trans" 
+                                    className="rounded-[2px]" 
+                                    checked={ownCodeTrans}
+                                    onCheckedChange={(c) => setOwnCodeTrans(c === true)}
+                                />
                                 <Label htmlFor="own-code-trans" className="text-gray-700 font-normal">자체상품코드</Label>
                             </div>
                         </div>
@@ -96,19 +211,39 @@ export default function OrderPrintSettingsPage() {
                         <div className="p-4 space-y-2">
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="shipping-fee" className="rounded-[2px] border-[#FF424D] data-[state=checked]:bg-[#FF424D] data-[state=checked]:text-white" defaultChecked />
+                                    <Checkbox 
+                                        id="shipping-fee" 
+                                        className="rounded-[2px] border-[#FF424D] data-[state=checked]:bg-[#FF424D] data-[state=checked]:text-white" 
+                                        checked={includeShippingFee}
+                                        onCheckedChange={(c) => setIncludeShippingFee(c === true)}
+                                    />
                                     <Label htmlFor="shipping-fee" className="text-gray-700 font-normal">배송비</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="discount" className="rounded-[2px] border-[#FF424D] data-[state=checked]:bg-[#FF424D] data-[state=checked]:text-white" defaultChecked />
+                                    <Checkbox 
+                                        id="discount" 
+                                        className="rounded-[2px] border-[#FF424D] data-[state=checked]:bg-[#FF424D] data-[state=checked]:text-white" 
+                                        checked={includeDiscount}
+                                        onCheckedChange={(c) => setIncludeDiscount(c === true)}
+                                    />
                                     <Label htmlFor="discount" className="text-gray-700 font-normal">할인금액</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="mileage" className="rounded-[2px]" />
+                                    <Checkbox 
+                                        id="mileage" 
+                                        className="rounded-[2px]" 
+                                        checked={includeMileage}
+                                        onCheckedChange={(c) => setIncludeMileage(c === true)}
+                                    />
                                     <Label htmlFor="mileage" className="text-gray-700 font-normal">마일리지</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="deposit" className="rounded-[2px]" />
+                                    <Checkbox 
+                                        id="deposit" 
+                                        className="rounded-[2px]" 
+                                        checked={includeDeposit}
+                                        onCheckedChange={(c) => setIncludeDeposit(c === true)}
+                                    />
                                     <Label htmlFor="deposit" className="text-gray-700 font-normal">예치금</Label>
                                 </div>
                             </div>
@@ -128,7 +263,11 @@ export default function OrderPrintSettingsPage() {
                             사업자 회원
                         </div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={bizMemberUsed ? "used" : "unused"}
+                                onValueChange={(v) => setBizMemberUsed(v === "used")}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="biz-member-used" />
                                     <Label htmlFor="biz-member-used" className="font-normal text-gray-700">사용함</Label>
@@ -151,7 +290,11 @@ export default function OrderPrintSettingsPage() {
                             하단 추가 정보 표기
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                             <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                             <RadioGroup 
+                                value={footerInfoTransUsed ? "used" : "unused"}
+                                onValueChange={(v) => setFooterInfoTransUsed(v === "used")}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="footer-info-trans-used" />
                                     <Label htmlFor="footer-info-trans-used" className="font-normal text-gray-700">사용함</Label>
@@ -180,7 +323,12 @@ export default function OrderPrintSettingsPage() {
                             쇼핑몰 동시 적용
                         </div>
                         <div className="p-4 flex items-center gap-2">
-                            <Checkbox id="apply-mall-order" className="rounded-[2px] border-[#FF424D] data-[state=checked]:bg-[#FF424D] data-[state=checked]:text-white" defaultChecked />
+                            <Checkbox 
+                                id="apply-mall-order" 
+                                className="rounded-[2px] border-[#FF424D] data-[state=checked]:bg-[#FF424D] data-[state=checked]:text-white" 
+                                checked={applyMallOrder}
+                                onCheckedChange={(c) => setApplyMallOrder(c === true)}
+                            />
                             <Label htmlFor="apply-mall-order" className="text-gray-700 font-normal">주문내역서 (고객용) 동일 적용</Label>
                         </div>
                     </div>
@@ -192,11 +340,21 @@ export default function OrderPrintSettingsPage() {
                         </div>
                         <div className="p-4 flex items-center gap-6">
                             <div className="flex items-center gap-2">
-                                <Checkbox id="prod-code-order" className="rounded-[2px]" />
+                                <Checkbox 
+                                    id="prod-code-order" 
+                                    className="rounded-[2px]" 
+                                    checked={prodCodeOrder}
+                                    onCheckedChange={(c) => setProdCodeOrder(c === true)}
+                                />
                                 <Label htmlFor="prod-code-order" className="text-gray-700 font-normal">상품코드</Label>
                             </div>
                             <div className="flex items-center gap-2">
-                                <Checkbox id="own-code-order" className="rounded-[2px]" />
+                                <Checkbox 
+                                    id="own-code-order" 
+                                    className="rounded-[2px]" 
+                                    checked={ownCodeOrder}
+                                    onCheckedChange={(c) => setOwnCodeOrder(c === true)}
+                                />
                                 <Label htmlFor="own-code-order" className="text-gray-700 font-normal">자체상품코드</Label>
                             </div>
                         </div>
@@ -208,7 +366,11 @@ export default function OrderPrintSettingsPage() {
                             공급사명 표시
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="display" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={supplierDisplay}
+                                onValueChange={setSupplierDisplay}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="display" id="supplier-display" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="supplier-display" className="font-normal text-gray-700">표시</Label>
@@ -227,7 +389,11 @@ export default function OrderPrintSettingsPage() {
                             상품이미지 표시
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                             <RadioGroup defaultValue="display" className="flex items-center gap-6">
+                             <RadioGroup 
+                                value={imgDisplay}
+                                onValueChange={setImgDisplay}
+                                className="flex items-center gap-6"
+                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="display" id="img-display" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="img-display" className="font-normal text-gray-700">표시</Label>
@@ -246,7 +412,11 @@ export default function OrderPrintSettingsPage() {
                             결제정보 & 수단표시
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="display" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={payDisplay}
+                                onValueChange={setPayDisplay}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="display" id="pay-display" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="pay-display" className="font-normal text-gray-700">표시</Label>
@@ -265,7 +435,11 @@ export default function OrderPrintSettingsPage() {
                             관리자메모 표시
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="no-display" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={memoDisplay}
+                                onValueChange={setMemoDisplay}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="display" id="memo-display" />
                                     <Label htmlFor="memo-display" className="font-normal text-gray-700">표시</Label>
@@ -284,7 +458,11 @@ export default function OrderPrintSettingsPage() {
                             하단 추가 정보 표기
                         </div>
                          <div className="p-4 space-y-4">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={footerInfoOrderUsed ? "used" : "unused"}
+                                onValueChange={(v) => setFooterInfoOrderUsed(v === "used")}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="footer-info-order-used" />
                                     <Label htmlFor="footer-info-order-used" className="font-normal text-gray-700">사용함</Label>
@@ -295,7 +473,12 @@ export default function OrderPrintSettingsPage() {
                                 </div>
                             </RadioGroup>
                             
-                            <Textarea className="min-h-[60px] resize-none" />
+                            <Textarea 
+                                className="min-h-[60px] resize-none" 
+                                value={footerInfoOrderText}
+                                onChange={(e) => setFooterInfoOrderText(e.target.value)}
+                                disabled={!footerInfoOrderUsed}
+                            />
                             
                             <div className="text-xs text-gray-500 flex items-center gap-1">
                                 <span className="bg-gray-600 text-white text-[10px] px-1 rounded-[2px]">!</span>
@@ -324,7 +507,7 @@ export default function OrderPrintSettingsPage() {
                         수량 합계는 "사용안함"이므로 각 항목의 수량만 표시되고 최종 합산 수량은 표시되지 않습니다.
                     </li>
                     <li className="flex items-start">
-                         <span className="mr-1">·</span>
+                        <span className="mr-1">·</span>
                         기본값에 노출되는 합계 금액은 배송비와 할인금액만 포함되며, 고객이 주문 시 사용한 마일리지 혹은 예치금 금액에 포함되어 나오지 않습니다.
                     </li>
                      <li className="flex items-start">

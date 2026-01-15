@@ -1,0 +1,100 @@
+// prisma/schema/ManagementPolicy.prisma
+
+// 관리 정책 (Management Policy) 통합 모델
+// 이 모델은 관리 정책 섹터의 전역 1:1 설정들을 그룹화합니다.
+model ManagementPolicy {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 1. 운영 보안 설정
+  securitySettings SecuritySettings?
+
+  // 2. 쇼핑몰 이용 설정
+  mallUsageSettings MallUsageSettings?
+}
+
+// ------------------------------------------------------
+// 1. 운영자 관리 (Manager Management)
+// -> Admin.prisma 및 Supplier.prisma에서 관리
+// ------------------------------------------------------
+
+
+// ------------------------------------------------------
+// 2. 운영 보안 설정 (Operation Security Settings)
+// ------------------------------------------------------
+model SecuritySettings {
+  id                 Int              @id @default(autoincrement())
+  managementPolicyId Int              @unique
+  managementPolicy   ManagementPolicy @relation(fields: [managementPolicyId], references: [id])
+
+  // --- 관리자 보안인증 설정 ---
+  authEmailEnabled   Boolean @default(false) // 이메일 인증 사용 여부
+  authSmsEnabled     Boolean @default(false) // SMS 인증 사용 여부 (화면에는 없지만 통상적으로 있음, 없으면 제외 가능)
+  
+  securityLogin      String  @default("unused") // 보안로그인: used, unused
+  screenSecurity     String  @default("unused") // 화면보안접속: used, unused
+
+  // --- 관리자 로그인 설정 ---
+  // 자동 로그아웃: default(기본), custom(설정)
+  adminAutoLogoutType String @default("default") 
+  adminAutoLogoutTime Int?   @default(120) // 분 단위
+
+  // 장기 미로그인 기간: 3months, 6months, 1year, 2years
+  longTermUnusedPeriod String @default("1year")
+  
+  // 장기 미로그인 운영자 안내 사용여부: used, unused
+  longTermUnusedNotice String @default("unused")
+
+  // --- IP 접속제한 설정 ---
+  adminIpRestriction   String @default("unused") // 관리자 IP 접속제한
+  shopIpRestriction    String @default("unused") // 쇼핑몰 IP 접속제한
+
+  // 국가별 접속제한 (JSON List)
+  // 예: ["Republic of Korea", "USA"]
+  allowedCountries     Json?
+  blockedCountries     Json?
+
+  // 관리자 IP 접근시도 예외 등록 (JSON List)
+  // 예: [{ "ip": "1.2.3.4", "memo": "Office" }, ...]
+  adminIpExceptions    Json?
+
+  // --- 쇼핑몰 화면 보안 설정 ---
+  dragBlock             String @default("unused") // 마우스 드래그 차단
+  rightClickBlock       String @default("unused") // 오른쪽 마우스 차단
+  adminUnblock          String @default("unused") // 관리자 차단해제
+}
+
+
+// ------------------------------------------------------
+// 3. 쇼핑몰 이용 설정 (Mall Usage Settings)
+// ------------------------------------------------------
+model MallUsageSettings {
+  id                 Int              @id @default(autoincrement())
+  managementPolicyId Int              @unique
+  managementPolicy   ManagementPolicy @relation(fields: [managementPolicyId], references: [id])
+
+  // --- 쇼핑몰 운영상태 ---
+  // open: 정상운영, construction: 공사중
+  mallStatus String @default("open")
+
+  // --- 모바일 쇼핑몰 설정 ---
+  // use: 사용함, not-use: 사용안함
+  mobileMall String @default("use")
+
+  // --- 비회원 구매 설정 ---
+  // allow: 가능, disallow: 불가능
+  guestPurchase String @default("allow")
+
+  // --- 장바구니 보관기간 ---
+  cartStoragePeriod Int @default(7) // 일 단위
+
+  // --- 품절 상품 진열 ---
+  // display: 진열함, hide: 진열안함, back: 맨 뒤로 보냄
+  soldOutDisplay String @default("display")
+
+  // --- 회원의 자동 로그아웃 ---
+  // default: 브라우저 종료 시, custom: 시간 설정
+  memberAutoLogoutType String @default("default")
+  memberAutoLogoutTime Int?   @default(60) // 분 단위
+}

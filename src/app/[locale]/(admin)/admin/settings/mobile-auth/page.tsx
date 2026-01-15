@@ -4,8 +4,43 @@ import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, BookOpen } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getMobileAuthSettingsAction, updateMobileAuthSettingsAction } from "@/actions/basic-policy-actions";
+import { cn } from "@/lib/utils";
 
 export default function MobileAuthSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    const [provider, setProvider] = useState("kcp");
+    const [usage, setUsage] = useState("unused");
+    const [partnerCode, setPartnerCode] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+             const result = await getMobileAuthSettingsAction();
+             if (result.success && result.settings) {
+                 setProvider(result.settings.provider);
+                 setUsage(result.settings.usage);
+                 setPartnerCode(result.settings.partnerCode);
+             }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateMobileAuthSettingsAction({
+                provider,
+                usage,
+                partnerCode: partnerCode || undefined
+            });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Breadcrumb */}
@@ -16,8 +51,12 @@ export default function MobileAuthSettingsPage() {
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">휴대폰인증 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -31,13 +70,28 @@ export default function MobileAuthSettingsPage() {
                 <div className="w-full">
                     {/* Tabs */}
                     <div className="flex border-b border-gray-300 w-full justify-start">
-                        <div className="w-32 py-2 text-center border border-gray-300 border-b-0 bg-white font-bold text-gray-800 border-t-2 border-t-black cursor-pointer -mb-[1px]">
+                        <div 
+                            className={cn(
+                                "w-32 py-2 text-center border border-gray-300 border-b-0 cursor-pointer",
+                                provider === "kcp" 
+                                    ? "bg-white font-bold text-gray-800 border-t-2 border-t-black -mb-[1px]" 
+                                    : "bg-gray-50 text-gray-500"
+                            )}
+                            onClick={() => setProvider("kcp")}
+                        >
                             NHN KCP
                         </div>
-                        <div className="w-32 py-2 text-center border border-gray-300 border-b-0 border-l-0 bg-gray-50 text-gray-500 cursor-pointer">
+                        <div 
+                            className={cn(
+                                "w-32 py-2 text-center border border-gray-300 border-b-0 border-l-0 cursor-pointer",
+                                provider === "dream" 
+                                    ? "bg-white font-bold text-gray-800 border-t-2 border-t-black -mb-[1px] border-l" 
+                                    : "bg-gray-50 text-gray-500"
+                            )}
+                            onClick={() => setProvider("dream")}
+                        >
                             드림시큐리티
                         </div>
-                         {/* Spacer to complete the line if needed, but flex container border-b handles it */}
                     </div>
 
                     {/* Content */}
@@ -46,7 +100,11 @@ export default function MobileAuthSettingsPage() {
                         <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                             <div className="p-4 bg-gray-50 font-medium text-gray-700">사용 설정</div>
                             <div className="p-4 space-y-2">
-                                <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={usage} 
+                                    onValueChange={setUsage}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="used" id="auth-used" />
                                         <Label htmlFor="auth-used" className="font-normal cursor-pointer">사용함</Label>
@@ -67,7 +125,7 @@ export default function MobileAuthSettingsPage() {
                         <div className="grid grid-cols-[180px_1fr]">
                             <div className="p-4 bg-gray-50 font-medium text-gray-700">회원사 CODE</div>
                             <div className="p-4 text-[#FF424D]">
-                                미승인
+                                {partnerCode ? partnerCode : "미승인"}
                             </div>
                         </div>
                     </div>
@@ -84,7 +142,7 @@ export default function MobileAuthSettingsPage() {
                     <p className="font-bold text-gray-700 text-sm mb-1">[회원 가입 시, 휴대폰 본인확인 정보 사용] 회원 가입 시, 휴대폰 본인확인 정보 사용이란 무엇인가요?</p>
                     <p>· [회원가입 시, 휴대폰 본인확인 정보 사용] 기능은 휴대폰 본인인증 시 확인된 개인정보를 회원가입 정보로 사용할 지 여부를 설정하는 기능으로, 본인인증 진행여부와는 무관합니다.</p>
                     <p>· 해당 기능의 사용여부에 따라 고객은 인증된 정보 중 일부(이름, 휴대폰번호, 생일, 성별)를 수정하여 회원가입을 진행할 수 있습니다.</p>
-                    <p>· 본인인증으로 확인 된 정보와 다른 정보로 회원가입이 가능해지는 경우 본인인증 관련 이슈가 발생할 수 있기 때문에 '사용함'으로 설정하시는 것을 권장 드립니다.</p>
+                    <p>· 본인인증으로 확인 된 정보와 다른 정보로 회원가입이 가능해지는 경우 본인인증 관련 이슈가 발생할 수 있기 때문에 &apos;사용함&apos;으로 설정하시는 것을 권장 드립니다.</p>
                 </div>
             </div>
 

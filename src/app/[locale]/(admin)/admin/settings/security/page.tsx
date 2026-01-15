@@ -6,19 +6,158 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Plus, Minus, Youtube, ArrowUp, ArrowDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { getSecuritySettingsAction, updateSecuritySettingsAction } from "@/actions/management-policy-actions";
 
 export default function OperationSecuritySettingsPage() {
+    const [isPending, startTransition] = useTransition();
+
+    // Security Settings State
+    const [authEmailEnabled, setAuthEmailEnabled] = useState(false);
+    const [securityLogin, setSecurityLogin] = useState("unused");
+    const [screenSecurity, setScreenSecurity] = useState("unused");
+    
+    // Login Settings
+    const [adminAutoLogoutType, setAdminAutoLogoutType] = useState("default");
+    const [adminAutoLogoutTime, setAdminAutoLogoutTime] = useState(120);
+    const [longTermUnusedPeriod, setLongTermUnusedPeriod] = useState("1year");
+    const [longTermUnusedNotice, setLongTermUnusedNotice] = useState("unused");
+
+    // IP & Country Settings
+    const [adminIpRestriction, setAdminIpRestriction] = useState("unused");
+    const [shopIpRestriction, setShopIpRestriction] = useState("unused");
+    const [allowedCountries, setAllowedCountries] = useState<string[]>([]);
+    const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
+    const [adminIpExceptions, setAdminIpExceptions] = useState<any[]>([]);
+
+    // Mall Screen Security
+    const [dragBlock, setDragBlock] = useState("unused");
+    const [rightClickBlock, setRightClickBlock] = useState("unused");
+    const [adminUnblock, setAdminUnblock] = useState("unused");
+
+    // Temporary Country List for selection (Simplified)
+    const [allCountries] = useState(["가나 (Ghana)", "가봉 (Gabon)", "가이아나(Guyana)", "감비아 (Gambia)", "건지 섬(Guernsey)", "과들루프(Guadeloupe)", "과테말라(Guatemala)", "그레나다(Grenada)", "대한민국 (Korea)", "미국 (USA)"]); 
+    
+    // Selection state for Country Lists
+    const [selectedAllowed, setSelectedAllowed] = useState<string[]>([]);
+    const [selectedBlocked, setSelectedBlocked] = useState<string[]>([]); 
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getSecuritySettingsAction();
+            if (result.success && result.settings) {
+                setAuthEmailEnabled(result.settings.authEmailEnabled);
+                setSecurityLogin(result.settings.securityLogin);
+                setScreenSecurity(result.settings.screenSecurity);
+                setAdminAutoLogoutType(result.settings.adminAutoLogoutType);
+                setAdminAutoLogoutTime(result.settings.adminAutoLogoutTime || 120);
+                setLongTermUnusedPeriod(result.settings.longTermUnusedPeriod);
+                setLongTermUnusedNotice(result.settings.longTermUnusedNotice);
+                setAdminIpRestriction(result.settings.adminIpRestriction);
+                setShopIpRestriction(result.settings.shopIpRestriction);
+                
+                // Initialize Allowed/Blocked Lists
+                const loadedAllowed = (result.settings.allowedCountries as string[]) || [];
+                const loadedBlocked = (result.settings.blockedCountries as string[]) || [];
+                
+                // If both are empty (initial state), populate allowed with allCountries
+                if (loadedAllowed.length === 0 && loadedBlocked.length === 0) {
+                    setAllowedCountries(allCountries);
+                    setBlockedCountries([]);
+                } else {
+                    setAllowedCountries(loadedAllowed);
+                    setBlockedCountries(loadedBlocked);
+                }
+
+                setAdminIpExceptions((result.settings.adminIpExceptions as any[]) || []);
+                setDragBlock(result.settings.dragBlock);
+                setRightClickBlock(result.settings.rightClickBlock);
+                setAdminUnblock(result.settings.adminUnblock);
+            }
+        };
+        fetchData();
+    }, [allCountries]);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateSecuritySettingsAction({
+                authEmailEnabled,
+                securityLogin,
+                screenSecurity,
+                adminAutoLogoutType,
+                adminAutoLogoutTime,
+                longTermUnusedPeriod,
+                longTermUnusedNotice,
+                adminIpRestriction,
+                shopIpRestriction,
+                allowedCountries,
+                blockedCountries,
+                adminIpExceptions,
+                dragBlock,
+                rightClickBlock,
+                adminUnblock,
+            });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
+    const toggleSelection = (item: string, list: string[], setList: (items: string[]) => void, event: React.MouseEvent) => {
+        if (list.includes(item)) {
+            setList(list.filter(i => i !== item));
+        } else {
+            setList([...list, item]);
+        }
+    };
+
+    const moveToBlocked = () => {
+        const newBlocked = [...blockedCountries, ...selectedAllowed];
+        const newAllowed = allowedCountries.filter(c => !selectedAllowed.includes(c));
+        setBlockedCountries(newBlocked);
+        setAllowedCountries(newAllowed);
+        setSelectedAllowed([]);
+    };
+
+    const moveToAllowed = () => {
+        const newAllowed = [...allowedCountries, ...selectedBlocked];
+        const newBlocked = blockedCountries.filter(c => !selectedBlocked.includes(c));
+        setAllowedCountries(newAllowed);
+        setBlockedCountries(newBlocked);
+        setSelectedBlocked([]);
+    };
+
+    const handleAddIpException = () => {
+        const ip = window.prompt("허용할 IP 주소를 입력하세요 (예: 123.123.123.123)");
+        if (!ip) return;
+        
+        const memo = window.prompt("메모를 입력하세요 (선택사항)") || "";
+        setAdminIpExceptions([...adminIpExceptions, { ip, memo }]);
+    };
+
+    const handleRemoveIpException = (index: number) => {
+        if (confirm("정말 삭제하시겠습니까?")) {
+            const newExceptions = [...adminIpExceptions];
+            newExceptions.splice(index, 1);
+            setAdminIpExceptions(newExceptions);
+        }
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
-            {/* Header */}
+            {/* ... Header ... */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">운영 보안 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
-
             {/* Info Box */}
             <div className="border border-gray-300 p-6 bg-white">
                 <h2 className="text-lg font-bold text-gray-800 mb-2">관리자 운영 보안이란?</h2>
@@ -44,7 +183,12 @@ export default function OperationSecuritySettingsPage() {
                             <div className="flex items-center gap-4">
 
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="auth-email" className="rounded-sm border-gray-300" />
+                                    <Checkbox 
+                                        id="auth-email" 
+                                        className="rounded-sm border-gray-300" 
+                                        checked={authEmailEnabled}
+                                        onCheckedChange={(checked) => setAuthEmailEnabled(checked as boolean)}
+                                    />
                                     <Label htmlFor="auth-email" className="font-normal">이메일인증</Label>
                                 </div>
                             </div>
@@ -60,7 +204,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">보안로그인</div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup value={securityLogin} onValueChange={setSecurityLogin} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="login-used" />
                                     <Label htmlFor="login-used" className="font-normal cursor-pointer">사용함</Label>
@@ -75,7 +219,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">화면보안접속</div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup value={screenSecurity} onValueChange={setScreenSecurity} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="screen-used" />
                                     <Label htmlFor="screen-used" className="font-normal cursor-pointer">사용함</Label>
@@ -108,7 +252,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">관리자 자동 로그아웃</div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="default" className="space-y-2">
+                            <RadioGroup value={adminAutoLogoutType} onValueChange={setAdminAutoLogoutType} className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="default" id="logout-default" />
                                     <Label htmlFor="logout-default" className="font-normal cursor-pointer">기본설정</Label>
@@ -117,8 +261,15 @@ export default function OperationSecuritySettingsPage() {
                                     <RadioGroupItem value="custom" id="logout-custom" />
                                     <Label htmlFor="logout-custom" className="font-normal cursor-pointer flex items-center gap-1">
                                         로그인 후 
-                                        <select className="h-6 border border-gray-300 rounded-sm text-xs mx-1 w-16">
-                                            <option>120</option>
+                                        <select 
+                                            className="h-6 border border-gray-300 rounded-sm text-xs mx-1 w-16"
+                                            value={adminAutoLogoutTime}
+                                            onChange={(e) => setAdminAutoLogoutTime(Number(e.target.value))}
+                                            disabled={adminAutoLogoutType === "default"}
+                                        >
+                                            <option value={60}>60</option>
+                                            <option value={120}>120</option>
+                                            <option value={180}>180</option>
                                         </select>
                                         분간 클릭이 없으면 자동 로그아웃
                                     </Label>
@@ -130,7 +281,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">장기 미로그인 기간</div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="1year" className="flex items-center gap-6">
+                            <RadioGroup value={longTermUnusedPeriod} onValueChange={setLongTermUnusedPeriod} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="3months" id="term-3m" />
                                     <Label htmlFor="term-3m" className="font-normal cursor-pointer">3개월</Label>
@@ -153,7 +304,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">장기 미로그인 운영자<br/>안내 사용여부</div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup value={longTermUnusedNotice} onValueChange={setLongTermUnusedNotice} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="noti-used" />
                                     <Label htmlFor="noti-used" className="font-normal cursor-pointer">사용함</Label>
@@ -184,7 +335,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">관리자 IP 접속제한</div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup value={adminIpRestriction} onValueChange={setAdminIpRestriction} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="admin-ip-used" />
                                     <Label htmlFor="admin-ip-used" className="font-normal cursor-pointer">사용함</Label>
@@ -199,7 +350,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">쇼핑몰 IP 접속제한</div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup value={shopIpRestriction} onValueChange={setShopIpRestriction} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="shop-ip-used" />
                                     <Label htmlFor="shop-ip-used" className="font-normal cursor-pointer">사용함</Label>
@@ -219,8 +370,14 @@ export default function OperationSecuritySettingsPage() {
                                     <div className="text-xs text-gray-600 mb-1">허용국가</div>
                                     <div className="border border-gray-300 h-48 overflow-y-auto p-1 bg-white">
                                         <ul className="text-xs space-y-1">
-                                            {["가나 (Ghana)", "가봉 (Gabon)", "가이아나(Guyana)", "감비아 (Gambia)", "건지 섬(Guernsey)", "과들루프(Guadeloupe)", "과테말라(Guatemala)", "그레나다(Grenada)"].map((country, i) => (
-                                                <li key={i} className="p-1 hover:bg-gray-100 cursor-pointer">{country}</li>
+                                            {allowedCountries.map((country, i) => (
+                                                <li 
+                                                    key={i} 
+                                                    className={`p-1 cursor-pointer ${selectedAllowed.includes(country) ? "bg-blue-100 text-blue-800" : "hover:bg-gray-100"}`}
+                                                    onClick={(e) => toggleSelection(country, selectedAllowed, setSelectedAllowed, e)}
+                                                >
+                                                    {country}
+                                                </li>
                                             ))}
                                         </ul>
                                     </div>
@@ -229,16 +386,40 @@ export default function OperationSecuritySettingsPage() {
                                     </div>
                                 </div>
                                 <div className="flex flex-col justify-center gap-2 h-48 pt-6">
-                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-8 w-8 p-0"
+                                        onClick={moveToBlocked}
+                                        disabled={selectedAllowed.length === 0}
+                                    >
                                         <Plus size={16} />
                                     </Button>
-                                    <Button variant="outline" size="sm" className="h-8 w-8 p-0">
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-8 w-8 p-0"
+                                        onClick={moveToAllowed}
+                                        disabled={selectedBlocked.length === 0}
+                                    >
                                         <Minus size={16} />
                                     </Button>
                                 </div>
                                 <div className="flex-1">
                                     <div className="text-xs text-gray-600 mb-1">차단국가</div>
-                                    <div className="border border-gray-300 h-48 bg-white" />
+                                    <div className="border border-gray-300 h-48 overflow-y-auto p-1 bg-white">
+                                        <ul className="text-xs space-y-1">
+                                            {blockedCountries.map((country, i) => (
+                                                <li 
+                                                    key={i} 
+                                                    className={`p-1 cursor-pointer ${selectedBlocked.includes(country) ? "bg-blue-100 text-blue-800" : "hover:bg-gray-100"}`}
+                                                    onClick={(e) => toggleSelection(country, selectedBlocked, setSelectedBlocked, e)}
+                                                >
+                                                    {country}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -246,9 +427,41 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">관리자 IP 접근시도 예<br/>외 등록 <HelpCircle size={12} className="inline text-gray-400" /></div>
                         <div className="p-4 space-y-2">
-                             <Button variant="outline" size="sm" className="h-8 text-xs border-gray-300">
+                             <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-8 text-xs border-gray-300"
+                                onClick={handleAddIpException}
+                            >
                                 <Plus size={14} className="mr-1" /> 추가
                             </Button>
+
+                            {/* Exception List */}
+                            {adminIpExceptions.length > 0 && (
+                                <div className="border border-gray-200 rounded-sm mb-2">
+                                    <table className="w-full text-xs text-left">
+                                        <thead className="bg-gray-50 text-gray-500 font-medium">
+                                            <tr>
+                                                <th className="p-2">IP 주소</th>
+                                                <th className="p-2">메모</th>
+                                                <th className="p-2 w-16">관리</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {adminIpExceptions.map((item, index) => (
+                                                <tr key={index} className="border-t border-gray-100">
+                                                    <td className="p-2">{item.ip}</td>
+                                                    <td className="p-2">{item.memo}</td>
+                                                    <td className="p-2">
+                                                        <button onClick={() => handleRemoveIpException(index)} className="text-red-500 hover:underline">삭제</button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+
                             <div className="text-xs text-gray-500 space-y-1">
                                 <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 특정 IP에 대한 로그인 접속시도 제한을 해지합니다.</p>
                                 <p className="ml-5">외부연동 서비스를 사용할 때 설정하시면 로그인시도로 인한 로그인차단을 해지할 수 있으나, 보안상 해당 설정을 권장하지 않습니다.</p>
@@ -278,7 +491,7 @@ export default function OperationSecuritySettingsPage() {
                      <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">마우스 드래그 차단</div>
                         <div className="p-4 space-y-2">
-                             <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                             <RadioGroup value={dragBlock} onValueChange={setDragBlock} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="drag-block-used" />
                                     <Label htmlFor="drag-block-used" className="font-normal cursor-pointer">사용함</Label>
@@ -294,7 +507,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">오른쪽 마우스 차단</div>
                         <div className="p-4 space-y-2">
-                             <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                             <RadioGroup value={rightClickBlock} onValueChange={setRightClickBlock} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="rightclick-block-used" />
                                     <Label htmlFor="rightclick-block-used" className="font-normal cursor-pointer">사용함</Label>
@@ -310,7 +523,7 @@ export default function OperationSecuritySettingsPage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">관리자 차단해제</div>
                         <div className="p-4 space-y-2">
-                             <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                             <RadioGroup value={adminUnblock} onValueChange={setAdminUnblock} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="admin-unblock-used" />
                                     <Label htmlFor="admin-unblock-used" className="font-normal cursor-pointer">사용함</Label>

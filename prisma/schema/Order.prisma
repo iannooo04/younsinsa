@@ -1,46 +1,208 @@
+// ----------------------------------------------------------------------
+// 주문 관리 (Order Management)
+// ----------------------------------------------------------------------
+
 enum OrderStatus {
-  PENDING
-  PAID
-  SHIPPED
-  DELIVERED
-  CANCELLED
+  DEPOSIT_WAIT    // 입금대기 (f1)
+  PAYMENT_COMPLETE // 결제완료 (p1)
+  PREPARING       // 상품준비중 (g1)
+  SHIPPING        // 배송중 (d1)
+  DELIVERED       // 배송완료 (d2)
+  PURCHASE_CONFIRM // 구매확정 (s1)
+  
+  CANCEL_REQUEST  // 취소신청
+  CANCEL_COMPLETE // 취소완료
+  
+  RETURN_REQUEST  // 반품신청
+  RETURN_COMPLETE // 반품완료
+  
+  EXCHANGE_REQUEST // 교환신청
+  EXCHANGE_COMPLETE // 교환완료
+  
+  REFUND_REQUEST  // 환불신청
+  REFUND_COMPLETE // 환불완료
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER   // 무통장입금
+  CREDIT_CARD     // 신용카드
+  VIRTUAL_ACCOUNT // 가상계좌
+  ESCROW          // 에스크로
+  PAYPAL
+  ALIPAY
+}
+
+enum ReceiptType {
+  NONE
+  CASH_RECEIPT
+  TAX_INVOICE
 }
 
 model CartItem {
-  id               String   @id @default(cuid())
+  id               String       @id @default(cuid())
   userId           String
-  user             UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user             UserInfo     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   productId        String
-  product          Product  @relation(fields: [productId], references: [id])
-  productVariantId String?
-  quantity         Int      @default(1)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  product          Product      @relation(fields: [productId], references: [id])
+  variantId        String?
+  variant          ProductVariant? @relation(fields: [variantId], references: [id])
+  
+  quantity         Int          @default(1)
+  
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
   @@index([userId])
 }
 
 model Order {
-  id              String      @id @default(cuid())
-  userId          String
-  user            UserInfo    @relation(fields: [userId], references: [id])
-  status          OrderStatus @default(PENDING)
-  totalAmount     Int
-  shippingAddress String?
-  items           OrderItem[]
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
+  id             String      @id @default(cuid())
+  orderNo        String      @unique // 주문번호 (YYYYMMDD-XXXXXX)
+  
+  mallId         String      @default("KR") // KR, CN, JP
+  
+  // -- 주문자 정보 --
+  userId         String?     // 회원 ID (Nullable for non-members)
+  user           UserInfo?   @relation(fields: [userId], references: [id])
+  isMember       Boolean     @default(true)
+  
+  ordererName    String
+  ordererEmail   String?
+  ordererPhone   String?
+  ordererMobile  String
+  
+  // -- 수령자 정보 --
+  recipientName  String
+  recipientPhone String?
+  recipientMobile String
+  
+  recipientZipcode String?
+  recipientAddress String?
+  recipientAddressDetail String?
+  shippingMessage String?    // 배송메세지
+  
+  // -- 결제 정보 --
+  paymentMethod  PaymentMethod @default(BANK_TRANSFER)
+  depositorName  String?     // 무통장 입금자명
+  bankAccount    String?     // 입금계좌 정보 (Snapshot or ID)
+  
+  receiptType    ReceiptType @default(NONE)
+  receiptIdentity String?    // 현금영수증 번호 등
+  
+  // -- 금액 정보 --
+  currency       String      @default("KRW")
+  totalItemPrice Int         @default(0) // 상품 합계
+  shippingFee    Int         @default(0) // 배송비
+  discountAmount Int         @default(0) // 할인
+  useMileage     Int         @default(0) // 적립금 사용
+  totalPayAmount Int         @default(0) // 최종 결제 금액
+  
+  accumulatedMileage Int     @default(0) // 적립 예정 금액
+  
+  // -- 상태 --
+  status         OrderStatus @default(DEPOSIT_WAIT)
+  statusUpdatedAt DateTime   @default(now())
+  
+  // -- 관리 --
+  adminMemo      String?     @db.Text
+  memoType       String?
+  
+  // -- Relations --
+  items          OrderItem[]
+  claims         OrderClaim[] // 취소/교환/반품 내역
+  
+  paidAt         DateTime?
+  shippedAt      DateTime?
+  deliveredAt    DateTime?
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt // 중요: 주문 수정일
+  
   @@index([userId])
+  @@index([orderNo])
+  @@index([createdAt])
 }
 
 model OrderItem {
-  id               String  @id @default(cuid())
-  orderId          String
-  order            Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId        String
-  product          Product @relation(fields: [productId], references: [id])
-  productVariantId String?
-  quantity         Int
-  price            Int     // Price at the time of order
+  id             String      @id @default(cuid())
+  
+  orderId        String
+  order          Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  // -- 상품 스냅샷 --
+  productId      String?     // 상품 ID (삭제될 수 있으므로 Nullable, or keep for ref)
+  product        Product?    @relation(fields: [productId], references: [id])
+  
+  variantId      String?     // 옵션 ID
+  variant        ProductVariant? @relation(fields: [variantId], references: [id])
+  
+  productName    String
+  optionName     String?     // e.g., "Color: Red / Size: L"
+  sku            String?
+  
+  // -- 가격 및 수량 --
+  price          Int         // 판매 단가 (할인 전)
+  quantity       Int         @default(1)
+  
+  totalPrice     Int         // price * quantity
+  
+  // -- 상태 --
+  status         OrderStatus @default(DEPOSIT_WAIT) // 아이템별 상태 관리 가능
+  
+  // -- 배송 --
+  deliveryCompany String?
+  trackingNumber  String?
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+}
+
+enum ClaimType {
+  CANCEL
+  RETURN
+  EXCHANGE
+}
+
+model OrderClaim {
+  id             String      @id @default(cuid())
+  
+  orderId        String
+  order          Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  
+  type           ClaimType
+  status         OrderStatus // REQUEST, COMPLETE, REJECTED
+  
+  // -- 사유 --
+  reasonType     String      // 단순변심, 상품불량 등
+  reasonDetail   String?
+  
+  // -- 수거 정보 (Return Logistics) --
+  collectionMethod String?   // 자가반송, 택배회수 등
+  collectionCompany String?
+  collectionTrackingNumber String?
+  
+  // -- 교환 재배송 정보 (Reshipment for Exchange) --
+  reshipmentCompany String?
+  reshipmentTrackingNumber String?
+  
+  // -- 환불 정보 (무통장 환불시) --
+  refundBank     String?
+  refundAccount  String?
+  refundHolder   String?
+  refundAmount   Int?
+  
+  // -- 교환 차액 (Exchange Cost) --
+  exchangeCost   Int?        // 추가 입금 필요 혹은 환불 필요 금액
+  
+  // -- 대상 아이템 (JSON Array of OrderItem IDs) --
+  targetItemIds  String[]
+  
+  // -- 첨부 이미지 --
+  images         String[]
+  
+  adminMemo      String?
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
 }

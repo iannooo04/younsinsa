@@ -5,15 +5,107 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, BookOpen } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getOrderBasicSettingsAction, updateOrderBasicSettingsAction } from "@/actions/basic-policy-actions";
+
+type ClaimSettings = {
+    cancel: { stockRestore: string, couponRestore: string, giftProvide: string };
+    exchange: { couponRestore: string, giftProvide: string, mileageProvide: string, couponMileageProvide: string };
+    refund: { stockRestore: string, couponRestore: string };
+};
+
+type OrderBasicSettings = {
+    confirmCheck: string;
+    autoDeliveryComplete: string;
+    autoDeliveryCompleteDays: number;
+    autoPurchaseConfirmation: string;
+    autoPurchaseConfirmationDays: number;
+    refundReconfirm: string;
+    customerClaimRequest: string;
+    claimSettings: ClaimSettings;
+};
+
+const defaultSettings: OrderBasicSettings = {
+    confirmCheck: "used",
+    autoDeliveryComplete: "unused",
+    autoDeliveryCompleteDays: 7,
+    autoPurchaseConfirmation: "unused",
+    autoPurchaseConfirmationDays: 7,
+    refundReconfirm: "unused",
+    customerClaimRequest: "unused",
+    claimSettings: {
+        cancel: { stockRestore: "restore", couponRestore: "norestore", giftProvide: "provide" },
+        exchange: { couponRestore: "norestore", giftProvide: "provide", mileageProvide: "provide", couponMileageProvide: "provide" },
+        refund: { stockRestore: "norestore", couponRestore: "norestore" }
+    }
+};
 
 export default function OrderBasicSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    const [settings, setSettings] = useState<OrderBasicSettings>(defaultSettings);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getOrderBasicSettingsAction();
+            if (result.success && result.settings) {
+                // Merge with default types to ensure structure
+                const fetchedSettings = result.settings;
+                const claimSettings = typeof fetchedSettings.claimSettings === 'object' ? fetchedSettings.claimSettings as ClaimSettings : defaultSettings.claimSettings;
+                
+                setSettings({
+                    confirmCheck: fetchedSettings.confirmCheck,
+                    autoDeliveryComplete: fetchedSettings.autoDeliveryComplete,
+                    autoDeliveryCompleteDays: fetchedSettings.autoDeliveryCompleteDays,
+                    autoPurchaseConfirmation: fetchedSettings.autoPurchaseConfirmation,
+                    autoPurchaseConfirmationDays: fetchedSettings.autoPurchaseConfirmationDays,
+                    refundReconfirm: fetchedSettings.refundReconfirm,
+                    customerClaimRequest: fetchedSettings.customerClaimRequest,
+                    claimSettings: claimSettings
+                });
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleChange = (field: keyof OrderBasicSettings, value: string | number) => {
+        setSettings(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleClaimChange = (category: keyof ClaimSettings, field: string, value: string) => {
+        setSettings(prev => ({
+            ...prev,
+            claimSettings: {
+                ...prev.claimSettings,
+                [category]: {
+                    ...prev.claimSettings[category],
+                    [field]: value
+                }
+            }
+        }));
+    };
+
+    const handleSave = () => {
+        startTransition(async () => {
+             const result = await updateOrderBasicSettingsAction(settings);
+             if (result.success) {
+                 alert("저장되었습니다.");
+             } else {
+                 alert(result.error || "저장 실패");
+             }
+        });
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">주문 기본 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -31,7 +123,11 @@ export default function OrderBasicSettingsPage() {
                             결제페이지<br/>청약의사 재확인 설정
                         </div>
                         <div className="p-4 flex items-center gap-6">
-                            <RadioGroup defaultValue="used" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={settings.confirmCheck} 
+                                onValueChange={(val) => handleChange("confirmCheck", val)}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="confirm-used" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                     <Label htmlFor="confirm-used" className="font-normal cursor-pointer">사용함</Label>
@@ -50,11 +146,22 @@ export default function OrderBasicSettingsPage() {
                             자동배송완료
                         </div>
                         <div className="p-4 space-y-2">
-                             <RadioGroup defaultValue="unused" className="space-y-2">
+                             <RadioGroup 
+                                value={settings.autoDeliveryComplete} 
+                                onValueChange={(val) => handleChange("autoDeliveryComplete", val)}
+                                className="space-y-2"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="delivery-used" />
                                     <Label htmlFor="delivery-used" className="font-normal cursor-pointer flex items-center gap-2">
-                                        '배송중'으로 주문상태 변경한 뒤 <Input className="w-16 h-7 mx-1" defaultValue="7" /> 일 후 '배송완료'로 자동 주문상태 변경
+                                        &apos;배송중&apos;으로 주문상태 변경한 뒤 
+                                        <Input 
+                                            type="number"
+                                            className="w-16 h-7 mx-1" 
+                                            value={settings.autoDeliveryCompleteDays}
+                                            onChange={(e) => handleChange("autoDeliveryCompleteDays", Number(e.target.value))}
+                                        /> 
+                                        일 후 &apos;배송완료&apos;로 자동 주문상태 변경
                                     </Label>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -71,11 +178,22 @@ export default function OrderBasicSettingsPage() {
                             자동구매확정
                         </div>
                         <div className="p-4 space-y-2">
-                             <RadioGroup defaultValue="unused" className="space-y-2">
+                             <RadioGroup 
+                                value={settings.autoPurchaseConfirmation} 
+                                onValueChange={(val) => handleChange("autoPurchaseConfirmation", val)}
+                                className="space-y-2"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="purchase-used" />
                                     <Label htmlFor="purchase-used" className="font-normal cursor-pointer flex items-center gap-2">
-                                        '배송완료'로 주문상태 변경한 뒤 <Input className="w-16 h-7 mx-1" defaultValue="7" /> 일 후 '구매확인'으로 자동 주문상태 변경
+                                        &apos;배송완료&apos;로 주문상태 변경한 뒤 
+                                        <Input 
+                                            type="number"
+                                            className="w-16 h-7 mx-1" 
+                                            value={settings.autoPurchaseConfirmationDays}
+                                            onChange={(e) => handleChange("autoPurchaseConfirmationDays", Number(e.target.value))}
+                                        /> 
+                                        일 후 &apos;구매확인&apos;으로 자동 주문상태 변경
                                     </Label>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -92,7 +210,11 @@ export default function OrderBasicSettingsPage() {
                             환불 진행 재확인<br/>사용설정
                         </div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={settings.refundReconfirm} 
+                                onValueChange={(val) => handleChange("refundReconfirm", val)}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="refund-used" />
                                     <Label htmlFor="refund-used" className="font-normal cursor-pointer">사용함</Label>
@@ -115,7 +237,11 @@ export default function OrderBasicSettingsPage() {
                             고객 교환/반품/환불<br/>신청기능 사용설정
                         </div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="unused" className="flex flex-col gap-2">
+                            <RadioGroup 
+                                value={settings.customerClaimRequest} 
+                                onValueChange={(val) => handleChange("customerClaimRequest", val)}
+                                className="flex flex-col gap-2"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="claim-used" />
                                     <Label htmlFor="claim-used" className="font-normal cursor-pointer">사용함</Label>
@@ -150,7 +276,11 @@ export default function OrderBasicSettingsPage() {
                         <div className="p-4 space-y-2 text-sm text-gray-700">
                              <div className="grid grid-cols-[150px_1fr] items-center">
                                 <span>재고 수량 복원 설정</span>
-                                <RadioGroup defaultValue="restore" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.cancel.stockRestore}
+                                    onValueChange={(val) => handleClaimChange("cancel", "stockRestore", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="restore" id="cancel-stock-restore" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                         <Label htmlFor="cancel-stock-restore" className="font-normal cursor-pointer">복원함</Label>
@@ -163,7 +293,11 @@ export default function OrderBasicSettingsPage() {
                              </div>
                              <div className="grid grid-cols-[150px_1fr] items-center">
                                 <span>쿠폰 복원 설정</span>
-                                <RadioGroup defaultValue="norestore" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.cancel.couponRestore}
+                                    onValueChange={(val) => handleClaimChange("cancel", "couponRestore", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="restore" id="cancel-coupon-restore" />
                                         <Label htmlFor="cancel-coupon-restore" className="font-normal cursor-pointer">복원함</Label>
@@ -176,7 +310,11 @@ export default function OrderBasicSettingsPage() {
                              </div>
                              <div className="grid grid-cols-[150px_1fr] items-center">
                                 <span>사은품 지급 설정</span>
-                                <RadioGroup defaultValue="provide" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.cancel.giftProvide}
+                                    onValueChange={(val) => handleClaimChange("cancel", "giftProvide", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="provide" id="cancel-gift-provide" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                         <Label htmlFor="cancel-gift-provide" className="font-normal cursor-pointer">지급함</Label>
@@ -198,7 +336,11 @@ export default function OrderBasicSettingsPage() {
                         <div className="p-4 space-y-2 text-sm text-gray-700">
                              <div className="grid grid-cols-[280px_1fr] items-center">
                                 <span>교환취소 상품에 사용한 쿠폰 복원 여부</span>
-                                <RadioGroup defaultValue="norestore" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.exchange.couponRestore}
+                                    onValueChange={(val) => handleClaimChange("exchange", "couponRestore", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="restore" id="exchange-coupon-restore" />
                                         <Label htmlFor="exchange-coupon-restore" className="font-normal cursor-pointer">복원함</Label>
@@ -211,7 +353,11 @@ export default function OrderBasicSettingsPage() {
                              </div>
                              <div className="grid grid-cols-[280px_1fr] items-center">
                                 <span>교환취소 상품의 사은품 지급여부</span>
-                                <RadioGroup defaultValue="provide" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.exchange.giftProvide}
+                                    onValueChange={(val) => handleClaimChange("exchange", "giftProvide", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="provide" id="exchange-gift-provide" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                         <Label htmlFor="exchange-gift-provide" className="font-normal cursor-pointer">지급함</Label>
@@ -224,7 +370,11 @@ export default function OrderBasicSettingsPage() {
                              </div>
                              <div className="grid grid-cols-[280px_1fr] items-center">
                                 <span>교환추가 상품에 적용된 마일리지 지급 여부</span>
-                                <RadioGroup defaultValue="provide" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.exchange.mileageProvide}
+                                    onValueChange={(val) => handleClaimChange("exchange", "mileageProvide", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="provide" id="exchange-mileage-provide" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                         <Label htmlFor="exchange-mileage-provide" className="font-normal cursor-pointer">지급함</Label>
@@ -237,7 +387,11 @@ export default function OrderBasicSettingsPage() {
                              </div>
                              <div className="grid grid-cols-[280px_1fr] items-center">
                                 <span>교환추가 상품에 적용된 쿠폰 마일리지 지급 여부</span>
-                                <RadioGroup defaultValue="provide" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.exchange.couponMileageProvide}
+                                    onValueChange={(val) => handleClaimChange("exchange", "couponMileageProvide", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="provide" id="exchange-coupon-mileage-provide" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                         <Label htmlFor="exchange-coupon-mileage-provide" className="font-normal cursor-pointer">지급함</Label>
@@ -259,7 +413,11 @@ export default function OrderBasicSettingsPage() {
                         <div className="p-4 space-y-2 text-sm text-gray-700">
                              <div className="grid grid-cols-[150px_1fr] items-center">
                                 <span>재고 수량 복원 설정</span>
-                                <RadioGroup defaultValue="norestore" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.refund.stockRestore}
+                                    onValueChange={(val) => handleClaimChange("refund", "stockRestore", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="restore" id="refund-stock-restore" />
                                         <Label htmlFor="refund-stock-restore" className="font-normal cursor-pointer">복원함</Label>
@@ -272,7 +430,11 @@ export default function OrderBasicSettingsPage() {
                              </div>
                              <div className="grid grid-cols-[150px_1fr] items-center">
                                 <span>쿠폰 복원 설정</span>
-                                <RadioGroup defaultValue="norestore" className="flex items-center gap-6">
+                                <RadioGroup 
+                                    value={settings.claimSettings.refund.couponRestore}
+                                    onValueChange={(val) => handleClaimChange("refund", "couponRestore", val)}
+                                    className="flex items-center gap-6"
+                                >
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="restore" id="refund-coupon-restore" />
                                         <Label htmlFor="refund-coupon-restore" className="font-normal cursor-pointer">복원함</Label>
@@ -301,9 +463,9 @@ export default function OrderBasicSettingsPage() {
                 </div>
                 <div className="text-xs text-gray-500 space-y-2 leading-relaxed">
                     <p className="font-bold text-gray-700 text-sm mb-1">자동배송완료/자동구매확정 기능 사용 시, 주문상태는 언제 변경이 되나요?</p>
-                    <p>· 자동배송완료 : 매일 약 오전 1시에 '배송일'을 기준으로 (설정값)일이 지난 주문의 상태를 '배송완료'로 일괄 변경합니다.</p>
-                    <p>· 자동구매확정 : 매일 약 오전 1시에 '배송완료일'을 기준으로 (설정값)일이 지난 주문의 상태를 '구매확정'으로 일괄 변경합니다.</p>
-                    <p>· 날짜 비교 시 '배송일'과 '배송완료일'의 시간은 비교하지 않으며, 일자 기준으로만 비교하여 주문상태를 변경합니다.</p>
+                    <p>· 자동배송완료 : 매일 약 오전 1시에 &apos;배송일&apos;을 기준으로 (설정값)일이 지난 주문의 상태를 &apos;배송완료&apos;로 일괄 변경합니다.</p>
+                    <p>· 자동구매확정 : 매일 약 오전 1시에 &apos;배송완료일&apos;을 기준으로 (설정값)일이 지난 주문의 상태를 &apos;구매확정&apos;으로 일괄 변경합니다.</p>
+                    <p>· 날짜 비교 시 &apos;배송일&apos;과 &apos;배송완료일&apos;의 시간은 비교하지 않으며, 일자 기준으로만 비교하여 주문상태를 변경합니다.</p>
                 </div>
             </div>
 

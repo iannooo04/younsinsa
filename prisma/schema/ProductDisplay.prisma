@@ -1,0 +1,72 @@
+// prisma/schema/ProductDisplay.prisma
+
+// ----------------------------------------------------------------------
+// 상품 진열 관리 (Product Display)
+// 메인페이지, 카테고리 페이지 등의 상품 진열 설정 관리
+// ----------------------------------------------------------------------
+
+enum MallType {
+  PC
+  MOBILE
+}
+
+enum DisplayType {
+  AUTO     // 자동진열 (판매실적, 최신등록순 등)
+  MANUAL   // 수동진열 (운영자 지정 순서)
+}
+
+// ----------------------------------------------------------------------
+// 1. 메인페이지 상품 진열 (Main Page Display)
+// ----------------------------------------------------------------------
+
+// 예: "New Arrivals", "Best Sellers" 섹션 등 정의
+model MainPageDisplayGroup {
+  id             Int      @id @default(autoincrement())
+  
+  mallType       MallType @default(PC)
+  
+  name           String   // 분류명 (e.g. "New Arrivals")
+  description    String?  // 분류 설명
+  
+  themeName      String?  // 선택된 테마명 (e.g. "상단 상품진열")
+  
+  isExposed      Boolean  @default(true) // 노출 여부
+  
+  // 진열 설정 - 실제 상품 목록이나 로직은 별도 연결되거나 JSON으로 관리 가능
+  // 치환코드 (e.g. "{=includeWidget...}")
+  replaceCode    String?
+  
+  displayType    DisplayType @default(MANUAL) // 자동/수동 진열
+  
+  // 수동 진열일 경우 상품 ID 목록 (Order 보장 필요 -> Json Array or Relation Table)
+  // 예: [101, 102, 105, 110]
+  productIds     Json?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+
+// ----------------------------------------------------------------------
+// 2. 카테고리별 상품 진열 설정 (Category Display Settings)
+// ----------------------------------------------------------------------
+// 기본적으로 카테고리 페이지는 상품 등록 시 연결된 정보를 기반으로 하지만,
+// 카테고리별로 진열 순서나 보여주는 방식(테마)을 커스터마이징할 수 있음.
+
+model CategoryDisplaySettings {
+  id             Int      @id @default(autoincrement())
+  
+  categoryId     String   @unique // Category 모델 ID와 1:1 매핑
+  
+  displayMethod  String   @default("NORMAL") // e.g. NORMAL(기본), EVENT(이벤트형) 등
+  
+  pcTheme        String?  // PC 쇼핑몰 테마
+  mobileTheme    String?  // 모바일 쇼핑몰 테마
+  
+  defaultSortType String  @default("REG_DATE_DESC") // 기본 정렬 기준 (등록일순, 인기순 등)
+  
+  // 특정 상단 고정 상품 등 커스텀 진열 목록
+  pinnedProductIds Json?
+  
+  updatedAt      DateTime @updatedAt
+}

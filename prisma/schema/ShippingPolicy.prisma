@@ -1,0 +1,64 @@
+// prisma/schema/ShippingPolicy.prisma
+
+// ----------------------------------------------------------------------
+// 배송 정책 (Shipping Policy)
+// 상품 배송 관리 및 배송비 조건 설정을 위한 모델입니다.
+// "기본설정 > 배송 정책"에 위치할 내용이지만, "상품 일괄 관리 > 상품 배송 관리"에서 사용되므로 여기서 정의합니다.
+// ----------------------------------------------------------------------
+
+enum ShippingFeeType {
+  FREE        // 배송비무료
+  FIXED       // 고정배송비
+  PRICE       // 금액별배송
+  QUANTITY    // 수량별배송
+  WEIGHT      // 무게별배송
+}
+
+enum PaymentType {
+  PREPAID           // 선결제
+  CASH_ON_DELIVERY  // 착불
+  BOTH              // 선결제/착불 선택
+}
+
+model ShippingPolicy {
+  id              Int      @id @default(autoincrement())
+  
+  name            String   // 배송비 조건명 (예: "5만원 이상 무료")
+  
+  type            ShippingFeeType @default(FIXED)
+  
+  // -- 기본 배송비 설정 --
+  defaultFee      Int      @default(0) // 기본 배송비
+  
+  // -- 조건별 설정 --
+  // 금액별: N원 이상 무료 / N원 미만 배송비 부과
+  freePriceThreshold Int? 
+  
+  // 수량별: N개 당 배송비 부과 or N개 이상 무료 등 로직이 다양할 수 있음.
+  // 여기서는 단순히 기준 수량/무게 필드를 둠
+  qtyThreshold    Int?
+  weightThreshold Decimal?
+  
+  // -- 결제 방식 --
+  paymentType     PaymentType @default(PREPAID)
+  
+  // -- 지역별 배송비 (도서산간) --
+  useRegionFee        Boolean @default(false)
+  regionFee2Step      Int?    // 2권역 추가배송비 (제주 등)
+  regionFee3Step      Int?    // 3권역 추가배송비 (도서산간)
+  
+  // -- 반품/교환 배송비 --
+  returnFee       Int      @default(3000) // 편도
+  exchangeFee     Int      @default(6000) // 왕복
+  
+  // -- 지정 택배사 --
+  courierName     String?  // 예: "CJ대한통운"
+  
+  isDefault       Boolean  @default(false) // 기본 배송정책 여부
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  // Products referencing this policy
+  // products     Product[] (Product 모델에 shippingPolicyId 추가 필요)
+}

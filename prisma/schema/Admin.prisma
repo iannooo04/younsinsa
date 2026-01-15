@@ -1,0 +1,105 @@
+// prisma/schema/Admin.prisma
+
+// ----------------------------------------------------------------------
+// 관리자 및 운영자 관리 (Admin & Manager Management)
+// ----------------------------------------------------------------------
+
+enum AdminType {
+  SUPER     // 최고운영자 (모든 권한)
+  SUB       // 부운영자 (권한별 관리)
+  SUPPLIER  // 공급사 (제한된 권한)
+}
+
+enum PermissionType {
+  NONE        // 권한없음
+  READ        // 읽기
+  READ_WRITE  // 읽기+쓰기
+}
+
+model Admin {
+  id             String      @id @default(cuid())
+  
+  // -- 계정 정보 --
+  userId         String      @unique // 로그인 ID (e.g. admin01)
+  passwordHash   String
+  
+  name           String      // 이름 (e.g. 관리자01, 홍길동)
+  nickname       String?     // 닉네임
+  
+  email          String?
+  phone          String?     // 일반전화
+  mobile         String?     // 휴대전화
+  
+  // -- 구분 및 상태 --
+  type           AdminType   @default(SUB)
+  isEmployee     Boolean     @default(true) // 직원 여부
+  
+  department     String?     // 부서
+  position       String?     // 직급
+  duty           String?     // 직책
+  
+  isConnected    Boolean     @default(false) // 현재 접속 여부 (Optional)
+  lastLoginAt    DateTime?
+  lastLoginIp    String?
+  
+  // -- 로그인 제한 --
+  loginFailCount Int         @default(0)
+  isLoginLocked  Boolean     @default(false)
+  loginLockedAt  DateTime?
+
+  // -- 공급사 정보 (공급사 운영자일 경우) --
+  supplierId     String?     // Supplier ID
+  supplier       Supplier?   @relation(fields: [supplierId], references: [id])
+  
+  // -- 권한 설정 --
+  // 개별 메뉴 권한을 JSON으로 유연하게 관리하거나, 별도 테이블로 뺄 수 있음
+  // 여기서는 별도 테이블(AdminPermission)로 상세 관리
+  permissions    AdminPermission[]
+  
+  // -- 메모 --
+  memo           String?     @db.Text
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  @@index([userId])
+}
+
+// 메뉴별 권한 상세
+model AdminPermission {
+  id        String         @id @default(cuid())
+  
+  adminId   String
+  admin     Admin          @relation(fields: [adminId], references: [id], onDelete: Cascade)
+  
+  menuCode  String         // 메뉴 코드 (e.g. "product", "order", "member", "board")
+  
+  // 권한 수준 (None, Read, ReadWrite)
+  permission PermissionType @default(NONE)
+  
+  // -- 2차, 3차 메뉴에 대한 상세 권한은 JSON으로 저장 가능 --
+  // 예: { "product_list": "READ_WRITE", "product_register": "READ" }
+  detail    Json?
+  
+  updatedAt DateTime       @updatedAt
+  
+  @@unique([adminId, menuCode]) // 한 관리자당 메뉴별 권한은 하나
+}
+
+// 권한 변경 이력 (Audit Log)
+model AdminPermissionLog {
+  id          String   @id @default(cuid())
+  
+  targetAdminId String // 권한이 변경된 관리자 ID
+  adminName     String // 당시 관리자 이름 (스냅샷)
+  
+  modifierId    String // 변경을 수행한 관리자 ID
+  modifierName  String
+  
+  reason      String   // 변경 사유
+  changes     Json     // 변경된 권한 내용
+  
+  createdAt   DateTime @default(now())
+  
+  @@index([targetAdminId])
+}

@@ -1,85 +1,299 @@
-// prisma/schema/User.prisma
-model User {
-  id           String  @id @default(cuid())
-  username     String  @unique @db.Citext
-  email        String  @unique @db.Citext
-  name         String
-  passwordHash String
+// ----------------------------------------------------------------------
+// 회원 관리 (Member Management)
+// ----------------------------------------------------------------------
 
-  countryCode String?  @db.Char(2)
-  country     Country? @relation(fields: [countryCode], references: [code], onDelete: SetNull)
-
-  downlines ReferralEdge[] @relation("EdgeParent")
-  uplines   ReferralEdge[] @relation("EdgeChild")
-
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-
-  info   UserInfo?   @relation("User_UserInfo")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([countryCode])
-  @@index([createdAt])
+enum MemberType {
+  PERSONAL
+  BUSINESS
+  FOREIGNER
 }
 
-// prisma/schema/UserInfo.prisma
+enum Gender {
+  MALE
+  FEMALE
+  NONE
+}
+
+enum DateType {
+  SOLAR
+  LUNAR
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+}
+
+// 회원 등급
+model UserGrade {
+  id          String   @id @default(cuid())
+  name        String   // 등급명 (e.g. 일반회원, VIP)
+  
+  // 기준 (Condition)
+  minPurchaseAmount Int @default(0) // 누적 구매금액
+  discountRate      Float @default(0) // 할인율
+  mileageRate       Float @default(0) // 적립률
+  
+  isDefault   Boolean  @default(false)
+  
+  users       UserInfo[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  
+  // -- 계정 정보 --
+  username     String   @unique @db.Citext // 아이디
+  passwordHash String
+  
+  name         String   // 이름
+  nickname     String?  // 닉네임
+  
+  email        String   @unique @db.Citext
+  emailVerified DateTime?
+  
+  mobile       String   // 휴대폰 번호
+  phone        String?  // 일반 전화번호
+  fax          String?  // 팩스번호
+  
+  image        String?
+  
+  // -- 국가/몰 구분 --
+  countryCode  String?  @db.Char(2)
+  country      Country? @relation(fields: [countryCode], references: [code])
+  mallId       String   @default("KR") // KR, CN
+  
+  // -- Relations --
+  info         UserInfo?
+  businessInfo UserBusinessInfo?
+  
+  accounts     Account[]
+  sessions     Session[]
+  
+  // Referral (Self-Relation)
+  recommenderId String?
+  recommender   User?   @relation("Referral", fields: [recommenderId], references: [id])
+  referrals     User[]  @relation("Referral")
+  
+  // Referral Graph Edges
+  parentEdges   ReferralEdge[] @relation("EdgeParent")
+  childEdges    ReferralEdge[] @relation("EdgeChild")
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([mallId])
+  @@index([username])
+  @@index([mobile])
+}
+
 model UserInfo {
-  id String @id @default(cuid())
+  id            String   @id @default(cuid())
+  
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // -- 회원 구분 및 등급 --
+  type          MemberType @default(PERSONAL)
+  gradeId       String?
+  grade         UserGrade? @relation(fields: [gradeId], references: [id])
+  
+  isApproved    Boolean    @default(true) // 가입승인 여부
+  
+  // -- 주소 정보 --
+  zipcode       String?
+  address       String?
+  addressDetail String?
+  
+  // -- 수신 동의 --
+  emailConsent  Boolean    @default(false)
+  emailConsentDate DateTime?
+  
+  smsConsent    Boolean    @default(false)
+  smsConsentDate DateTime?
+  
+  // -- 개인 상세 --
+  job           String?
+  interests     String[]   // 관심분야 Array
+  
+  gender        Gender     @default(NONE)
+  birthday      DateTime?
+  birthdayType  DateType   @default(SOLAR)
+  
+  maritalStatus MaritalStatus @default(SINGLE)
+  anniversary   DateTime?
+  
+  // -- 계정 관리 --
+  retentionPeriod String   @default("UNLIMITED") // 1y, 3y, 5y, withdrawal
+  
+  userMemo      String?    @db.Text // 남기는 말씀
+  adminMemo     String?    @db.Text // 관리자 메모
+  
+  // -- 자산 --
+  mileage       Int        @default(0)
+  deposit       Int        @default(0)
+  
+  // -- 통계 --
+  loginCount    Int        @default(0)
+  lastLoginAt   DateTime?
+  
+  wallet        UserWallet?
+  
+  // Relations
+  points        UserPoint[]
+  deposits      UserDeposit[]
+  
+  // -- 간편 로그인 & 인증 서비스 (Simple Login & Auth Services) --
+  simpleLogins    SimpleLogin[]
+  authServices    AuthService[]
 
-  // 주 소유자: User 1:1 (관계명 필수 - 동일 모델(User)과 다중 관계 존재)
-  userId String @unique
-  user   User   @relation("User_UserInfo", fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
-
-  // referralCode
-  referralCode String @unique
-
-  // level
-  level Int @default(1)
-
-  // Google OTP
-  googleOtpEnabled Boolean @default(false)
-  googleOtpSecret  String?
-
-  wallet UserWallet?
-
-  // ✅ Board.prisma의 named relation에 대응하는 반대편 필드(Back relation)
-  postsAuthored         Post[]              @relation("PostAuthor")
-  commentsAuthored      Comment[]           @relation("CommentAuthor")
-  ticketAssignments     SupportAssignment[] @relation("TicketAssignee")
-
-  // ✅ Product.prisma & Order.prisma 관련 반대편 필드
+  // Back relations from other modules
   wishlistedItems       WishlistItem[]
   reviews               ProductReview[]
   orders                Order[]
   cartItems             CartItem[]
+  postsAuthored         Post[]              @relation("PostAuthor")
+  commentsAuthored      Comment[]           @relation("CommentAuthor")
+  ticketAssignments     SupportAssignment[] @relation("TicketAssignee")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
-// prisma/schema/UserWallet.prisma
+// ----------------------------------------------------------------------
+// 간편 로그인 및 인증 (Simple Login & Auth)
+// ----------------------------------------------------------------------
+
+enum ProviderType {
+  KAKAO
+  NAVER
+  GOOGLE
+  FACEBOOK
+  APPLE
+}
+
+model SimpleLogin {
+  id             String       @id @default(cuid())
+  userInfoId     String
+  userInfo       UserInfo     @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
+  
+  provider       ProviderType
+  providerId     String       // e.g. Google sub, Kakao ID
+  
+  email          String?
+  name           String?
+  
+  connectedAt    DateTime     @default(now())
+  
+  @@unique([provider, providerId])
+  @@index([userInfoId])
+}
+
+enum AuthType {
+  MOBILE  // 휴대폰 본인확인
+  IPIN    // 아이핀
+}
+
+enum AuthProvider {
+  KCP
+  DREAM_SECURITY
+  NICE
+  SCI
+}
+
+model AuthService {
+  id             String       @id @default(cuid())
+  userInfoId     String
+  userInfo       UserInfo     @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
+  
+  type           AuthType
+  provider       AuthProvider
+  
+  // 인증 결과 데이터
+  name           String?
+  birthdate      String?
+  gender         String?
+  mobile         String?
+  ci             String?      // 연계정보 (Connecting Information)
+  di             String?      // 중복가입확인정보 (Duplication Information)
+  
+  verifiedAt     DateTime     @default(now())
+  
+  @@index([userInfoId])
+}
+
+model UserBusinessInfo {
+  id             String @id @default(cuid())
+  
+  userId         String @unique
+  user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  companyName    String
+  ceoName        String
+  businessNumber String // 사업자등록번호
+  category       String? // 업태
+  item           String? // 종목
+  
+  companyZipcode String?
+  companyAddress String?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// 적립금(마일리지) 내역
+model UserPoint {
+  id          String   @id @default(cuid())
+  
+  userInfoId  String
+  userInfo    UserInfo @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
+  
+  amount      Int      // 양수(지급), 음수(사용/차감)
+  balance     Int      // 변동 후 잔액
+  
+  reason      String   // 지급/차감 사유
+  adminMemo   String?
+  
+  // 관련 주문 ID 등
+  relatedOrderId String?
+  
+  createdAt   DateTime @default(now())
+}
+
+// 예치금 내역
+model UserDeposit {
+  id          String   @id @default(cuid())
+  
+  userInfoId  String
+  userInfo    UserInfo @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
+  
+  amount      Int
+  balance     Int
+  
+  reason      String
+  
+  relatedOrderId String?
+  
+  createdAt   DateTime @default(now())
+}
+
+// --- Legacy / Misc Models ---
+
 model UserWallet {
   id String @id @default(cuid())
-
-  // UserInfo와 1:1
   userInfoId String    @unique
   userInfo   UserInfo  @relation(fields: [userInfoId], references: [id], onDelete: Cascade)
-
-  // 주소: 값이 있으면 유일(Null은 다수 허용 — Postgres의 UNIQUE 특성)
   depositAddress  String? @unique
   withdrawAddress String? @unique
-
-  // 비밀키 암호화 메타
   depositPrivCipher String? @db.Text
   depositPrivIv     String?
   depositPrivTag    String?
   depositKeyAlg     String? @default("aes-256-gcm")
   depositKeyVersion Int?    @default(1)
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+

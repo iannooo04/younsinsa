@@ -43,24 +43,31 @@ export async function POST(request: NextRequest) {
         }
 
         // 1. Create Product
+        // 1. Create Product
         const product = await createProduct({
             name,
-            description,
-            detailContent,
+            shortDescription: description,
+            descriptionPC: detailContent,
+            descriptionMobile: detailContent,
+            isDescriptionSame: true,
             price,
-            originalPrice,
+            consumerPrice: originalPrice, // Assuming originalPrice is consumerPrice
             supplyPrice,
-            videoUrl,
+            externalVideoUrl: videoUrl,
             shippingFee,
             shippingMethod,
-            shippingDuration,
-            material,
+            // shippingDuration, // Not in schema, ignoring or add to essentialInfo
             origin,
             manufacturer,
-            washCare,
-            asInfo,
-            tags,
-            gender,
+            // Map extra fields to essentialInfo
+            essentialInfo: {
+                material,
+                washCare,
+                asInfo,
+                shippingDuration
+            },
+            keywords: tags,
+            gender: gender as any, // Enum cast
             brand: { connect: { id: brandId } },
             category: { connect: { id: categoryId } },
         });

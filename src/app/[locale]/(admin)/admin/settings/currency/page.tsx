@@ -2,7 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Save } from "lucide-react";
-import { useState } from "react";
+import { getCurrencySettingsAction, updateCurrencySettingsAction } from "@/actions/basic-policy-actions";
+import { useEffect, useState, useTransition } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export default function CurrencySettingsPage() {
@@ -10,9 +11,34 @@ export default function CurrencySettingsPage() {
   const [currencyDisplay, setCurrencyDisplay] = useState("won");
   const [weightUnit, setWeightUnit] = useState("g");
 
+  const [isPending, startTransition] = useTransition();
 
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await getCurrencySettingsAction();
+      if (result.success && result.settings) {
+        setBaseCountry(result.settings.baseCountry);
+        setCurrencyDisplay(result.settings.currencyDisplay);
+        setWeightUnit(result.settings.weightUnit);
+      }
+    };
+    fetchData();
+  }, []);
 
-
+  const handleSave = () => {
+    startTransition(async () => {
+      const result = await updateCurrencySettingsAction({
+        baseCountry,
+        currencyDisplay,
+        weightUnit
+      });
+      if (result.success) {
+        alert("저장되었습니다.");
+      } else {
+        alert(result.error || "저장 실패");
+      }
+    });
+  };
 
   return (
     <div className="p-6 space-y-6 bg-white min-h-screen pb-24">
@@ -22,9 +48,13 @@ export default function CurrencySettingsPage() {
             <h1 className="text-2xl font-bold text-gray-900">금액 / 단위 기준 설정</h1>
             <span className="text-sm text-gray-500">쇼핑몰의 기본 금액 / 단위 기준 설정을 변경하실 수 있습니다.</span>
         </div>
-        <Button className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-sm">
+        <Button 
+            className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-sm"
+            onClick={handleSave}
+            disabled={isPending}
+        >
           <Save className="w-4 h-4 mr-2" />
-          저장
+          {isPending ? "저장 중..." : "저장"}
         </Button>
       </div>
 
@@ -47,9 +77,6 @@ export default function CurrencySettingsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="kr">한국</SelectItem>
-                      <SelectItem value="cn">중국</SelectItem>
-                      <SelectItem value="us">미국</SelectItem>
-                      <SelectItem value="jp">일본</SelectItem>
                     </SelectContent>
                   </Select>
                 </td>
@@ -64,7 +91,7 @@ export default function CurrencySettingsPage() {
                     <SelectContent>
                       <SelectItem value="won">원</SelectItem>
                       <SelectItem value="symbol">￦</SelectItem>
-                      <SelectItem value="won_symbol">원(￦)</SelectItem>
+                      <SelectItem value="krw">KRW</SelectItem>
                     </SelectContent>
                   </Select>
                   <div className="flex items-center gap-1 text-xs text-gray-500">

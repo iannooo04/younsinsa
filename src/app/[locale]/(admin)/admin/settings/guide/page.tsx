@@ -3,67 +3,58 @@
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Save } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
+import { getGuideSettingsAction, updateGuideSettingsAction } from "@/actions/basic-policy-actions";
+
+interface GuideContent {
+  kr: string;
+  cn: string;
+}
 
 export default function GuideSettingsPage() {
   const [countryTab, setCountryTab] = useState<"kr" | "cn">("kr");
+  const [isPending, startTransition] = useTransition();
 
-  const [usageContent, setUsageContent] = useState({
-    kr: `{rc_mallNm} 이용안내
+  const [usageContent, setUsageContent] = useState<GuideContent>({ kr: "", cn: "" });
+  const [withdrawalContent, setWithdrawalContent] = useState<GuideContent>({ kr: "", cn: "" });
 
-■ 회원가입안내
-    ① 저희 {rc_mallNm}은 기본적으로는 회원제로 운영하고 있습니다.
-    ② 회원가입비나 월회비, 연회비등 어떠한 비용도 청구하지 않는 100% 무료 입니다.
-    ③ 회원 가입시 기본 가입 축하금으로 OOO원 의 마일리지가 지급됩니다.
-    ④ 구매시 상품별로 적용된 마일리지는는 OOO원 이상이면 사용하실 수가 있습니다.
+  useEffect(() => {
+    const fetchData = async () => {
+      const result = await getGuideSettingsAction();
+      if (result.success && result.settings) {
+        setUsageContent((result.settings.usageGuide as unknown as GuideContent) ?? { kr: "", cn: "" });
+        setWithdrawalContent((result.settings.withdrawalGuide as unknown as GuideContent) ?? { kr: "", cn: "" });
+      }
+    };
+    fetchData();
+  }, []);
 
-■ 마일리지 제도
-    ① 저희{rc_mallNm}은 마일리지를 사용할 수 있습니다.
-    ② 마일리지 100점은 현금 100원과 같습니다.
-    ③ 마일리지는 OOO원 이상되어야 사용하실 수가 있고 OOO원 이 넘는 금액의 적립금은 사용하실 수가 없습니다.`,
-    cn: `{rc_mallNm} 使用指南
-
-■ 会员注册指南
-    ① 我们 {rc_mallNm} 基本上实行会员制运营。
-    ② 注册费、月费、年费等不收取任何费用，100% 免费。
-    ③ 注册会员时，将作为基本注册祝贺金支付 OOO 元的积分。
-    ④ 购买时按商品适用的积分在 OOO 元以上即可使用。
-
-■ 积分制度
-    ① 我们 {rc_mallNm} 可以使用积分。
-    ② 100 积分相当于 100 韩元现金。
-    ③ 积分必须达到 OOO 元以上才能使用，超过 OOO 元金额的积分不能使用。`
-  });
-
-  const [withdrawalContent, setWithdrawalContent] = useState({
-    kr: `{rc_mallNm} 탈퇴안내
-
-회원님께서 회원 탈퇴를 원하신다니 저희 쇼핑몰의 서비스가 많이 부족하고 미흡했나 봅니다.
-불편하셨던 점이나 불만사항을 알려주시면 적극 반영해서 고객님의 불편함을 해결해 드리도록 노력하겠습니다.
-
-■ 아울러 회원 탈퇴시의 아래 사항을 숙지하시기 바랍니다.
-1. 회원 탈퇴 시 회원님의 정보는 상품 반품 및 A/S를 위해 전자상거래 등에서의 소비자 보호에 관한 법률에 의거한
-    고객정보 보호정책에따라 관리 됩니다.
-2. 탈퇴 시 회원님께서 보유하셨던 마일리지는 삭제 됩니다`,
-    cn: `{rc_mallNm} 注销指南
-
-既然会员您希望注销会员，看来我们商城的服务还有很多不足和欠缺。
-如果您能告知不论之处或不满事项，我们将积极反映，努力为您解决不便。
-
-■ 此外，请在注销会员时熟知以下事项。
-1. 注销会员时，会员的信息将根据电子商务等中的消费者保护相关法律，
-    为了商品退货及 A/S 而根据客户信息保护政策进行管理。
-2. 注销时会员持有的积分将被删除`
-  });
+  const handleSave = () => {
+    startTransition(async () => {
+      const result = await updateGuideSettingsAction({
+        usageGuide: usageContent,
+        withdrawalGuide: withdrawalContent
+      });
+      if (result.success) {
+        alert("저장되었습니다.");
+      } else {
+        alert(result.error || "저장 실패");
+      }
+    });
+  };
 
   return (
     <div className="p-6 space-y-6 bg-white min-h-screen pb-24">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-gray-800">
         <h1 className="text-2xl font-bold text-gray-900">이용 / 탈퇴 안내</h1>
-        <Button className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-sm">
+        <Button 
+            className="bg-red-500 hover:bg-red-600 text-white px-6 rounded-sm"
+            onClick={handleSave}
+            disabled={isPending}
+        >
           <Save className="w-4 h-4 mr-2" />
-          저장
+          {isPending ? "저장 중..." : "저장"}
         </Button>
       </div>
 

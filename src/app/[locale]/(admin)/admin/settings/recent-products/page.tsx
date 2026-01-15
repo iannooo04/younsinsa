@@ -3,8 +3,39 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, BookOpen } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getRecentProductsSettingsAction, updateRecentProductsSettingsAction } from "@/actions/basic-policy-actions";
 
 export default function RecentProductsSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    const [expirationHours, setExpirationHours] = useState(24);
+    const [maxCount, setMaxCount] = useState(10);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getRecentProductsSettingsAction();
+            if (result.success && result.settings) {
+                setExpirationHours(result.settings.expirationHours);
+                setMaxCount(result.settings.maxCount);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+             const result = await updateRecentProductsSettingsAction({
+                 expirationHours,
+                 maxCount
+             });
+             if (result.success) {
+                 alert("저장되었습니다.");
+             } else {
+                 alert(result.error || "저장 실패");
+             }
+        });
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Breadcrumb */}
@@ -15,8 +46,12 @@ export default function RecentProductsSettingsPage() {
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">최근 본 상품 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -34,7 +69,12 @@ export default function RecentProductsSettingsPage() {
                             시간 설정
                         </div>
                         <div className="p-4 flex items-center gap-2">
-                            <Input className="w-40 h-8" defaultValue="24" />
+                            <Input 
+                                type="number"
+                                className="w-40 h-8" 
+                                value={expirationHours}
+                                onChange={(e) => setExpirationHours(Number(e.target.value))}
+                            />
                             <span className="text-gray-700">시간</span>
                         </div>
                     </div>
@@ -45,7 +85,12 @@ export default function RecentProductsSettingsPage() {
                             최대 수량
                         </div>
                         <div className="p-4 flex items-center gap-2">
-                             <Input className="w-40 h-8" defaultValue="10" />
+                             <Input 
+                                type="number"
+                                className="w-40 h-8" 
+                                value={maxCount}
+                                onChange={(e) => setMaxCount(Number(e.target.value))}
+                            />
                             <span className="text-gray-700">개 상품</span>
                         </div>
                     </div>

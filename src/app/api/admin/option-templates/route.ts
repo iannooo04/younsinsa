@@ -13,7 +13,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const { name, options } = body;
+        const { name, options, manageName } = body;
 
         if (!name || !options) {
              return NextResponse.json({ error: "Name and options are required" }, { status: 400 });
@@ -22,6 +22,7 @@ export async function POST(request: NextRequest) {
         const template = await prisma.optionTemplate.create({
             data: {
                 name,
+                manageName: manageName || name, // Fallback to name if not provided (though strictly should be provided)
                 options
             }
         });

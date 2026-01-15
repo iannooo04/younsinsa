@@ -4,15 +4,79 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getExchangeRateSettingsAction, updateExchangeRateSettingsAction } from "@/actions/basic-policy-actions";
+
+interface RateInfo {
+    mode: string;
+    rate: number;
+    adjustment: number;
+}
+
+interface Rates {
+    [key: string]: RateInfo;
+}
 
 export default function ExchangeRateSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    
+    // Initial default rates
+    const [rates, setRates] = useState<Rates>({
+        "USD": { mode: "auto", rate: 1436.5, adjustment: 0 },
+        "CNY": { mode: "auto", rate: 204.86, adjustment: 0 },
+        "JPY": { mode: "auto", rate: 9.1839, adjustment: 0 },
+        "EUR": { mode: "auto", rate: 1689.56, adjustment: 0 }
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getExchangeRateSettingsAction();
+            if (result.success && result.settings && result.settings.rates) {
+                setRates(result.settings.rates as unknown as Rates);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateExchangeRateSettingsAction({ rates });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
+    const handleRateChange = (currency: string, field: keyof RateInfo, value: any) => {
+        setRates(prev => ({
+            ...prev,
+            [currency]: {
+                ...prev[currency],
+                [field]: value
+            }
+        }));
+    };
+
+    const currencies = [
+        { code: "USD", name: "USD - U.S Dollar ( $ )" },
+        { code: "CNY", name: "CNY - Yuan ( ¥ )" },
+        { code: "JPY", name: "JPY - Yen ( ¥ )" },
+        { code: "EUR", name: "EUR - euro ( € )" }
+    ];
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">환율 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -36,10 +100,10 @@ export default function ExchangeRateSettingsPage() {
                             </tr>
                         </thead>
                         <tbody className="text-gray-700">
-                            {/* KRW */}
+                            {/* KRW (Fixed) */}
                             <tr className="border-b border-gray-200">
                                 <td className="py-3 px-4 border-r border-gray-200">1</td>
-                                <td className="py-3 px-4 border-r border-gray-200">KRW - Won ( ₩ )</td>
+                                <td className="py-3 px-4 border-r border-gray-200 text-left">KRW - Won ( ₩ )</td>
                                 <td className="py-3 px-4 border-r border-gray-200">-</td>
                                 <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
                                     <span>1 KRW =</span>
@@ -47,112 +111,53 @@ export default function ExchangeRateSettingsPage() {
                                     <span>KRW</span>
                                 </td>
                                 <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4"></td>
+                                <td className="py-3 px-4">1</td>
                             </tr>
                             
-                            {/* USD */}
-                            <tr className="border-b border-gray-200">
-                                <td className="py-3 px-4 border-r border-gray-200">2</td>
-                                <td className="py-3 px-4 border-r border-gray-200">USD - U.S Dollar ( $ )</td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Select defaultValue="auto">
-                                        <SelectTrigger className="w-full h-8 border-gray-300">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="auto">자동환율</SelectItem>
-                                            <SelectItem value="manual">수동환율</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
-                                    <span>1 USD =</span>
-                                    <Input defaultValue="1436.5" className="w-24 h-7 text-right bg-gray-100" />
-                                    <span>KRW</span>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Input defaultValue="0" className="w-full h-7 text-right" />
-                                </td>
-                                <td className="py-3 px-4">1436.5</td>
-                            </tr>
-
-                            {/* CNY */}
-                            <tr className="border-b border-gray-200">
-                                <td className="py-3 px-4 border-r border-gray-200">3</td>
-                                <td className="py-3 px-4 border-r border-gray-200">CNY - Yuan ( ¥ )</td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Select defaultValue="auto">
-                                        <SelectTrigger className="w-full h-8 border-gray-300">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="auto">자동환율</SelectItem>
-                                            <SelectItem value="manual">수동환율</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
-                                    <span>1 CNY =</span>
-                                    <Input defaultValue="204.86" className="w-24 h-7 text-right bg-gray-100" />
-                                    <span>KRW</span>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Input defaultValue="0" className="w-full h-7 text-right" />
-                                </td>
-                                <td className="py-3 px-4">204.86</td>
-                            </tr>
-
-                            {/* JPY */}
-                            <tr className="border-b border-gray-200">
-                                <td className="py-3 px-4 border-r border-gray-200">4</td>
-                                <td className="py-3 px-4 border-r border-gray-200">JPY - Yen ( ¥ )</td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Select defaultValue="auto">
-                                        <SelectTrigger className="w-full h-8 border-gray-300">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="auto">자동환율</SelectItem>
-                                            <SelectItem value="manual">수동환율</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
-                                    <span>1 JPY =</span>
-                                    <Input defaultValue="9.1839" className="w-24 h-7 text-right bg-gray-100" />
-                                    <span>KRW</span>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Input defaultValue="0" className="w-full h-7 text-right" />
-                                </td>
-                                <td className="py-3 px-4">9.1839</td>
-                            </tr>
-
-                            {/* EUR */}
-                            <tr className="border-b border-gray-200">
-                                <td className="py-3 px-4 border-r border-gray-200">5</td>
-                                <td className="py-3 px-4 border-r border-gray-200">EUR - euro ( € )</td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Select defaultValue="auto">
-                                        <SelectTrigger className="w-full h-8 border-gray-300">
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="auto">자동환율</SelectItem>
-                                            <SelectItem value="manual">수동환율</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
-                                    <span>1 EUR =</span>
-                                    <Input defaultValue="1689.56" className="w-24 h-7 text-right bg-gray-100" />
-                                    <span>KRW</span>
-                                </td>
-                                <td className="py-3 px-4 border-r border-gray-200">
-                                    <Input defaultValue="0" className="w-full h-7 text-right" />
-                                </td>
-                                <td className="py-3 px-4">1689.56</td>
-                            </tr>
+                            {/* Dynamic Currencies */}
+                            {currencies.map((curr, index) => {
+                                const rateInfo = rates[curr.code] || { mode: "auto", rate: 0, adjustment: 0 };
+                                const finalRate = Number(rateInfo.rate) + Number(rateInfo.adjustment);
+                                
+                                return (
+                                    <tr key={curr.code} className="border-b border-gray-200">
+                                        <td className="py-3 px-4 border-r border-gray-200">{index + 2}</td>
+                                        <td className="py-3 px-4 border-r border-gray-200 text-left">{curr.name}</td>
+                                        <td className="py-3 px-4 border-r border-gray-200">
+                                            <Select 
+                                                value={rateInfo.mode} 
+                                                onValueChange={(val) => handleRateChange(curr.code, "mode", val)}
+                                            >
+                                                <SelectTrigger className="w-full h-8 border-gray-300">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="auto">자동환율</SelectItem>
+                                                    <SelectItem value="manual">수동환율</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </td>
+                                        <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
+                                            <span>1 {curr.code} =</span>
+                                            <Input 
+                                                value={rateInfo.rate} 
+                                                onChange={(e) => handleRateChange(curr.code, "rate", e.target.value)}
+                                                className={`w-24 h-7 text-right ${rateInfo.mode === 'auto' ? 'bg-gray-100' : ''}`}
+                                                disabled={rateInfo.mode === 'auto'}
+                                            />
+                                            <span>KRW</span>
+                                        </td>
+                                        <td className="py-3 px-4 border-r border-gray-200">
+                                            <Input 
+                                                value={rateInfo.adjustment} 
+                                                onChange={(e) => handleRateChange(curr.code, "adjustment", e.target.value)}
+                                                className="w-full h-7 text-right" 
+                                            />
+                                        </td>
+                                        <td className="py-3 px-4 text-right font-medium">{finalRate.toLocaleString(undefined, { maximumFractionDigits: 4 })}</td>
+                                    </tr>
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>
@@ -169,7 +174,7 @@ export default function ExchangeRateSettingsPage() {
                         <span className="w-4 flex justify-center bg-red-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 
                         자동환율은 행정안전부 공공데이터 포털의 관세 환율정보 API를 기준으로 매일 갱신 됩니다.
                     </p>
-                     <p className="text-blue-500 pl-5">
+                    <p className="text-blue-500 pl-5">
                         네트워크 장애 등으로 인하여 부득이하게 해당 정보를 정상적으로 인지하지 못할 경우에는 그 전일 최종적으로 성공한 값을 표시합니다.
                     </p>
                      <p className="text-gray-500 pl-5 pt-2">
@@ -225,119 +230,8 @@ export default function ExchangeRateSettingsPage() {
                                 <td className="py-3 px-4 border-r border-gray-200"></td>
                                 <td className="py-3 px-4">27.1.192.91</td>
                             </tr>
-                            <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2026-01-07 17:10:56</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">27.1.192.91</td>
-                            </tr>
-                            <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2026-01-06 23:30:38</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">27.1.192.91</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2026-01-05 16:56:46</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                            <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-26 13:00:19</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-23 10:14:31</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-21 14:16:25</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-18 16:04:00</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-10 16:03:55</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">106.251.79.102</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-08 15:20:19</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">121.166.205.55</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-07 13:44:16</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">자동 환율 데이터 갱신</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-06 07:48:16</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">환율설정저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">변경사항 없음</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-05 22:02:09</td>
-                                <td className="py-3 px-4 border-r border-gray-200">sosexy76</td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
-                             <tr className="border-b border-gray-200 hover:bg-gray-50">
-                                <td className="py-3 px-4 border-r border-gray-200">자동환율저장</td>
-                                <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 text-left pl-8">변경사항 없음</td>
-                                <td className="py-3 px-4 border-r border-gray-200">2025-12-05 22:01:45</td>
-                                <td className="py-3 px-4 border-r border-gray-200"></td>
-                                <td className="py-3 px-4">127.255.255.255</td>
-                            </tr>
                         </tbody>
                     </table>
-                </div>
-
-                {/* Pagination */}
-                <div className="flex justify-center mt-6">
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" className="w-8 h-8 p-0 bg-gray-500 text-white hover:bg-gray-600 rounded-sm">1</Button>
-                    </div>
                 </div>
             </div>
 

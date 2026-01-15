@@ -6,21 +6,162 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { HelpCircle, Plus, Search, ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { HelpCircle, Plus, ChevronDown } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getAdminsAction, AdminSearchFilter, deleteAdminsAction } from "@/actions/admin-actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import Link from "next/link";
+
+import { getSuppliersAction } from "@/actions/supplier-actions";
+import { Admin, Supplier } from "@/generated/prisma";
+import { Search, X } from "lucide-react";
 
 export default function ManagerManagementPage() {
     const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
+    
+    // Data State
+    const [admins, setAdmins] = useState<Admin[]>([]);
+    const [total, setTotal] = useState(0);
+    const [isPending, startTransition] = useTransition();
+
+    // Supplier Dialog State
+    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+    const [supplierTotal, setSupplierTotal] = useState(0);
+    const [supplierPage, setSupplierPage] = useState(1);
+    const [supplierKeyword, setSupplierKeyword] = useState("");
+    const [selectedSupplier, setSelectedSupplier] = useState<{id: string, name: string} | null>(null);
+
+    // Filter State
+    const [filter, setFilter] = useState<AdminSearchFilter>({
+        supplyType: "all",
+        supplierId: undefined,
+        keywordType: "integrated",
+        matchType: "partial",
+        keyword: "",
+    });
+    
+    // ... existing pagination state ...
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+    const [orderBy, setOrderBy] = useState<"date_desc" | "date_asc">("date_desc");
+
+    // Checkbox State
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+    // Fetch Data
+    const fetchData = () => {
+        startTransition(async () => {
+            const result = await getAdminsAction({
+                page,
+                pageSize,
+                orderBy,
+                filter,
+            });
+            if (result.success) {
+                setAdmins(result.items || []);
+                setTotal(result.total || 0);
+            }
+        });
+    };
+
+    // Fetch Suppliers
+    const fetchSuppliers = async (page = 1) => {
+        const result = await getSuppliersAction({
+            page,
+            pageSize: 5,
+            orderBy: "name_asc",
+            filter: {
+                keyword: supplierKeyword,
+                keywordType: "integrated",
+                status: "ACTIVE"
+            }
+        });
+        if (result.success) {
+            setSuppliers(result.items || []);
+            setSupplierTotal(result.total || 0);
+            setSupplierPage(page);
+        }
+    };
+
+    // Effect for Suppliers (when dialog opens or keyword changes)
+    useEffect(() => {
+        if (isSupplierDialogOpen) {
+            fetchSuppliers(1);
+        }
+    }, [isSupplierDialogOpen, supplierKeyword]);
+
+    // Initial Fetch & Update on dependencies
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [page, pageSize, orderBy, filter]); // Added filter to dependencies
+
+    const handleSearch = () => {
+        setPage(1); // Reset to first page
+        fetchData();
+    };
+    
+    // ... setup handlers ...
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleSearch();
+    };
+
+    // ... Checkbox Handlers ... (keep existing)
+     const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(admins.map(a => a.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelectOne = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(item => item !== id));
+        }
+    };
+
+    const handleDelete = async () => {
+        if (selectedIds.length === 0) {
+            alert("삭제할 운영자를 선택해주세요.");
+            return;
+        }
+        if (!confirm("선택한 운영자를 정말 삭제하시겠습니까?")) return;
+
+        const result = await deleteAdminsAction(selectedIds);
+        
+        if (result.success) {
+            alert("삭제되었습니다.");
+            setSelectedIds([]);
+            fetchData(); 
+        } else {
+            alert(result.error || "삭제 실패");
+        }
+    };
+
+    const selectSupplier = (supplier: Supplier) => {
+        setSelectedSupplier({ id: supplier.id, name: supplier.name });
+        setFilter(prev => ({ ...prev, supplierId: supplier.id, supplyType: "supplier" }));
+        setIsSupplierDialogOpen(false);
+    };
+
+    const clearSupplierSelection = () => {
+        setSelectedSupplier(null);
+        setFilter(prev => ({ ...prev, supplierId: undefined }));
+    }
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
-            {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-gray-300">
+            {/* Header ... */}
+             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">운영자 관리</h1>
-                <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 rounded-sm h-9 px-4 text-sm font-medium flex items-center gap-1">
-                    <Plus size={14} /> 운영자 등록
-                </Button>
+                <Link href="/admin/settings/manager/register">
+                    <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 rounded-sm h-9 px-4 text-sm font-medium flex items-center gap-1">
+                        <Plus size={14} /> 운영자 등록
+                    </Button>
+                </Link>
             </div>
 
             {/* Search Section */}
@@ -34,7 +175,16 @@ export default function ManagerManagementPage() {
                     <div className="grid grid-cols-[150px_1fr] divide-x border-b border-gray-200">
                         <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">공급사 구분</div>
                         <div className="p-3 flex items-center gap-6">
-                            <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={filter.supplyType} 
+                                onValueChange={(v: any) => {
+                                    setFilter({ ...filter, supplyType: v });
+                                    if(v !== 'supplier') {
+                                        clearSupplierSelection();
+                                    }
+                                }}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="all" id="type-all" />
                                     <Label htmlFor="type-all" className="font-normal cursor-pointer">전체</Label>
@@ -48,87 +198,99 @@ export default function ManagerManagementPage() {
                                     <Label htmlFor="type-supplier" className="font-normal cursor-pointer">공급사</Label>
                                 </div>
                             </RadioGroup>
-                             <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
-                                <DialogTrigger asChild>
-                                    <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 border-0 rounded-sm">
-                                        공급사 선택
-                                    </Button>
-                                </DialogTrigger>
-                                <DialogContent className="max-w-[700px] p-0 gap-0">
-                                    <DialogHeader className="p-6 pb-2 border-b border-black">
-                                        <DialogTitle className="text-xl font-bold text-gray-900">공급사 선택</DialogTitle>
-                                    </DialogHeader>
-                                    
-                                    <div className="p-4 space-y-4">
-                                        {/* Popup Search */}
-                                        <div className="bg-gray-50 p-4 border-t border-b border-gray-200 flex items-center gap-4">
-                                            <span className="font-medium text-gray-700 w-20">공급사명</span>
-                                            <div className="flex items-center gap-2 flex-1">
-                                                <Input className="h-8 border-gray-300 w-full" />
-                                                <Button className="h-8 w-24 bg-[#4B5563] text-white hover:bg-[#374151] rounded-none">
-                                                    검색
+                             
+                             <div className="flex items-center gap-2">
+                                {selectedSupplier && (
+                                    <span className="text-blue-600 font-medium text-xs border border-blue-200 bg-blue-50 px-2 py-1 rounded-sm flex items-center gap-1">
+                                        {selectedSupplier.name}
+                                        <X size={12} className="cursor-pointer" onClick={clearSupplierSelection} />
+                                    </span>
+                                )}
+                                <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
+                                    <DialogTrigger asChild>
+                                        <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 border-0 rounded-sm">
+                                            공급사 선택
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-[500px] p-0 gap-0">
+                                        <DialogHeader className="p-4 border-b">
+                                            <DialogTitle className="text-lg font-bold">공급사 검색</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="p-4 space-y-4">
+                                            <div className="flex gap-2">
+                                                <Input 
+                                                    placeholder="공급사명 또는 코드 검색" 
+                                                    value={supplierKeyword}
+                                                    onChange={(e) => setSupplierKeyword(e.target.value)}
+                                                    className="h-9 text-sm"
+                                                />
+                                                <Button onClick={() => fetchSuppliers(1)} className="h-9 bg-gray-700 hover:bg-gray-800">검색</Button>
+                                            </div>
+                                            
+                                            <div className="border border-gray-200 rounded-sm max-h-[300px] overflow-y-auto">
+                                                <table className="w-full text-left text-xs">
+                                                    <thead className="bg-gray-50 font-medium text-gray-600 sticky top-0">
+                                                        <tr>
+                                                            <th className="p-2 border-b">공급사명</th>
+                                                            <th className="p-2 border-b">코드</th>
+                                                            <th className="p-2 border-b w-16">선택</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {suppliers.length === 0 ? (
+                                                            <tr><td colSpan={3} className="p-4 text-center text-gray-500">검색 결과가 없습니다.</td></tr>
+                                                        ) : (
+                                                            suppliers.map(sup => (
+                                                                <tr key={sup.id} className="border-b hover:bg-gray-50">
+                                                                    <td className="p-2">{sup.name}</td>
+                                                                    <td className="p-2 text-gray-500">{sup.code || "-"}</td>
+                                                                    <td className="p-2">
+                                                                        <Button size="sm" onClick={() => selectSupplier(sup)} className="h-6 text-xs bg-blue-500 hover:bg-blue-600">
+                                                                            선택
+                                                                        </Button>
+                                                                    </td>
+                                                                </tr>
+                                                            ))
+                                                        )}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            
+                                            <div className="flex justify-center gap-1">
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    disabled={supplierPage <= 1}
+                                                    onClick={() => fetchSuppliers(supplierPage - 1)}
+                                                >
+                                                    &lt;
+                                                </Button>
+                                                <span className="flex items-center text-xs text-gray-500">
+                                                    {supplierPage} / {Math.ceil(supplierTotal / 5) || 1}
+                                                </span>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm"
+                                                    disabled={supplierPage >= Math.ceil(supplierTotal / 5)}
+                                                    onClick={() => fetchSuppliers(supplierPage + 1)}
+                                                >
+                                                    &gt;
                                                 </Button>
                                             </div>
                                         </div>
-
-                                        {/* Popup Table */}
-                                        <div className="border border-gray-300">
-                                            <table className="w-full text-center text-xs">
-                                                <thead className="bg-[#A6A6A6] text-white">
-                                                    <tr>
-                                                        <th className="py-2 w-12 border-r border-gray-400">
-                                                            <div className="flex justify-center">
-                                                                <Checkbox className="bg-white border-white data-[state=checked]:text-black w-4 h-4 rounded-sm" />
-                                                            </div>
-                                                        </th>
-                                                        <th className="py-2 w-16 border-r border-gray-400">번호</th>
-                                                        <th className="py-2 border-r border-gray-400">공급사명</th>
-                                                        <th className="py-2 w-24 border-r border-gray-400">상태</th>
-                                                        <th className="py-2 w-32">등록일</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="bg-white divide-y divide-gray-200">
-                                                    <tr className="hover:bg-gray-50">
-                                                        <td className="py-3 border-r border-gray-200">
-                                                            <div className="flex justify-center">
-                                                                <Checkbox className="border-gray-300 w-4 h-4 rounded-sm" />
-                                                            </div>
-                                                        </td>
-                                                        <td className="py-3 border-r border-gray-200">1</td>
-                                                        <td className="py-3 border-r border-gray-200 text-left px-4 font-medium">니어인터내셔널</td>
-                                                        <td className="py-3 border-r border-gray-200">운영</td>
-                                                        <td className="py-3 text-gray-600">2025-11-25</td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-
-                                        {/* Popup Pagination */}
-                                        <div className="flex justify-center py-2">
-                                           <Button variant="ghost" className="h-8 w-8 p-0 rounded-none bg-[#4B5563] text-white hover:bg-[#374151]">
-                                                1
-                                            </Button>
-                                        </div>
-
-                                        {/* Popup Footer */}
-                                        <div className="flex justify-center pt-2">
-                                            <Button 
-                                                className="w-24 h-10 bg-[#4B5563] text-white hover:bg-[#374151] rounded-none text-sm font-medium"
-                                                onClick={() => setIsSupplierDialogOpen(false)}
-                                            >
-                                                확인
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </DialogContent>
-                            </Dialog>
+                                    </DialogContent>
+                                </Dialog>
+                             </div>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-[150px_1fr] divide-x">
                         <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">검색어</div>
                         <div className="p-3 flex items-center gap-2">
-                            <Select defaultValue="integrated">
+                            <Select 
+                                value={filter.keywordType} 
+                                onValueChange={(v: any) => setFilter({ ...filter, keywordType: v })}
+                            >
                                 <SelectTrigger className="w-[120px] h-8 rounded-sm border-gray-300 bg-gray-50 text-xs">
                                     <SelectValue placeholder="=통합검색=" />
                                 </SelectTrigger>
@@ -143,7 +305,10 @@ export default function ManagerManagementPage() {
                                 </SelectContent>
                             </Select>
                             
-                            <Select defaultValue="exact">
+                            <Select 
+                                value={filter.matchType}
+                                onValueChange={(v: any) => setFilter({ ...filter, matchType: v })}
+                            >
                                 <SelectTrigger className="w-[140px] h-8 rounded-sm border-gray-300 bg-white text-xs">
                                     <SelectValue placeholder="검색어 전체일치" />
                                 </SelectTrigger>
@@ -153,7 +318,13 @@ export default function ManagerManagementPage() {
                                 </SelectContent>
                             </Select>
 
-                            <Input className="w-[300px] h-8 rounded-sm border-gray-300" placeholder="검색어 전체를 정확히 입력하세요." />
+                            <Input 
+                                className="w-[300px] h-8 rounded-sm border-gray-300" 
+                                placeholder="검색어 입력" 
+                                value={filter.keyword}
+                                onChange={(e) => setFilter({ ...filter, keyword: e.target.value })}
+                                onKeyDown={handleKeyDown}
+                            />
                         </div>
                     </div>
                 </div>
@@ -166,8 +337,12 @@ export default function ManagerManagementPage() {
                         상세검색 펼침 <ChevronDown size={14} />
                     </button>
                 </div>
-                <Button className="bg-[#4B5563] hover:bg-[#374151] text-white rounded-sm h-10 px-10 text-sm font-medium rounded-none">
-                    검색
+                <Button 
+                    className="bg-[#4B5563] hover:bg-[#374151] text-white rounded-sm h-10 px-10 text-sm font-medium rounded-none"
+                    onClick={handleSearch}
+                    disabled={isPending}
+                >
+                    {isPending ? "검색 중..." : "검색"}
                 </Button>
             </div>
 
@@ -175,12 +350,15 @@ export default function ManagerManagementPage() {
             <div className="space-y-2 pt-8">
                 <div className="flex items-center justify-between">
                     <div className="text-xs text-gray-600">
-                        검색 <span className="text-red-500 font-bold">2</span>개 / 
-                        전체 <span className="text-red-500 font-bold">2</span>개 | 
+                        검색 <span className="text-red-500 font-bold">{total}</span>개 / 
+                        전체 <span className="text-red-500 font-bold">{total}</span>개 | 
                         장기 미로그인 운영자 <span className="text-red-500 font-bold">0</span>개
                     </div>
                     <div className="flex items-center gap-1">
-                        <Select defaultValue="date_desc">
+                        <Select 
+                            value={orderBy}
+                            onValueChange={(v) => setOrderBy(v as "date_desc" | "date_asc")}
+                        >
                             <SelectTrigger className="w-[100px] h-8 rounded-sm border-gray-300 text-xs">
                                 <SelectValue placeholder="등록일 ↓" />
                             </SelectTrigger>
@@ -189,7 +367,10 @@ export default function ManagerManagementPage() {
                                 <SelectItem value="date_asc">등록일 ↑</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select defaultValue="10">
+                        <Select 
+                            value={String(pageSize)}
+                            onValueChange={(v) => setPageSize(Number(v))}
+                        >
                             <SelectTrigger className="w-[100px] h-8 rounded-sm border-gray-300 text-xs">
                                 <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
@@ -208,7 +389,11 @@ export default function ManagerManagementPage() {
                             <tr>
                                 <th className="py-2 w-10 border-r border-gray-400">
                                     <div className="flex justify-center">
-                                        <Checkbox className="bg-white border-white data-[state=checked]:text-black w-4 h-4 rounded-sm" />
+                                        <Checkbox 
+                                            className="bg-white border-white data-[state=checked]:text-black w-4 h-4 rounded-sm" 
+                                            checked={admins.length > 0 && selectedIds.length === admins.length}
+                                            onCheckedChange={handleSelectAll}
+                                        />
                                     </div>
                                 </th>
                                 <th className="py-2 w-12 border-r border-gray-400">번호</th>
@@ -224,68 +409,74 @@ export default function ManagerManagementPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200 border-b border-gray-300">
-                             <tr className="hover:bg-gray-50">
-                                <td className="py-3 border-r border-gray-200">
-                                    <div className="flex justify-center">
-                                        <Checkbox className="border-gray-300 w-4 h-4 rounded-sm" />
-                                    </div>
-                                </td>
-                                <td className="py-3 border-r border-gray-200">2</td>
-                                <td className="py-3 border-r border-gray-200">본사</td>
-                                <td className="py-3 border-r border-gray-200 text-left px-4">
-                                    admin01 / 관리자01
-                                </td>
-                                <td className="py-3 border-r border-gray-200">관리자01</td>
-                                <td className="py-3 border-r border-gray-200">직원</td>
-                                <td className="py-3 border-r border-gray-200">
-                                    /<br/>/
-                                </td>
-                                <td className="py-3 border-r border-gray-200">
-                                    010-7129-6105<br/>
-                                    <span className="text-gray-500">no-reply@godomall.com</span>
-                                </td>
-                                <td className="py-3 border-r border-gray-200 text-gray-600">2025-12-04</td>
-                                <td className="py-3 border-r border-gray-200 text-gray-600">2026-01-07</td>
-                                <td className="py-3">
-                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-600">
-                                        수정
-                                    </Button>
-                                </td>
-                            </tr>
-                            <tr className="hover:bg-gray-50">
-                                <td className="py-3 border-r border-gray-200">
-                                    <div className="flex justify-center">
-                                        <Checkbox className="border-gray-300 w-4 h-4 rounded-sm" />
-                                    </div>
-                                </td>
-                                <td className="py-3 border-r border-gray-200">1</td>
-                                <td className="py-3 border-r border-gray-200">본사</td>
-                                <td className="py-3 border-r border-gray-200 text-left px-4">
-                                    sosexy76<br/>
-                                    <span className="text-blue-500 font-medium">(최고운영자)</span>
-                                </td>
-                                <td className="py-3 border-r border-gray-200">전체관리자</td>
-                                <td className="py-3 border-r border-gray-200">직원</td>
-                                <td className="py-3 border-r border-gray-200">
-                                    /<br/>/
-                                </td>
-                                <td className="py-3 border-r border-gray-200">
-                                    010-7129-6105
-                                </td>
-                                <td className="py-3 border-r border-gray-200 text-gray-600">2025-12-02</td>
-                                <td className="py-3 border-r border-gray-200 text-gray-600">2026-01-07</td>
-                                <td className="py-3">
-                                    <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-600">
-                                        수정
-                                    </Button>
-                                </td>
-                            </tr>
+                            {admins.length === 0 ? (
+                                <tr>
+                                    <td colSpan={11} className="py-10 text-gray-500">
+                                        검색된 운영자가 없습니다.
+                                    </td>
+                                </tr>
+                            ) : (
+                                admins.map((admin, index) => (
+                                    <tr key={admin.id} className="hover:bg-gray-50">
+                                        <td className="py-3 border-r border-gray-200">
+                                            <div className="flex justify-center">
+                                                <Checkbox 
+                                                    className="border-gray-300 w-4 h-4 rounded-sm" 
+                                                    checked={selectedIds.includes(admin.id)}
+                                                    onCheckedChange={(checked) => handleSelectOne(admin.id, checked as boolean)}
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200">
+                                            {total - ((page - 1) * pageSize) - index}
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200">
+                                            {admin.type === "SUPPLIER" ? "공급사" : "본사"}
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200 text-left px-4">
+                                            <div>{admin.userId}</div>
+                                            {admin.type === "SUPER" && (
+                                                <span className="text-blue-500 font-medium">(최고운영자)</span>
+                                            )}
+                                            {admin.nickname && <div className="text-gray-500">/ {admin.nickname}</div>}
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200">{admin.name}</td>
+                                        <td className="py-3 border-r border-gray-200">
+                                            {admin.isEmployee ? "직원" : "-"}
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200">
+                                            {admin.department || "-"}/{admin.position || "-"}/{admin.duty || "-"}
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200">
+                                            {admin.mobile || "-"}<br/>
+                                            <span className="text-gray-500">{admin.email}</span>
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200 text-gray-600">
+                                            {new Date(admin.createdAt).toLocaleDateString()}
+                                        </td>
+                                        <td className="py-3 border-r border-gray-200 text-gray-600">
+                                            {admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleDateString() : "-"}
+                                        </td>
+                                        <td className="py-3">
+                                            <Link href={`/admin/settings/manager/${admin.id}`}>
+                                                <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300 text-gray-600">
+                                                    수정
+                                                </Button>
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>
 
                 <div className="flex items-center gap-1 pt-2">
-                     <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm h-8 px-3 text-xs">
+                     <Button 
+                        variant="outline" 
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm h-8 px-3 text-xs"
+                        onClick={handleDelete}
+                    >
                         선택삭제
                     </Button>
                     <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm h-8 px-3 text-xs">
@@ -293,11 +484,18 @@ export default function ManagerManagementPage() {
                     </Button>
                 </div>
 
-                {/* Pagination */}
-                 <div className="flex justify-center mt-6">
-                    <Button variant="ghost" className="h-8 w-8 p-0 rounded-none bg-[#4B5563] text-white hover:bg-[#374151]">
-                        1
-                    </Button>
+                {/* Pagination (Simple Implementation) */}
+                 <div className="flex justify-center mt-6 gap-1">
+                    {Array.from({ length: Math.ceil(total / pageSize) || 1 }, (_, i) => i + 1).map((p) => (
+                        <Button 
+                            key={p}
+                            variant="ghost" 
+                            className={`h-8 w-8 p-0 rounded-none ${page === p ? 'bg-[#4B5563] text-white hover:bg-[#374151]' : 'hover:bg-gray-100'}`}
+                            onClick={() => setPage(p)}
+                        >
+                            {p}
+                        </Button>
+                    ))}
                 </div>
             </div>
             
@@ -310,10 +508,10 @@ export default function ManagerManagementPage() {
                     <span className="text-[10px] leading-none">따라</span>
                     <span className="text-[10px] leading-none">하기</span>
                 </Button>
-                <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
+                <Button onClick={() => window.scrollTo(0, 0)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
                     ↑
                 </Button>
-                <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
+                <Button onClick={() => window.scrollTo(0, 9999)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
                     ↓
                 </Button>
             </div>

@@ -14,8 +14,7 @@ export interface UserResult {
     username: string;
     createdAt: Date;
     info: {
-        level: number;
-        referralCode: string;
+        gradeId: string | null;
     } | null;
     country: {
         name: string;
@@ -47,8 +46,7 @@ export async function getUsers({ page = 1, limit = 10, query }: GetUsersParams) 
                 createdAt: true,
                 info: {
                     select: {
-                        level: true,
-                        referralCode: true,
+                        gradeId: true,
                     },
                 },
                 country: {

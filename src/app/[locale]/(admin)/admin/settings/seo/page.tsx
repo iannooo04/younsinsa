@@ -6,24 +6,125 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertCircle, HelpCircle, Plus } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import { Label } from "@/components/ui/label";
+import { getSeoSettingsAction, updateSeoSettingsAction } from "@/actions/basic-policy-actions";
 
 export default function SEOSettingsPage() {
     const [activeTab, setActiveTab] = useState<"kr" | "cn">("kr");
     const [robotTab, setRobotTab] = useState<"pc" | "mobile">("pc");
     const [tagTab, setTagTab] = useState<"common" | "product" | "category" | "brand" | "promotion" | "board">("common");
     const [otherPageTab, setOtherPageTab] = useState<"pc" | "mobile">("pc");
-    const [canonicalUrl, setCanonicalUrl] = useState("unused");
-    const [pagePath, setPagePath] = useState("error");
+    
+    // SEO Settings State
+    const [pcRobotTxt, setPcRobotTxt] = useState("");
+    const [mobileRobotTxt, setMobileRobotTxt] = useState("");
+    const [majorPageTags, setMajorPageTags] = useState<any>({}); 
+    const [ogImage, setOgImage] = useState("");
+    const [ogTitle, setOgTitle] = useState("");
+    const [ogDescription, setOgDescription] = useState("");
+    const [sitemapPath, setSitemapPath] = useState("");
+    const [rssPath, setRssPath] = useState("");
+    const [pagePathType, setPagePathType] = useState("error");
+    const [pagePathUrl, setPagePathUrl] = useState("");
+    const [useCanonical, setUseCanonical] = useState("unused"); 
+    const [relatedChannels, setRelatedChannels] = useState<string[]>([]);
+    
+    // Temporary state for UI inputs
+    const [newChannelInput, setNewChannelInput] = useState("");
+
+    const [isPending, startTransition] = useTransition();
+
+    // File Input Refs
+    const ogImageInputRef = useRef<HTMLInputElement>(null);
+    const sitemapInputRef = useRef<HTMLInputElement>(null);
+    const rssInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getSeoSettingsAction();
+            if (result.success && result.settings) {
+                setPcRobotTxt(result.settings.pcRobotTxt || "");
+                setMobileRobotTxt(result.settings.mobileRobotTxt || "");
+                setMajorPageTags(result.settings.majorPageTags || {});
+                setOgImage(result.settings.ogImage || "");
+                setOgTitle(result.settings.ogTitle || "");
+                setOgDescription(result.settings.ogDescription || "");
+                setSitemapPath(result.settings.sitemapPath || "");
+                setRssPath(result.settings.rssPath || "");
+                setPagePathType(result.settings.pagePathType || "error");
+                setPagePathUrl(result.settings.pagePathUrl || "");
+                setUseCanonical(result.settings.useCanonical ? "used" : "unused");
+                setRelatedChannels((result.settings.relatedChannels as string[]) || []);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateSeoSettingsAction({
+                pcRobotTxt,
+                mobileRobotTxt,
+                majorPageTags,
+                ogImage,
+                ogTitle,
+                ogDescription,
+                sitemapPath,
+                rssPath,
+                pagePathType,
+                pagePathUrl,
+                useCanonical: useCanonical === "used",
+                relatedChannels,
+                otherPageTags: undefined
+            });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
+    // Helper to update major page tags
+    const updateMajorPageTag = (key: string, value: string) => {
+        setMajorPageTags((prev: any) => ({
+            ...prev,
+            [tagTab]: {
+                ...(prev[tagTab] || {}),
+                [key]: value
+            }
+        }));
+    };
+
+    const addRelatedChannel = () => {
+        if (newChannelInput.trim()) {
+            setRelatedChannels([...relatedChannels, newChannelInput.trim()]);
+            setNewChannelInput("");
+        }
+    };
+
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, setter: (value: string) => void) => {
+        if (e.target.files && e.target.files[0]) {
+            // In a real app, you would upload the file here and get a URL.
+            // For now, we'll just set the name to simulate the path selection.
+            setter(e.target.files[0].name);
+        }
+    };
+    
+    const currentTagData = majorPageTags[tagTab] || { title: "", author: "", description: "", keywords: "" };
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">검색엔진 최적화(SEO) 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -100,7 +201,9 @@ export default function SEOSettingsPage() {
                                 </div>
                                 <Textarea 
                                     className="h-[250px] font-mono text-sm resize-none border-gray-300"
-                                    defaultValue={`# Default Bot Policy List provided by GODOMALL
+                                    value={robotTab === "pc" ? pcRobotTxt : mobileRobotTxt}
+                                    onChange={(e) => robotTab === "pc" ? setPcRobotTxt(e.target.value) : setMobileRobotTxt(e.target.value)}
+                                    placeholder={`# Default Bot Policy List provided by GODOMALL
 User-agent: mj12bot
 User-agent: SemrushBot
 User-agent: ClaudeBot
@@ -159,8 +262,12 @@ User-agent: owasp`}
                         <div className="grid grid-cols-[180px_1fr] gap-4 items-center">
                             <div className="font-medium text-gray-700 flex items-center gap-1">타이틀 (Title) <HelpCircle size={14} className="text-gray-400" /></div>
                             <div className="flex items-center gap-2">
-                                <Input className="flex-1 h-8 border-gray-300 rounded-sm" defaultValue="{seo_mallNm}" />
-                                <span className="text-xs text-red-500 font-bold">12 / 200</span>
+                                <Input 
+                                    className="flex-1 h-8 border-gray-300 rounded-sm" 
+                                    value={currentTagData.title || ""}
+                                    onChange={(e) => updateMajorPageTag("title", e.target.value)}
+                                />
+                                <span className="text-xs text-red-500 font-bold">{currentTagData.title?.length || 0} / 200</span>
                             </div>
                         </div>
                         <div className="grid grid-cols-[180px_1fr] gap-4">
@@ -173,22 +280,34 @@ User-agent: owasp`}
                         <div className="grid grid-cols-[180px_1fr] gap-4 items-center pt-2">
                             <div className="font-medium text-gray-700 flex items-center gap-1">메타태그 작성자 (Author) <HelpCircle size={14} className="text-gray-400" /></div>
                             <div className="flex items-center gap-2">
-                                <Input className="flex-1 h-8 border-gray-300 rounded-sm" />
-                                <span className="text-xs text-red-500 font-bold">0 / 200</span>
+                                <Input 
+                                    className="flex-1 h-8 border-gray-300 rounded-sm"
+                                    value={currentTagData.author || ""}
+                                    onChange={(e) => updateMajorPageTag("author", e.target.value)}
+                                />
+                                <span className="text-xs text-red-500 font-bold">{currentTagData.author?.length || 0} / 200</span>
                             </div>
                         </div>
 
                          <div className="grid grid-cols-[180px_1fr] gap-4 items-center pt-2">
                             <div className="font-medium text-gray-700 flex items-center gap-1">메타태그 설명 (Description) <HelpCircle size={14} className="text-gray-400" /></div>
                             <div className="flex items-center gap-2">
-                                <Input className="flex-1 h-8 border-gray-300 rounded-sm" defaultValue="{seo_mallNm}" />
+                                <Input 
+                                    className="flex-1 h-8 border-gray-300 rounded-sm" 
+                                    value={currentTagData.description || ""}
+                                    onChange={(e) => updateMajorPageTag("description", e.target.value)}
+                                />
                             </div>
                         </div>
 
                          <div className="grid grid-cols-[180px_1fr] gap-4 items-center pt-2">
                             <div className="font-medium text-gray-700 flex items-center gap-1">메타태그 키워드 (Keywords) <HelpCircle size={14} className="text-gray-400" /></div>
                             <div className="flex items-center gap-2">
-                                <Input className="flex-1 h-8 border-gray-300 rounded-sm" />
+                                <Input 
+                                    className="flex-1 h-8 border-gray-300 rounded-sm" 
+                                    value={currentTagData.keywords || ""}
+                                    onChange={(e) => updateMajorPageTag("keywords", e.target.value)}
+                                />
                             </div>
                         </div>
                     </div>
@@ -208,8 +327,25 @@ User-agent: owasp`}
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">대표이미지</div>
                         <div className="p-4 space-y-2">
                             <div className="flex items-center gap-2">
-                                <Button variant="outline" className="h-7 text-xs rounded-sm border-gray-300 bg-gray-100 text-gray-600">찾아보기</Button>
-                                <Input className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" readOnly />
+                                <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    ref={ogImageInputRef} 
+                                    onChange={(e) => handleFileSelect(e, setOgImage)} 
+                                    accept="image/*"
+                                />
+                                <Button 
+                                    variant="outline" 
+                                    className="h-7 text-xs rounded-sm border-gray-300 bg-gray-100 text-gray-600"
+                                    onClick={() => ogImageInputRef.current?.click()}
+                                >
+                                    찾아보기
+                                </Button>
+                                <Input 
+                                    className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" 
+                                    value={ogImage}
+                                    readOnly 
+                                />
                             </div>
                             <div className="text-xs text-gray-500 space-y-1">
                                 <p>대표 이미지 사이즈는 최소 600pixel(픽셀) 이상, 파일형식은 jpg, gif, png만 등록해 주세요.</p>
@@ -224,7 +360,11 @@ User-agent: owasp`}
                             <span className="text-xs font-normal text-gray-500">(og:title, twitter:title)</span>
                         </div>
                         <div className="p-4 flex items-center">
-                             <Input className="w-full h-8 border-gray-300 rounded-sm" defaultValue="{=gMall.mallNm}" />
+                             <Input 
+                                className="w-full h-8 border-gray-300 rounded-sm" 
+                                value={ogTitle}
+                                onChange={(e) => setOgTitle(e.target.value)}
+                             />
                         </div>
                     </div>
 
@@ -234,7 +374,11 @@ User-agent: owasp`}
                             <span className="text-xs font-normal text-gray-500">(og:description, twitter:description)</span>
                         </div>
                         <div className="p-4 space-y-2">
-                             <Input className="w-full h-8 border-gray-300 rounded-sm" defaultValue="엔큐버스" />
+                             <Input 
+                                className="w-full h-8 border-gray-300 rounded-sm" 
+                                value={ogDescription}
+                                onChange={(e) => setOgDescription(e.target.value)}
+                             />
                              <div className="flex items-center gap-1 text-xs text-gray-500">
                                 <span className="w-3 h-3 bg-gray-800 text-white flex items-center justify-center text-[10px] rounded-sm">!</span>
                                 오픈그래프/X 메타태그 설명으로 사용되며, 기본설정의 메타태그 설명과는 별개로 동작합니다.
@@ -262,8 +406,25 @@ User-agent: owasp`}
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">사이트맵 경로</div>
                         <div className="p-4 space-y-2">
                              <div className="flex items-center gap-2">
-                                <Button variant="outline" className="h-7 text-xs rounded-sm border-gray-300 bg-gray-100 text-gray-600">찾아보기</Button>
-                                <Input className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" readOnly />
+                                <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    ref={sitemapInputRef} 
+                                    onChange={(e) => handleFileSelect(e, setSitemapPath)} 
+                                    accept=".xml"
+                                />
+                                <Button 
+                                    variant="outline" 
+                                    className="h-7 text-xs rounded-sm border-gray-300 bg-gray-100 text-gray-600"
+                                    onClick={() => sitemapInputRef.current?.click()}
+                                >
+                                    찾아보기
+                                </Button>
+                                <Input 
+                                    className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" 
+                                    value={sitemapPath}
+                                    onChange={(e) => setSitemapPath(e.target.value)}
+                                />
                             </div>
                             <div className="text-xs text-gray-500 space-y-1">
                                 <p><span className="w-3 h-3 inline-flex bg-gray-800 text-white items-center justify-center text-[10px] rounded-sm mr-1">!</span>확장자가 .xml 인 파일만 등록 가능하며, 업로드 가능한 파일 크기는 최대 10MB입니다.</p>
@@ -287,8 +448,25 @@ User-agent: owasp`}
                         <div className="p-4 bg-gray-50 font-medium text-gray-700">RSS 경로</div>
                         <div className="p-4 space-y-2">
                              <div className="flex items-center gap-2">
-                                <Button variant="outline" className="h-7 text-xs rounded-sm border-gray-300 bg-gray-100 text-gray-600">찾아보기</Button>
-                                <Input className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" readOnly />
+                                <input 
+                                    type="file" 
+                                    className="hidden" 
+                                    ref={rssInputRef} 
+                                    onChange={(e) => handleFileSelect(e, setRssPath)} 
+                                    accept=".xml"
+                                />
+                                <Button 
+                                    variant="outline" 
+                                    className="h-7 text-xs rounded-sm border-gray-300 bg-gray-100 text-gray-600"
+                                    onClick={() => rssInputRef.current?.click()}
+                                >
+                                    찾아보기
+                                </Button>
+                                <Input 
+                                    className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" 
+                                    value={rssPath}
+                                    onChange={(e) => setRssPath(e.target.value)}
+                                />
                             </div>
                             <div className="text-xs text-gray-500 space-y-1">
                                 <p><span className="w-3 h-3 inline-flex bg-gray-800 text-white items-center justify-center text-[10px] rounded-sm mr-1">!</span>확장자가 .xml 인 파일만 등록 가능하며, 업로드 가능한 파일 크기는 최대 10MB입니다.</p>
@@ -312,7 +490,7 @@ User-agent: owasp`}
                             페이지 없음<br/>경로설정 <HelpCircle size={12} className="inline text-gray-400" />
                         </div>
                         <div className="p-4">
-                            <RadioGroup value={pagePath} onValueChange={setPagePath} className="space-y-2">
+                            <RadioGroup value={pagePathType} onValueChange={setPagePathType} className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="error" id="path-error" />
                                     <Label htmlFor="path-error" className="font-normal text-sm text-gray-700">오류 페이지로 연결</Label>
@@ -321,6 +499,14 @@ User-agent: owasp`}
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="custom" id="path-custom" />
                                     <Label htmlFor="path-custom" className="font-normal text-sm text-gray-700">설정한 경로로 연결</Label>
+                                    {pagePathType === 'custom' && (
+                                        <Input 
+                                            className="w-64 h-7 border-gray-300 rounded-sm bg-gray-50" 
+                                            value={pagePathUrl}
+                                            onChange={(e) => setPagePathUrl(e.target.value)}
+                                            placeholder="/example/path"
+                                        />
+                                    )}
                                 </div>
                             </RadioGroup>
                         </div>
@@ -341,7 +527,7 @@ User-agent: owasp`}
                             사용설정 <HelpCircle size={12} className="inline text-gray-400" />
                         </div>
                         <div className="p-4">
-                            <RadioGroup value={canonicalUrl} onValueChange={setCanonicalUrl} className="flex items-center gap-6">
+                            <RadioGroup value={useCanonical} onValueChange={setUseCanonical} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="canonical-used" />
                                     <Label htmlFor="canonical-used" className="font-normal text-sm text-gray-700">사용함</Label>
@@ -365,15 +551,44 @@ User-agent: owasp`}
                     <HelpCircle size={14} className="text-gray-400 mb-2" />
                 </div>
                 <div className="border-t border-b border-gray-300 bg-white">
-                     <div className="grid grid-cols-[180px_1fr] divide-x border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">연관채널 1</div>
-                        <div className="p-4 flex gap-2">
-                             <Input className="w-full h-8 border-gray-300 rounded-sm" placeholder="ex) https://www.facebook.com/nhncommerce" />
-                             <Button variant="outline" className="h-8 border-gray-300 rounded-sm text-gray-600 bg-white hover:bg-gray-50">
-                                <Plus size={14} className="mr-1" /> 추가
-                             </Button>
+                     {relatedChannels.map((channel, index) => (
+                        <div key={index} className="grid grid-cols-[180px_1fr] divide-x border-b border-gray-200">
+                            <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center justify-between">
+                                <span>연관채널 {index + 1}</span>
+                                <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
+                                    onClick={() => setRelatedChannels(relatedChannels.filter((_, i) => i !== index))}
+                                >
+                                    -
+                                </Button>
+                            </div>
+                            <div className="p-4">
+                                <span className="text-gray-700">{channel}</span>
+                            </div>
                         </div>
-                     </div>
+                     ))}
+                     {relatedChannels.length < 9 && (
+                         <div className="grid grid-cols-[180px_1fr] divide-x border-b border-gray-200">
+                            <div className="p-4 bg-gray-50 font-medium text-gray-700">연관채널 추가</div>
+                            <div className="p-4 flex gap-2">
+                                 <Input 
+                                    className="w-full h-8 border-gray-300 rounded-sm" 
+                                    placeholder="ex) https://www.facebook.com/nhncommerce" 
+                                    value={newChannelInput}
+                                    onChange={(e) => setNewChannelInput(e.target.value)}
+                                />
+                                 <Button 
+                                    variant="outline" 
+                                    className="h-8 border-gray-300 rounded-sm text-gray-600 bg-white hover:bg-gray-50"
+                                    onClick={addRelatedChannel}
+                                >
+                                    <Plus size={14} className="mr-1" /> 추가
+                                 </Button>
+                            </div>
+                         </div>
+                     )}
                 </div>
                 <div className="text-xs text-gray-500 space-y-1 pl-1">
                      <p>쇼핑몰과 관련된 SNS채널주소를 URL로 입력하시면 네이버 검색결과의 연관채널 부문에 해당 채널이 노출될 수 있습니다.</p>

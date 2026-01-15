@@ -5,15 +5,82 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getProductBasicSettingsAction, updateProductBasicSettingsAction } from "@/actions/basic-policy-actions";
+
+interface ModDateRange {
+    [key: string]: boolean;
+    productEdit: boolean;
+    productList: boolean;
+    productBatch: boolean;
+    productExcel: boolean;
+    productApprove: boolean;
+}
 
 export default function ProductBasicSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    
+    // State
+    const [modDateRange, setModDateRange] = useState<ModDateRange>({
+        productEdit: true,
+        productList: true,
+        productBatch: true,
+        productExcel: true,
+        productApprove: true
+    });
+    const [modDatePopup, setModDatePopup] = useState("unused");
+    const [imageLoadingEnhance, setImageLoadingEnhance] = useState("unused");
+    const [priceExposure, setPriceExposure] = useState("exposed");
+    const [optionPriceExposure, setOptionPriceExposure] = useState("exposed");
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getProductBasicSettingsAction();
+            if (result.success && result.settings) {
+                if (result.settings.modDateRange) {
+                    setModDateRange(result.settings.modDateRange as unknown as ModDateRange);
+                }
+                setModDatePopup(result.settings.modDatePopup);
+                setImageLoadingEnhance(result.settings.imageLoadingEnhance);
+                setPriceExposure(result.settings.priceExposure);
+                setOptionPriceExposure(result.settings.optionPriceExposure);
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateProductBasicSettingsAction({
+                modDateRange,
+                modDatePopup,
+                imageLoadingEnhance,
+                priceExposure,
+                optionPriceExposure
+            });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
+    const handleCheckboxChange = (field: keyof ModDateRange, checked: boolean) => {
+        setModDateRange(prev => ({ ...prev, [field]: checked }));
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">상품 기본 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -34,23 +101,48 @@ export default function ProductBasicSettingsPage() {
                         <div className="p-4 space-y-2">
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="mod-edit" defaultChecked className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" />
+                                    <Checkbox 
+                                        id="mod-edit" 
+                                        checked={modDateRange.productEdit} 
+                                        onCheckedChange={(c) => handleCheckboxChange("productEdit", c as boolean)}
+                                        className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" 
+                                    />
                                     <Label htmlFor="mod-edit" className="font-normal cursor-pointer text-gray-700">상품 수정</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="mod-list" defaultChecked className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" />
+                                    <Checkbox 
+                                        id="mod-list" 
+                                        checked={modDateRange.productList} 
+                                        onCheckedChange={(c) => handleCheckboxChange("productList", c as boolean)}
+                                        className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" 
+                                    />
                                     <Label htmlFor="mod-list" className="font-normal cursor-pointer text-gray-700">상품 리스트</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="mod-batch" defaultChecked className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" />
+                                    <Checkbox 
+                                        id="mod-batch" 
+                                        checked={modDateRange.productBatch} 
+                                        onCheckedChange={(c) => handleCheckboxChange("productBatch", c as boolean)}
+                                        className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" 
+                                    />
                                     <Label htmlFor="mod-batch" className="font-normal cursor-pointer text-gray-700">상품 일괄 관리</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="mod-excel" defaultChecked className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" />
+                                    <Checkbox 
+                                        id="mod-excel" 
+                                        checked={modDateRange.productExcel} 
+                                        onCheckedChange={(c) => handleCheckboxChange("productExcel", c as boolean)}
+                                        className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" 
+                                    />
                                     <Label htmlFor="mod-excel" className="font-normal cursor-pointer text-gray-700">상품 엑셀 업로드</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="mod-approve" defaultChecked className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" />
+                                    <Checkbox 
+                                        id="mod-approve" 
+                                        checked={modDateRange.productApprove} 
+                                        onCheckedChange={(c) => handleCheckboxChange("productApprove", c as boolean)}
+                                        className="w-4 h-4 border-gray-300 data-[state=checked]:bg-[#FF424D] data-[state=checked]:border-[#FF424D]" 
+                                    />
                                     <Label htmlFor="mod-approve" className="font-normal cursor-pointer text-gray-700">공급사 상품 승인</Label>
                                 </div>
                             </div>
@@ -67,13 +159,13 @@ export default function ProductBasicSettingsPage() {
                             상품수정일 변경<br/>확인 팝업
                         </div>
                         <div className="p-4 space-y-2">
-                             <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                             <RadioGroup value={modDatePopup} onValueChange={setModDatePopup} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="used" id="popup-used" />
+                                    <RadioGroupItem value="used" id="popup-used" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                     <Label htmlFor="popup-used" className="font-normal cursor-pointer">사용함</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="unused" id="popup-unused" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
+                                    <RadioGroupItem value="unused" id="popup-unused" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                     <Label htmlFor="popup-unused" className="font-normal cursor-pointer">사용안함</Label>
                                 </div>
                             </RadioGroup>
@@ -106,13 +198,13 @@ export default function ProductBasicSettingsPage() {
                              <HelpCircle size={14} className="text-gray-400" />
                         </div>
                         <div className="p-4">
-                             <RadioGroup defaultValue="unused" className="flex items-center gap-6">
+                             <RadioGroup value={imageLoadingEnhance} onValueChange={setImageLoadingEnhance} className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="used" id="img-used" />
+                                    <RadioGroupItem value="used" id="img-used" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                     <Label htmlFor="img-used" className="font-normal cursor-pointer">사용함</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="unused" id="img-unused" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
+                                    <RadioGroupItem value="unused" id="img-unused" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                     <Label htmlFor="img-unused" className="font-normal cursor-pointer">사용안함</Label>
                                 </div>
                             </RadioGroup>
@@ -135,13 +227,13 @@ export default function ProductBasicSettingsPage() {
                         </div>
                         <div className="p-4 grid grid-cols-[1fr_360px] gap-8">
                             <div className="space-y-2">
-                                <RadioGroup defaultValue="exposed" className="flex items-center gap-6">
+                                <RadioGroup value={priceExposure} onValueChange={setPriceExposure} className="flex items-center gap-6">
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="exposed" id="price-exposed" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
+                                        <RadioGroupItem value="exposed" id="price-exposed" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                         <Label htmlFor="price-exposed" className="font-normal cursor-pointer">노출함</Label>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="hidden" id="price-hidden" />
+                                        <RadioGroupItem value="hidden" id="price-hidden" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                         <Label htmlFor="price-hidden" className="font-normal cursor-pointer">노출안함</Label>
                                     </div>
                                 </RadioGroup>
@@ -199,13 +291,13 @@ export default function ProductBasicSettingsPage() {
                         </div>
                         <div className="p-4 grid grid-cols-[1fr_360px] gap-8">
                             <div className="space-y-2">
-                                <RadioGroup defaultValue="exposed" className="flex items-center gap-6">
+                                <RadioGroup value={optionPriceExposure} onValueChange={setOptionPriceExposure} className="flex items-center gap-6">
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="exposed" id="opt-exposed" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
+                                        <RadioGroupItem value="exposed" id="opt-exposed" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                         <Label htmlFor="opt-exposed" className="font-normal cursor-pointer">노출함</Label>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="hidden" id="opt-hidden" />
+                                        <RadioGroupItem value="hidden" id="opt-hidden" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                         <Label htmlFor="opt-hidden" className="font-normal cursor-pointer">노출안함</Label>
                                     </div>
                                 </RadioGroup>

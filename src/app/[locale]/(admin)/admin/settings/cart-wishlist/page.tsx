@@ -12,8 +12,94 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useEffect, useState, useTransition } from "react";
+import { getCartWishlistSettingsAction, updateCartWishlistSettingsAction } from "@/actions/basic-policy-actions";
+
+interface CartWishlistSettingsState {
+    // Cart
+    cartStoragePeriodType: string;
+    cartStorageDays: number;
+    cartItemLimitType: string;
+    cartItemLimitCount: number;
+    cartSameProduct: string;
+    cartZeroPrice: string;
+    cartSoldOut: string;
+    cartMovePageType: string;
+    cartMovePageTarget: string;
+    cartDirectBuy: string;
+
+    // Wishlist
+    wishItemLimitType: string;
+    wishItemLimitCount: number;
+    wishMoveToCart: string;
+    wishSoldOut: string;
+    wishMovePageType: string;
+    wishMovePageTarget: string;
+}
 
 export default function CartWishlistSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    const [settings, setSettings] = useState<CartWishlistSettingsState>({
+        cartStoragePeriodType: "period",
+        cartStorageDays: 7,
+        cartItemLimitType: "limit",
+        cartItemLimitCount: 20,
+        cartSameProduct: "increase",
+        cartZeroPrice: "allow",
+        cartSoldOut: "keep",
+        cartMovePageType: "direct",
+        cartMovePageTarget: "pc",
+        cartDirectBuy: "only-current",
+        wishItemLimitType: "limit",
+        wishItemLimitCount: 20,
+        wishMoveToCart: "delete",
+        wishSoldOut: "keep",
+        wishMovePageType: "direct",
+        wishMovePageTarget: "pc",
+    });
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getCartWishlistSettingsAction();
+            if (result.success && result.settings) {
+                setSettings({
+                    cartStoragePeriodType: result.settings.cartStoragePeriodType,
+                    cartStorageDays: result.settings.cartStorageDays,
+                    cartItemLimitType: result.settings.cartItemLimitType,
+                    cartItemLimitCount: result.settings.cartItemLimitCount,
+                    cartSameProduct: result.settings.cartSameProduct,
+                    cartZeroPrice: result.settings.cartZeroPrice,
+                    cartSoldOut: result.settings.cartSoldOut,
+                    cartMovePageType: result.settings.cartMovePageType,
+                    cartMovePageTarget: result.settings.cartMovePageTarget,
+                    cartDirectBuy: result.settings.cartDirectBuy || "only-current",
+                    wishItemLimitType: result.settings.wishItemLimitType,
+                    wishItemLimitCount: result.settings.wishItemLimitCount,
+                    wishMoveToCart: result.settings.wishMoveToCart,
+                    wishSoldOut: result.settings.wishSoldOut,
+                    wishMovePageType: result.settings.wishMovePageType,
+                    wishMovePageTarget: result.settings.wishMovePageTarget,
+                });
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleChange = (field: keyof CartWishlistSettingsState, value: any) => {
+        setSettings(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateCartWishlistSettingsAction(settings);
+            if (result.success) {
+                alert("설정이 저장되었습니다.");
+            } else {
+                alert(result.error || "저장에 실패했습니다.");
+            }
+        });
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
@@ -23,8 +109,12 @@ export default function CartWishlistSettingsPage() {
                     <span className="text-gray-500 text-sm">장바구니에 대한 기본 설정 및 제한 설정 등을 하실 수 있습니다.</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                        저장
+                    <Button 
+                        onClick={handleSave} 
+                        disabled={isPending}
+                        className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium disabled:opacity-50"
+                    >
+                        {isPending ? "저장 중..." : "저장"}
                     </Button>
                 </div>
             </div>
@@ -43,11 +133,20 @@ export default function CartWishlistSettingsPage() {
                             상품보관기간
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="period" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartStoragePeriodType} 
+                                onValueChange={(val) => handleChange("cartStoragePeriodType", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="period" id="cart-period" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="cart-period" className="font-normal flex items-center gap-2 text-gray-700">
-                                        <Input className="w-16 h-7 text-right" defaultValue="7" /> 
+                                        <Input 
+                                            className="w-16 h-7 text-right" 
+                                            value={settings.cartStorageDays}
+                                            onChange={(e) => handleChange("cartStorageDays", parseInt(e.target.value) || 0)}
+                                            disabled={settings.cartStoragePeriodType !== "period"}
+                                        /> 
                                         일동안 보관
                                     </Label>
                                 </div>
@@ -65,11 +164,20 @@ export default function CartWishlistSettingsPage() {
                             보관상품 개수제한
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="limit" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartItemLimitType} 
+                                onValueChange={(val) => handleChange("cartItemLimitType", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="limit" id="cart-limit" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="cart-limit" className="font-normal flex items-center gap-2 text-gray-700">
-                                        <Input className="w-16 h-7 text-right" defaultValue="20" />
+                                        <Input 
+                                            className="w-16 h-7 text-right" 
+                                            value={settings.cartItemLimitCount}
+                                            onChange={(e) => handleChange("cartItemLimitCount", parseInt(e.target.value) || 0)}
+                                            disabled={settings.cartItemLimitType !== "limit"}
+                                        />
                                         개까지 보관
                                     </Label>
                                 </div>
@@ -83,11 +191,15 @@ export default function CartWishlistSettingsPage() {
 
                     {/* Row 3: Same Product */}
                     <div className="grid grid-cols-[200px_1fr] border-b border-gray-200">
-                        <div className="bg-gray-50 py-4 px-4 font-bold text-gray-700 flex items-start pt-6 h-auto"> {/* Adjusted alignment if needed */}
+                        <div className="bg-gray-50 py-4 px-4 font-bold text-gray-700 flex items-start pt-6 h-auto">
                             보관중인 상품과<br/>같은 상품을 담을 경우
                         </div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="increase" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartSameProduct}
+                                onValueChange={(val) => handleChange("cartSameProduct", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="increase" id="same-increase" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="same-increase" className="font-normal text-gray-700">상품 수량 증가</Label>
@@ -110,7 +222,11 @@ export default function CartWishlistSettingsPage() {
                             가격이 0원인 상품을<br/>담을 경우
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="allow" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartZeroPrice}
+                                onValueChange={(val) => handleChange("cartZeroPrice", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="allow" id="zero-allow" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="zero-allow" className="font-normal text-gray-700">장바구니에 담음</Label>
@@ -129,7 +245,11 @@ export default function CartWishlistSettingsPage() {
                             품절상품 보관설정
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="keep" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartSoldOut}
+                                onValueChange={(val) => handleChange("cartSoldOut", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="keep" id="soldout-keep" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="soldout-keep" className="font-normal text-gray-700">보관상품 품절 시에도 보관유지</Label>
@@ -148,7 +268,11 @@ export default function CartWishlistSettingsPage() {
                             상품 장바구니 보관시<br/>페이지 이동방법
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="direct" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartMovePageType}
+                                onValueChange={(val) => handleChange("cartMovePageType", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="direct" id="nav-direct" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="nav-direct" className="font-normal text-gray-700">장바구니 페이지로 바로 이동</Label>
@@ -156,8 +280,14 @@ export default function CartWishlistSettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="popup" id="nav-popup" className="border-gray-300" />
                                     <Label htmlFor="nav-popup" className="font-normal text-gray-700">장바구니 페이지 이동여부 확인팝업 노출</Label>
-                                    <Select defaultValue="pc">
-                                        <SelectTrigger className="w-[80px] h-7 text-xs ml-2">
+                                    <Select 
+                                        value={settings.cartMovePageTarget} 
+                                        onValueChange={(val) => handleChange("cartMovePageTarget", val)}
+                                    >
+                                        <SelectTrigger 
+                                            className="w-[80px] h-7 text-xs ml-2"
+                                            disabled={settings.cartMovePageType !== "popup"}
+                                        >
                                             <SelectValue placeholder="PC" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -176,7 +306,11 @@ export default function CartWishlistSettingsPage() {
                             바로구매 설정
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="only-current" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.cartDirectBuy}
+                                onValueChange={(val) => handleChange("cartDirectBuy", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="only-current" id="buy-only-current" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="buy-only-current" className="font-normal text-gray-700">해당 상품만 구매</Label>
@@ -188,6 +322,8 @@ export default function CartWishlistSettingsPage() {
                             </RadioGroup>
                         </div>
                     </div>
+
+
                 </div>
             </div>
 
@@ -205,11 +341,20 @@ export default function CartWishlistSettingsPage() {
                             상품개수 제한
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="limit" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.wishItemLimitType}
+                                onValueChange={(val) => handleChange("wishItemLimitType", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="limit" id="wish-limit" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="wish-limit" className="font-normal flex items-center gap-2 text-gray-700">
-                                        <Input className="w-16 h-7 text-right" defaultValue="20" />
+                                        <Input 
+                                            className="w-16 h-7 text-right" 
+                                            value={settings.wishItemLimitCount}
+                                            onChange={(e) => handleChange("wishItemLimitCount", parseInt(e.target.value) || 0)}
+                                            disabled={settings.wishItemLimitType !== "limit"}
+                                        />
                                         개까지 보관
                                     </Label>
                                 </div>
@@ -227,7 +372,11 @@ export default function CartWishlistSettingsPage() {
                             장바구니로 상품이동시
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="delete" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.wishMoveToCart}
+                                onValueChange={(val) => handleChange("wishMoveToCart", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="keep" id="move-keep" className="border-gray-300" />
                                     <Label htmlFor="move-keep" className="font-normal text-gray-700">상품 남김</Label>
@@ -246,7 +395,11 @@ export default function CartWishlistSettingsPage() {
                             품절상품 보관설정
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="keep" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.wishSoldOut}
+                                onValueChange={(val) => handleChange("wishSoldOut", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="keep" id="wish-soldout-keep" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="wish-soldout-keep" className="font-normal text-gray-700">보관상품 품절 시에도 보관유지</Label>
@@ -265,7 +418,11 @@ export default function CartWishlistSettingsPage() {
                             상품 관심상품 보관시<br/>페이지 이동방법
                         </div>
                         <div className="p-4 flex items-center gap-8">
-                            <RadioGroup defaultValue="direct" className="flex items-center gap-8">
+                            <RadioGroup 
+                                value={settings.wishMovePageType}
+                                onValueChange={(val) => handleChange("wishMovePageType", val)}
+                                className="flex items-center gap-8"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="direct" id="wish-nav-direct" className="border-[#FF424D] text-[#FF424D]" />
                                     <Label htmlFor="wish-nav-direct" className="font-normal text-gray-700">관심상품 페이지로 바로 이동</Label>
@@ -273,8 +430,14 @@ export default function CartWishlistSettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="popup" id="wish-nav-popup" className="border-gray-300" />
                                     <Label htmlFor="wish-nav-popup" className="font-normal text-gray-700">관심상품 페이지 이동여부 확인팝업 노출</Label>
-                                    <Select defaultValue="pc">
-                                        <SelectTrigger className="w-[80px] h-7 text-xs ml-2">
+                                    <Select 
+                                        value={settings.wishMovePageTarget} 
+                                        onValueChange={(val) => handleChange("wishMovePageTarget", val)}
+                                    >
+                                        <SelectTrigger 
+                                            className="w-[80px] h-7 text-xs ml-2"
+                                            disabled={settings.wishMovePageType !== "popup"}
+                                        >
                                             <SelectValue placeholder="PC" />
                                         </SelectTrigger>
                                         <SelectContent>

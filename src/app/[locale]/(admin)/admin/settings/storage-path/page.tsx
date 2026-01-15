@@ -1,31 +1,123 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Save } from "lucide-react";
+import { useEffect, useState, useTransition } from "react";
+import { getStorageSettingsAction, updateStorageSettingsAction } from "@/actions/basic-policy-actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+
+// Define the structure of our settings
+interface PathSetting {
+    path: string;
+    updatedAt: string | null;
+}
+
+interface StorageSettingsMap {
+    [key: string]: PathSetting;
+}
+
+const STORAGE_KEYS = [
+    { label: "상품 이미지 저장소", key: "productImageStorage" },
+    { label: "추가상품 이미지 저장소", key: "additionalProductImageStorage" },
+    { label: "사은품 이미지 저장소", key: "giftImageStorage" },
+    { label: "타임세일 이미지 저장소", key: "timeSaleImageStorage" },
+    { label: "공급사 이미지 저장소", key: "supplierImageStorage" },
+    { label: "게시판 파일 저장소", key: "boardFileStorage" },
+];
+
+const FILE_PATH_KEYS = [
+    { label: "상품 이미지 경로", key: "productImagePath" },
+    { label: "상품상세 설명 이미지 경로", key: "productDetailImagePath" },
+    { label: "상품상세 공통정보 내용 이미지 경로", key: "productCommonInfoImagePath" },
+    { label: "추가상품 설명 이미지 경로", key: "additionalProductDescriptionImagePath" },
+    { label: "사은품 설명 이미지 경로", key: "giftDescriptionImagePath" },
+    { label: "게시글 첨부파일 경로", key: "boardFilePath" },
+    { label: "게시글 이미지 경로", key: "boardImagePath" },
+    { label: "게시판 상단/하단 디자인 이미지 경로", key: "boardDesignImagePath" },
+    { label: "기획전 이벤트 내용 이미지 경로", key: "promotionEventImagePath" },
+    { label: "브랜드 상단 영역 꾸미기 이미지 경로", key: "brandTopDecorationImagePath" },
+    { label: "카테고리 상단 영역 꾸미기 이미지 경로", key: "categoryTopDecorationImagePath" },
+];
 
 export default function StoragePathSettingsPage() {
-  const registeredStorageItems = [
-    "상품 이미지 저장소",
-    "추가상품 이미지 저장소",
-    "사은품 이미지 저장소",
-    "타임세일 이미지 저장소",
-    "공급사 이미지 저장소",
-    "게시판 파일 저장소"
-  ];
+  const [storagePaths, setStoragePaths] = useState<StorageSettingsMap>({});
+  const [filePaths, setFilePaths] = useState<StorageSettingsMap>({});
+  
+  // Dialog State
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<{ type: 'storage' | 'file', key: string, label: string, currentPath: string } | null>(null);
+  const [newPath, setNewPath] = useState("");
 
-  const filePathItems = [
-    "상품 이미지 경로",
-    "상품상세 설명 이미지 경로",
-    "상품상세 공통정보 내용 이미지 경로",
-    "추가상품 설명 이미지 경로",
-    "사은품 설명 이미지 경로",
-    "게시글 첨부파일 경로",
-    "게시글 이미지 경로",
-    "게시판 상단/하단 디자인 이미지 경로",
-    "기획전 이벤트 내용 이미지 경로",
-    "브랜드 상단 영역 꾸미기 이미지 경로",
-    "카테고리 상단 영역 꾸미기 이미지 경로"
-  ];
+  const [isPending, startTransition] = useTransition();
+
+  const fetchData = async () => {
+      const result = await getStorageSettingsAction();
+      if (result.success && result.settings) {
+          // Normalize data structure if needed
+          setStoragePaths(result.settings.storagePaths as any || {});
+          setFilePaths(result.settings.filePaths as any || {});
+      }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const openEditDialog = (type: 'storage' | 'file', key: string, label: string, currentData: PathSetting | undefined) => {
+      setEditingItem({
+          type,
+          key,
+          label,
+          currentPath: currentData?.path || ""
+      });
+      setNewPath(currentData?.path || "");
+      setIsDialogOpen(true);
+  };
+
+  const handleSavePath = () => {
+      if (!editingItem) return;
+
+      const timestamp = new Date().toISOString().split('T')[0] + ' ' + new Date().toTimeString().split(' ')[0]; // Simple formatting
+
+      const updatedSetting: PathSetting = {
+          path: newPath,
+          updatedAt: timestamp
+      };
+
+      const newStoragePaths = { ...storagePaths };
+      const newFilePaths = { ...filePaths };
+
+      if (editingItem.type === 'storage') {
+          newStoragePaths[editingItem.key] = updatedSetting;
+      } else {
+          newFilePaths[editingItem.key] = updatedSetting;
+      }
+
+      startTransition(async () => {
+          const result = await updateStorageSettingsAction({
+              storagePaths: newStoragePaths,
+              filePaths: newFilePaths
+          });
+
+          if (result.success) {
+              setStoragePaths(newStoragePaths);
+              setFilePaths(newFilePaths);
+              setIsDialogOpen(false);
+          } else {
+              alert(result.error || "저장 실패");
+          }
+      });
+  };
 
   return (
     <div className="p-6 space-y-6 bg-white min-h-screen pb-24">
@@ -65,61 +157,89 @@ export default function StoragePathSettingsPage() {
             </thead>
             <tbody>
               {/* Registered Storage Items */}
-              {registeredStorageItems.map((item, index) => (
-                <tr key={`reg-${index}`} className="border-b border-gray-200 hover:bg-gray-50">
-                    {index === 0 && (
-                        <td rowSpan={registeredStorageItems.length} className="p-4 align-middle font-medium text-gray-600 border-r border-gray-200">
-                            등록 저장소 변경
+              {STORAGE_KEYS.map((item, index) => {
+                  const data = storagePaths[item.key];
+                  return (
+                    <tr key={item.key} className="border-b border-gray-200 hover:bg-gray-50">
+                        {index === 0 && (
+                            <td rowSpan={STORAGE_KEYS.length} className="p-4 align-middle font-medium text-gray-600 border-r border-gray-200 bg-white">
+                                등록 저장소 변경
+                            </td>
+                        )}
+                        <td className="p-4 text-gray-700 border-r border-gray-200">
+                            <div>{item.label}</div>
+                            {data?.path && <div className="text-xs text-blue-600 mt-1">{data.path}</div>}
                         </td>
-                    )}
-                    <td className="p-4 text-gray-700 border-r border-gray-200">{item}</td>
-                    <td className="p-4 text-center border-r border-gray-200">
-                        <Button variant="outline" className="h-8 px-3 text-sm font-normal text-gray-600 bg-white border-gray-300 hover:bg-gray-50">
-                            변경
-                        </Button>
-                    </td>
-                    <td className="p-4 text-center text-gray-400">-</td>
-                </tr>
-              ))}
+                        <td className="p-4 text-center border-r border-gray-200">
+                            <Button variant="outline" size="sm" onClick={() => openEditDialog('storage', item.key, item.label, data)}>
+                                변경
+                            </Button>
+                        </td>
+                        <td className="p-4 text-center text-gray-400">
+                            {data?.updatedAt || "-"}
+                        </td>
+                    </tr>
+                  );
+              })}
 
               {/* File Path Items */}
-              {filePathItems.map((item, index) => (
-                <tr key={`file-${index}`} className="border-b border-gray-200 hover:bg-gray-50">
-                    {index === 0 && (
-                        <td rowSpan={filePathItems.length} className="p-4 align-middle font-medium text-gray-600 border-r border-gray-200">
-                            파일 경로 변경
+              {FILE_PATH_KEYS.map((item, index) => {
+                  const data = filePaths[item.key];
+                  return (
+                    <tr key={item.key} className="border-b border-gray-200 hover:bg-gray-50">
+                        {index === 0 && (
+                            <td rowSpan={FILE_PATH_KEYS.length} className="p-4 align-middle font-medium text-gray-600 border-r border-gray-200 bg-white">
+                                파일 경로 변경
+                            </td>
+                        )}
+                        <td className="p-4 text-gray-700 border-r border-gray-200">
+                            <div>{item.label}</div>
+                            {data?.path && <div className="text-xs text-blue-600 mt-1">{data.path}</div>}
                         </td>
-                    )}
-                    <td className="p-4 text-gray-700 border-r border-gray-200">{item}</td>
-                    <td className="p-4 text-center border-r border-gray-200">
-                        <Button variant="outline" className="h-8 px-3 text-sm font-normal text-gray-600 bg-white border-gray-300 hover:bg-gray-50">
-                            변경
-                        </Button>
-                    </td>
-                    <td className="p-4 text-center text-gray-400">-</td>
-                </tr>
-              ))}
+                        <td className="p-4 text-center border-r border-gray-200">
+                            <Button variant="outline" size="sm" onClick={() => openEditDialog('file', item.key, item.label, data)}>
+                                변경
+                            </Button>
+                        </td>
+                        <td className="p-4 text-center text-gray-400">
+                             {data?.updatedAt || "-"}
+                        </td>
+                    </tr>
+                  );
+              })}
             </tbody>
           </table>
         </div>
       </div>
       
-       {/* Floating Buttons (Copied from other pages for consistency if needed, but not explicitly asked for, removing for now to match screenshot exactly which shows them cut off typically or just side buttons) */}
-       <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-        <Button className="rounded-full w-12 h-12 bg-red-500 hover:bg-red-600 shadow-lg text-white p-0 flex items-center justify-center border-0">
-             <span className="text-[10px] leading-tight flex flex-col items-center font-medium"><span>따라</span><span>하기</span></span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-purple-600 hover:bg-purple-700 shadow-lg text-white p-0 flex items-center justify-center border-0">
-             <span className="text-[10px] leading-tight flex flex-col items-center font-medium"><span>따라</span><span>하기</span></span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0">
-            <span className="text-xl">↑</span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0">
-            <span className="text-xl">↓</span>
-        </Button>
-      </div>
-
+      {/* Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent>
+              <DialogHeader>
+                  <DialogTitle>경로 변경</DialogTitle>
+                  <DialogDescription>
+                      {editingItem?.label}의 저장소 경로를 변경합니다.
+                  </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="path-input">새로운 경로</Label>
+                      <Input 
+                        id="path-input" 
+                        value={newPath} 
+                        onChange={(e) => setNewPath(e.target.value)} 
+                        placeholder="/data/skin/front/..."
+                      />
+                  </div>
+              </div>
+              <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>취소</Button>
+                  <Button onClick={handleSavePath} disabled={isPending}>
+                    {isPending ? "저장 중..." : "저장"}
+                  </Button>
+              </DialogFooter>
+          </DialogContent>
+      </Dialog>
     </div>
   );
 }

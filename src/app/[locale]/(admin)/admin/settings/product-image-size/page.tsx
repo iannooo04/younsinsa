@@ -5,15 +5,114 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, BookOpen, Plus, Minus } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import { getProductImageSizeSettingsAction, updateProductImageSizeSettingsAction } from "@/actions/basic-policy-actions";
+
+interface ImageSize {
+    width: number | string;
+}
+
+interface BasicImages {
+    [key: string]: ImageSize;
+    zoom: ImageSize;
+    detail: ImageSize;
+    thumb: ImageSize;
+}
+
+interface ListImage {
+    id: string;
+    name: string;
+    width: number | string;
+    type: "default" | "added";
+}
 
 export default function ProductImageSizeSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+
+    const [resizeMethod, setResizeMethod] = useState("ratio");
+    const [basicImages, setBasicImages] = useState<BasicImages>({
+        zoom: { width: 600 },
+        detail: { width: 600 },
+        thumb: { width: 150 }
+    });
+    const [listImages, setListImages] = useState<ListImage[]>([
+         { id: "default", name: "리스트 이미지(기본)", width: 180, type: "default" }
+    ]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const result = await getProductImageSizeSettingsAction();
+            if (result.success && result.settings) {
+                setResizeMethod(result.settings.resizeMethod);
+                if (result.settings.basicImages) {
+                    setBasicImages(result.settings.basicImages as unknown as BasicImages);
+                }
+                if (result.settings.listImages) {
+                    setListImages(result.settings.listImages as unknown as ListImage[]);
+                }
+            }
+        };
+        fetchData();
+    }, []);
+
+    const handleSave = () => {
+        startTransition(async () => {
+            const result = await updateProductImageSizeSettingsAction({
+                resizeMethod,
+                basicImages,
+                listImages
+            });
+            if (result.success) {
+                alert("저장되었습니다.");
+            } else {
+                alert(result.error || "저장 실패");
+            }
+        });
+    };
+
+    const handleBasicImageChange = (key: string, value: string) => {
+        setBasicImages(prev => ({
+            ...prev,
+            [key]: { width: value }
+        }));
+    };
+
+    const handleAddListImage = () => {
+        if (listImages.length >= 10) {
+            alert("리스트 이미지는 최대 10개까지 추가할 수 있습니다.");
+            return;
+        }
+        const newItem: ListImage = {
+            id: crypto.randomUUID(),
+            name: `추가 이미지 ${listImages.length}`,
+            width: 200,
+            type: "added"
+        };
+        setListImages(prev => [...prev, newItem]);
+    };
+
+    const handleDeleteListImage = (id: string) => {
+        setListImages(prev => prev.filter(item => item.id !== id));
+    };
+
+    const handleListImageChange = (id: string, value: string) => {
+        setListImages(prev => prev.map(item => item.id === id ? { ...item, width: value } : item));
+    };
+
+    const defaultListImage = listImages.find(item => item.type === "default") || { id: "default", name: "리스트 이미지(기본)", width: 180, type: "default" };
+    const addedListImages = listImages.filter(item => item.type !== "default");
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">상품 이미지 사이즈 설정</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium">
-                    저장
+                <Button 
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
+                    onClick={handleSave}
+                    disabled={isPending}
+                >
+                    {isPending ? "저장 중..." : "저장"}
                 </Button>
             </div>
 
@@ -30,13 +129,13 @@ export default function ProductImageSizeSettingsPage() {
                             설정 방법 선택
                         </div>
                         <div className="p-4 space-y-2">
-                            <RadioGroup defaultValue="ratio" className="space-y-2">
+                            <RadioGroup value={resizeMethod} onValueChange={setResizeMethod} className="space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="ratio" id="ratio" className="text-[#FF424D] border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
+                                    <RadioGroupItem value="ratio" id="ratio" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]"/>
                                     <Label htmlFor="ratio" className="font-normal cursor-pointer">가로 사이즈 기준 비율 조정 <span className="text-blue-500">(세로사이즈가 가로사이즈에 따라 자동 비율 조정됩니다.)</span></Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="fixed" id="fixed" />
+                                    <RadioGroupItem value="fixed" id="fixed" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                     <Label htmlFor="fixed" className="font-normal cursor-pointer">가로 세로 사이즈 고정 <span className="text-blue-500">(가로 세로 사이즈를 직접 등록합니다.)</span></Label>
                                 </div>
                             </RadioGroup>
@@ -62,36 +161,48 @@ export default function ProductImageSizeSettingsPage() {
                 </div>
                 
                 <div className="border-t border-gray-400">
-                     {/* Row 1 */}
+                     {/* Row 1: Zoom */}
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center">확대 이미지</div>
                         <div className="p-4 flex items-center gap-2">
                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="600" />
+                            <Input 
+                                className="w-24 h-8" 
+                                value={basicImages.zoom?.width} 
+                                onChange={(e) => handleBasicImageChange("zoom", e.target.value)}
+                            />
                             <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
                             <Button variant="outline" size="sm" className="h-8 px-2 text-xs font-normal border-gray-300 text-gray-600">
                                 <Plus size={12} className="mr-1"/> 추가
                             </Button>
                         </div>
                     </div>
-                     {/* Row 2 */}
+                     {/* Row 2: Detail */}
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center">상세 이미지</div>
                         <div className="p-4 flex items-center gap-2">
                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="600" />
+                            <Input 
+                                className="w-24 h-8" 
+                                value={basicImages.detail?.width} 
+                                onChange={(e) => handleBasicImageChange("detail", e.target.value)}
+                            />
                             <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
                             <Button variant="outline" size="sm" className="h-8 px-2 text-xs font-normal border-gray-300 text-gray-600">
                                 <Plus size={12} className="mr-1"/> 추가
                             </Button>
                         </div>
                     </div>
-                     {/* Row 3 */}
+                     {/* Row 3: Thumb */}
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center">썸네일 이미지</div>
                         <div className="p-4 flex items-center gap-2">
                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="150" />
+                            <Input 
+                                className="w-24 h-8" 
+                                value={basicImages.thumb?.width} 
+                                onChange={(e) => handleBasicImageChange("thumb", e.target.value)}
+                            />
                             <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
                         </div>
                     </div>
@@ -108,13 +219,21 @@ export default function ProductImageSizeSettingsPage() {
                 <div className="border-t border-gray-400">
                     {/* Default Row */}
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center">리스트 이미지(기본)</div>
+                        <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center">{defaultListImage.name}</div>
                         <div className="p-4 space-y-2">
                              <div className="flex items-center gap-2">
                                 <span>가로</span>
-                                <Input className="w-24 h-8" defaultValue="180" />
+                                <Input 
+                                    className="w-24 h-8" 
+                                    value={defaultListImage.width} 
+                                    onChange={(e) => handleListImageChange(defaultListImage.id, e.target.value)}
+                                />
                                 <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
-                                <Button size="sm" className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm">
+                                <Button 
+                                    size="sm" 
+                                    className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm"
+                                    onClick={handleAddListImage}
+                                >
                                     리스트 이미지 추가
                                 </Button>
                             </div>
@@ -125,72 +244,30 @@ export default function ProductImageSizeSettingsPage() {
                         </div>
                     </div>
 
-                    {/* Additional List Items (Static for now as per design) */}
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 flex items-center justify-center">
-                            <Button variant="outline" className="w-full h-8 text-gray-500 font-normal border-gray-300">리스트그룹형</Button>
+                    {/* Additional List Items */}
+                    {addedListImages.map((item) => (
+                        <div key={item.id} className="grid grid-cols-[180px_1fr] border-b border-gray-200">
+                            <div className="p-4 flex items-center justify-center">
+                                <Button variant="outline" className="w-full h-8 text-gray-500 font-normal border-gray-300">{item.name}</Button>
+                            </div>
+                            <div className="p-4 flex items-center gap-2">
+                                 <span>가로</span>
+                                <Input 
+                                    className="w-24 h-8" 
+                                    value={item.width} 
+                                    onChange={(e) => handleListImageChange(item.id, e.target.value)}
+                                />
+                                <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
+                                <Button 
+                                    size="sm" 
+                                    className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm"
+                                    onClick={() => handleDeleteListImage(item.id)}
+                                >
+                                    <Minus size={12} className="mr-1"/> 삭제
+                                </Button>
+                            </div>
                         </div>
-                        <div className="p-4 flex items-center gap-2">
-                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="166" />
-                            <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
-                            <Button size="sm" className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm">
-                                <Minus size={12} className="mr-1"/> 삭제
-                            </Button>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 flex items-center justify-center">
-                            <Button variant="outline" className="w-full h-8 text-gray-500 font-normal border-gray-300">심플이미지형</Button>
-                        </div>
-                        <div className="p-4 flex items-center gap-2">
-                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="248" />
-                            <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
-                            <Button size="sm" className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm">
-                                <Minus size={12} className="mr-1"/> 삭제
-                            </Button>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 flex items-center justify-center">
-                            <Button variant="outline" className="w-full h-8 text-gray-500 font-normal border-gray-300">추가리스트1</Button>
-                        </div>
-                        <div className="p-4 flex items-center gap-2">
-                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="220" />
-                            <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
-                            <Button size="sm" className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm">
-                                <Minus size={12} className="mr-1"/> 삭제
-                            </Button>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 flex items-center justify-center">
-                            <Button variant="outline" className="w-full h-8 text-gray-500 font-normal border-gray-300">추가리스트2</Button>
-                        </div>
-                        <div className="p-4 flex items-center gap-2">
-                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="280" />
-                            <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
-                            <Button size="sm" className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm">
-                                <Minus size={12} className="mr-1"/> 삭제
-                            </Button>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 flex items-center justify-center">
-                            <Button variant="outline" className="w-full h-8 text-gray-500 font-normal border-gray-300">추가이미지1</Button>
-                        </div>
-                        <div className="p-4 flex items-center gap-2">
-                             <span>가로</span>
-                            <Input className="w-24 h-8" defaultValue="310" />
-                            <span>픽셀(pixel) / 세로 : 가로사이즈에 따라 자동 비율 조정</span>
-                            <Button size="sm" className="h-8 px-3 text-xs font-normal bg-[#555555] hover:bg-[#444444] text-white rounded-sm">
-                                <Minus size={12} className="mr-1"/> 삭제
-                            </Button>
-                        </div>
-                    </div>
+                    ))}
                 </div>
 
                  <div className="space-y-1 text-xs text-gray-500 pt-2">
@@ -220,8 +297,8 @@ export default function ProductImageSizeSettingsPage() {
                 <div className="text-xs text-gray-500 space-y-4 leading-relaxed">
                     <div className="space-y-2">
                         <p className="font-bold text-gray-700 text-sm">[상품 이미지 사이즈 설정] 이미지 사이즈 변경 시 쇼핑몰 화면에 바로 적용되나요?</p>
-                        <p>· 기본 이미지 사이즈인 "확대이미지 / 상세이미지 / 썸네일이미지"와 리스트 이미지의 경우 이미지 사이즈를 변경해도 쇼핑몰에 바로 적용되지 않습니다.</p>
-                        <p> - 해당 부분은 상품 등록 시 기본값으로 적용되기 때문에, "상품 &gt; 상품 관리 &gt; 상품 수정"화면에서 이미지를 재등록하셔야 변경된 이미지 사이즈가 반영됩니다.</p>
+                        <p>· 기본 이미지 사이즈인 &quot;확대이미지 / 상세이미지 / 썸네일이미지&quot;와 리스트 이미지의 경우 이미지 사이즈를 변경해도 쇼핑몰에 바로 적용되지 않습니다.</p>
+                        <p> - 해당 부분은 상품 등록 시 기본값으로 적용되기 때문에, &quot;상품 &gt; 상품 관리 &gt; 상품 수정&quot;화면에서 이미지를 재등록하셔야 변경된 이미지 사이즈가 반영됩니다.</p>
                     </div>
                 </div>
             </div>

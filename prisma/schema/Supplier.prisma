@@ -1,0 +1,64 @@
+// prisma/schema/Supplier.prisma
+
+// ----------------------------------------------------------------------
+// 공급사 관리 (Supplier Management)
+// ----------------------------------------------------------------------
+
+enum SupplierStatus {
+  ACTIVE    // 정상
+  SUSPENDED // 거래중지
+  WITHDRAWN // 탈퇴/계약종료
+}
+
+model Supplier {
+  id             String      @id @default(cuid())
+  
+  // -- 기본 정보 --
+  code           String?     @unique // 공급사 코드 (e.g. SPL0001), 시스템 생성 or 수동
+  name           String      // 공급사명 (관리용 이름)
+  
+  status         SupplierStatus @default(ACTIVE)
+
+  // -- 사업자 정보 --
+  businessName   String?     // 상호명 (법인명)
+  ceoName        String?     // 대표자명
+  businessNo     String?     // 사업자 등록번호
+  subBusinessNo  String?     // 종사업장 번호
+  
+  sector         String?     // 업태
+  detailSector   String?     // 종목
+  
+  // -- 연락처 및 주소 --
+  email          String?     // 대표 이메일
+  phone          String?     // 대표 전화
+  fax            String?     
+  
+  zipCode        String?     // 우편번호
+  address        String?     // 주소
+  addressDetail  String?     // 상세주소
+  
+  // -- 정산(계좌) 정보 --
+  bankName       String?     // 은행명
+  accountNumber  String?     // 계좌번호
+  depositorName  String?     // 예금주
+  
+  // -- 계약 정보 --
+  commissionRate Decimal     @default(0.00) // 기본 수수료율 (%)
+  shippingFee    Int         @default(0)    // 기본 배송비
+  
+  contractStartDate DateTime?
+  contractEndDate   DateTime?
+  
+  // -- 관리자 --
+  admins         Admin[]     // 소속 운영자들 (Supplier Admin)
+  
+  // -- 상품 --
+  products       Product[]   // 공급한 상품들
+  
+  memo           String?     @db.Text
+  
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  
+  @@index([name])
+}
