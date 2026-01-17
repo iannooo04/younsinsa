@@ -82,6 +82,8 @@ model Board {
   // -- Design --
   headerHtml     String?     @db.Text
   footerHtml     String?     @db.Text
+
+  @@map("board")
 }
 
 model BoardCategory {
@@ -92,6 +94,8 @@ model BoardCategory {
   name      String // 말머리 명
   
   posts     Post[]
+
+  @@map("board_category")
 }
 
 model Post {
@@ -147,6 +151,7 @@ model Post {
   
   @@index([boardId])
   @@index([authorId])
+  @@map("post")
 }
 
 model Comment {
@@ -172,6 +177,8 @@ model Comment {
   
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+
+  @@map("comment")
 }
 
 model Attachment {
@@ -184,6 +191,7 @@ model Attachment {
   createdAt DateTime @default(now())
 
   @@index([postId])
+  @@map("attachment")
 }
 
 // ----------------------------------------------------------------------
@@ -203,6 +211,8 @@ model Faq {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("faq")
 }
 
 // ----------------------------------------------------------------------
@@ -214,6 +224,8 @@ model BannedWord {
   word      String   @unique
   
   createdAt DateTime @default(now())
+
+  @@map("banned_word")
 }
 
 // ----------------------------------------------------------------------
@@ -230,6 +242,8 @@ model BoardSkin {
   
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("board_skin")
 }
 
 // Legacy Support Assignment (Refactored to map to new Post)
@@ -243,4 +257,6 @@ model SupportAssignment {
   assignedAt DateTime @default(now())
 
   @@index([assigneeId])
+  @@map("support_assignment")
 }
+
