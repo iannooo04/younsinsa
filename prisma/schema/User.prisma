@@ -69,7 +69,7 @@ model User {
   email        String   @unique @db.Citext
   emailVerified DateTime?
   
-  mobile       String   // 휴대폰 번호
+  mobile       String?   // 휴대폰 번호
   phone        String?  // 일반 전화번호
   fax          String?  // 팩스번호
   
