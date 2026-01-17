@@ -64,6 +64,24 @@ model Board {
   
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
+  
+  // -- SEO --
+  seoTitle       String?
+  seoAuthor      String?
+  seoDescription String?
+  seoKeywords    String?
+
+  // -- List/View Settings --
+  itemsPerPage   Int         @default(15)
+  subjectLimit   Int         @default(30)
+  showNotice     Boolean     @default(true) 
+  
+  // -- Editor/Write Settings --
+  useEditor      Boolean     @default(true)
+  
+  // -- Design --
+  headerHtml     String?     @db.Text
+  footerHtml     String?     @db.Text
 }
 
 model BoardCategory {

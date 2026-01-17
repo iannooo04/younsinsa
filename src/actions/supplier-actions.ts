@@ -130,3 +130,14 @@ export async function getSupplierByIdAction(id: string) {
         return { success: false, error: "공급사 정보를 불러오는데 실패했습니다." };
     }
 }
+
+export async function getSuppliersSimpleAction() {
+    try {
+        const suppliers = await prisma.supplier.findMany({
+            select: { id: true, name: true }
+        });
+        return { success: true, items: suppliers };
+    } catch (e) {
+        return { success: false, items: [] };
+    }
+}

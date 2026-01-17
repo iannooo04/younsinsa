@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -21,14 +21,79 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Link } from "@/i18n/routing";
+import { getMemberJoinPolicyAction, updateMemberJoinPolicyAction } from "@/actions/member-policy-actions";
+import { toast } from "sonner";
 
 export default function MemberJoinPolicyPage() {
+  const [loading, setLoading] = useState(true);
+  
+  // State
+  const [approvalMethod, setApprovalMethod] = useState("none");
+  const [ageLimitMethod, setAgeLimitMethod] = useState("none");
+  const [useAgeConsent, setUseAgeConsent] = useState(false);
+  const [underageAge, setUnderageAge] = useState("14");
+  const [underageAction, setUnderageAction] = useState("approval");
+  const [simpleLoginAuthMethod, setSimpleLoginAuthMethod] = useState("use");
+  const [rejoinLimitMethod, setRejoinLimitMethod] = useState("unused");
+  const [rejoinLimitDays, setRejoinLimitDays] = useState(0);
+  const [fraudulentIds, setFraudulentIds] = useState("");
+
+  useEffect(() => {
+    async function fetchData() {
+        setLoading(true);
+        const result = await getMemberJoinPolicyAction();
+        if (result.success && result.policy) {
+            const p = result.policy;
+            setApprovalMethod(p.approvalMethod);
+            setAgeLimitMethod(p.ageLimitMethod);
+            setUseAgeConsent(p.useAgeConsent);
+            setUnderageAge(String(p.underageAge));
+            setUnderageAction(p.underageAction);
+            setSimpleLoginAuthMethod(p.simpleLoginAuthMethod);
+            setRejoinLimitMethod(p.rejoinLimitMethod);
+            setRejoinLimitDays(p.rejoinLimitDays);
+            setFraudulentIds(p.fraudulentIds);
+        } else {
+            toast.error(result.error || "정책을 불러오는데 실패했습니다.");
+        }
+        setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  const handleSave = async () => {
+      const data = {
+          approvalMethod,
+          ageLimitMethod,
+          useAgeConsent,
+          underageAge,
+          underageAction,
+          simpleLoginAuthMethod,
+          rejoinLimitMethod,
+          rejoinLimitDays,
+          fraudulentIds
+      };
+      
+      const result = await updateMemberJoinPolicyAction(data);
+      if (result.success) {
+          toast.success("저장되었습니다.");
+      } else {
+          toast.error(result.error || "저장에 실패했습니다.");
+      }
+  };
+
+  if (loading) {
+      return <div className="p-6">Loading...</div>;
+  }
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
        {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-gray-400 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">회원 가입 정책 관리</h1>
-        <Button className="h-9 px-6 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm font-bold border-0">
+        <Button 
+            onClick={handleSave}
+            className="h-9 px-6 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm font-bold border-0">
             저장
         </Button>
       </div>
@@ -47,7 +112,7 @@ export default function MemberJoinPolicyPage() {
                     가입승인 사용설정 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
                 <div className="flex-1 p-4 flex flex-col gap-2">
-                    <RadioGroup defaultValue="none" className="flex flex-col gap-2">
+                    <RadioGroup value={approvalMethod} onValueChange={setApprovalMethod} className="flex flex-col gap-2">
                          <div className="flex items-center gap-2">
                             <RadioGroupItem value="none" id="approval-none" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="approval-none" className="text-gray-700 font-normal cursor-pointer text-xs">승인 절차 없이 가입</Label>
@@ -71,22 +136,35 @@ export default function MemberJoinPolicyPage() {
                 </div>
                 <div className="flex-1 p-4 bg-white">
                     <div className="flex flex-col gap-3">
-                        <div className="flex items-center gap-2">
-                             <input type="radio" id="age-limit-none" name="age-limit" className="w-3 h-3 border-gray-300 text-gray-600 focus:ring-0" />
-                             <Label htmlFor="age-limit-none" className="text-gray-700 font-normal cursor-pointer text-xs">제한 안함</Label>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 ml-6">
-                             <Checkbox id="age-consent" className="border-gray-300 rounded-[2px]" />
-                             <Label htmlFor="age-consent" className="text-gray-700 font-normal cursor-pointer text-xs">'만 14세 이상입니다.' 동의 항목 사용</Label>
-                             <span className="text-[11px] text-gray-400 ml-1 bg-[#F4F4F4] px-1 rounded-sm border border-gray-200">!</span>
-                             <span className="text-[11px] text-gray-400">가입연령제한 설정 ‘제한 안함’사용 시 해당 설정 사용을 권장합니다.</span>
-                        </div>
+                        <RadioGroup value={ageLimitMethod} onValueChange={setAgeLimitMethod} className="flex flex-col gap-3">
+                            <div className="flex items-center gap-2">
+                                 <RadioGroupItem value="none" id="age-limit-none" className="border-gray-300 text-gray-600 focus:ring-0" />
+                                 <Label htmlFor="age-limit-none" className="text-gray-700 font-normal cursor-pointer text-xs">제한 안함</Label>
+                            </div>
+                            
+                            <div className="flex items-center gap-2 ml-6">
+                                 <Checkbox 
+                                    id="age-consent" 
+                                    checked={useAgeConsent}
+                                    onCheckedChange={(checked) => setUseAgeConsent(checked as boolean)}
+                                    className="border-gray-300 rounded-[2px]" 
+                                />
+                                 <Label htmlFor="age-consent" className="text-gray-700 font-normal cursor-pointer text-xs">'만 14세 이상입니다.' 동의 항목 사용</Label>
+                                 <span className="text-[11px] text-gray-400 ml-1 bg-[#F4F4F4] px-1 rounded-sm border border-gray-200">!</span>
+                                 <span className="text-[11px] text-gray-400">가입연령제한 설정 ‘제한 안함’사용 시 해당 설정 사용을 권장합니다.</span>
+                            </div>
 
-                         <div className="flex items-center gap-2">
+                             <div className="flex items-center gap-2">
+                                <RadioGroupItem value="limit" id="age-limit-use" className="border-gray-300 text-gray-600 focus:ring-0" />
+                                <Label htmlFor="age-limit-use" className="text-gray-700 font-normal cursor-pointer text-xs">연령 제한 사용</Label>
+                             </div>
+                        </RadioGroup>
+
+                        {/* Limit Config - Visible/Active mostly when limit is selected, but keeping visible for better UX or disable if not selected? UI suggests it's inline. */}
+                         <div className="flex items-center gap-2 ml-6">
                              <div className="flex items-center gap-1">
                                  <span>만</span>
-                                 <Select defaultValue="14">
+                                 <Select value={underageAge} onValueChange={setUnderageAge} disabled={ageLimitMethod !== 'limit'}>
                                     <SelectTrigger className="w-16 h-7 text-[11px] border-gray-300 bg-white">
                                         <SelectValue placeholder="14" />
                                     </SelectTrigger>
@@ -99,21 +177,17 @@ export default function MemberJoinPolicyPage() {
                                 <span>미만인 경우</span>
                              </div>
 
-                             <RadioGroup defaultValue="approval" className="flex items-center gap-4 ml-4">
+                             <RadioGroup value={underageAction} onValueChange={setUnderageAction} disabled={ageLimitMethod !== 'limit'} className="flex items-center gap-4 ml-4">
                                 <div className="flex items-center gap-1.5">
                                     <RadioGroupItem value="approval" id="underage-approval" className="border-red-500 text-red-500 focus:ring-red-500" />
                                     <Label htmlFor="underage-approval" className="text-gray-700 font-normal cursor-pointer text-xs">운영자 승인 후 가입</Label>
                                 </div>
-                             </RadioGroup>
-                             <Button variant="secondary" className="h-6 px-2 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]">법정대리인 동의서 샘플 다운로드</Button>
-                        </div>
-                         <div className="flex items-center gap-2 ml-[165px]">
-                             <RadioGroup defaultValue="approval" className="flex items-center">
                                 <div className="flex items-center gap-1.5">
                                     <RadioGroupItem value="ban" id="underage-ban" className="border-gray-300 text-gray-600" />
                                     <Label htmlFor="underage-ban" className="text-gray-700 font-normal cursor-pointer text-xs">가입불가</Label>
                                 </div>
-                            </RadioGroup>
+                             </RadioGroup>
+                             <Button variant="secondary" className="h-6 px-2 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]">법정대리인 동의서 샘플 다운로드</Button>
                         </div>
                     </div>
                 </div>
@@ -154,7 +228,7 @@ export default function MemberJoinPolicyPage() {
                 </div>
                 <div className="flex-1 p-4 flex items-center gap-2">
                     <span className="text-gray-600 mr-2">간편 로그인으로 회원가입 시 본인인증 절차</span>
-                     <RadioGroup defaultValue="use" className="flex items-center gap-4">
+                     <RadioGroup value={simpleLoginAuthMethod} onValueChange={setSimpleLoginAuthMethod} className="flex items-center gap-4">
                          <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="use" id="simple-auth-use" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="simple-auth-use" className="text-gray-700 font-normal cursor-pointer text-xs">사용함</Label>
@@ -197,16 +271,23 @@ export default function MemberJoinPolicyPage() {
                     재가입 기간제한
                 </div>
                 <div className="flex-1 p-4 flex flex-col gap-2">
-                    <div className="flex items-center gap-1.5">
-                         <input type="radio" id="rejoin-limit" name="rejoin" className="w-3 h-3 border-gray-300 text-gray-600 focus:ring-0" />
-                         <Label htmlFor="rejoin-limit" className="text-gray-700 font-normal cursor-pointer text-xs">회원탈퇴/삭제 후</Label>
-                         <Input className="w-16 h-7 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                         <span className="text-gray-700">일 동안 재가입 불가</span>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                         <input type="radio" id="rejoin-unused" name="rejoin" className="w-3 h-3 border-red-500 text-red-500 focus:ring-red-500" defaultChecked/>
-                         <Label htmlFor="rejoin-unused" className="text-gray-700 font-normal cursor-pointer text-xs">사용안함</Label>
-                    </div>
+                    <RadioGroup value={rejoinLimitMethod} onValueChange={setRejoinLimitMethod} className="flex flex-col gap-2">
+                        <div className="flex items-center gap-1.5">
+                             <RadioGroupItem value="limit" id="rejoin-limit" className="border-gray-300 text-gray-600 focus:ring-0" />
+                             <Label htmlFor="rejoin-limit" className="text-gray-700 font-normal cursor-pointer text-xs">회원탈퇴/삭제 후</Label>
+                             <Input 
+                                className="w-16 h-7 text-center bg-[#EDEFF2] border-gray-300" 
+                                value={rejoinLimitDays}
+                                onChange={(e) => setRejoinLimitDays(Number(e.target.value))}
+                                disabled={rejoinLimitMethod !== 'limit'}
+                            />
+                             <span className="text-gray-700">일 동안 재가입 불가</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                             <RadioGroupItem value="unused" id="rejoin-unused" className="border-red-500 text-red-500 focus:ring-red-500" />
+                             <Label htmlFor="rejoin-unused" className="text-gray-700 font-normal cursor-pointer text-xs">사용안함</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
             </div>
         </div>
@@ -232,7 +313,11 @@ export default function MemberJoinPolicyPage() {
                     가입불가 회원아이디
                 </div>
                 <div className="flex-1 p-4">
-                    <Textarea className="w-full h-24 resize-none border-gray-300 text-xs text-gray-600" defaultValue="admin,administration,administrator,master,webmaster,manage,manager,godo,godomall" />
+                    <Textarea 
+                        className="w-full h-24 resize-none border-gray-300 text-xs text-gray-600" 
+                        value={fraudulentIds}
+                        onChange={(e) => setFraudulentIds(e.target.value)}
+                    />
                      <p className="text-[11px] text-[#888888] flex items-start gap-1 mt-1">
                          <span className="inline-block bg-[#888888] text-white w-3 h-3 text-[9px] text-center leading-3 rounded-[2px] mt-0.5">!</span>
                          회원가입을 제한할 아이디를 쉼표(,)로 구분하여 입력하세요.

@@ -7,6 +7,7 @@ export async function getProducts() {
             brand: true,
             category: true,
             images: true,
+            supplier: true,
             _count: true,
         },
         orderBy: {

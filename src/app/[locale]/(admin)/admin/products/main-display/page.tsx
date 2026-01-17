@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,55 +23,124 @@ import {
 } from "@/components/ui/ui-table";
 import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Book, Plus } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { getMainPageDisplayGroupsAction, deleteMainPageDisplayGroupsAction } from "@/actions/product-display-actions";
+import { format } from "date-fns";
 
 export default function MainProductDisplayPage() {
-    // Mock Data based on the screenshot
-    const displayItems = [
-        {
-            id: 4,
-            type: "PC쇼핑몰",
-            name: "New Arrivals",
-            desc: "",
-            theme: "상단 상품진열",
-            display: "노출함",
-            regDate: "2025-12-02",
-            modDate: "2026-01-07",
-            code: "{=includeWidget('goods/_goods_display_main.html','sno','1')}",
-        },
-        {
-            id: 3,
-            type: "PC쇼핑몰",
-            name: "Best Sellers",
-            desc: "",
-            theme: "하단 상품진열",
-            display: "노출함",
-            regDate: "2025-12-02",
-            modDate: "2026-01-07",
-            code: "{=includeWidget('goods/_goods_display_main.html','sno','2')}",
-        },
-        {
-            id: 2,
-            type: "모바일쇼핑몰",
-            name: "New Arrivals",
-            desc: "",
-            theme: "상단 상품진열",
-            display: "노출함",
-            regDate: "2025-12-02",
-            modDate: "2026-01-07",
-            code: "{=includeWidget('goods/_goods_display_main.html','sno','3')}",
-        },
-        {
-            id: 1,
-            type: "모바일쇼핑몰",
-            name: "Best Sellers",
-            desc: "",
-            theme: "하단 상품진열",
-            display: "노출함",
-            regDate: "2025-12-02",
-            modDate: "2026-01-07",
-            code: "{=includeWidget('goods/_goods_display_main.html','sno','4')}",
+    // Data State
+    const [items, setItems] = useState<any[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Filter State
+    const [searchType, setSearchType] = useState('name');
+    const [keyword, setKeyword] = useState('');
+    const [dateType, setDateType] = useState('regDate');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    // Selection State
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
+
+    // Trigger for refetching
+    const [searchTrigger, setSearchTrigger] = useState(0);
+
+    // Fetch Data
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const result = await getMainPageDisplayGroupsAction(page, pageSize, {
+            searchType,
+            keyword,
+            startDate,
+            endDate,
+            dateType
+        });
+
+        if (result.success) {
+            setItems(result.items);
+            setTotalCount(result.totalCount);
         }
-    ];
+        setLoading(false);
+    }, [page, pageSize, searchTrigger, searchType, keyword, startDate, endDate, dateType]);
+
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchData]);
+
+    const handleSearch = () => {
+        setPage(1);
+        setSearchTrigger(prev => prev + 1);
+    };
+
+    // Selection Handlers
+    const handleCheckboxChange = (id: number, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(item => item !== id));
+        }
+    };
+
+    const handleSelectPage = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(items.map(p => p.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    // Bulk Delete
+    const handleDelete = async () => {
+        if (selectedIds.length === 0) return alert("삭제할 항목을 선택해주세요.");
+        if (!confirm("선택한 항목을 삭제하시겠습니까?")) return;
+
+        const result = await deleteMainPageDisplayGroupsAction(selectedIds);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+
+    // Date Helper
+    const setPeriod = (period: string) => {
+        const end = new Date();
+        const start = new Date();
+        
+        switch (period) {
+            case "오늘":
+                break;
+            case "7일":
+                start.setDate(end.getDate() - 7);
+                break;
+            case "15일":
+                start.setDate(end.getDate() - 15);
+                break;
+            case "1개월":
+                start.setMonth(end.getMonth() - 1);
+                break;
+            case "3개월":
+                start.setMonth(end.getMonth() - 3);
+                break;
+            case "전체":
+                setStartDate("");
+                setEndDate("");
+                return;
+            default:
+                break;
+        }
+        if (period !== "전체") {
+             setStartDate(format(start, "yyyy-MM-dd"));
+             setEndDate(format(end, "yyyy-MM-dd"));
+        }
+    };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
@@ -96,15 +166,21 @@ export default function MainProductDisplayPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">분류명</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="combined">
+                            <Select value={searchType} onValueChange={setSearchType}>
                                 <SelectTrigger className="w-[120px] h-8 text-xs">
-                                    <SelectValue placeholder="=통합검색=" />
+                                    <SelectValue placeholder="분류명" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="combined">=통합검색=</SelectItem>
+                                    <SelectItem value="name">분류명</SelectItem>
+                                    <SelectItem value="desc">분류설명</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Input className="w-64 h-8" />
+                            <Input 
+                                className="w-64 h-8" 
+                                value={keyword}
+                                onChange={(e) => setKeyword(e.target.value)}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            />
                         </div>
                     </div>
 
@@ -112,21 +188,32 @@ export default function MainProductDisplayPage() {
                      <div className="flex items-center">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="regDate">
+                            <Select value={dateType} onValueChange={setDateType}>
                                 <SelectTrigger className="w-[100px] h-8 text-xs">
                                     <SelectValue placeholder="등록일" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="regDate">등록일</SelectItem>
+                                    <SelectItem value="modDate">수정일</SelectItem>
                                 </SelectContent>
                             </Select>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={startDate} 
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    placeholder="YYYY-MM-DD"
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                             <span className="text-gray-500">~</span>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    placeholder="YYYY-MM-DD"
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                              <div className="flex gap-0.5 ml-2">
@@ -134,6 +221,7 @@ export default function MainProductDisplayPage() {
                                     <Button 
                                         key={period} 
                                         variant="outline" 
+                                        onClick={() => setPeriod(period)}
                                         className={`h-8 px-3 text-xs rounded-sm ${period === "전체" ? "bg-gray-700 text-white border-gray-700 hover:bg-gray-800" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
                                     >
                                         {period}
@@ -149,7 +237,7 @@ export default function MainProductDisplayPage() {
                 </div>
 
                 <div className="flex justify-center mt-6 mb-10">
-                    <Button className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
+                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
                 </div>
             </div>
 
@@ -157,24 +245,26 @@ export default function MainProductDisplayPage() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-bold text-gray-800">
-                        검색 <span className="text-red-500">4</span>개 / 전체 <span className="text-red-500">4</span>개
+                        검색 <span className="text-red-500">{totalCount}</span>개 / 전체 <span className="text-red-500">{totalCount}</span>개
                     </div>
                     <div className="flex items-center gap-2">
                         <Select defaultValue="regDesc">
                             <SelectTrigger className="w-32 h-8 text-xs">
-                                <SelectValue placeholder="등록일 ↑" />
+                                <SelectValue placeholder="등록일 ↓" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="regDesc">등록일 ↓</SelectItem>
                                 <SelectItem value="regAsc">등록일 ↑</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select defaultValue="10">
+                        <Select value={pageSize.toString()} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
                             <SelectTrigger className="w-32 h-8 text-xs">
                                 <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="10">10개 보기</SelectItem>
+                                <SelectItem value="20">20개 보기</SelectItem>
+                                <SelectItem value="50">50개 보기</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -184,7 +274,13 @@ export default function MainProductDisplayPage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-[#A4A4A4]/20 hover:bg-[#A4A4A4]/20 text-xs text-center font-bold text-gray-700 h-10">
-                                <TableHead className="w-10 text-center p-0"><Checkbox className="translate-y-[2px]" /></TableHead>
+                                <TableHead className="w-10 text-center p-0">
+                                    <Checkbox 
+                                        className="translate-y-[2px]" 
+                                        checked={items.length > 0 && selectedIds.length === items.length}
+                                        onCheckedChange={handleSelectPage}
+                                    />
+                                </TableHead>
                                 <TableHead className="w-16 text-center">번호</TableHead>
                                 <TableHead className="text-center w-32 border-l border-gray-300">쇼핑몰 유형</TableHead>
                                 <TableHead className="text-center border-l border-gray-300">분류명</TableHead>
@@ -198,39 +294,101 @@ export default function MainProductDisplayPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {displayItems.map((item) => (
-                                <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-16 border-b border-gray-200">
-                                    <TableCell className="p-0 text-center"><Checkbox className="translate-y-[2px]" /></TableCell>
-                                    <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
-                                    <TableCell className="border-l border-gray-200">{item.type}</TableCell>
-                                    <TableCell className="text-left pl-4 font-normal text-gray-800 border-l border-gray-200">{item.name}</TableCell>
-                                    <TableCell className="border-l border-gray-200">{item.desc}</TableCell>
-                                    <TableCell className="border-l border-gray-200">{item.theme}</TableCell>
-                                    <TableCell className="border-l border-gray-200">{item.display}</TableCell>
-                                    <TableCell className="border-l border-gray-200">
-                                        <div className="text-[11px] space-y-0.5">
-                                            <p>{item.regDate}</p>
-                                            <p>{item.modDate}</p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="border-l border-gray-200">
-                                        <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">상품진열</Button>
-                                    </TableCell>
-                                    <TableCell className="border-l border-gray-200">
-                                        <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">복사</Button>
-                                    </TableCell>
-                                    <TableCell className="text-left pl-4 font-mono text-gray-500 border-l border-gray-200 text-[11px] tracking-tight">{item.code}</TableCell>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={11} className="h-40 text-center">로딩중...</TableCell>
                                 </TableRow>
-                            ))}
+                            ) : items.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={11} className="h-40 text-center">검색된 진열 정보가 없습니다.</TableCell>
+                                </TableRow>
+                            ) : (
+                                items.map((item) => (
+                                    <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-16 border-b border-gray-200">
+                                        <TableCell className="p-0 text-center">
+                                            <Checkbox 
+                                                className="translate-y-[2px]" 
+                                                checked={selectedIds.includes(item.id)}
+                                                onCheckedChange={(checked) => handleCheckboxChange(item.id, !!checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
+                                        <TableCell className="border-l border-gray-200">{item.mallType === 'MOBILE' ? '모바일쇼핑몰' : 'PC쇼핑몰'}</TableCell>
+                                        <TableCell className="text-left pl-4 font-normal text-gray-800 border-l border-gray-200">{item.name}</TableCell>
+                                        <TableCell className="border-l border-gray-200">{item.description}</TableCell>
+                                        <TableCell className="border-l border-gray-200">{item.themeName}</TableCell>
+                                        <TableCell className="border-l border-gray-200">{item.isExposed ? '노출함' : '노출안함'}</TableCell>
+                                        <TableCell className="border-l border-gray-200">
+                                            <div className="text-[11px] space-y-0.5">
+                                                <p>{format(new Date(item.createdAt), 'yyyy-MM-dd')}</p>
+                                                {/* <p>{format(new Date(item.updatedAt), 'yyyy-MM-dd')}</p> */}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="border-l border-gray-200">
+                                            <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">상품진열</Button>
+                                        </TableCell>
+                                        <TableCell className="border-l border-gray-200">
+                                            <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">복사</Button>
+                                        </TableCell>
+                                        <TableCell className="text-left pl-4 font-mono text-gray-500 border-l border-gray-200 text-[11px] tracking-tight">
+                                            {item.replaceCode || '-'}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </div>
 
                  {/* Pagination & Delete */}
                  <div className="flex justify-between items-center mt-4">
-                    <Button variant="outline" className="h-8 text-xs bg-white text-gray-600 border-gray-300 hover:bg-gray-50 mt-4">선택 삭제</Button>
+                    <Button 
+                        variant="outline" 
+                        onClick={handleDelete}
+                        className="h-8 text-xs bg-white text-gray-600 border-gray-300 hover:bg-gray-50 mt-4"
+                    >
+                        선택 삭제
+                    </Button>
                      <div className="flex justify-center gap-1 flex-1 -ml-20">
-                        <Button variant="default" className="h-8 w-8 p-0 bg-gray-600 text-white font-bold rounded-sm border-gray-600 hover:bg-gray-700">1</Button>
+                         {/* Pagination Logic */}
+                        <Button 
+                            variant="outline" 
+                            disabled={page === 1} 
+                            onClick={() => setPage(1)}
+                            className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                        >{"<<"}</Button>
+                        <Button 
+                            variant="outline" 
+                            disabled={page === 1} 
+                            onClick={() => setPage(p => Math.max(1, p-1))}
+                            className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                        >{"<"}</Button>
+                        
+                         {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter(p => p >= page - 2 && p <= page + 2)
+                            .map(p => (
+                            <Button 
+                                key={p} 
+                                variant={p === page ? "default" : "outline"}
+                                onClick={() => setPage(p)}
+                                className={`h-8 w-8 p-0 rounded-sm ${p === page ? "bg-gray-600 text-white font-bold border-gray-600 hover:bg-gray-700" : "text-gray-500 border-gray-300 bg-white hover:bg-gray-50"}`}
+                            >
+                                {p}
+                            </Button>
+                         ))}
+
+                         <Button 
+                            variant="outline" 
+                            disabled={page >= totalPages} 
+                            onClick={() => setPage(p => Math.min(totalPages, p+1))}
+                            className="h-8 w-8 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                        >{">"}</Button>
+                         <Button 
+                            variant="outline" 
+                            disabled={page >= totalPages} 
+                            onClick={() => setPage(totalPages)}
+                            className="h-8 w-8 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                        >{">>"}</Button>
                     </div>
                 </div>
             </div>

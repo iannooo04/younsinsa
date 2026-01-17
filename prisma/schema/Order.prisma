@@ -206,3 +206,37 @@ model OrderClaim {
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
 }
+
+model InvoiceUploadLog {
+  id             String      @id @default(cuid())
+  
+  registrant     String?     // 등록자 (admin name)
+  supplierId     String?     // 공급사 ID (optional)
+  
+  totalCount     Int         @default(0)
+  successCount   Int         @default(0)
+  failCount      Int         @default(0)
+  
+  // JSON data for errors/details
+  failureDetails Json?       // [{ row: 1, reason: "Order not found" }, ...]
+  
+  createdAt      DateTime    @default(now())
+}
+
+model OrderDeleteRequest {
+  id             String      @id @default(cuid())
+  
+  totalCount     Int         @default(0) // Number of orders to be deleted
+  
+  createdBy      String?     // Admin who requested
+  createdAt      DateTime    @default(now())
+  
+  processedBy    String?     // Admin who executed delete
+  deletedAt      DateTime?   // Actual deletion time
+  
+  status         String      @default("PENDING") // PENDING, COMPLETED, EXPIRED
+  
+  // Storing target order IDs as JSON or IDs array to know what to delete
+  // For large datasets, query criteria might be better, but for safety IDs are better.
+  targetOrderIds String[]
+}

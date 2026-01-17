@@ -1,5 +1,15 @@
 "use client";
 
+import React, { useState, useEffect, useTransition } from "react";
+import { Brand } from "@/generated/prisma";
+import { 
+  getBrandsAction, 
+  getBrandAction,
+  createBrandAction, 
+  updateBrandAction, 
+  deleteBrandAction 
+} from "@/actions/brand-actions";
+import { getProductsAction } from "@/actions/product-actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -17,33 +27,384 @@ import {
   Folder,
   HelpCircle,
   Play,
-  File,
   Plus,
   Minus,
+  File,
   Youtube,
-  ChevronDown
 } from "lucide-react";
-import React from "react";
+
+interface BrandWithChildren extends Brand {
+  children?: BrandWithChildren[];
+}
 
 export default function BrandManagementPage() {
+  const [brands, setBrands] = useState<BrandWithChildren[]>([]);
+  const [brandTree, setBrandTree] = useState<BrandWithChildren[]>([]);
+  const [selectedBrand, setSelectedBrand] = useState<BrandWithChildren | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const [mode, setMode] = useState<"edit" | "create_root" | "create_sub" | null>(null);
+  const [activeDecorTabs, setActiveDecorTabs] = useState({
+      navTop: 'pc',
+      recTop: 'pc',
+      listTop: 'pc'
+  });
+
+  // Form State
+  const [formData, setFormData] = useState({
+      name: "",
+      nameCN: "",
+      nameEN: "",
+      type: "GENERAL",
+      isExposedKR: true,
+      isExposedCN: false,
+      displayStatusPC: "DISPLAY",
+      displayStatusMobile: "DISPLAY",
+      parentId: null as string | null,
+      isAdultAuth: false,
+      accessType: "ALL",
+      productDisplayType: "AUTO",
+      pcTheme: "브랜드테마",
+      mobileTheme: "브랜드테마",
+
+      // 이미지 설정
+      logoUrl: "",
+      pcImageUrl: "",
+      pcMouseoverImageUrl: "",
+      mobileImageUrl: "",
+
+      // SEO 설정
+      isSeoUsed: false,
+      seoTitle: "",
+      seoAuthor: "",
+      seoDescription: "",
+      seoKeywords: [] as string[],
+
+      // 추천 상품 설정
+      isRecApplyToChildren: false,
+      isRecExposedPC: true,
+      isRecExposedMobile: true,
+      recProductDisplayType: "AUTO",
+      recPcTheme: "추천상품테마",
+      recMobileTheme: "추천상품테마",
+
+      // 꾸미기 (HTML Content)
+      htmlContents: {
+          navTopPC: "",
+          navTopMobile: "",
+          recTopPC: "",
+          recTopMobile: "",
+          listTopPC: "",
+          listTopMobile: ""
+      },
+
+      // 선택된 추천 상품
+      recommendedProducts: [] as { productId: string, product?: any }[],
+  });
+
+  useEffect(() => {
+    fetchBrands();
+  }, []);
+
+  const fetchBrands = async () => {
+    const res = await getBrandsAction();
+    const tree = buildTree(res as BrandWithChildren[]);
+    setBrands(res as BrandWithChildren[]);
+    setBrandTree(tree);
+  };
+
+  const buildTree = (items: BrandWithChildren[]) => {
+    const rootItems: BrandWithChildren[] = [];
+    const lookup: { [key: string]: BrandWithChildren } = {};
+
+    for (const item of items) {
+      lookup[item.id] = { ...item, children: [] };
+    }
+
+    for (const item of items) {
+      if (item.parentId) {
+        const parent = lookup[item.parentId];
+        if (parent) {
+          parent.children?.push(lookup[item.id]);
+        } else {
+          rootItems.push(lookup[item.id]);
+        }
+      } else {
+        rootItems.push(lookup[item.id]);
+      }
+    }
+    return rootItems;
+  };
+
+  const handleSelectBrand = async (brand: BrandWithChildren) => {
+    startTransition(async () => {
+        const fullBrand = await getBrandAction(brand.id);
+        if (!fullBrand) return;
+
+        setSelectedBrand(fullBrand as any);
+        setMode("edit");
+
+        const htmlContents = (fullBrand.htmlContents as any) || {
+            navTopPC: "",
+            navTopMobile: "",
+            recTopPC: "",
+            recTopMobile: "",
+            listTopPC: "",
+            listTopMobile: ""
+        };
+
+        setFormData({
+            name: fullBrand.name,
+            nameCN: fullBrand.nameCN || "",
+            nameEN: fullBrand.nameEN || "",
+            type: fullBrand.type,
+            isExposedKR: fullBrand.isExposedKR,
+            isExposedCN: fullBrand.isExposedCN,
+            displayStatusPC: fullBrand.displayStatusPC,
+            displayStatusMobile: fullBrand.displayStatusMobile,
+            parentId: fullBrand.parentId,
+            isAdultAuth: fullBrand.isAdultAuth,
+            accessType: fullBrand.accessType,
+            productDisplayType: fullBrand.productDisplayType,
+            pcTheme: fullBrand.pcTheme || "브랜드테마",
+            mobileTheme: fullBrand.mobileTheme || "브랜드테마",
+
+            // 이미지 설정
+            logoUrl: fullBrand.logoUrl || "",
+            pcImageUrl: fullBrand.pcImageUrl || "",
+            pcMouseoverImageUrl: fullBrand.pcMouseoverImageUrl || "",
+            mobileImageUrl: fullBrand.mobileImageUrl || "",
+
+            // SEO 설정
+            isSeoUsed: fullBrand.isSeoUsed,
+            seoTitle: fullBrand.seoTitle || "",
+            seoAuthor: fullBrand.seoAuthor || "",
+            seoDescription: fullBrand.seoDescription || "",
+            seoKeywords: fullBrand.seoKeywords || [],
+
+            // 추천 상품 설정
+            isRecApplyToChildren: fullBrand.isRecApplyToChildren,
+            isRecExposedPC: fullBrand.isRecExposedPC,
+            isRecExposedMobile: fullBrand.isRecExposedMobile,
+            recProductDisplayType: fullBrand.recProductDisplayType,
+            recPcTheme: fullBrand.recPcTheme || "추천상품테마",
+            recMobileTheme: fullBrand.recMobileTheme || "추천상품테마",
+
+            htmlContents,
+            recommendedProducts: (fullBrand as any).recommendedProducts || [],
+        });
+    });
+  };
+
+  const handleCreateRoot = () => {
+    setSelectedBrand(null);
+    setMode("create_root");
+    setFormData({
+      name: "",
+      nameCN: "",
+      nameEN: "",
+      type: "GENERAL",
+      isExposedKR: true,
+      isExposedCN: false,
+      displayStatusPC: "DISPLAY",
+      displayStatusMobile: "DISPLAY",
+      parentId: null,
+      isAdultAuth: false,
+      accessType: "ALL",
+      productDisplayType: "AUTO",
+      pcTheme: "브랜드테마",
+      mobileTheme: "브랜드테마",
+      logoUrl: "",
+      pcImageUrl: "",
+      pcMouseoverImageUrl: "",
+      mobileImageUrl: "",
+      isSeoUsed: false,
+      seoTitle: "",
+      seoAuthor: "",
+      seoDescription: "",
+      seoKeywords: [],
+      isRecApplyToChildren: false,
+      isRecExposedPC: true,
+      isRecExposedMobile: true,
+      recProductDisplayType: "AUTO",
+      recPcTheme: "추천상품테마",
+      recMobileTheme: "추천상품테마",
+      htmlContents: {
+          navTopPC: "",
+          navTopMobile: "",
+          recTopPC: "",
+          recTopMobile: "",
+          listTopPC: "",
+          listTopMobile: ""
+      },
+      recommendedProducts: [],
+    });
+  };
+
+  const handleCreateSub = () => {
+    if (!selectedBrand) {
+      alert("상위 브랜드를 선택해주세요.");
+      return;
+    }
+    setMode("create_sub");
+    setFormData({
+      name: "",
+      nameCN: "",
+      nameEN: "",
+      type: "GENERAL",
+      isExposedKR: true,
+      isExposedCN: false,
+      displayStatusPC: "DISPLAY",
+      displayStatusMobile: "DISPLAY",
+      parentId: selectedBrand.id,
+      isAdultAuth: false,
+      accessType: "ALL",
+      productDisplayType: "AUTO",
+      pcTheme: "브랜드테마",
+      mobileTheme: "브랜드테마",
+      logoUrl: "",
+      pcImageUrl: "",
+      pcMouseoverImageUrl: "",
+      mobileImageUrl: "",
+      isSeoUsed: false,
+      seoTitle: "",
+      seoAuthor: "",
+      seoDescription: "",
+      seoKeywords: [],
+      isRecApplyToChildren: false,
+      isRecExposedPC: true,
+      isRecExposedMobile: true,
+      recProductDisplayType: "AUTO",
+      recPcTheme: "추천상품테마",
+      recMobileTheme: "추천상품테마",
+      htmlContents: {
+          navTopPC: "",
+          navTopMobile: "",
+          recTopPC: "",
+          recTopMobile: "",
+          listTopPC: "",
+          listTopMobile: ""
+      },
+      recommendedProducts: [],
+    });
+  };
+
+  const handleSave = async () => {
+    startTransition(async () => {
+      let result;
+      const payload = {
+          ...formData,
+          recommendedProducts: formData.recommendedProducts.map((rp, index) => ({
+              productId: rp.productId,
+              order: index
+          }))
+      };
+
+      if (mode === "edit" && selectedBrand) {
+        result = await updateBrandAction(selectedBrand.id, payload);
+      } else {
+        result = await createBrandAction(formData); // create might not handle RP yet in simple way
+      }
+
+      if (result.success) {
+        alert("저장되었습니다.");
+        fetchBrands();
+      } else {
+        alert(result.error || "실패했습니다.");
+      }
+    });
+  };
+
+  const handleSelectProducts = async () => {
+      // For now, let's just use a simple prompt to get product IDs or fetch first few products for demo
+      const res = await getProductsAction(1, 5);
+      if (res.success && res.items.length > 0) {
+          const newRP = res.items.map(p => ({
+              productId: p.id,
+              product: p
+          }));
+          setFormData({
+              ...formData,
+              recommendedProducts: [...formData.recommendedProducts, ...newRP]
+          });
+          alert(`${res.items.length}개의 상품을 추천상품에 추가했습니다. (데모)`);
+      }
+  };
+
+  const handleRemoveSelectedProducts = () => {
+      // For simplicity, let's just remove all for now or implement selection state
+      setFormData({
+          ...formData,
+          recommendedProducts: []
+      });
+  };
+
+  const handleDelete = async () => {
+    if (!selectedBrand) return;
+    if (!confirm("정말 삭제하시겠습니까?")) return;
+
+    startTransition(async () => {
+      const res = await deleteBrandAction(selectedBrand.id);
+      if (res.success) {
+        alert("삭제되었습니다.");
+        fetchBrands();
+        setSelectedBrand(null);
+        setMode(null);
+      } else {
+        alert(res.error);
+      }
+    });
+  };
+
+  const renderTree = (nodes: BrandWithChildren[], depth = 0) => {
+    return nodes.map((node) => (
+      <div key={node.id} className="select-none">
+        <div
+          className={`flex items-center gap-1 py-1 cursor-pointer hover:bg-blue-50 ${
+            selectedBrand?.id === node.id ? "bg-blue-100" : ""
+          }`}
+          style={{ paddingLeft: `${depth * 16}px` }}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleSelectBrand(node);
+          }}
+        >
+          {node.children && node.children.length > 0 ? (
+            <Folder className="w-4 h-4 text-sky-200 fill-sky-200" />
+          ) : (
+            <Folder className="w-4 h-4 text-gray-200 fill-gray-200" />
+          )}
+          <span className="text-sm text-gray-700">{node.name}</span>
+        </div>
+        {node.children && node.children.length > 0 && (
+          <div>{renderTree(node.children, depth + 1)}</div>
+        )}
+      </div>
+    ));
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-sm pb-24">
       {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b border-gray-300 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">브랜드 관리</h1>
-        <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm">
-          저장
+        <Button 
+            onClick={handleSave} 
+            disabled={isPending}
+            className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm"
+        >
+          {isPending ? "저장중" : "저장"}
         </Button>
       </div>
 
       <div className="flex gap-6 h-full">
         {/* Left Sidebar: Brand Tree */}
-        <div className="w-[280px] flex-shrink-0 border-r border-gray-200 pr-4 min-h-[800px]">
-          <div className="flex gap-1 mb-2">
+        <div className="w-[320px] flex-shrink-0 border-r border-gray-200 pr-4 min-h-[800px]">
+          <div className="flex gap-1 mb-2 flex-wrap">
             <Button
               variant="outline"
               size="sm"
               className="h-7 text-xs px-2 rounded-sm border-gray-300 bg-white hover:bg-gray-50"
+              onClick={handleCreateRoot}
             >
               1차 브랜드 생성
             </Button>
@@ -51,6 +412,7 @@ export default function BrandManagementPage() {
               variant="outline"
               size="sm"
               className="h-7 text-xs px-2 rounded-sm border-gray-300 bg-white hover:bg-gray-50"
+              onClick={handleCreateSub}
             >
               하위 브랜드 생성
             </Button>
@@ -64,19 +426,10 @@ export default function BrandManagementPage() {
              <div className="tree-item flex items-center gap-1 py-1 text-gray-700 cursor-pointer">
                  <Play className="w-2 h-2 fill-gray-500 text-gray-500 transform rotate-90" />
                  <Folder className="w-4 h-4 text-orange-200 fill-orange-200" />
-                 <span className="text-sm">브랜드</span>
+                 <span className="text-sm font-bold">브랜드</span>
              </div>
              <div className="pl-4">
-                 {[
-                    'Malbon Golf', 'G/FORE', 'Titleist', 'LANVIN BLANC', 'FootJoy', 
-                    'SOUTHCAPE', 'PXG', 'DESCENTE Golf', 'St.Andrews', 'Pearly Gates', 
-                    'Master Bunny Edition', 'AmazingCre', 'BOSS Golf', 'A.P.C Golf'
-                 ].map((item) => (
-                     <div key={item} className="flex items-center gap-1 py-1 cursor-pointer hover:bg-blue-50">
-                         <Folder className="w-4 h-4 text-sky-200 fill-sky-200" />
-                         <span className="text-sm text-gray-700">{item}</span>
-                     </div>
-                 ))}
+                 {renderTree(brandTree)}
              </div>
           </div>
         </div>
@@ -88,17 +441,24 @@ export default function BrandManagementPage() {
           <div className="space-y-2">
               <div className="flex items-center justify-between pb-2 border-b border-black">
                   <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">브랜드 정보</h2>
+                       <h2 className="text-lg font-bold text-gray-800">
+                          {mode === 'create_root' ? '1차 브랜드 생성' : 
+                           mode === 'create_sub' ? '하위 브랜드 생성' : 
+                           selectedBrand ?  '브랜드 정보' : '브랜드를 선택하세요'}
+                      </h2>
                       <HelpCircle className="w-4 h-4 text-gray-400" />
                   </div>
+                  {selectedBrand && mode === 'edit' && (
                   <div className="flex items-center gap-2">
                       <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm">상품진열</Button>
+                      <Button variant="outline" size="sm" onClick={handleDelete} className="h-7 text-xs text-red-500 border-red-200 hover:bg-red-50">삭제</Button>
                       <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
                   </div>
+                  )}
               </div>
 
               <div className="border-t border-gray-200 text-xs">
-                  {/* Row: Exposure Shop */}
+                   {/* Row: Exposure Shop */}
                   <div className="flex border-b border-gray-200">
                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           노출상점
@@ -106,23 +466,29 @@ export default function BrandManagementPage() {
                       <div className="flex-1 p-3 flex flex-col gap-2">
                           <div className="flex items-center gap-6">
                               <label className="flex items-center gap-1.5 cursor-pointer">
-                                  <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" defaultChecked/>
+                                  <Checkbox 
+                                    className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
+                                    checked={formData.isExposedKR && formData.isExposedCN}
+                                    onCheckedChange={(checked) => setFormData({...formData, isExposedKR: !!checked, isExposedCN: !!checked})}
+                                  />
                                   <span className="text-gray-700">전체</span>
                               </label>
                               <label className="flex items-center gap-1.5 cursor-pointer">
-                                  <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" defaultChecked/>
+                                  <Checkbox 
+                                    className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
+                                    checked={formData.isExposedKR}
+                                    onCheckedChange={(checked) => setFormData({...formData, isExposedKR: !!checked})}
+                                  />
                                   <div className="flex items-center gap-1"><span className="text-lg leading-none">🇰🇷</span> <span className="text-gray-700">기준몰</span></div>
                               </label>
                               <label className="flex items-center gap-1.5 cursor-pointer">
-                                  <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" defaultChecked/>
+                                  <Checkbox 
+                                    className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
+                                    checked={formData.isExposedCN}
+                                    onCheckedChange={(checked) => setFormData({...formData, isExposedCN: !!checked})}
+                                  />
                                   <div className="flex items-center gap-1"><span className="text-lg leading-none">🇨🇳</span> <span className="text-gray-700">중문몰</span></div>
                               </label>
-                          </div>
-                          <div>
-                            <label className="flex items-center gap-1.5 cursor-pointer">
-                                <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
-                                <span className="text-gray-700">하위 브랜드 동일 적용</span>
-                            </label>
                           </div>
                       </div>
                   </div>
@@ -136,16 +502,24 @@ export default function BrandManagementPage() {
                                 <HelpCircle className="w-3 h-3 text-gray-400 ml-1" />
                             </div>
                       </div>
-                      <div className="flex-1 p-3 space-y-2">
+                       <div className="flex-1 p-3 space-y-2">
                           <div className="flex items-center gap-2">
                               <span className="w-14 font-bold text-gray-600">기준몰</span>
-                              <Input className="w-[300px] h-7 text-xs border-gray-300 rounded-sm" />
-                              <span className="text-gray-400 text-[11px]"><strong className="text-red-500">0</strong> / 30</span>
+                              <Input 
+                                value={formData.name} 
+                                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                className="w-[300px] h-7 text-xs border-gray-300 rounded-sm" 
+                              />
+                              <span className="text-gray-400 text-[11px]"><strong className="text-red-500">{formData.name.length}</strong> / 30</span>
                           </div>
                           <div className="flex items-center gap-2">
                               <span className="w-14 flex justify-start text-lg">🇨🇳</span>
-                              <Input className="w-[300px] h-7 text-xs border-gray-300 rounded-sm" />
-                              <span className="text-gray-400 text-[11px]"><strong className="text-red-500">0</strong> / 30</span>
+                              <Input 
+                                value={formData.nameCN} 
+                                onChange={(e) => setFormData({...formData, nameCN: e.target.value})}
+                                className="w-[300px] h-7 text-xs border-gray-300 rounded-sm" 
+                              />
+                              <span className="text-gray-400 text-[11px]"><strong className="text-red-500">{formData.nameCN.length}</strong> / 30</span>
                           </div>
                           <div className="flex items-center gap-4 pl-[64px]">
                                <label className="flex items-center gap-1.5 cursor-pointer">
@@ -171,14 +545,18 @@ export default function BrandManagementPage() {
                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           브랜드 타입
                       </div>
-                      <div className="flex-1 p-3">
-                          <RadioGroup defaultValue="general" className="flex flex-col gap-2">
+                       <div className="flex-1 p-3">
+                          <RadioGroup 
+                            value={formData.type} 
+                            onValueChange={(val) => setFormData({...formData, type: val})}
+                            className="flex flex-col gap-2"
+                          >
                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="general" id="type-general" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                  <RadioGroupItem value="GENERAL" id="type-general" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                   <Label htmlFor="type-general" className="text-gray-700 font-normal">일반 브랜드 <span className="text-blue-500">(브랜드 페이지가 있고, 상품연결이 되는 일반적인 브랜드입니다)</span></Label>
                               </div>
                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="group" id="type-group" className="rounded-full border-gray-300 text-gray-600" />
+                                  <RadioGroupItem value="GROUP" id="type-group" className="rounded-full border-gray-300 text-gray-600" />
                                   <Label htmlFor="type-group" className="text-gray-700 font-normal">그룹(구분) 브랜드 <span className="text-blue-500">(브랜드 페이지가 없고, 상품연결이 안되는 그룹(구분) 브랜드입니다)</span></Label>
                               </div>
                           </RadioGroup>
@@ -190,14 +568,18 @@ export default function BrandManagementPage() {
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           PC쇼핑몰<br/>노출상태
                       </div>
-                      <div className="flex-1 p-3">
-                           <RadioGroup defaultValue="visible" className="flex gap-6">
+                       <div className="flex-1 p-3">
+                           <RadioGroup 
+                                value={formData.displayStatusPC} 
+                                onValueChange={(val) => setFormData({...formData, displayStatusPC: val})}
+                                className="flex gap-6"
+                           >
                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="visible" id="pc-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                  <RadioGroupItem value="DISPLAY" id="pc-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                   <Label htmlFor="pc-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
                               </div>
                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="hidden" id="pc-hidden" className="rounded-full border-gray-300 text-gray-600" />
+                                  <RadioGroupItem value="HIDDEN" id="pc-hidden" className="rounded-full border-gray-300 text-gray-600" />
                                   <Label htmlFor="pc-hidden" className="text-gray-700 font-normal cursor-pointer">노출안함</Label>
                               </div>
                           </RadioGroup>
@@ -209,14 +591,18 @@ export default function BrandManagementPage() {
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           모바일쇼핑몰<br/>노출상태
                       </div>
-                      <div className="flex-1 p-3">
-                           <RadioGroup defaultValue="visible" className="flex gap-6">
+                       <div className="flex-1 p-3">
+                           <RadioGroup 
+                                value={formData.displayStatusMobile} 
+                                onValueChange={(val) => setFormData({...formData, displayStatusMobile: val})}
+                                className="flex gap-6"
+                           >
                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="visible" id="mo-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                  <RadioGroupItem value="DISPLAY" id="mo-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                   <Label htmlFor="mo-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
                               </div>
                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="hidden" id="mo-hidden" className="rounded-full border-gray-300 text-gray-600" />
+                                  <RadioGroupItem value="HIDDEN" id="mo-hidden" className="rounded-full border-gray-300 text-gray-600" />
                                   <Label htmlFor="mo-hidden" className="text-gray-700 font-normal cursor-pointer">노출안함</Label>
                               </div>
                           </RadioGroup>
@@ -267,8 +653,12 @@ export default function BrandManagementPage() {
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           성인인증
                       </div>
-                      <div className="flex-1 p-3 space-y-2">
-                           <RadioGroup defaultValue="unused" className="flex gap-6 items-center">
+                       <div className="flex-1 p-3 space-y-2">
+                           <RadioGroup 
+                                value={formData.isAdultAuth ? "used" : "unused"} 
+                                onValueChange={(val: string) => setFormData({...formData, isAdultAuth: val === "used"})}
+                                className="flex gap-6 items-center"
+                           >
                               <div className="flex items-center gap-2">
                                   <RadioGroupItem value="unused" id="adult-unused" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                   <Label htmlFor="adult-unused" className="text-gray-700 font-normal cursor-pointer">사용안함</Label>
@@ -276,11 +666,6 @@ export default function BrandManagementPage() {
                               <div className="flex items-center gap-2">
                                   <RadioGroupItem value="used" id="adult-used" className="rounded-full border-gray-300 text-gray-600" />
                                   <Label htmlFor="adult-used" className="text-gray-700 font-normal cursor-pointer">사용함</Label>
-                                  <span className="text-gray-400 text-[11px] flex items-center gap-1">( <Checkbox className="w-3 h-3 border-gray-300" /> 미인증 고객 브랜드 노출함 )</span>
-                              </div>
-                              <div className="flex items-center gap-2 ml-4">
-                                  <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" id="adult-sub" />
-                                  <Label htmlFor="adult-sub" className="text-gray-700 font-normal cursor-pointer">하위 브랜드 동일 적용</Label>
                               </div>
                           </RadioGroup>
                           <div className="text-[11px] text-gray-500 space-y-1 mt-2">
@@ -306,26 +691,24 @@ export default function BrandManagementPage() {
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           접근 권한
                       </div>
-                      <div className="flex-1 p-3">
-                           <RadioGroup defaultValue="all" className="flex flex-col gap-2">
+                       <div className="flex-1 p-3">
+                           <RadioGroup 
+                            value={formData.accessType} 
+                            onValueChange={(val: string) => setFormData({...formData, accessType: val})}
+                            className="flex flex-col gap-2"
+                           >
                               <div className="flex items-center gap-4">
                                   <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="all" id="access-all" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                    <RadioGroupItem value="ALL" id="access-all" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                     <Label htmlFor="access-all" className="text-gray-700 font-normal cursor-pointer">전체(회원+비회원)</Label>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="member" id="access-member" className="rounded-full border-gray-300 text-gray-600" />
+                                    <RadioGroupItem value="MEMBER" id="access-member" className="rounded-full border-gray-300 text-gray-600" />
                                     <Label htmlFor="access-member" className="text-gray-700 font-normal cursor-pointer">회원전용(비회원제외)</Label>
                                   </div>
                                   <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="specific" id="access-specific" className="rounded-full border-gray-300 text-gray-600" />
+                                    <RadioGroupItem value="SPECIFIC" id="access-specific" className="rounded-full border-gray-300 text-gray-600" />
                                     <Label htmlFor="access-specific" className="text-gray-700 font-normal cursor-pointer">특정 회원등급</Label>
-                                    <Button variant="secondary" disabled className="h-6 text-[11px] rounded-none px-2 py-0 bg-[#A4A4A4] text-white">회원등급 선택</Button>
-                                    <span className="text-gray-500 flex items-center gap-1 text-[11px]">( <Checkbox className="w-3 h-3 border-gray-300" /> 접근불가 고객 브랜드 노출함 )</span>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                      <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" id="access-sub" />
-                                      <Label htmlFor="access-sub" className="text-gray-700 font-normal cursor-pointer">하위 브랜드 동일 적용</Label>
                                   </div>
                               </div>
                           </RadioGroup>
@@ -337,23 +720,19 @@ export default function BrandManagementPage() {
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           상품진열 타입
                       </div>
-                      <div className="flex-1 p-3">
+                       <div className="flex-1 p-3">
                            <div className="flex items-center gap-2 mb-2">
-                                <RadioGroup defaultValue="auto" className="flex flex-col gap-1">
+                                <RadioGroup 
+                                    value={formData.productDisplayType} 
+                                    onValueChange={(val: string) => setFormData({...formData, productDisplayType: val})}
+                                    className="flex flex-col gap-1"
+                                >
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="auto" id="disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                        <RadioGroupItem value="AUTO" id="disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                         <Label htmlFor="disp-auto" className="text-gray-700 font-normal cursor-pointer">자동진열</Label>
-                                        <Select defaultValue="recent">
-                                            <SelectTrigger className="w-40 h-6 text-xs border-gray-300 rounded-sm ml-2">
-                                                <SelectValue placeholder="최근 등록 상품 위로" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
-                                            </SelectContent>
-                                        </Select>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="manual" id="disp-manual" className="rounded-full border-gray-300 text-gray-600" />
+                                        <RadioGroupItem value="MANUAL" id="disp-manual" className="rounded-full border-gray-300 text-gray-600" />
                                         <Label htmlFor="disp-manual" className="text-gray-700 font-normal cursor-pointer">수동진열</Label>
                                     </div>
                                 </RadioGroup>
@@ -363,17 +742,20 @@ export default function BrandManagementPage() {
                   </div>
 
                   {/* Row: Theme Selection */}
-                   <div className="flex border-b border-gray-200">
+                    <div className="flex border-b border-gray-200">
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           PC쇼핑몰<br/>테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
-                           <Select defaultValue="brand-theme">
+                           <Select 
+                            value={formData.pcTheme} 
+                            onValueChange={(val: string) => setFormData({...formData, pcTheme: val})}
+                           >
                                 <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
                                     <SelectValue placeholder="브랜드테마" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="brand-theme">브랜드테마</SelectItem>
+                                    <SelectItem value="브랜드테마">브랜드테마</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
@@ -382,12 +764,15 @@ export default function BrandManagementPage() {
                           모바일쇼핑몰<br/>테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2">
-                           <Select defaultValue="brand-theme">
+                           <Select 
+                            value={formData.mobileTheme} 
+                            onValueChange={(val: string) => setFormData({...formData, mobileTheme: val})}
+                           >
                                 <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
                                     <SelectValue placeholder="브랜드테마" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="brand-theme">브랜드테마</SelectItem>
+                                    <SelectItem value="브랜드테마">브랜드테마</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
@@ -512,7 +897,12 @@ export default function BrandManagementPage() {
                       </div>
                       <div className="flex-1 p-3">
                            <div className="flex items-center gap-2">
-                                  <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" id="rec-scope" />
+                                  <Checkbox 
+                                    className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                    id="rec-scope" 
+                                    checked={formData.isRecApplyToChildren}
+                                    onCheckedChange={(checked) => setFormData({...formData, isRecApplyToChildren: !!checked})}
+                                  />
                                   <Label htmlFor="rec-scope" className="text-gray-700 font-normal cursor-pointer">하위 브랜드 동일 적용</Label>
                             </div>
                       </div>
@@ -523,7 +913,11 @@ export default function BrandManagementPage() {
                           PC쇼핑몰<br/>노출상태
                       </div>
                       <div className="flex-1 p-3">
-                           <RadioGroup defaultValue="visible" className="flex gap-6">
+                           <RadioGroup 
+                            value={formData.isRecExposedPC ? "visible" : "hidden"} 
+                            onValueChange={(val) => setFormData({...formData, isRecExposedPC: val === "visible"})}
+                            className="flex gap-6"
+                           >
                               <div className="flex items-center gap-2">
                                   <RadioGroupItem value="visible" id="rec-pc-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                   <Label htmlFor="rec-pc-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
@@ -541,7 +935,11 @@ export default function BrandManagementPage() {
                           모바일쇼핑몰<br/>노출상태
                       </div>
                       <div className="flex-1 p-3">
-                           <RadioGroup defaultValue="visible" className="flex gap-6">
+                           <RadioGroup 
+                            value={formData.isRecExposedMobile ? "visible" : "hidden"} 
+                            onValueChange={(val) => setFormData({...formData, isRecExposedMobile: val === "visible"})}
+                            className="flex gap-6"
+                           >
                               <div className="flex items-center gap-2">
                                   <RadioGroupItem value="visible" id="rec-mo-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                   <Label htmlFor="rec-mo-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
@@ -560,24 +958,28 @@ export default function BrandManagementPage() {
                       </div>
                       <div className="flex-1 p-3">
                            <div className="flex items-center gap-2">
-                                <RadioGroup defaultValue="auto" className="flex flex-col gap-1.5">
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="auto" id="rec-disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
-                                        <Label htmlFor="rec-disp-auto" className="text-gray-700 font-normal cursor-pointer">자동진열</Label>
-                                         <Select defaultValue="recent">
-                                            <SelectTrigger className="w-40 h-6 text-xs border-gray-300 rounded-sm ml-2">
-                                                <SelectValue placeholder="최근 등록 상품 위로" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="manual" id="rec-disp-manual" className="rounded-full border-gray-300 text-gray-600" />
-                                        <Label htmlFor="rec-disp-manual" className="text-gray-700 font-normal cursor-pointer">수동진열</Label>
-                                    </div>
-                                </RadioGroup>
+                                 <RadioGroup 
+                                  value={formData.recProductDisplayType.toLowerCase()} 
+                                  onValueChange={(val) => setFormData({...formData, recProductDisplayType: val.toUpperCase()})}
+                                  className="flex flex-col gap-1.5"
+                                 >
+                                     <div className="flex items-center gap-2">
+                                         <RadioGroupItem value="auto" id="rec-disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                         <Label htmlFor="rec-disp-auto" className="text-gray-700 font-normal cursor-pointer">자동진열</Label>
+                                          <Select defaultValue="recent">
+                                             <SelectTrigger className="w-40 h-6 text-xs border-gray-300 rounded-sm ml-2">
+                                                 <SelectValue placeholder="최근 등록 상품 위로" />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                 <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
+                                             </SelectContent>
+                                         </Select>
+                                     </div>
+                                     <div className="flex items-center gap-2">
+                                         <RadioGroupItem value="manual" id="rec-disp-manual" className="rounded-full border-gray-300 text-gray-600" />
+                                         <Label htmlFor="rec-disp-manual" className="text-gray-700 font-normal cursor-pointer">수동진열</Label>
+                                     </div>
+                                 </RadioGroup>
                            </div>
                       </div>
                   </div>
@@ -587,12 +989,15 @@ export default function BrandManagementPage() {
                           PC쇼핑몰<br/>테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
-                           <Select defaultValue="rec-theme">
+                           <Select 
+                            value={formData.recPcTheme} 
+                            onValueChange={(val) => setFormData({...formData, recPcTheme: val})}
+                           >
                                 <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
                                     <SelectValue placeholder="추천상품테마" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="rec-theme">추천상품테마</SelectItem>
+                                    <SelectItem value="추천상품테마">추천상품테마</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
@@ -601,12 +1006,15 @@ export default function BrandManagementPage() {
                           모바일쇼핑몰<br/>테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2">
-                           <Select defaultValue="rec-theme">
+                           <Select 
+                            value={formData.recMobileTheme} 
+                            onValueChange={(val) => setFormData({...formData, recMobileTheme: val})}
+                           >
                                 <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
                                     <SelectValue placeholder="추천상품테마" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="rec-theme">추천상품테마</SelectItem>
+                                    <SelectItem value="추천상품테마">추천상품테마</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
@@ -687,30 +1095,58 @@ export default function BrandManagementPage() {
                   <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
               </div>
 
-               <div className="border-t border-gray-400 text-xs">
-                    {/* Header */}
-                   <div className="bg-[#BFBFBF] text-white flex text-center font-bold">
-                       <div className="w-10 py-3 border-r border-gray-300 flex items-center justify-center"><Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" /></div>
-                       <div className="w-12 py-3 border-r border-gray-300">번호</div>
-                       <div className="w-16 py-3 border-r border-gray-300">이미지</div>
-                       <div className="flex-1 py-3 border-r border-gray-300">상품명</div>
-                       <div className="w-24 py-3 border-r border-gray-300">판매가</div>
-                       <div className="w-24 py-3 border-r border-gray-300">공급사</div>
-                       <div className="w-20 py-3 border-r border-gray-300">재고</div>
-                       <div className="w-16 py-3 border-r border-gray-300">품절상태</div>
-                       <div className="w-20 py-3 border-r border-gray-300 leading-tight">PC쇼핑몰<br/>노출상태</div>
-                       <div className="w-24 py-3 leading-tight">모바일쇼핑몰<br/>노출상태</div>
-                   </div>
-                   {/* Empty State */}
-                   <div className="h-24 flex items-center justify-center border-b border-gray-200 text-gray-500">
-                       등록된 상품이 없습니다.
-                   </div>
-               </div>
-               
-               <div className="flex justify-between mt-2">
-                    <Button variant="outline" size="sm" className="h-7 text-xs px-3 border-gray-300 bg-white hover:bg-gray-50 text-gray-600">선택 삭제</Button>
-                    <Button variant="outline" size="sm" className="h-7 text-xs px-3 border-gray-300 bg-white hover:bg-gray-50 text-gray-600">상품 선택</Button>
-               </div>
+                <div className="border-t border-gray-400 text-xs">
+                     {/* Header */}
+                    <div className="bg-[#BFBFBF] text-white flex text-center font-bold">
+                        <div className="w-10 py-3 border-r border-gray-300 flex items-center justify-center"><Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" /></div>
+                        <div className="w-12 py-3 border-r border-gray-300">번호</div>
+                        <div className="w-16 py-3 border-r border-gray-300">이미지</div>
+                        <div className="flex-1 py-3 border-r border-gray-300">상품명</div>
+                        <div className="w-24 py-3 border-r border-gray-300">판매가</div>
+                        <div className="w-24 py-3 border-r border-gray-300">공급사</div>
+                        <div className="w-20 py-3 border-r border-gray-300">재고</div>
+                        <div className="w-16 py-3 border-r border-gray-300">품절상태</div>
+                        <div className="w-20 py-3 border-r border-gray-300 leading-tight">PC쇼핑몰<br/>노출상태</div>
+                        <div className="w-24 py-3 leading-tight">모바일쇼핑몰<br/>노출상태</div>
+                    </div>
+                    {/* Items */}
+                    {formData.recommendedProducts.length > 0 ? (
+                        formData.recommendedProducts.map((rp, index) => {
+                            const p = rp.product;
+                            return (
+                                <div key={rp.productId} className="flex text-center border-b border-gray-200 h-12 items-center">
+                                    <div className="w-10 flex items-center justify-center"><Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" /></div>
+                                    <div className="w-12">{index + 1}</div>
+                                    <div className="w-16 h-10 flex items-center justify-center bg-gray-50 m-1 border border-gray-100 italic text-[10px] text-gray-300">IMG</div>
+                                    <div className="flex-1 text-left px-2 font-medium line-clamp-1">{p?.name || rp.productId}</div>
+                                    <div className="w-24 px-1">{(p?.price || 0).toLocaleString()}원</div>
+                                    <div className="w-24 px-1">{p?.supplier || '본사'}</div>
+                                    <div className="w-20 px-1">{p?.stock || '0'}</div>
+                                    <div className="w-16 px-1">{p?.stockStatus || '-'}</div>
+                                    <div className="w-20 px-1 text-blue-500 font-bold">{p?.displayStatus || '노출함'}</div>
+                                    <div className="w-24 px-1 text-blue-500 font-bold">{p?.displayStatus || '노출함'}</div>
+                                </div>
+                            );
+                        })
+                    ) : (
+                        <div className="h-24 flex items-center justify-center border-b border-gray-200 text-gray-500">
+                             등록된 상품이 없습니다.
+                        </div>
+                    )}
+                </div>
+
+                <div className="flex justify-between mt-2">
+                     <Button
+                        variant="outline" size="sm"
+                        className="h-7 text-xs px-3 border-gray-300 bg-white hover:bg-gray-50 text-gray-600"
+                        onClick={handleRemoveSelectedProducts}
+                     >선택 삭제</Button>
+                     <Button
+                        variant="outline" size="sm"
+                        className="h-7 text-xs px-3 border-gray-300 bg-white hover:bg-gray-50 text-gray-600"
+                        onClick={handleSelectProducts}
+                     >상품 선택</Button>
+                </div>
            </div>
 
             {/* Section 8: Decoration */}
@@ -725,11 +1161,17 @@ export default function BrandManagementPage() {
 
                <div className="flex items-end justify-between border-b border-gray-300 mb-2">
                   <div className="flex">
-                      <div className="px-4 py-2 bg-gray-500 text-white text-xs font-bold border-t border-l border-r border-gray-500 cursor-pointer">PC쇼핑몰 상세 설명</div>
-                      <div className="px-4 py-2 bg-white text-gray-500 text-xs border-t border-l border-r border-gray-300 cursor-pointer border-b border-b-white transform translate-y-[1px]">모바일쇼핑몰 상세 설명</div>
+                      <div 
+                        onClick={() => setActiveDecorTabs({...activeDecorTabs, navTop: 'pc'})}
+                        className={`px-4 py-2 text-xs font-bold border-t border-l border-r cursor-pointer ${activeDecorTabs.navTop === 'pc' ? 'bg-gray-500 text-white border-gray-500' : 'bg-white text-gray-500 border-gray-300 border-b-white transform translate-y-[1px]'}`}
+                      >PC쇼핑몰 상세 설명</div>
+                      <div 
+                        onClick={() => setActiveDecorTabs({...activeDecorTabs, navTop: 'mobile'})}
+                        className={`px-4 py-2 text-xs font-bold border-t border-l border-r cursor-pointer ${activeDecorTabs.navTop === 'mobile' ? 'bg-gray-500 text-white border-gray-500' : 'bg-white text-gray-500 border-gray-300 border-b-white transform translate-y-[1px]'}`}
+                      >모바일쇼핑몰 상세 설명</div>
                   </div>
                    <div className="flex items-center gap-1.5 cursor-pointer pb-2">
-                      <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500" defaultChecked />
+                      <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500" />
                       <span className="text-xs text-gray-700">PC/ 모바일 상세설명 동일사용</span>
                    </div>
                </div>
@@ -750,115 +1192,160 @@ export default function BrandManagementPage() {
                         </div>
                     </div>
                     <div className="h-64 bg-white relative">
-                         <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500">
-                            아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer">X</span>
+                         <textarea 
+                           className="w-full h-full p-4 resize-none focus:outline-none text-xs"
+                           value={activeDecorTabs.navTop === 'pc' ? formData.htmlContents.navTopPC : formData.htmlContents.navTopMobile}
+                           onChange={(e) => {
+                               const newContents = {...formData.htmlContents};
+                               if (activeDecorTabs.navTop === 'pc') newContents.navTopPC = e.target.value;
+                               else newContents.navTopMobile = e.target.value;
+                               setFormData({...formData, htmlContents: newContents});
+                           }}
+                           placeholder="HTML 내용을 입력하세요..."
+                         />
+                         <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500 pointer-events-none">
+                            아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer pointer-events-auto">X</span>
                          </div>
                     </div>
                      <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
                         <span>Editor</span>
-                        <span className="border-l border-gray-300 pl-1">HTML</span>
+                        <span className="border-l border-gray-300 pl-1 font-bold text-black underline">HTML</span>
                         <span className="border-l border-gray-300 pl-1">TEXT</span>
                     </div>
                 </div>
             </div>
 
-            {/* Section 9: Brand Recommended Products Top Decoration */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-black">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">브랜드 추천 상품 상단 영역 꾸미기</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-
-               <div className="flex items-end justify-between border-b border-gray-300 mb-2">
-                  <div className="flex">
-                      <div className="px-4 py-2 bg-gray-500 text-white text-xs font-bold border-t border-l border-r border-gray-500 cursor-pointer">PC쇼핑몰 상세 설명</div>
-                      <div className="px-4 py-2 bg-white text-gray-500 text-xs border-t border-l border-r border-gray-300 cursor-pointer border-b border-b-white transform translate-y-[1px]">모바일쇼핑몰 상세 설명</div>
-                  </div>
-                   <div className="flex items-center gap-1.5 cursor-pointer pb-2">
-                      <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500" defaultChecked />
-                      <span className="text-xs text-gray-700">PC/ 모바일 상세설명 동일사용</span>
+             {/* Section 9: Brand Recommended Products Top Decoration */}
+             <div className="space-y-2">
+               <div className="flex items-center justify-between pb-2 border-b border-black">
+                   <div className="flex items-center gap-2">
+                       <h2 className="text-lg font-bold text-gray-800">브랜드 추천 상품 상단 영역 꾸미기</h2>
+                       <HelpCircle className="w-4 h-4 text-gray-400" />
                    </div>
+                   <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
                </div>
-
-                {/* Fake Editor */}
-                <div className="border border-gray-300">
-                    <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
-                        <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
-                        <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
-                        <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                        <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                        <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                        <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                        <File className="w-4 h-4 text-gray-600" />
-                        <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
-                            <span className="text-[10px]">사진</span>
-                        </div>
-                    </div>
-                    <div className="h-64 bg-white relative">
-                         <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500">
-                            아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer">X</span>
-                         </div>
-                    </div>
-                     <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
-                        <span>Editor</span>
-                        <span className="border-l border-gray-300 pl-1">HTML</span>
-                        <span className="border-l border-gray-300 pl-1">TEXT</span>
-                    </div>
-                </div>
-            </div>
-
-             {/* Section 10: Brand List Top Decoration */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-black">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">브랜드 리스트 상단 영역 꾸미기</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-
-               <div className="flex items-end justify-between border-b border-gray-300 mb-2">
-                  <div className="flex">
-                      <div className="px-4 py-2 bg-gray-500 text-white text-xs font-bold border-t border-l border-r border-gray-500 cursor-pointer">PC쇼핑몰 상세 설명</div>
-                      <div className="px-4 py-2 bg-white text-gray-500 text-xs border-t border-l border-r border-gray-300 cursor-pointer border-b border-b-white transform translate-y-[1px]">모바일쇼핑몰 상세 설명</div>
-                  </div>
-                   <div className="flex items-center gap-1.5 cursor-pointer pb-2">
-                      <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500" defaultChecked />
-                      <span className="text-xs text-gray-700">PC/ 모바일 상세설명 동일사용</span>
+ 
+                <div className="flex items-end justify-between border-b border-gray-300 mb-2">
+                   <div className="flex">
+                       <div 
+                         onClick={() => setActiveDecorTabs({...activeDecorTabs, recTop: 'pc'})}
+                         className={`px-4 py-2 text-xs font-bold border-t border-l border-r cursor-pointer ${activeDecorTabs.recTop === 'pc' ? 'bg-gray-500 text-white border-gray-500' : 'bg-white text-gray-500 border-gray-300 border-b-white transform translate-y-[1px]'}`}
+                       >PC쇼핑몰 상세 설명</div>
+                       <div 
+                         onClick={() => setActiveDecorTabs({...activeDecorTabs, recTop: 'mobile'})}
+                         className={`px-4 py-2 text-xs font-bold border-t border-l border-r cursor-pointer ${activeDecorTabs.recTop === 'mobile' ? 'bg-gray-500 text-white border-gray-500' : 'bg-white text-gray-500 border-gray-300 border-b-white transform translate-y-[1px]'}`}
+                       >모바일쇼핑몰 상세 설명</div>
                    </div>
-               </div>
-
-                {/* Fake Editor */}
-                <div className="border border-gray-300">
-                    <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
-                        <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
-                        <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
-                        <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                        <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                        <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                        <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                        <File className="w-4 h-4 text-gray-600" />
-                        <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
-                            <span className="text-[10px]">사진</span>
-                        </div>
-                    </div>
-                    <div className="h-64 bg-white relative">
-                        <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500">
-                            아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer">X</span>
-                         </div>
-                    </div>
-                     <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
-                        <span>Editor</span>
-                        <span className="border-l border-gray-300 pl-1">HTML</span>
-                        <span className="border-l border-gray-300 pl-1">TEXT</span>
+                    <div className="flex items-center gap-1.5 cursor-pointer pb-2">
+                       <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500" />
+                       <span className="text-xs text-gray-700">PC/ 모바일 상세설명 동일사용</span>
                     </div>
                 </div>
-            </div>
+ 
+                 {/* Fake Editor */}
+                 <div className="border border-gray-300">
+                     <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
+                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
+                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
+                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
+                         <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
+                         <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
+                         <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
+                          <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
+                         <File className="w-4 h-4 text-gray-600" />
+                         <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
+                             <span className="text-[10px]">사진</span>
+                         </div>
+                     </div>
+                     <div className="h-64 bg-white relative">
+                          <textarea 
+                            className="w-full h-full p-4 resize-none focus:outline-none text-xs"
+                            value={activeDecorTabs.recTop === 'pc' ? formData.htmlContents.recTopPC : formData.htmlContents.recTopMobile}
+                            onChange={(e) => {
+                                const newContents = {...formData.htmlContents};
+                                if (activeDecorTabs.recTop === 'pc') newContents.recTopPC = e.target.value;
+                                else newContents.recTopMobile = e.target.value;
+                                setFormData({...formData, htmlContents: newContents});
+                            }}
+                            placeholder="HTML 내용을 입력하세요..."
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500 pointer-events-none">
+                             아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer pointer-events-auto">X</span>
+                          </div>
+                     </div>
+                      <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
+                         <span>Editor</span>
+                         <span className="border-l border-gray-300 pl-1 font-bold text-black underline">HTML</span>
+                         <span className="border-l border-gray-300 pl-1">TEXT</span>
+                     </div>
+                 </div>
+             </div>
+
+              {/* Section 10: Brand List Top Decoration */}
+             <div className="space-y-2">
+               <div className="flex items-center justify-between pb-2 border-b border-black">
+                   <div className="flex items-center gap-2">
+                       <h2 className="text-lg font-bold text-gray-800">브랜드 리스트 상단 영역 꾸미기</h2>
+                       <HelpCircle className="w-4 h-4 text-gray-400" />
+                   </div>
+                   <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
+               </div>
+ 
+                <div className="flex items-end justify-between border-b border-gray-300 mb-2">
+                   <div className="flex">
+                       <div 
+                         onClick={() => setActiveDecorTabs({...activeDecorTabs, listTop: 'pc'})}
+                         className={`px-4 py-2 text-xs font-bold border-t border-l border-r cursor-pointer ${activeDecorTabs.listTop === 'pc' ? 'bg-gray-500 text-white border-gray-500' : 'bg-white text-gray-500 border-gray-300 border-b-white transform translate-y-[1px]'}`}
+                       >PC쇼핑몰 상세 설명</div>
+                       <div 
+                         onClick={() => setActiveDecorTabs({...activeDecorTabs, listTop: 'mobile'})}
+                         className={`px-4 py-2 text-xs font-bold border-t border-l border-r cursor-pointer ${activeDecorTabs.listTop === 'mobile' ? 'bg-gray-500 text-white border-gray-500' : 'bg-white text-gray-500 border-gray-300 border-b-white transform translate-y-[1px]'}`}
+                       >모바일쇼핑몰 상세 설명</div>
+                   </div>
+                    <div className="flex items-center gap-1.5 cursor-pointer pb-2">
+                       <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px] data-[state=checked]:bg-red-500" />
+                       <span className="text-xs text-gray-700">PC/ 모바일 상세설명 동일사용</span>
+                    </div>
+                </div>
+ 
+                 {/* Fake Editor */}
+                 <div className="border border-gray-300">
+                     <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
+                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
+                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
+                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
+                         <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
+                         <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
+                         <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
+                          <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
+                         <File className="w-4 h-4 text-gray-600" />
+                         <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
+                             <span className="text-[10px]">사진</span>
+                         </div>
+                     </div>
+                     <div className="h-64 bg-white relative">
+                          <textarea 
+                            className="w-full h-full p-4 resize-none focus:outline-none text-xs"
+                            value={activeDecorTabs.listTop === 'pc' ? formData.htmlContents.listTopPC : formData.htmlContents.listTopMobile}
+                            onChange={(e) => {
+                                const newContents = {...formData.htmlContents};
+                                if (activeDecorTabs.listTop === 'pc') newContents.listTopPC = e.target.value;
+                                else newContents.listTopMobile = e.target.value;
+                                setFormData({...formData, htmlContents: newContents});
+                            }}
+                            placeholder="HTML 내용을 입력하세요..."
+                          />
+                          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500 pointer-events-none">
+                             아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer pointer-events-auto">X</span>
+                          </div>
+                     </div>
+                      <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
+                         <span>Editor</span>
+                         <span className="border-l border-gray-300 pl-1 font-bold text-black underline">HTML</span>
+                         <span className="border-l border-gray-300 pl-1">TEXT</span>
+                     </div>
+                 </div>
+             </div>
 
             {/* Section 11: SEO Settings */}
              <div className="space-y-2">
@@ -879,7 +1366,11 @@ export default function BrandManagementPage() {
                           개별 설정 사용여부
                       </div>
                       <div className="flex-1 p-3">
-                           <RadioGroup defaultValue="unused" className="flex gap-6 items-center">
+                           <RadioGroup 
+                            value={formData.isSeoUsed ? "used" : "unused"} 
+                            onValueChange={(val) => setFormData({...formData, isSeoUsed: val === "used"})}
+                            className="flex gap-6 items-center"
+                           >
                               <div className="flex items-center gap-2">
                                   <RadioGroupItem value="used" id="seo-used" className="rounded-full border-gray-300 text-gray-600" />
                                   <Label htmlFor="seo-used" className="text-gray-700 font-normal cursor-pointer">사용함</Label>
@@ -903,7 +1394,11 @@ export default function BrandManagementPage() {
                           타이틀 (Title)
                       </div>
                       <div className="flex-1 p-3">
-                          <Input className="w-full h-8 border-gray-300 rounded-sm" />
+                          <Input 
+                            value={formData.seoTitle} 
+                            onChange={(e) => setFormData({...formData, seoTitle: e.target.value})}
+                            className="w-full h-8 border-gray-300 rounded-sm" 
+                           />
                       </div>
                   </div>
                    <div className="flex border-b border-gray-200">
@@ -911,7 +1406,11 @@ export default function BrandManagementPage() {
                           메타태그 작성자 (Author)
                       </div>
                       <div className="flex-1 p-3">
-                          <Input className="w-full h-8 border-gray-300 rounded-sm" />
+                          <Input 
+                            value={formData.seoAuthor} 
+                            onChange={(e) => setFormData({...formData, seoAuthor: e.target.value})}
+                            className="w-full h-8 border-gray-300 rounded-sm" 
+                           />
                       </div>
                   </div>
                    <div className="flex border-b border-gray-200">
@@ -919,7 +1418,11 @@ export default function BrandManagementPage() {
                           메타태그 설명 (Description)
                       </div>
                       <div className="flex-1 p-3">
-                          <Input className="w-full h-8 border-gray-300 rounded-sm" />
+                          <Input 
+                            value={formData.seoDescription} 
+                            onChange={(e) => setFormData({...formData, seoDescription: e.target.value})}
+                            className="w-full h-8 border-gray-300 rounded-sm" 
+                           />
                       </div>
                   </div>
                    <div className="flex border-b border-gray-200">
@@ -927,7 +1430,11 @@ export default function BrandManagementPage() {
                           메타태그 키워드 (Keywords)
                       </div>
                       <div className="flex-1 p-3">
-                          <Input className="w-full h-8 border-gray-300 rounded-sm" />
+                          <Input 
+                            value={formData.seoKeywords.join(', ')} 
+                            onChange={(e) => setFormData({...formData, seoKeywords: e.target.value.split(',').map(s => s.trim())})}
+                            className="w-full h-8 border-gray-300 rounded-sm" 
+                           />
                       </div>
                   </div>
               </div>

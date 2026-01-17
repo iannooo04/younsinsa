@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,26 +9,111 @@ import {
   HelpCircle,
   Youtube,
   ChevronUp,
-  Info,
-  ChevronDown
+  Info
 } from "lucide-react";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-  } from "@/components/ui/select";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getBoardsAction, deleteBoardsAction } from "@/actions/board-actions";
+import { toast } from "sonner";
+import { Link } from "@/i18n/routing";
 
 export default function BoardListPage() {
-  const boardData = [
-    { no: 6, id: "cooperation", name: "광고 · 제휴게시판", new: 0, total: 0, unreplied: "0", type: "1:1 문의형", pcSkin: "1:1문의(기본)", mobileSkin: "1:1문의(기본)" },
-    { no: 5, id: "event", name: "이벤트", new: 0, total: 0, unreplied: "-", type: "이벤트형", pcSkin: "이벤트(기본)", mobileSkin: "이벤트(기본)" },
-    { no: 4, id: "notice", name: "공지사항", new: 0, total: 0, unreplied: "-", type: "일반형", pcSkin: "일반형(기본)", mobileSkin: "일반형(기본)" },
-    { no: 3, id: "qa", name: "1:1문의", new: 0, total: 0, unreplied: "0", type: "1:1 문의형", pcSkin: "1:1문의(기본)", mobileSkin: "1:1문의(기본)" },
-    { no: 2, id: "goodsqa", name: "상품문의", new: 0, total: 0, unreplied: "0", type: "1:1 문의형", pcSkin: "1:1문의(기본)", mobileSkin: "1:1문의(기본)" },
-    { no: 1, id: "goodsreview", name: "상품후기", new: 0, total: 0, unreplied: "-", type: "갤러리형", pcSkin: "갤러리(기본)", mobileSkin: "갤러리(기본)" },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [boards, setBoards] = useState<any[]>([]);
+  
+  // Search state
+  const [keyword, setKeyword] = useState("");
+  const [searchType, setSearchType] = useState("id");
+  const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
+  const [allChecked, setAllChecked] = useState(false);
+  const [checkedIds, setCheckedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchBoards();
+  }, []);
+
+  const fetchBoards = async () => {
+    setLoading(true);
+    const res = await getBoardsAction({
+        keyword,
+        searchType: searchType as 'id' | 'name',
+        type: selectedTypes.length > 0 && !selectedTypes.includes('all') ? selectedTypes : undefined
+    });
+    if (res.success) {
+        setBoards(res.items || []);
+    } else {
+        toast.error(res.error || "목록을 불러오는데 실패했습니다.");
+    }
+    setLoading(false);
+  };
+
+  const handleTypeChange = (type: string, checked: boolean) => {
+      if (type === 'all') {
+          if (checked) setSelectedTypes(['all']);
+          else setSelectedTypes([]);
+      } else {
+          let newTypes = checked 
+            ? [...selectedTypes.filter(t => t !== 'all'), type]
+            : selectedTypes.filter(t => t !== type);
+          
+          if (newTypes.length === 0) newTypes = [];
+          setSelectedTypes(newTypes);
+      }
+  };
+
+  const handleSearch = () => {
+      fetchBoards();
+  };
+
+  const handleDelete = async () => {
+      if (checkedIds.length === 0) {
+          toast.error("선택된 게시판이 없습니다.");
+          return;
+      }
+      if (!confirm("선택한 게시판을 삭제하시겠습니까? 관련 게시글도 모두 삭제됩니다.")) return;
+
+      const res = await deleteBoardsAction(checkedIds);
+      if (res.success) {
+          toast.success("삭제되었습니다.");
+          setCheckedIds([]);
+          setAllChecked(false);
+          fetchBoards();
+      } else {
+          toast.error(res.error || "삭제 실패");
+      }
+  };
+
+  const toggleAll = (checked: boolean) => {
+      setAllChecked(checked);
+      if (checked) {
+          setCheckedIds(boards.map(b => b.id));
+      } else {
+          setCheckedIds([]);
+      }
+  };
+
+  const toggleOne = (id: string, checked: boolean) => {
+      if (checked) {
+          setCheckedIds(prev => [...prev, id]);
+      } else {
+          setCheckedIds(prev => prev.filter(p => p !== id));
+      }
+  };
+
+  const getTypeName = (type: string) => {
+      switch(type) {
+          case 'BASIC': return '일반형';
+          case 'GALLERY': return '갤러리형';
+          case 'EVENT': return '이벤트형';
+          case 'INQUIRY': return '1:1 문의형';
+          default: return type;
+      }
+  };
 
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
@@ -38,9 +123,11 @@ export default function BoardListPage() {
             <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">게시판 리스트</h1>
             <span className="text-gray-500 text-sm">생성된 게시판을 수정하고 관리합니다.</span>
         </div>
-        <Button className="h-10 px-6 text-sm bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
-            게시판 만들기
-        </Button>
+        <Link href="/admin/boards/create">
+            <Button className="h-10 px-6 text-sm bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
+                게시판 만들기
+            </Button>
+        </Link>
       </div>
 
       {/* Search Section */}
@@ -57,7 +144,7 @@ export default function BoardListPage() {
                     검색어
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-1">
-                    <Select defaultValue="id">
+                    <Select value={searchType} onValueChange={setSearchType}>
                         <SelectTrigger className="w-32 h-7 text-xs border-gray-300 bg-white rounded-[2px]">
                             <SelectValue placeholder="아이디" />
                         </SelectTrigger>
@@ -66,15 +153,13 @@ export default function BoardListPage() {
                             <SelectItem value="name">이름</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Select defaultValue="match_all">
-                        <SelectTrigger className="w-40 h-7 text-xs border-gray-300 bg-white rounded-[2px]">
-                            <SelectValue placeholder="검색어 전체일치" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="match_all">검색어 전체일치</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Input className="w-80 h-7 text-xs border-gray-300 rounded-[2px]" placeholder="검색어 전체를 정확히 입력하세요." />
+                 
+                    <Input 
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        className="w-80 h-7 text-xs border-gray-300 rounded-[2px]" 
+                        placeholder="검색어 입력" 
+                    />
                 </div>
             </div>
 
@@ -85,23 +170,48 @@ export default function BoardListPage() {
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-4">
                     <div className="flex items-center gap-1.5">
-                        <Checkbox id="type-all" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
+                        <Checkbox 
+                            id="type-all" 
+                            className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                            checked={selectedTypes.includes('all')}
+                            onCheckedChange={(c) => handleTypeChange('all', c as boolean)}
+                        />
                         <Label htmlFor="type-all" className="text-gray-600 font-normal cursor-pointer">전체</Label>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <Checkbox id="type-normal" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
+                        <Checkbox 
+                            id="type-normal" 
+                            className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                            checked={selectedTypes.includes('normal')}
+                            onCheckedChange={(c) => handleTypeChange('normal', c as boolean)}
+                        />
                         <Label htmlFor="type-normal" className="text-gray-600 font-normal cursor-pointer">일반형</Label>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <Checkbox id="type-gallery" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
+                        <Checkbox 
+                            id="type-gallery" 
+                            className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                            checked={selectedTypes.includes('gallery')}
+                            onCheckedChange={(c) => handleTypeChange('gallery', c as boolean)}
+                        />
                         <Label htmlFor="type-gallery" className="text-gray-600 font-normal cursor-pointer">갤러리형</Label>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <Checkbox id="type-event" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
+                        <Checkbox 
+                            id="type-event" 
+                            className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                            checked={selectedTypes.includes('event')}
+                            onCheckedChange={(c) => handleTypeChange('event', c as boolean)}
+                        />
                         <Label htmlFor="type-event" className="text-gray-600 font-normal cursor-pointer">이벤트형</Label>
                     </div>
                     <div className="flex items-center gap-1.5">
-                        <Checkbox id="type-oneonone" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
+                        <Checkbox 
+                            id="type-oneonone" 
+                            className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                            checked={selectedTypes.includes('oneonone')}
+                            onCheckedChange={(c) => handleTypeChange('oneonone', c as boolean)}
+                        />
                         <Label htmlFor="type-oneonone" className="text-gray-600 font-normal cursor-pointer">1:1문의형</Label>
                     </div>
                 </div>
@@ -109,7 +219,7 @@ export default function BoardListPage() {
         </div>
         
          <div className="flex justify-center mt-6">
-              <Button className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
+              <Button onClick={handleSearch} className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
                 검색
             </Button>
          </div>
@@ -119,7 +229,7 @@ export default function BoardListPage() {
        <div className="mb-0">
            <div className="flex items-center mb-2">
                <div className="text-[11px] font-bold text-gray-500">
-                   검색 <span className="text-red-500">6</span>개 / 총 <span className="text-red-500">6</span>개
+                   검색 <span className="text-red-500">{boards.length}</span>개 / 총 <span className="text-red-500">{boards.length}</span>개
                </div>
            </div>
            
@@ -127,7 +237,13 @@ export default function BoardListPage() {
                 <table className="w-full text-xs text-center border-collapse">
                      <thead>
                          <tr className="bg-[#B9B9B9] text-white h-10 border-b border-gray-300 font-normal">
-                             <th className="w-12 border-r border-gray-300"><Checkbox className="border-white data-[state=checked]:bg-white data-[state=checked]:text-gray-400 w-3.5 h-3.5 rounded-[2px]" /></th>
+                             <th className="w-12 border-r border-gray-300">
+                                 <Checkbox 
+                                    className="border-white data-[state=checked]:bg-white data-[state=checked]:text-gray-400 w-3.5 h-3.5 rounded-[2px] mx-auto" 
+                                    checked={allChecked}
+                                    onCheckedChange={(c) => toggleAll(c as boolean)}
+                                />
+                             </th>
                              <th className="w-14 border-r border-gray-300 font-normal">번호</th>
                              <th className="w-32 border-r border-gray-300 font-normal">아이디</th>
                              <th className="w-32 border-r border-gray-300 font-normal">이름</th>
@@ -144,33 +260,43 @@ export default function BoardListPage() {
                          </tr>
                      </thead>
                      <tbody>
-                         {boardData.map((row, i) => (
-                             <tr key={i} className="h-20 border-b border-gray-200 hover:bg-gray-50 text-gray-700">
-                                 <td className="border-r border-gray-200"><Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" /></td>
-                                 <td className="border-r border-gray-200">{row.no}</td>
-                                 <td className="border-r border-gray-200 text-blue-500 underline cursor-pointer font-normal">{row.id}</td>
+                         {loading ? (
+                             <tr><td colSpan={14} className="py-10 text-gray-500">로딩중...</td></tr>
+                         ) : boards.length === 0 ? (
+                             <tr><td colSpan={14} className="py-10 text-gray-500">검색된 게시판이 없습니다.</td></tr>
+                         ) : boards.map((row, i) => (
+                             <tr key={row.id} className="h-20 border-b border-gray-200 hover:bg-gray-50 text-gray-700">
+                                 <td className="border-r border-gray-200">
+                                     <Checkbox 
+                                        className="w-3.5 h-3.5 border-gray-300 rounded-[2px] mx-auto" 
+                                        checked={checkedIds.includes(row.id)}
+                                        onCheckedChange={(c) => toggleOne(row.id, c as boolean)}
+                                     />
+                                 </td>
+                                 <td className="border-r border-gray-200">{i + 1}</td>
+                                 <td className="border-r border-gray-200 text-blue-500 underline cursor-pointer font-normal">{row.boardId}</td>
                                  <td className="border-r border-gray-200 font-normal">{row.name}</td>
-                                 <td className="border-r border-gray-200 font-normal">{row.new}</td>
-                                 <td className="border-r border-gray-200 font-normal">{row.total}</td>
-                                 <td className="border-r border-gray-200 font-normal">{row.unreplied}</td>
-                                 <td className="border-r border-gray-200 font-normal">{row.type}</td>
+                                 <td className="border-r border-gray-200 font-normal">{row.stats?.new || 0}</td>
+                                 <td className="border-r border-gray-200 font-normal">{row.stats?.total || 0}</td>
+                                 <td className="border-r border-gray-200 font-normal">{row.stats?.unreplied}</td>
+                                 <td className="border-r border-gray-200 font-normal">{getTypeName(row.type)}</td>
                                  <td className="border-r border-gray-200 text-left p-2">
                                      <div className="space-y-1">
                                          <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇰🇷</span> {row.pcSkin}
+                                             <span className="text-xs">🇰🇷</span> {getTypeName(row.type)}(기본)
                                          </div>
                                          <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇨🇳</span> {row.pcSkin}
+                                             <span className="text-xs">🇨🇳</span> {getTypeName(row.type)}(기본)
                                          </div>
                                      </div>
                                  </td>
                                  <td className="border-r border-gray-200 text-left p-2">
                                      <div className="space-y-1">
                                          <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇰🇷</span> {row.mobileSkin}
+                                             <span className="text-xs">🇰🇷</span> {getTypeName(row.type)}(기본)
                                          </div>
                                          <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇨🇳</span> {row.mobileSkin}
+                                             <span className="text-xs">🇨🇳</span> {getTypeName(row.type)}(기본)
                                          </div>
                                      </div>
                                  </td>
@@ -200,7 +326,7 @@ export default function BoardListPage() {
                 <div className="text-xs font-bold text-gray-600 ml-1 flex items-center gap-1">
                    <span className="text-red-500 font-bold">✓</span> 선택한 게시판
                 </div>
-                <Button variant="outline" className="h-6 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-gray-700">삭제</Button>
+                <Button onClick={handleDelete} variant="outline" className="h-6 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-gray-700">삭제</Button>
             </div>
 
             {/* Pagination */}

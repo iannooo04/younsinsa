@@ -1,12 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { HelpCircle, ChevronUp, Youtube, Download } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { read, utils, writeFile } from 'xlsx';
+import { uploadUsersExcelAction } from "@/actions/user-actions";
 
 export default function MemberExcelUploadPage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const tableData = [
     { name: "회원 번호", code: "mem_no", desc: "숫자 10자 이내의 unique 코드, 등록시에는 자동 생성 되므로 등록시에는 넣지 마세요." },
     { name: "아이디", code: "mem_id", desc: "영문, 숫자,특수문자(.-_@) 20자 이내 입력" },
@@ -74,6 +79,129 @@ export default function MemberExcelUploadPage() {
     { name: "개인정보유효기간", code: "expiration_fl", desc: "1:1년, 3:3년, 5:5년, 999:탈퇴시 기본은 1(1년)입니다." },
   ];
 
+  const handleDownloadSample = () => {
+    // Row 1: Korean Field Names
+    const headers1 = tableData.map(t => t.name);
+    // Row 2: English Codes (DB Keys)
+    const headers2 = tableData.map(t => t.code);
+    // Row 3: Descriptions
+    const headers3 = tableData.map(t => t.desc);
+
+    // Create worksheet
+    const ws = utils.aoa_to_sheet([
+        headers1,
+        headers2,
+        headers3
+    ]);
+
+    // Set column widths
+    ws['!cols'] = tableData.map(() => ({ wch: 20 }));
+
+    // Create workbook and append sheet
+    const wb = utils.book_new();
+    utils.book_append_sheet(wb, ws, "회원일괄등록샘플");
+
+    // Save file
+    writeFile(wb, "member_excel_sample.xlsx");
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+        setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return alert('파일을 선택해주세요.');
+
+    setIsLoading(true);
+    try {
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const data = e.target?.result;
+            const workbook = read(data, { type: 'binary' });
+            const sheetName = workbook.SheetNames[0];
+            const sheet = workbook.Sheets[sheetName];
+            
+            // Read as array of arrays
+            // Row 0: Description
+            // Row 1: Keys (mem_id, etc) - This is what we map to
+            // Row 2: Description
+            // Row 3+: Data
+            const rawData = utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+            
+            if (rawData.length < 2) {
+                 alert('엑셀 파일 형식이 올바르지 않습니다. (헤더를 찾을 수 없습니다)');
+                 setIsLoading(false);
+                 return;
+            }
+
+            const keys = rawData[1] as string[]; 
+            // Basic validation of keys
+            if (!keys.includes('mem_id') || !keys.includes('mem_name')) {
+                 alert('엑셀 파일 형식이 올바르지 않습니다. 2번째 줄에 영문필드명이 있어야 합니다.');
+                 setIsLoading(false);
+                 return;
+            }
+
+            // Data starts at Row 3 (index 3) per instructions "4번째 줄부터 데이터"
+            const dataRows = rawData.slice(3); // items from index 3 to end
+            
+            if (dataRows.length === 0) {
+                 alert('데이터가 없습니다.');
+                 setIsLoading(false);
+                 return;
+            }
+
+            const formattedData = dataRows.map(row => {
+                const obj: any = {};
+                keys.forEach((key, index) => {
+                     // Check if key exists and row has value
+                     if (key && row[index] !== undefined) obj[key] = row[index];
+                });
+                return obj;
+            });
+
+            // Filter out completely empty rows
+            const validData = formattedData.filter(d => Object.keys(d).length > 0 && d.mem_id);
+
+            if (validData.length === 0) {
+                 alert('유효한 데이터가 없습니다.');
+                 setIsLoading(false);
+                 return;
+            }
+
+            const res = await uploadUsersExcelAction(validData);
+            
+            if (res.success) {
+                let msg = `${res.count}명 등록 성공, ${res.failCount}명 실패.`;
+                if (res.errors && res.errors.length > 0) {
+                    msg += `\n\n[실패 사유 (최대 10건)]\n${res.errors.join('\n')}`;
+                }
+                alert(msg);
+                if (res.count > 0) {
+                    setFile(null);
+                    // Reset file input
+                    const input = document.getElementById('excel-file-input') as HTMLInputElement;
+                    if (input) input.value = '';
+                }
+            } else {
+                alert(res.error || '업로드 실패');
+            }
+            setIsLoading(false);
+        };
+        reader.onerror = () => {
+            alert('파일 읽기 실패');
+            setIsLoading(false);
+        };
+        reader.readAsBinaryString(file);
+    } catch (e) {
+        console.error(e);
+        alert('오류가 발생했습니다.');
+        setIsLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
        {/* Header */}
@@ -96,10 +224,32 @@ export default function MemberExcelUploadPage() {
                 <div className="flex-1 p-4">
                      <div className="flex items-center gap-1 mb-3">
                          <div className="relative flex items-center">
-                            <Button variant="secondary" className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888] absolute left-0 z-10 pointer-events-none">찾아보기</Button>
-                            <Input type="file" className="w-72 h-7 pl-20 text-xs border border-gray-300" />
+                            <Button 
+                                variant="secondary" 
+                                className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888] absolute left-0 z-10 pointer-events-none"
+                            >
+                                찾아보기
+                            </Button>
+                            <Input 
+                                type="file" 
+                                id="excel-file-input"
+                                className="w-72 h-7 pl-20 text-xs border border-gray-300 relative z-20 opacity-0 cursor-pointer" 
+                                onChange={handleFileChange}
+                                accept=".xlsx, .xls"
+                            />
+                             {/* Visual Input to show filename (hacky but standard for custom file input) */}
+                             <div className="absolute left-[85px] top-[2px] w-[200px] text-xs text-gray-600 truncate pointer-events-none">
+                                {file ? file.name : "선택된 파일 없음"}
+                             </div>
                          </div>
-                         <Button variant="secondary" className="h-7 px-3 text-[11px] bg-white border border-gray-300 text-gray-700 rounded-[2px] hover:bg-gray-50">엑셀업로드</Button>
+                         <Button 
+                            onClick={handleUpload}
+                            disabled={isLoading}
+                            variant="secondary" 
+                            className="h-7 px-3 text-[11px] bg-white border border-gray-300 text-gray-700 rounded-[2px] hover:bg-gray-50 disabled:opacity-50"
+                         >
+                             {isLoading ? '업로드 중...' : '엑셀업로드'}
+                         </Button>
                      </div>
                      <div className="space-y-1">
                         <p className="text-[11px] text-red-500 flex items-start gap-1">
@@ -131,7 +281,11 @@ export default function MemberExcelUploadPage() {
                    <li>아래 "회원 엑셀 샘플 다운로드" 버튼을 눌러 샘플을 참고하시기 바랍니다.</li>
                    <li>엑셀 파일 저장은 반드시 "Excel 통합 문서(xlsx)" 혹은 "Excel 97-2003 통합문서(xls)"로 저장하셔야 합니다. 그 외 csv나 xml 파일등은 지원 되지 않습니다.</li>
                </ol>
-               <Button variant="outline" className="mt-2 h-8 px-3 text-[11px] bg-white border-gray-300 text-green-600 hover:text-green-700 hover:bg-green-50 flex items-center gap-1 rounded-sm">
+               <Button 
+                    variant="outline" 
+                    onClick={handleDownloadSample}
+                    className="mt-2 h-8 px-3 text-[11px] bg-white border-gray-300 text-green-600 hover:text-green-700 hover:bg-green-50 flex items-center gap-1 rounded-sm"
+                >
                    <span className="text-green-600 bg-green-100 p-0.5 rounded-sm"><Download className="w-3 h-3"/></span>
                    회원 엑셀 샘플 다운로드
                </Button>

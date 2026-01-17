@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,27 +23,152 @@ import {
 } from "@/components/ui/ui-table";
 import { CalendarIcon, Youtube, ChevronUp, Book, Plus } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { getOptionTemplatesAction, deleteOptionTemplatesAction, copyOptionTemplatesAction } from "@/actions/option-template-actions";
+import { format } from "date-fns";
 
 export default function CommonlyUsedOptionsPage() {
-    // Mock Data
-    const optionsData = [
-        { id: 11, manageName: "N_SIZE5", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-18", modDate: "2025-12-18" },
-        { id: 10, manageName: "S_M_SIZE", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-17", modDate: "-" },
-        { id: 9, manageName: "N_SIZE5", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-17", modDate: "-" },
-        { id: 8, manageName: "SIZE2", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-16", modDate: "2025-12-16" },
-        { id: 7, manageName: "N_SIZE4", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-15", modDate: "2025-12-15" },
-        { id: 6, manageName: "N_SIZE3", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-12", modDate: "2025-12-12" },
-        { id: 5, manageName: "H_SIZE", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-11", modDate: "2025-12-12" },
-        { id: 4, manageName: "F_SIZE", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-11", modDate: "-" },
-        { id: 3, manageName: "N_SIZE2", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-10", modDate: "-" },
-        { id: 2, manageName: "N_SIZE", type: "일체형", name: "SIZE", supplier: "니아인터내셔널", regDate: "2025-12-08", modDate: "2025-12-17" },
-    ];
+    // Data State
+    const [data, setData] = useState<any[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Filter State
+    const [supplierType, setSupplierType] = useState('all');
+    const [searchType, setSearchType] = useState('integrated');
+    const [keyword, setKeyword] = useState('');
+    const [displayType, setDisplayType] = useState('all');
+    const [dateType, setDateType] = useState('regDate');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    // Temporary Search State (to support "Search" button click)
+    const [searchTrigger, setSearchTrigger] = useState(0);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const result = await getOptionTemplatesAction(page, pageSize, {
+            supplierType,
+            searchType,
+            keyword,
+            displayType,
+            dateType,
+            startDate,
+            endDate,
+        });
+
+        if (result.success) {
+            setData(result.items);
+            setTotalCount(result.totalCount);
+        }
+        setLoading(false);
+    }, [page, pageSize, searchTrigger]); // searchTrigger will update when "Search" is clicked
+
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchData]);
+
+    const handleSearch = () => {
+        setPage(1);
+        setSearchTrigger(prev => prev + 1);
+    };
+
+    const handleCheckboxChange = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(item => item !== id));
+        }
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(data.map(item => item.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleDelete = async () => {
+        if (selectedIds.length === 0) {
+            alert("삭제할 항목을 선택해주세요.");
+            return;
+        }
+        if (!confirm("선택한 항목을 삭제하시겠습니까?")) return;
+
+        const result = await deleteOptionTemplatesAction(selectedIds);
+        if (result.success) {
+            alert(result.message);
+            setSelectedIds([]);
+            fetchData();
+        } else {
+            alert(result.message);
+        }
+    };
+
+    const handleCopy = async () => {
+        if (selectedIds.length === 0) {
+            alert("복사할 항목을 선택해주세요.");
+            return;
+        }
+        if (!confirm("선택한 항목을 복사하시겠습니까?")) return;
+
+        const result = await copyOptionTemplatesAction(selectedIds);
+        if (result.success) {
+            alert(result.message);
+            setSelectedIds([]);
+            fetchData();
+        } else {
+            alert(result.message);
+        }
+    };
+    
+    // Date Helpers
+    const setPeriod = (period: string) => {
+        const end = new Date();
+        const start = new Date();
+        
+        switch (period) {
+            case "오늘":
+                break; // Start is today
+            case "7일":
+                start.setDate(end.getDate() - 7);
+                break;
+            case "15일":
+                start.setDate(end.getDate() - 15);
+                break;
+            case "1개월":
+                start.setMonth(end.getMonth() - 1);
+                break;
+            case "3개월":
+                start.setMonth(end.getMonth() - 3);
+                break;
+            case "전체":
+                setStartDate("");
+                setEndDate("");
+                return;
+            default:
+                break;
+        }
+        if (period !== "전체") {
+             setStartDate(format(start, "yyyy-MM-dd"));
+             setEndDate(format(end, "yyyy-MM-dd"));
+        }
+    };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">자주쓰는 옵션 관리</h1>
+                {/* TODO: Implement registration functionality */}
                 <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 h-9 px-4 font-medium flex items-center gap-1">
                     <Plus size={14} /> 옵션 등록
                 </Button>
@@ -61,7 +186,7 @@ export default function CommonlyUsedOptionsPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
                         <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                            <RadioGroup value={supplierType} onValueChange={setSupplierType} className="flex items-center gap-4">
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="supplier-all" />
                                     <Label htmlFor="supplier-all">전체</Label>
@@ -85,7 +210,7 @@ export default function CommonlyUsedOptionsPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="integrated">
+                            <Select value={searchType} onValueChange={setSearchType}>
                                 <SelectTrigger className="w-[120px] h-8 text-xs">
                                     <SelectValue placeholder="=통합검색=" />
                                 </SelectTrigger>
@@ -94,7 +219,12 @@ export default function CommonlyUsedOptionsPage() {
                                     <SelectItem value="name">옵션명</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Input className="w-64 h-8" />
+                            <Input 
+                                className="w-64 h-8" 
+                                value={keyword} 
+                                onChange={(e) => setKeyword(e.target.value)} 
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                            />
                         </div>
                     </div>
 
@@ -102,7 +232,7 @@ export default function CommonlyUsedOptionsPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">옵션노출 방식</div>
                         <div className="flex-1 p-3">
-                             <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                             <RadioGroup value={displayType} onValueChange={setDisplayType} className="flex items-center gap-4">
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="type-all" />
                                     <Label htmlFor="type-all">전체</Label>
@@ -123,7 +253,7 @@ export default function CommonlyUsedOptionsPage() {
                      <div className="flex items-center">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="regDate">
+                            <Select value={dateType} onValueChange={setDateType}>
                                 <SelectTrigger className="w-[100px] h-8 text-xs">
                                     <SelectValue placeholder="등록일" />
                                 </SelectTrigger>
@@ -133,12 +263,24 @@ export default function CommonlyUsedOptionsPage() {
                                 </SelectContent>
                             </Select>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    type="text" // using text to allow placeholder. In real implementation consider using a date picker component
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={startDate}
+                                    placeholder="YYYY-MM-DD"
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                             <span className="text-gray-500">~</span>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    type="text"
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={endDate}
+                                    placeholder="YYYY-MM-DD"
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                              <div className="flex gap-0.5 ml-2">
@@ -146,7 +288,8 @@ export default function CommonlyUsedOptionsPage() {
                                     <Button 
                                         key={period} 
                                         variant="outline" 
-                                        className={`h-8 px-3 text-xs rounded-sm ${period === "전체" ? "bg-gray-700 text-white border-gray-700 hover:bg-gray-800" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                                        onClick={() => setPeriod(period)}
+                                        className={`h-8 px-3 text-xs rounded-sm bg-white text-gray-600 border-gray-300 hover:bg-gray-50`}
                                     >
                                         {period}
                                     </Button>
@@ -157,7 +300,7 @@ export default function CommonlyUsedOptionsPage() {
                 </div>
 
                 <div className="flex justify-center mt-6 mb-10">
-                    <Button className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
+                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
                 </div>
             </div>
 
@@ -165,7 +308,7 @@ export default function CommonlyUsedOptionsPage() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-bold text-gray-800">
-                        검색 <span className="text-red-500">11</span>개 / 전체 <span className="text-red-500">11</span>개
+                        검색 <span className="text-red-500">{totalCount}</span>개 / 전체 <span className="text-red-500">{totalCount}</span>개
                     </div>
                     <div className="flex items-center gap-2">
                         <Select defaultValue="regDesc">
@@ -177,7 +320,7 @@ export default function CommonlyUsedOptionsPage() {
                                 <SelectItem value="regAsc">등록일 ↑</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select defaultValue="10">
+                        <Select value={pageSize.toString()} onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}>
                             <SelectTrigger className="w-32 h-8 text-xs">
                                 <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
@@ -194,7 +337,13 @@ export default function CommonlyUsedOptionsPage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-gray-100 hover:bg-gray-100">
-                                <TableHead className="w-10 text-center p-0"><Checkbox className="translate-y-[2px]" /></TableHead>
+                                <TableHead className="w-10 text-center p-0">
+                                    <Checkbox 
+                                        className="translate-y-[2px]" 
+                                        checked={data.length > 0 && selectedIds.length === data.length}
+                                        onCheckedChange={handleSelectAll}
+                                    />
+                                </TableHead>
                                 <TableHead className="w-16 text-center font-bold text-gray-700">번호</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">옵션 관리명</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">옵션표시</TableHead>
@@ -206,38 +355,96 @@ export default function CommonlyUsedOptionsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {optionsData.map((item) => (
-                                <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-12">
-                                    <TableCell className="p-0 text-center"><Checkbox className="translate-y-[2px]" /></TableCell>
-                                    <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
-                                    <TableCell className="text-left pl-4">{item.manageName}</TableCell>
-                                    <TableCell>{item.type}</TableCell>
-                                    <TableCell>{item.name}</TableCell>
-                                    <TableCell>{item.supplier}</TableCell>
-                                    <TableCell>{item.regDate}</TableCell>
-                                    <TableCell>{item.modDate}</TableCell>
-                                    <TableCell>
-                                        <Button variant="outline" className="h-6 w-[50px] text-xs px-0 rounded-sm border-gray-300">수정</Button>
-                                    </TableCell>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={9} className="h-24 text-center">로딩중...</TableCell>
                                 </TableRow>
-                            ))}
+                            ) : data.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={9} className="h-24 text-center">검색된 결과가 없습니다.</TableCell>
+                                </TableRow>
+                            ) : (
+                                data.map((item, index) => (
+                                    <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-12">
+                                        <TableCell className="p-0 text-center">
+                                            <Checkbox 
+                                                className="translate-y-[2px]" 
+                                                checked={selectedIds.includes(item.id)}
+                                                onCheckedChange={(checked) => handleCheckboxChange(item.id, !!checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-gray-500 font-normal">
+                                            {totalCount - ((page - 1) * pageSize) - index}
+                                        </TableCell>
+                                        <TableCell className="text-left pl-4">{item.manageName}</TableCell>
+                                        <TableCell>{item.type === 'integrated' ? '일체형' : '분리형'}</TableCell>
+                                        <TableCell>{item.name}</TableCell>
+                                        <TableCell>{item.supplierName || '본사'}</TableCell>
+                                        <TableCell>{item.createdAt ? format(new Date(item.createdAt), 'yyyy-MM-dd') : '-'}</TableCell>
+                                        <TableCell>{item.updatedAt ? format(new Date(item.updatedAt), 'yyyy-MM-dd') : '-'}</TableCell>
+                                        <TableCell>
+                                            <Button variant="outline" className="h-6 w-[50px] text-xs px-0 rounded-sm border-gray-300">수정</Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </div>
 
                 <div className="flex items-center gap-2 mt-4">
-                    <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm">선택 복사</Button>
-                    <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm">선택 삭제</Button>
+                    <Button variant="outline" onClick={handleCopy} className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm">선택 복사</Button>
+                    <Button variant="outline" onClick={handleDelete} className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm">선택 삭제</Button>
                 </div>
 
                 {/* Pagination */}
                 <div className="flex justify-center gap-1 mt-6">
-                    <Button variant="outline" className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50">{"<<"}</Button>
-                    <Button variant="outline" className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50">{"<"}</Button>
-                    <Button variant="default" className="h-8 w-8 p-0 bg-gray-700 text-white font-bold rounded-sm border-gray-700 hover:bg-gray-800">1</Button>
-                    <Button variant="outline" className="h-8 w-8 p-0 text-gray-600 border-gray-300 rounded-sm hover:bg-gray-50">2</Button>
-                    <Button variant="outline" className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50">{">"}</Button>
-                    <Button variant="outline" className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50">{">>"}</Button>
+                    <Button 
+                        variant="outline" 
+                        disabled={page === 1}
+                        onClick={() => setPage(1)}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50"
+                    >
+                        {"<<"}
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        disabled={page === 1}
+                        onClick={() => setPage(p => Math.max(1, p - 1))}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50"
+                    >
+                        {"<"}
+                    </Button>
+                    
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p >= page - 2 && p <= page + 2)
+                        .map(p => (
+                        <Button 
+                            key={p}
+                            variant={p === page ? "default" : "outline"}
+                            onClick={() => setPage(p)}
+                            className={`h-8 w-8 p-0 rounded-sm ${p === page ? "bg-gray-700 text-white border-gray-700 hover:bg-gray-800 font-bold" : "text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                        >
+                            {p}
+                        </Button>
+                    ))}
+
+                    <Button 
+                        variant="outline" 
+                        disabled={page >= totalPages}
+                        onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50"
+                    >
+                        {">"}
+                    </Button>
+                    <Button 
+                        variant="outline" 
+                        disabled={page >= totalPages}
+                        onClick={() => setPage(totalPages)}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-gray-50"
+                    >
+                        {">>"}
+                    </Button>
                 </div>
             </div>
 

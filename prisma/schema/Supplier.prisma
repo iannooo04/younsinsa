@@ -54,6 +54,7 @@ model Supplier {
   
   // -- 상품 --
   products       Product[]   // 공급한 상품들
+  essentialInfoTemplates ProductEssentialInfoTemplate[] // 필수정보 템플릿
   
   memo           String?     @db.Text
   

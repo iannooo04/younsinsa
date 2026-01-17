@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -21,10 +21,110 @@ import {
   FileSpreadsheet,
   Check,
 } from "lucide-react";
+import { getOrdersAction } from "@/actions/order-actions";
+import { format } from "date-fns";
+import { OrderStatus } from "@/generated/prisma";
 
 export default function CustomerClaimsPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("exchange"); // exchange, return, refund
+
+  // Data State
+  const [orders, setOrders] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Filter State
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+  const [keyword, setKeyword] = useState("");
+  const [searchType, setSearchType] = useState("order_no");
+  const [dateRange, setDateRange] = useState("today");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const [mallId, setMallId] = useState('all');
+  
+  // Status Checkboxes
+  const [statusFilters, setStatusFilters] = useState({
+      request: true,
+      approve: true,
+      reject: false
+  });
+
+  useEffect(() => {
+    fetchOrders();
+  }, [page, activeTab]);
+
+  const fetchOrders = async () => {
+      setLoading(true);
+      try {
+          // Determine status filters based on active tab and checkboxes
+          const statuses: OrderStatus[] = [];
+          
+          if (activeTab === 'exchange') {
+              if (statusFilters.request) statuses.push(OrderStatus.EXCHANGE_REQUEST);
+              if (statusFilters.approve) statuses.push(OrderStatus.EXCHANGE_COMPLETE);
+          } else if (activeTab === 'return') {
+              if (statusFilters.request) statuses.push(OrderStatus.RETURN_REQUEST);
+              if (statusFilters.approve) statuses.push(OrderStatus.RETURN_COMPLETE);
+          } else if (activeTab === 'refund') {
+              if (statusFilters.request) statuses.push(OrderStatus.REFUND_REQUEST);
+              if (statusFilters.approve) statuses.push(OrderStatus.REFUND_COMPLETE);
+          }
+
+          // If no status selected, maybe show nothing or all for that tab? 
+          // Defaulting to showing nothing if no boxes checked seems safer for specific filtering.
+          // But if statuses is empty, getOrdersAction might show ALL if not handled. 
+          // getOrdersAction handles empty status as "ALL" sometimes, but here we want specific subset.
+          // We'll pass the array.
+
+          const res = await getOrdersAction({
+              page,
+              limit,
+              status: statuses.length > 0 ? statuses : undefined, // If undefined, it might fetch all, so let's handle empty array in getOrders if needed, or just pass only if length > 0. Actually if length is 0, we effectively want NO orders for this view if user unchecked everything. But for now let's assumes at least one is checked or if all unchecked it returns nothing.
+              keyword,
+              searchType,
+              startDate: startDate || undefined,
+              endDate: endDate || undefined,
+              mallId
+          });
+
+          if (res.items && statuses.length === 0) {
+               // If user unchecked all boxes, we shouldn't show mixed orders. 
+               // However, getOrdersAction logic might behave differently. 
+               // For this specific page, we usually want to restrict to the tab's domain.
+               // So if statuses is empty, we probably shouldn't fetch or should fetch with a "None" filter.
+               // For simplicity, I'll rely on getOrdersAction logic (which currently filters by explicit status if provided).
+               // To strictly enforce tab context, I should probably always pass at least the domain statuses if checkboxes are all off? 
+               // No, if checkboxes are off, user wants to see nothing or "all". Let's stick to selected.
+          }
+
+          if (res.success) {
+              setOrders(res.items || []);
+              setTotal(res.total || 0);
+          }
+      } catch (e) {
+          console.error(e);
+      }
+      setLoading(false);
+  };
+
+  const handleSearch = () => {
+      setPage(1);
+      fetchOrders();
+  };
+
+  const getStatusText = (status: OrderStatus) => {
+      switch (status) {
+          case OrderStatus.EXCHANGE_REQUEST: return <span className="text-red-500 font-bold">교환신청</span>;
+          case OrderStatus.EXCHANGE_COMPLETE: return <span className="text-blue-500 font-bold">교환완료</span>;
+          case OrderStatus.RETURN_REQUEST: return <span className="text-red-500 font-bold">반품신청</span>;
+          case OrderStatus.RETURN_COMPLETE: return <span className="text-blue-500 font-bold">반품완료</span>;
+          case OrderStatus.REFUND_REQUEST: return <span className="text-red-500 font-bold">환불신청</span>;
+          case OrderStatus.REFUND_COMPLETE: return <span className="text-blue-500 font-bold">환불완료</span>;
+          default: return <span>{status}</span>;
+      }
+  };
 
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
@@ -58,20 +158,20 @@ export default function CustomerClaimsPage() {
                     상점
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup defaultValue="all" className="flex gap-4">
+                     <RadioGroup value={mallId} onValueChange={setMallId} className="flex gap-4">
                             <div className="flex items-center gap-1.5">
                                 <RadioGroupItem value="all" id="store-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                                 <Label htmlFor="store-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="kr" id="store-kr" className="border-gray-300 text-gray-600" />
+                                <RadioGroupItem value="KR" id="store-kr" className="border-gray-300 text-gray-600" />
                                 <Label htmlFor="store-kr" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
                                     <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-white">🇰🇷</span>
                                     기준몰
                                 </Label>
                             </div>
                              <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="cn" id="store-cn" className="border-gray-300 text-gray-600" />
+                                <RadioGroupItem value="CN" id="store-cn" className="border-gray-300 text-gray-600" />
                                 <Label htmlFor="store-cn" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
                                     <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-red-600 text-white">🇨🇳</span>
                                     중문몰
@@ -113,15 +213,21 @@ export default function CustomerClaimsPage() {
                     검색어
                 </div>
                 <div className="flex-1 p-3 flex gap-2">
-                    <Select defaultValue="order_no">
+                    <Select value={searchType} onValueChange={setSearchType}>
                         <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300">
                             <SelectValue placeholder="주문번호" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="order_no">주문번호</SelectItem>
+                            <SelectItem value="orderer_name">주문자명</SelectItem>
                         </SelectContent>
                     </Select>
-                     <Input className="w-[400px] h-7 border-gray-300" placeholder="검색어 전체를 정확히 입력하세요." />
+                     <Input 
+                        className="w-[400px] h-7 border-gray-300" 
+                        placeholder="검색어 전체를 정확히 입력하세요." 
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                     />
                 </div>
             </div>
 
@@ -140,21 +246,41 @@ export default function CustomerClaimsPage() {
                         </SelectContent>
                     </Select>
                      <div className="flex items-center gap-1">
-                        <Input className="w-28 h-7 text-center border-gray-300" defaultValue="2026-01-04" />
+                        <Input className="w-28 h-7 text-center border-gray-300" value={startDate} onChange={(e) => setStartDate(e.target.value)} placeholder="YYYY-MM-DD" />
                         <Calendar className="w-4 h-4 text-gray-500" />
                     </div>
                     <span>~</span>
                     <div className="flex items-center gap-1">
-                        <Input className="w-28 h-7 text-center border-gray-300" defaultValue="2026-01-10" />
-                        <Calendar className="w-4 h-4 text-gray-500" />
+                        <Input className="w-28 h-7 text-center border-gray-300" value={endDate} onChange={(e) => setEndDate(e.target.value)} placeholder="YYYY-MM-DD" />
+                         <Calendar className="w-4 h-4 text-gray-500" />
                     </div>
                     <div className="flex items-center gap-0.5 ml-1">
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">오늘</Button>
-                        <Button variant="default" size="sm" className="h-7 px-2 text-[11px] bg-gray-600 text-white rounded-sm hover:bg-gray-700">7일</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">15일</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1개월</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">3개월</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1년</Button>
+                        <Button onClick={() => { setStartDate(format(new Date(), "yyyy-MM-dd")); setEndDate(format(new Date(), "yyyy-MM-dd")); }} variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">오늘</Button>
+                        <Button onClick={() => { 
+                            const d = new Date(); d.setDate(d.getDate() - 7);
+                            setStartDate(format(d, "yyyy-MM-dd")); 
+                            setEndDate(format(new Date(), "yyyy-MM-dd")); 
+                        }} variant="default" size="sm" className="h-7 px-2 text-[11px] bg-gray-600 text-white rounded-sm hover:bg-gray-700">7일</Button>
+                        <Button onClick={() => { 
+                            const d = new Date(); d.setDate(d.getDate() - 15);
+                            setStartDate(format(d, "yyyy-MM-dd")); 
+                            setEndDate(format(new Date(), "yyyy-MM-dd")); 
+                        }} variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">15일</Button>
+                         <Button onClick={() => { 
+                            const d = new Date(); d.setMonth(d.getMonth() - 1);
+                            setStartDate(format(d, "yyyy-MM-dd")); 
+                            setEndDate(format(new Date(), "yyyy-MM-dd")); 
+                        }} variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1개월</Button>
+                         <Button onClick={() => { 
+                            const d = new Date(); d.setMonth(d.getMonth() - 3);
+                            setStartDate(format(d, "yyyy-MM-dd")); 
+                            setEndDate(format(new Date(), "yyyy-MM-dd")); 
+                        }} variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">3개월</Button>
+                         <Button onClick={() => { 
+                            const d = new Date(); d.setFullYear(d.getFullYear() - 1);
+                            setStartDate(format(d, "yyyy-MM-dd")); 
+                            setEndDate(format(new Date(), "yyyy-MM-dd")); 
+                        }} variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1년</Button>
                     </div>
                 </div>
             </div>
@@ -166,21 +292,45 @@ export default function CustomerClaimsPage() {
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-6">
                     <div className="flex items-center space-x-2">
-                        <Checkbox id="status-all" className="rounded-none border-gray-300 text-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" defaultChecked />
+                        <Checkbox 
+                            id="status-all" 
+                            checked={statusFilters.request && statusFilters.approve && statusFilters.reject}
+                            onCheckedChange={(checked) => setStatusFilters({
+                                request: !!checked,
+                                approve: !!checked,
+                                reject: !!checked
+                            })}
+                            className="rounded-none border-gray-300 text-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
+                        />
                         <label htmlFor="status-all" className="text-gray-700 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                             전체
                         </label>
                     </div>
                      <div className="flex items-center space-x-2">
-                         <Checkbox id="status-request" className="rounded-none border-gray-300"/>
+                         <Checkbox 
+                            id="status-request" 
+                            checked={statusFilters.request}
+                            onCheckedChange={(checked) => setStatusFilters(prev => ({ ...prev, request: !!checked }))}
+                            className="rounded-none border-gray-300"
+                        />
                         <label htmlFor="status-request" className="text-gray-700 leading-none">신청</label>
                     </div>
                     <div className="flex items-center space-x-2">
-                        <Checkbox id="status-approve" className="rounded-none border-gray-300"/>
+                        <Checkbox 
+                            id="status-approve" 
+                            checked={statusFilters.approve}
+                            onCheckedChange={(checked) => setStatusFilters(prev => ({ ...prev, approve: !!checked }))}
+                            className="rounded-none border-gray-300"
+                        />
                         <label htmlFor="status-approve" className="text-gray-700 leading-none">승인</label>
                     </div>
                      <div className="flex items-center space-x-2">
-                        <Checkbox id="status-reject" className="rounded-none border-gray-300"/>
+                        <Checkbox 
+                            id="status-reject" 
+                            checked={statusFilters.reject}
+                            onCheckedChange={(checked) => setStatusFilters(prev => ({ ...prev, reject: !!checked }))}
+                            className="rounded-none border-gray-300"
+                        />
                         <label htmlFor="status-reject" className="text-gray-700 leading-none">거절</label>
                     </div>
                 </div>
@@ -201,7 +351,7 @@ export default function CustomerClaimsPage() {
         </div>
          
          <div className="bg-white p-4 flex justify-center border-t border-gray-200">
-             <Button className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-10 w-32 rounded-sm text-sm">검색</Button>
+             <Button onClick={handleSearch} className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-10 w-32 rounded-sm text-sm">검색</Button>
          </div>
       </div>
 
@@ -209,21 +359,21 @@ export default function CustomerClaimsPage() {
       <div className="flex border-b border-gray-400 mb-6">
           <button 
             className={`px-6 py-3 text-xs font-bold border-t border-r border-l ${activeTab === 'exchange' ? 'bg-white border-gray-400 border-b-white text-gray-800' : 'bg-[#F9F9F9] border-gray-300 text-gray-500'}`}
-            onClick={() => setActiveTab('exchange')}
+            onClick={() => { setActiveTab('exchange'); setPage(1); }}
           >
-              교환신청 관리 (전체 0 | <span className="text-red-500">신청 0</span> | <span className="text-blue-500">처리완료 0</span>)
+              교환신청 관리 (전체 {activeTab === 'exchange' ? total : 0})
           </button>
           <button 
             className={`px-6 py-3 text-xs font-bold border-t border-r ${activeTab === 'return' ? 'bg-white border-gray-400 border-b-white text-gray-800 -ml-[1px]' : 'bg-[#F9F9F9] border-gray-300 text-gray-500'}`}
-             onClick={() => setActiveTab('return')}
+             onClick={() => { setActiveTab('return'); setPage(1); }}
           >
-              반품신청 관리 (전체 0 | <span className="text-red-500">신청 0</span> | <span className="text-blue-500">처리완료 0</span>)
+              반품신청 관리 (전체 {activeTab === 'return' ? total : 0})
           </button>
           <button 
             className={`px-6 py-3 text-xs font-bold border-t border-r ${activeTab === 'refund' ? 'bg-white border-gray-400 border-b-white text-gray-800 -ml-[1px]' : 'bg-[#F9F9F9] border-gray-300 text-gray-500'}`}
-             onClick={() => setActiveTab('refund')}
+             onClick={() => { setActiveTab('refund'); setPage(1); }}
           >
-              환불신청 관리 (전체 0 | <span className="text-red-500">신청 0</span> | <span className="text-blue-500">처리완료 0</span>)
+              환불신청 관리 (전체 {activeTab === 'refund' ? total : 0})
           </button>
       </div>
 
@@ -234,8 +384,8 @@ export default function CustomerClaimsPage() {
       </div>
 
       <div className="flex justify-between items-end mb-2">
-          <div className="text-xs text-gray-700 font-bold">
-              검색 <span className="text-red-500">0</span>개 / 전체 <span className="text-red-500">0</span>개 <span className="text-gray-500 font-normal">( 검색된 주문 총 결제금액 : <span className="text-red-500">0</span>원 )</span>
+           <div className="text-xs text-gray-700 font-bold">
+              검색 <span className="text-red-500">{total}</span>개 / 전체 <span className="text-red-500">{total}</span>개 <span className="text-gray-500 font-normal">( 검색된 주문 총 결제금액 : <span className="text-red-500">{orders.reduce((acc, cur) => acc + cur.totalPayAmount, 0).toLocaleString()}</span>원 )</span>
           </div>
           <div className="flex gap-1 items-center">
                <Select defaultValue="order_date_desc">
@@ -325,11 +475,50 @@ export default function CustomerClaimsPage() {
                   </tr>
               </thead>
               <tbody className="text-gray-600 bg-white">
-                  <tr>
-                      <td colSpan={17} className="py-10 border-b border-gray-200 text-center text-sm">
-                          검색된 주문이 없습니다.
-                      </td>
-                  </tr>
+                  {loading ? (
+                    <tr>
+                        <td colSpan={17} className="py-10 border-b border-gray-200 text-center text-sm">로딩중...</td>
+                    </tr>
+                  ) : orders.length === 0 ? (
+                      <tr>
+                          <td colSpan={17} className="py-10 border-b border-gray-200 text-center text-sm">
+                              검색된 주문이 없습니다.
+                          </td>
+                      </tr>
+                  ) : (
+                      orders.map((order, idx) => (
+                          <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 h-8">
+                               <td className="border-r border-[#CDCDCD] flex justify-center items-center h-full pt-2">
+                                   <Checkbox className="bg-white border-gray-300 rounded-[2px] w-4 h-4"/>
+                               </td>
+                               <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * 20) - idx}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD]">
+                                   {order.statusUpdatedAt && order.status.endsWith('REQUEST') ? format(new Date(order.statusUpdatedAt), "yyyy-MM-dd HH:mm") : '-'}
+                               </td>
+                               <td className="border-r border-[#CDCDCD]">
+                                    {order.status.endsWith('COMPLETE') ? format(new Date(order.statusUpdatedAt), "yyyy-MM-dd HH:mm") : '-'}
+                               </td>
+                               <td className="border-r border-[#CDCDCD]">
+                                   {/* Assuming first claim has the reason. In filtering, these are orders, so claims refers to related claims. */}
+                                   {order.claims && order.claims.length > 0 ? order.claims[0].reasonType : '-'}
+                               </td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
+                               <td className="border-r border-[#CDCDCD]">-</td>
+                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate cursor-pointer hover:underline" title={order.items.map((i: any) => i.productName).join(', ')}>
+                                  {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
+                               </td>
+                               <td className="border-r border-[#CDCDCD]">{getStatusText(order.status)}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.items.length}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalItemPrice?.toLocaleString()}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalProductAmount?.toLocaleString() || 0}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.shippingFee?.toLocaleString()}</td>
+                               <td className="text-right px-2">{order.totalShippingFee?.toLocaleString() || 0}</td>
+                          </tr>
+                      ))
+                  )}
               </tbody>
           </table>
       </div>

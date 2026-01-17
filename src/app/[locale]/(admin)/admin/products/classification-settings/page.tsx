@@ -1,17 +1,80 @@
 "use client";
 
+import React, { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Youtube, ChevronUp, ChevronDown, HelpCircle, AlertCircle } from "lucide-react";
+import { getProductBasicSettingsAction, updateProductBasicSettingsAction } from "@/actions/basic-policy-actions";
 
 export default function ClassificationSettingsPage() {
+    const [isPending, startTransition] = useTransition();
+    const [settings, setSettings] = useState<any>(null);
+    const [formData, setFormData] = useState({
+        subBrandProductDisplay: "unsold",
+        parentCategoryAutoRegister: "unused",
+        navCategoryUsage: "used",
+        navBrandUsage: "used",
+        countCategoryUsage: "used",
+        countBrandUsage: "used",
+        // Keep other fields from ProductBasicSettings
+        modDateRange: {},
+        modDatePopup: "unused",
+        imageLoadingEnhance: "unused",
+        priceExposure: "exposed",
+        optionPriceExposure: "exposed",
+    });
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        const res = await getProductBasicSettingsAction();
+        if (res.success && res.settings) {
+            setSettings(res.settings);
+            setFormData({
+                subBrandProductDisplay: res.settings.subBrandProductDisplay,
+                parentCategoryAutoRegister: res.settings.parentCategoryAutoRegister,
+                navCategoryUsage: res.settings.navCategoryUsage,
+                navBrandUsage: res.settings.navBrandUsage,
+                countCategoryUsage: res.settings.countCategoryUsage,
+                countBrandUsage: res.settings.countBrandUsage,
+                modDateRange: res.settings.modDateRange as any,
+                modDatePopup: res.settings.modDatePopup,
+                imageLoadingEnhance: res.settings.imageLoadingEnhance,
+                priceExposure: res.settings.priceExposure,
+                optionPriceExposure: res.settings.optionPriceExposure,
+            });
+        }
+    };
+
+    const handleSave = async () => {
+        startTransition(async () => {
+            const res = await updateProductBasicSettingsAction(formData);
+            if (res.success) {
+                alert("저장되었습니다.");
+                fetchSettings();
+            } else {
+                alert(res.error || "저장 실패");
+            }
+        });
+    };
+
+    if (!settings) return <div className="p-6">로딩중...</div>;
+
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">분류 설정 관리</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm">저장</Button>
+                <Button 
+                    onClick={handleSave}
+                    disabled={isPending}
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm"
+                >
+                    {isPending ? "저장중" : "저장"}
+                </Button>
             </div>
 
             {/* Sub-brand Product Display Settings */}
@@ -30,7 +93,11 @@ export default function ClassificationSettingsPage() {
                             </div>
                         </div>
                         <div className="flex-1 p-4 flex items-center">
-                             <RadioGroup defaultValue="unsold" className="flex gap-6">
+                             <RadioGroup 
+                                value={formData.subBrandProductDisplay} 
+                                onValueChange={(val: string) => setFormData({...formData, subBrandProductDisplay: val})}
+                                className="flex gap-6"
+                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="sold" id="sb-sold" className="rounded-full border-gray-300 text-gray-600 focus:ring-gray-400" />
                                     <Label htmlFor="sb-sold" className="font-normal text-gray-700 cursor-pointer">진열함</Label>
@@ -65,7 +132,11 @@ export default function ClassificationSettingsPage() {
                             </div>
                         </div>
                         <div className="flex-1 p-4 flex items-center">
-                             <RadioGroup defaultValue="unused" className="flex gap-6">
+                             <RadioGroup 
+                                value={formData.parentCategoryAutoRegister} 
+                                onValueChange={(val: string) => setFormData({...formData, parentCategoryAutoRegister: val})}
+                                className="flex gap-6"
+                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="used" id="pc-used" className="rounded-full border-gray-300 text-gray-600 focus:ring-gray-400" />
                                     <Label htmlFor="pc-used" className="font-normal text-gray-700 cursor-pointer">사용함</Label>
@@ -105,7 +176,10 @@ export default function ClassificationSettingsPage() {
                         <div className="flex-1 border-r border-gray-200">
                             <div className="flex items-center h-12 border-b border-gray-200 px-4">
                                 <span className="w-24 text-gray-600">카테고리</span>
-                                <RadioGroup defaultValue="used">
+                                <RadioGroup 
+                                    value={formData.navCategoryUsage} 
+                                    onValueChange={(val: string) => setFormData({...formData, navCategoryUsage: val})}
+                                >
                                     <div className="flex gap-6 items-center">
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="used" id="nav-cat-used" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
@@ -120,7 +194,10 @@ export default function ClassificationSettingsPage() {
                             </div>
                             <div className="flex items-center h-12 px-4">
                                 <span className="w-24 text-gray-600">브랜드</span>
-                                <RadioGroup defaultValue="used">
+                                <RadioGroup 
+                                    value={formData.navBrandUsage} 
+                                    onValueChange={(val: string) => setFormData({...formData, navBrandUsage: val})}
+                                >
                                     <div className="flex gap-6 items-center">
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="used" id="nav-brand-used" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
@@ -163,7 +240,10 @@ export default function ClassificationSettingsPage() {
                         <div className="flex-1 border-r border-gray-200">
                             <div className="flex items-center h-14 border-b border-gray-200 px-4">
                                 <span className="w-24 text-gray-600">카테고리</span>
-                                <RadioGroup defaultValue="used">
+                                <RadioGroup 
+                                    value={formData.countCategoryUsage} 
+                                    onValueChange={(val: string) => setFormData({...formData, countCategoryUsage: val})}
+                                >
                                     <div className="flex gap-6 items-center">
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="used" id="count-cat-used" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
@@ -178,7 +258,10 @@ export default function ClassificationSettingsPage() {
                             </div>
                             <div className="flex items-center h-14 px-4">
                                 <span className="w-24 text-gray-600">브랜드</span>
-                                <RadioGroup defaultValue="used">
+                                <RadioGroup 
+                                    value={formData.countBrandUsage} 
+                                    onValueChange={(val: string) => setFormData({...formData, countBrandUsage: val})}
+                                >
                                     <div className="flex gap-6 items-center">
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="used" id="count-brand-used" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,23 +21,206 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Check, Book } from "lucide-react";
+import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Book } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { 
+    getProductsAction, 
+    deleteProductsAction, 
+    moveProductsCategoryAction, 
+    copyProductsAction, 
+    changeProductsBrandAction, 
+    releaseProductsConnectionAction,
+    getCategoriesSimpleAction,
+    getBrandsSimpleAction
+} from "@/actions/product-actions";
+import { format } from "date-fns";
 
 export default function ProductMoveCopyDeletePage() {
-    // Mock Data based on the screenshot (same data as previous pages)
-    const products = Array.from({ length: 10 }).map((_, i) => ({
-        id: 290 - i,
-        productCode: `1000000${290 - i}`,
-        image: null, 
-        name: i % 2 === 0 ? "여성 엠보 로고 모크넥 티셔츠" : "[26SS] 여성 깅엄 체크 메쉬 레이어드 베이스레이어",
-        supplier: "니아인터내셔널",
-        brand: "",
-        displayStatus: "노출함",
-        saleStatus: "판매함",
-        stockStatus: "정상",
-        stock: "∞"
-    }));
+    // Data State
+    const [products, setProducts] = useState<any[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Filter State
+    const [supplierType, setSupplierType] = useState('all'); // Not implemented in backend yet fully but added to UI
+    const [searchType, setSearchType] = useState('productName');
+    const [keyword, setKeyword] = useState('');
+    const [dateType, setDateType] = useState('regDate');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    // Selection State
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isAllSelected, setIsAllSelected] = useState(false); // For "Select All Search Results" logic if needed
+
+    // Metadata for Dropdowns
+    const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+    const [brands, setBrands] = useState<{id: string, name: string}[]>([]);
+    
+    // Action Inputs
+    const [targetCategoryId, setTargetCategoryId] = useState<string>("");
+    const [targetBrandId, setTargetBrandId] = useState<string>("");
+
+    // Trigger for refetching
+    const [searchTrigger, setSearchTrigger] = useState(0);
+
+    // Fetch Initial Metadata
+    useEffect(() => {
+        getCategoriesSimpleAction().then(setCategories);
+        getBrandsSimpleAction().then(setBrands);
+    }, []);
+
+    // Fetch Products
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const result = await getProductsAction(page, pageSize, {
+            searchType,
+            keyword,
+            startDate,
+            endDate,
+            dateType
+        });
+
+        if (result.success) {
+            setProducts(result.items);
+            setTotalCount(result.totalCount);
+        }
+        setLoading(false);
+    }, [page, pageSize, searchTrigger]);
+
+    useEffect(() => {
+        fetchData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [fetchData]);
+
+    const handleSearch = () => {
+        setPage(1);
+        setSearchTrigger(prev => prev + 1);
+    };
+    
+    // Selection Handlers
+    const handleCheckboxChange = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(item => item !== id));
+        }
+    };
+
+    const handleSelectPage = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(products.map(p => p.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+    
+    // Actions
+    const handleDelete = async () => {
+        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+        if (!confirm("선택한 상품을 삭제하시겠습니까?")) return;
+        
+        const result = await deleteProductsAction(selectedIds);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+
+    const handleMoveCategory = async () => {
+        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+        if (!targetCategoryId) return alert("이동할 카테고리를 선택해주세요.");
+        if (!confirm("선택한 상품의 카테고리를 이동하시겠습니까?")) return;
+
+        const result = await moveProductsCategoryAction(selectedIds, targetCategoryId);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+    
+    const handleCopyCategory = async () => {
+        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+         // Copy needs a target category? or just dup in same? Logic says "Copy to Selected Category"
+        if (!targetCategoryId) return alert("복사할 대상 카테고리를 선택해주세요.");
+        if (!confirm("선택한 상품을 해당 카테고리로 복사하시겠습니까?")) return;
+
+        const result = await copyProductsAction(selectedIds, targetCategoryId);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+    
+    // Just simple copy in place if no category selected? 
+    // Button says "Copy" next to Category Selection, so it implies Copy to that Category.
+
+    const handleChangeBrand = async () => {
+         if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+        if (!targetBrandId) return alert("교체할 브랜드를 선택해주세요.");
+        if (!confirm("선택한 상품의 브랜드를 교체하시겠습니까?")) return;
+
+        const result = await changeProductsBrandAction(selectedIds, targetBrandId);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+
+    const handleReleaseBrand = async () => {
+        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+        if (!confirm("선택한 상품의 브랜드를 해제하시겠습니까?")) return;
+
+        const result = await releaseProductsConnectionAction(selectedIds, 'brand');
+        alert(result.message);
+        if (result.success) {
+             setSelectedIds([]);
+            fetchData();
+        }
+    };
+    
+    // Date Helpers
+    const setPeriod = (period: string) => {
+        const end = new Date();
+        const start = new Date();
+        
+        switch (period) {
+            case "오늘":
+                break;
+            case "7일":
+                start.setDate(end.getDate() - 7);
+                break;
+            case "15일":
+                start.setDate(end.getDate() - 15);
+                break;
+            case "1개월":
+                start.setMonth(end.getMonth() - 1);
+                break;
+            case "3개월":
+                start.setMonth(end.getMonth() - 3);
+                break;
+            case "전체":
+                setStartDate("");
+                setEndDate("");
+                return;
+            default:
+                break;
+        }
+        if (period !== "전체") {
+             setStartDate(format(start, "yyyy-MM-dd"));
+             setEndDate(format(end, "yyyy-MM-dd"));
+        }
+    };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
@@ -63,7 +246,7 @@ export default function ProductMoveCopyDeletePage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
                         <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                            <RadioGroup value={supplierType} onValueChange={setSupplierType} className="flex items-center gap-6">
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="supplier-all" />
                                     <Label htmlFor="supplier-all">전체</Label>
@@ -87,7 +270,7 @@ export default function ProductMoveCopyDeletePage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="productName">
+                            <Select value={searchType} onValueChange={setSearchType}>
                                 <SelectTrigger className="w-[120px] h-8 text-xs">
                                     <SelectValue placeholder="상품명" />
                                 </SelectTrigger>
@@ -96,7 +279,12 @@ export default function ProductMoveCopyDeletePage() {
                                     <SelectItem value="productCode">상품코드</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Input className="w-64 h-8" />
+                            <Input 
+                                className="w-64 h-8" 
+                                value={keyword} 
+                                onChange={e => setKeyword(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                            />
                         </div>
                     </div>
 
@@ -104,7 +292,7 @@ export default function ProductMoveCopyDeletePage() {
                      <div className="flex items-center">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="regDate">
+                            <Select value={dateType} onValueChange={setDateType}>
                                 <SelectTrigger className="w-[100px] h-8 text-xs">
                                     <SelectValue placeholder="등록일" />
                                 </SelectTrigger>
@@ -113,12 +301,22 @@ export default function ProductMoveCopyDeletePage() {
                                 </SelectContent>
                             </Select>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={startDate}
+                                    onChange={e => setStartDate(e.target.value)}
+                                    placeholder="YYYY-MM-DD"
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                             <span className="text-gray-500">~</span>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={endDate}
+                                    onChange={e => setEndDate(e.target.value)}
+                                    placeholder="YYYY-MM-DD"
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                              <div className="flex gap-0.5 ml-2">
@@ -126,7 +324,8 @@ export default function ProductMoveCopyDeletePage() {
                                     <Button 
                                         key={period} 
                                         variant="outline" 
-                                        className={`h-8 px-3 text-xs rounded-sm ${period === "전체" ? "bg-gray-700 text-white border-gray-700 hover:bg-gray-800" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                                        onClick={() => setPeriod(period)}
+                                        className={`h-8 px-3 text-xs rounded-sm bg-white text-gray-600 border-gray-300 hover:bg-gray-50`}
                                     >
                                         {period}
                                     </Button>
@@ -141,7 +340,7 @@ export default function ProductMoveCopyDeletePage() {
                 </div>
 
                 <div className="flex justify-center mt-6 mb-10">
-                    <Button className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
+                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
                 </div>
             </div>
 
@@ -149,7 +348,7 @@ export default function ProductMoveCopyDeletePage() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-bold text-gray-800">
-                        검색 <span className="text-red-500">290</span>개 / 전체 <span className="text-red-500">290</span>개
+                        검색 <span className="text-red-500">{totalCount}</span>개 / 전체 <span className="text-red-500">{totalCount}</span>개
                     </div>
                     <div className="flex items-center gap-2">
                         <Select defaultValue="regDesc">
@@ -161,7 +360,7 @@ export default function ProductMoveCopyDeletePage() {
                                 <SelectItem value="regAsc">등록일 ↑</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select defaultValue="10">
+                        <Select value={pageSize.toString()} onValueChange={v => { setPageSize(Number(v)); setPage(1); }}>
                             <SelectTrigger className="w-32 h-8 text-xs">
                                 <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
@@ -178,7 +377,13 @@ export default function ProductMoveCopyDeletePage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-[#A4A4A4]/20 hover:bg-[#A4A4A4]/20 text-xs text-center font-bold text-gray-700 h-10">
-                                <TableHead className="w-10 text-center p-0"><Checkbox className="translate-y-[2px]" /></TableHead>
+                                <TableHead className="w-10 text-center p-0">
+                                    <Checkbox 
+                                        className="translate-y-[2px]" 
+                                        checked={products.length > 0 && selectedIds.length === products.length}
+                                        onCheckedChange={handleSelectPage}
+                                    />
+                                </TableHead>
                                 <TableHead className="w-16 text-center text-white bg font-bold">번호</TableHead>
                                 <TableHead className="text-center font-bold">상품코드</TableHead>
                                 <TableHead className="text-center font-bold">이미지</TableHead>
@@ -192,45 +397,93 @@ export default function ProductMoveCopyDeletePage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {products.map((item) => (
-                                <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-16 border-b border-gray-200">
-                                    <TableCell className="p-0 text-center"><Checkbox className="translate-y-[2px]" /></TableCell>
-                                    <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
-                                    <TableCell>{item.productCode}</TableCell>
-                                    <TableCell className="py-1">
-                                        <div className="flex justify-center">
-                                             <img src="/placeholder-image.png" alt="상품" className="w-10 h-10 bg-gray-100 object-cover" /> 
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-left pl-4 font-normal text-gray-800">{item.name}</TableCell>
-                                    <TableCell>{item.supplier}</TableCell>
-                                    <TableCell>{item.brand}</TableCell>
-                                    <TableCell>{item.displayStatus}</TableCell>
-                                    <TableCell>{item.saleStatus}</TableCell>
-                                    <TableCell>{item.stockStatus}</TableCell>
-                                    <TableCell>{item.stock}</TableCell>
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={11} className="h-40 text-center">로딩중...</TableCell>
                                 </TableRow>
-                            ))}
+                            ) : products.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={11} className="h-40 text-center">검색된 상품이 없습니다.</TableCell>
+                                </TableRow>
+                            ) : (
+                                products.map((item, index) => (
+                                    <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-16 border-b border-gray-200">
+                                        <TableCell className="p-0 text-center">
+                                            <Checkbox 
+                                                className="translate-y-[2px]" 
+                                                checked={selectedIds.includes(item.id)}
+                                                onCheckedChange={(checked) => handleCheckboxChange(item.id, !!checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-gray-500 font-normal">{totalCount - ((page - 1) * pageSize) - index}</TableCell>
+                                        <TableCell>{item.productCode}</TableCell>
+                                        <TableCell className="py-1">
+                                            <div className="flex justify-center">
+                                                 <div className="w-10 h-10 bg-gray-100 object-cover flex items-center justify-center text-[10px] text-gray-400">img</div> 
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-left pl-4 font-normal text-gray-800">{item.name}</TableCell>
+                                        <TableCell>{item.supplier}</TableCell>
+                                        <TableCell>{item.brand}</TableCell>
+                                        <TableCell>{item.displayStatus}</TableCell>
+                                        <TableCell>{item.saleStatus}</TableCell>
+                                        <TableCell>{item.stockStatus}</TableCell>
+                                        <TableCell>{item.stock}</TableCell>
+                                    </TableRow>
+                                ))
+                            )}
                         </TableBody>
                     </Table>
                 </div>
 
                  {/* Pagination */}
                  <div className="flex justify-center gap-1 mt-6">
-                    <Button variant="default" className="h-8 w-8 p-0 bg-gray-600 text-white font-bold rounded-sm border-gray-600 hover:bg-gray-700">1</Button>
-                    {[2,3,4,5,6,7,8,9,10].map(p => (
-                         <Button key={p} variant="outline" className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50">{p}</Button>
-                    ))}
-                     <Button variant="outline" className="h-8 px-2 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50">{"> 다음"}</Button>
-                     <Button variant="outline" className="h-8 px-2 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50">{">> 맨뒤"}</Button>
+                    <Button 
+                        variant="outline" 
+                        disabled={page === 1} 
+                        onClick={() => setPage(1)}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{"<<"}</Button>
+                    <Button 
+                        variant="outline" 
+                        disabled={page === 1} 
+                        onClick={() => setPage(p => Math.max(1, p-1))}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{"<"}</Button>
+                    
+                     {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p >= page - 2 && p <= page + 2)
+                        .map(p => (
+                        <Button 
+                            key={p} 
+                            variant={p === page ? "default" : "outline"}
+                            onClick={() => setPage(p)}
+                            className={`h-8 w-8 p-0 rounded-sm ${p === page ? "bg-gray-600 text-white font-bold border-gray-600 hover:bg-gray-700" : "text-gray-500 border-gray-300 bg-white hover:bg-gray-50"}`}
+                        >
+                            {p}
+                        </Button>
+                     ))}
+
+                     <Button 
+                        variant="outline" 
+                        disabled={page >= totalPages} 
+                        onClick={() => setPage(p => Math.min(totalPages, p+1))}
+                        className="h-8 w-8 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{">"}</Button>
+                     <Button 
+                        variant="outline" 
+                        disabled={page >= totalPages} 
+                        onClick={() => setPage(totalPages)}
+                        className="h-8 w-8 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{">>"}</Button>
                 </div>
             </div>
 
             {/* Bulk Action Controls */}
              <div className="mt-10 border-t-2 border-gray-400">
                  <div className="flex items-center gap-2 py-4">
-                     <Checkbox id="bulk-update" />
-                     <Label htmlFor="bulk-update" className="text-xs text-gray-700">검색된 상품 전체(290개 상품)를 수정합니다.</Label>
+                     <Checkbox id="bulk-update" checked={isAllSelected} onCheckedChange={(c) => setIsAllSelected(!!c)} disabled />
+                     <Label htmlFor="bulk-update" className="text-xs text-gray-700">검색된 상품 전체({totalCount}개 상품)를 수정합니다. (미구현)</Label>
                  </div>
                  <div className="text-red-500 text-xs font-bold flex items-center gap-1 mb-4">
                      <span className="bg-red-500 text-white text-[10px] px-1 rounded-sm">!</span> 상품수가 많은 경우 비권장합니다. 가능하면 한 페이지씩 선택하여 수정하세요.
@@ -245,10 +498,17 @@ export default function ProductMoveCopyDeletePage() {
                          </div>
                          <div className="flex-1 p-4 space-y-2">
                              <div className="flex items-center gap-2">
-                                 <Button variant="secondary" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm">카테고리 선택</Button>
-                                 <Button variant="outline" className="h-7 text-xs border-gray-300 rounded-sm bg-white">연결</Button>
-                                 <Button variant="outline" className="h-7 text-xs border-gray-300 rounded-sm bg-white">이동</Button>
-                                 <Button variant="outline" className="h-7 text-xs border-gray-300 rounded-sm bg-white">복사</Button>
+                                 <Select value={targetCategoryId} onValueChange={setTargetCategoryId}>
+                                     <SelectTrigger className="w-48 h-7 text-xs">
+                                         <SelectValue placeholder="카테고리 선택" />
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                         {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                     </SelectContent>
+                                 </Select>
+                                 <Button variant="outline" className="h-7 text-xs border-gray-300 rounded-sm bg-white" disabled>연결</Button>
+                                 <Button variant="outline" onClick={handleMoveCategory} className="h-7 text-xs border-gray-300 rounded-sm bg-white">이동</Button>
+                                 <Button variant="outline" onClick={handleCopyCategory} className="h-7 text-xs border-gray-300 rounded-sm bg-white">복사</Button>
                              </div>
                               <div className="flex gap-1 items-start text-[11px] text-gray-500">
                                  <span className="font-bold text-gray-500 px-1 border border-gray-400 rounded-[2px] text-[10px] h-4 flex items-center justify-center">!</span>
@@ -266,8 +526,15 @@ export default function ProductMoveCopyDeletePage() {
                              브랜드 교체
                          </div>
                          <div className="flex-1 p-4 flex items-center gap-2">
-                             <Button variant="secondary" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm">브랜드 선택</Button>
-                             <Button variant="outline" className="h-7 text-xs border-gray-300 rounded-sm bg-white">교체</Button>
+                             <Select value={targetBrandId} onValueChange={setTargetBrandId}>
+                                     <SelectTrigger className="w-48 h-7 text-xs">
+                                         <SelectValue placeholder="브랜드 선택" />
+                                     </SelectTrigger>
+                                     <SelectContent>
+                                         {brands.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+                                     </SelectContent>
+                                 </Select>
+                             <Button variant="outline" onClick={handleChangeBrand} className="h-7 text-xs border-gray-300 rounded-sm bg-white">교체</Button>
                          </div>
                      </div>
 
@@ -281,8 +548,8 @@ export default function ProductMoveCopyDeletePage() {
                          </div>
                          <div className="flex-1 p-4 space-y-2">
                              <div className="flex gap-2">
-                                <Button className="h-7 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm font-bold border-0">카테고리 전체 해제</Button>
-                                <Button className="h-7 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm font-bold border-0">브랜드 전체 해제</Button>
+                                <Button className="h-7 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm font-bold border-0" disabled>카테고리 전체 해제</Button>
+                                <Button onClick={handleReleaseBrand} className="h-7 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm font-bold border-0">브랜드 전체 해제</Button>
                              </div>
                              <div className="flex gap-1 items-start text-[11px] text-gray-500">
                                  <span className="font-bold text-gray-500 px-1 border border-gray-400 rounded-[2px] text-[10px] h-4 flex items-center justify-center">!</span>
@@ -300,7 +567,7 @@ export default function ProductMoveCopyDeletePage() {
                              상품 삭제
                          </div>
                          <div className="flex-1 p-4">
-                             <Button variant="outline" className="h-7 text-xs border-red-400 text-red-500 bg-white hover:bg-red-50 rounded-sm font-medium">삭제</Button>
+                             <Button variant="outline" onClick={handleDelete} className="h-7 text-xs border-red-400 text-red-500 bg-white hover:bg-red-50 rounded-sm font-medium">삭제</Button>
                          </div>
                      </div>
                  </div>

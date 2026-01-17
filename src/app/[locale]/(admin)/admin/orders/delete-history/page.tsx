@@ -1,9 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -12,8 +10,76 @@ import {
   ChevronUp,
   BookOpen,
 } from "lucide-react";
+import { 
+    createOrderDeleteRequestAction, 
+    getOrderDeleteRequestsAction, 
+    executeOrderDeleteAction 
+} from "@/actions/order-actions";
+import { format } from "date-fns";
 
 export default function OrderDeleteHistoryPage() {
+  const [requests, setRequests] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+
+  useEffect(() => {
+      fetchRequests();
+  }, [page]);
+
+  const fetchRequests = async () => {
+      setLoading(true);
+      try {
+          const res = await getOrderDeleteRequestsAction({ page, limit });
+          if (res.success) {
+              setRequests(res.items || []);
+              setTotal(res.total || 0);
+          }
+      } catch (e) {
+          console.error(e);
+      }
+      setLoading(false);
+  };
+
+  const handleCreateRequest = () => {
+      if (!confirm("5년 이상 경과된 주문 내역을 삭제 대상으로 생성하시겠습니까?")) return;
+
+      startTransition(async () => {
+          const res = await createOrderDeleteRequestAction();
+          if (res.success) {
+              alert(`${res.count}건의 삭제 대상 주문이 생성되었습니다.`);
+              fetchRequests();
+          } else {
+              alert(res.error || "요청 생성 실패");
+          }
+      });
+  };
+
+  const handleExecuteDelete = (id: string) => {
+      if (!confirm("정말로 해당 주문 내역들을 영구 삭제하시겠습니까?\n삭제 후에는 복구가 불가능합니다.")) return;
+
+      startTransition(async () => {
+          const res = await executeOrderDeleteAction(id);
+          if (res.success) {
+              alert("삭제가 완료되었습니다.");
+              fetchRequests();
+          } else {
+              alert(res.error || "삭제 처리 실패");
+          }
+      });
+  };
+
+  const getStatusLabel = (status: string) => {
+      switch (status) {
+          case "PENDING": return <span className="text-blue-600 font-bold">대기중</span>;
+          case "COMPLETED": return <span className="text-gray-500">완료</span>;
+          case "EXPIRED": return <span className="text-red-500">만료</span>;
+          default: return status;
+      }
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
       <div className="flex items-end gap-2 pb-4 border-b border-gray-400 mb-6">
@@ -54,7 +120,7 @@ export default function OrderDeleteHistoryPage() {
                                     기준몰
                                 </Label>
                             </div>
-                             <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5">
                                 <RadioGroupItem value="cn" id="store-cn" className="border-gray-300 text-gray-600" />
                                 <Label htmlFor="store-cn" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
                                     <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-red-600 text-white">🇨🇳</span>
@@ -89,8 +155,12 @@ export default function OrderDeleteHistoryPage() {
                 <span className="flex items-center justify-center w-3 h-3 bg-gray-500 text-white font-bold rounded-[2px] text-[9px]">!</span>
                 주문삭제대상 검색은 '주문번호'를 기준으로 진행되므로 삭제 대상에서 제외한 공급사의 주문도 삭제될 수 있습니다.
             </div>
-          <Button className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-9 px-6 rounded-sm text-xs">
-              삭제 주문 내역 생성
+          <Button 
+            className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-9 px-6 rounded-sm text-xs"
+            onClick={handleCreateRequest}
+            disabled={isPending}
+          >
+              {isPending ? "생성 중..." : "삭제 주문 내역 생성"}
           </Button>
       </div>
 
@@ -128,11 +198,43 @@ export default function OrderDeleteHistoryPage() {
                   </tr>
               </thead>
               <tbody className="text-gray-600 bg-white">
-                  <tr>
-                      <td colSpan={8} className="py-12 border-b border-gray-200 text-center text-xs text-gray-400">
-                          생성된 삭제 주문 내역이 없습니다.
-                      </td>
-                  </tr>
+                  {loading ? (
+                    <tr>
+                        <td colSpan={8} className="py-12 border-b border-gray-200 text-center text-xs text-gray-400">
+                            로딩중...
+                        </td>
+                    </tr>
+                  ) : requests.length === 0 ? (
+                      <tr>
+                          <td colSpan={8} className="py-12 border-b border-gray-200 text-center text-xs text-gray-400">
+                              생성된 삭제 주문 내역이 없습니다.
+                          </td>
+                      </tr>
+                  ) : (
+                      requests.map((req, idx) => (
+                          <tr key={req.id} className="border-b border-gray-200 h-8 hover:bg-gray-50">
+                              <td className="border-r border-[#CDCDCD]">{total - idx}</td>
+                              <td className="border-r border-[#CDCDCD]">{req.totalCount}</td>
+                              <td className="border-r border-[#CDCDCD]">{format(new Date(req.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                              <td className="border-r border-[#CDCDCD]">{req.createdBy || '-'}</td>
+                              <td className="border-r border-[#CDCDCD]">{req.deletedAt ? format(new Date(req.deletedAt), "yyyy-MM-dd HH:mm") : '-'}</td>
+                              <td className="border-r border-[#CDCDCD]">{req.processedBy || '-'}</td>
+                              <td className="border-r border-[#CDCDCD]">{getStatusLabel(req.status)}</td>
+                              <td>
+                                  {req.status === "PENDING" && (
+                                     <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="h-6 text-[10px] px-2 py-0 border-red-500 text-red-500 hover:bg-red-50"
+                                        onClick={() => handleExecuteDelete(req.id)}
+                                     >
+                                         삭제실행
+                                     </Button>
+                                  )}
+                              </td>
+                          </tr>
+                      ))
+                  )}
               </tbody>
           </table>
       </div>

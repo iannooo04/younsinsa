@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,65 @@ import {
   Youtube,
   ChevronUp,
 } from "lucide-react";
+import * as XLSX from "xlsx";
+import { uploadProductsExcelAction } from "@/actions/product-actions";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function ProductExcelUploadPage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [supplierType, setSupplierType] = useState<"head" | "supplier">("head");
+  const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
+  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) {
+      alert("파일을 선택해주세요.");
+      return;
+    }
+    
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    if (supplierType === 'supplier' && selectedSupplier) {
+        formData.append("supplierId", selectedSupplier.id);
+    }
+
+    try {
+      const res = await uploadProductsExcelAction(formData);
+      alert(res.message);
+      if (res.success) {
+          setFile(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    } catch (err) {
+      console.error(err);
+      alert("업로드 중 오류가 발생했습니다.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleSampleDownload = () => {
+    const headers = [
+      ["설명", "상품명_기본*", "판매가*", "정가", "매입가", "재고*", "자체상품코드", "카테고리 코드*", "브랜드 코드", "짧은 설명"],
+      ["excel DB", "goods_name", "goods_price", "fixed_price", "cost_price", "stock_cnt", "goods_cd", "category_code", "brand_code", "short_desc"],
+      ["설명", "상품명", "판매가격", "정가", "매입가", "재고수량", "자체코드", "카테고리ID", "브랜드ID", "설명"],
+      ["데이터", "샘플 상품 A", "10000", "12000", "8000", "100", "CODE001", "CATEGORY_ID_HERE", "BRAND_ID_HERE", "간단설명"]
+    ];
+    const ws = XLSX.utils.aoa_to_sheet(headers);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Sample");
+    XLSX.writeFile(wb, "product_upload_sample.xlsx");
+  };
+
   const tableData = [
     { name: "상품번호", eng: "goods_no", desc: "숫자 10자리의 unique 코드, 등록시에는 자동 생성 되므로 등록시에는 넣지 마세요." },
     { name: "상품명_기본", eng: "goods_name", desc: "250자 이내의 상품명, html 태그 사용 가능" },
@@ -191,15 +248,36 @@ export default function ProductExcelUploadPage() {
                     엑셀파일 업로드
                 </div>
                 <div className="flex-1 p-3 flex gap-1">
-                   {/* File Input Mockup */}
                    <div className="flex">
-                      <Input type="text" className="w-64 h-8 bg-white border-gray-300 rounded-none rounded-l-sm" disabled />
-                      <Button variant="secondary" className="h-8 bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-none rounded-r-sm text-xs px-3">
+                      <Input 
+                        type="text" 
+                        value={file?.name || ""}
+                        className="w-64 h-8 bg-white border-gray-300 rounded-none rounded-l-sm" 
+                        placeholder="파일을 선택해주세요."
+                        readOnly
+                      />
+                      <input 
+                        type="file" 
+                        ref={fileInputRef}
+                        onChange={handleFileChange}
+                        className="hidden"
+                        accept=".xlsx,.xls"
+                      />
+                      <Button 
+                        variant="secondary" 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="h-8 bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-none rounded-r-sm text-xs px-3"
+                      >
                           찾아보기
                       </Button>
                    </div>
-                   <Button variant="outline" className="h-8 border-gray-300 text-gray-600 bg-white hover:bg-gray-50 text-xs px-3 ml-1">
-                          엑셀업로드
+                   <Button 
+                    variant="outline" 
+                    onClick={handleUpload}
+                    disabled={isUploading}
+                    className="h-8 border-gray-300 text-gray-600 bg-white hover:bg-gray-50 text-xs px-3 ml-1"
+                   >
+                       {isUploading ? "업로드 중..." : "엑셀업로드"}
                    </Button>
                 </div>
             </div>
@@ -210,19 +288,34 @@ export default function ProductExcelUploadPage() {
                     공급사 구분
                 </div>
                 <div className="flex-1 p-3 flex items-center">
-                    <RadioGroup defaultValue="head" className="flex gap-4 items-center">
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="head" id="supplier-head" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="supplier" id="supplier-provider" className="border-gray-300 text-gray-600"/>
-                                <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                                <Button variant="secondary" className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2 ml-1">
-                                    공급사 선택
-                                </Button>
-                            </div>
-                        </RadioGroup>
+                    <RadioGroup 
+                        value={supplierType} 
+                        onValueChange={(v: any) => setSupplierType(v)}
+                        className="flex gap-4 items-center"
+                    >
+                        <div className="flex items-center gap-1.5">
+                            <RadioGroupItem value="head" id="supplier-head" className="border-gray-300 text-gray-600 focus:ring-red-500" />
+                            <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <RadioGroupItem value="supplier" id="supplier-provider" className="border-gray-300 text-gray-600 focus:ring-red-500" />
+                            <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
+                            {supplierType === 'supplier' && (
+                                <div className="flex items-center gap-2 ml-2">
+                                    <div className="h-7 px-2 flex items-center border border-gray-300 bg-white min-w-[100px]">
+                                        {selectedSupplier?.name || "선택된 공급사 없음"}
+                                    </div>
+                                    <Button 
+                                        variant="secondary" 
+                                        className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2"
+                                        onClick={() => setIsSupplierPopupOpen(true)}
+                                    >
+                                        공급사 선택
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </RadioGroup>
                 </div>
             </div>
         </div>
@@ -240,7 +333,11 @@ export default function ProductExcelUploadPage() {
                   <li>엑셀 파일 저장은 반드시 "Excel 통합 문서(xlsx)" 혹은 "Excel 97-2003 통합문서(xls)"로 저장하셔야 합니다. 그 외 csv나 xml 파일등은 지원 되지 않습니다.</li>
               </ol>
               <div className="mt-2">
-                 <Button variant="outline" size="sm" className="h-8 bg-white border-gray-300 hover:bg-gray-50 text-green-700 font-bold flex items-center gap-1.5 px-3">
+                 <Button 
+                    variant="outline" size="sm" 
+                    onClick={handleSampleDownload}
+                    className="h-8 bg-white border-gray-300 hover:bg-gray-50 text-green-700 font-bold flex items-center gap-1.5 px-3"
+                 >
                     <div className="bg-green-600 text-white p-0.5 rounded-[2px]">
                          <FileSpreadsheet className="w-3 h-3 text-white fill-current" />
                      </div>
@@ -327,6 +424,13 @@ export default function ProductExcelUploadPage() {
                 </Button>
             </div>
         </div>
+
+        <SupplierPopup 
+            isOpen={isSupplierPopupOpen}
+            onClose={() => setIsSupplierPopupOpen(false)}
+            onConfirm={(s) => setSelectedSupplier(s)}
+        />
     </div>
   );
 }
+

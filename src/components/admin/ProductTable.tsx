@@ -3,14 +3,18 @@
 import { useState } from "react";
 import { Download, FileSpreadsheet, Settings } from "lucide-react";
 import Link from 'next/link';
+import { deleteProductsAction } from "@/actions/product-actions";
+import { useRouter } from "next/navigation";
 
 interface Props {
     initialProducts: any[];
 }
 
 export default function ProductTable({ initialProducts }: Props) {
+    const router = useRouter();
     const [products, setProducts] = useState(initialProducts);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const toggleSelectAll = (checked: boolean) => {
         if (checked) setSelectedIds(products.map((p: any) => p.id));
@@ -26,9 +30,25 @@ export default function ProductTable({ initialProducts }: Props) {
         if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
         if (!confirm(`${selectedIds.length}개 상품을 삭제하시겠습니까?`)) return;
 
-        // Implement bulk delete API call here
-        alert("삭제 기능은 구현 중입니다.");
+        setIsDeleting(true);
+        const res = await deleteProductsAction(selectedIds);
+        if (res.success) {
+            alert(res.message);
+            // Refresh list or optimistic update
+            setProducts(prev => prev.filter(p => !selectedIds.includes(p.id)));
+            setSelectedIds([]);
+            router.refresh();
+        } else {
+            alert(res.message);
+        }
+        setIsDeleting(false);
     };
+
+    const soldOutCount = products.filter((p: any) => 
+        (p.stockType === 'LIMITED' && p.stockQuantity <= 0) || p.soldOutStatus === 'SOLDOUT_MANUAL'
+    ).length;
+    const displayedPcCount = products.filter((p: any) => p.displayStatusPC === 'DISPLAY').length;
+    const displayedMobileCount = products.filter((p: any) => p.displayStatusMobile === 'DISPLAY').length;
 
     return (
         <div className="space-y-4">
@@ -40,9 +60,9 @@ export default function ProductTable({ initialProducts }: Props) {
                     <span>/</span>
                     <span>전체 {products.length}개</span>
                     <span>|</span>
-                    <span>품절 0개</span>
+                    <span>품절 {soldOutCount}개</span>
                     <span>|</span>
-                    <span>노출 : PC {products.length}개 / 모바일 {products.length}개</span>
+                    <span>노출 : PC {displayedPcCount}개 / 모바일 {displayedMobileCount}개</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <select className="select select-bordered select-xs rounded-sm">
@@ -113,12 +133,12 @@ export default function ProductTable({ initialProducts }: Props) {
                                     />
                                 </td>
                                 <td>{products.length - index}</td>
-                                <td className="font-mono text-gray-500">{product.id.substring(0,8)}...</td>
+                                <td className="font-mono text-gray-500">{product.code || product.id.substring(0,8)}</td>
                                 <td>
                                     <div className="flex justify-center">
-                                        <div className="w-10 h-10 border bg-gray-100 flex items-center justify-center">
+                                        <div className="w-10 h-10 border bg-gray-100 flex items-center justify-center relative overflow-hidden">
                                             {product.images?.[0] ? (
-                                                <img src={product.images[0].url} alt="" className="max-w-full max-h-full object-cover" />
+                                                <img src={product.images[0].url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="text-gray-300 text-[10px]">No Img</span>
                                             )}
@@ -133,27 +153,39 @@ export default function ProductTable({ initialProducts }: Props) {
                                          {/* Tags can go here */}
                                     </div>
                                 </td>
-                                <td className="font-bold text-gray-800">{product.price.toLocaleString()}원</td>
-                                <td className="text-gray-500">니아인터내셔널</td>
+                                <td className="font-bold text-gray-800">{product.price?.toLocaleString()}원</td>
+                                <td className="text-gray-500">{product.supplier?.name || "-"}</td>
                                 <td>
                                     <div className="space-y-1">
-                                        <div>PC | <span className="text-gray-800">노출함</span></div>
-                                        <div>모바일 | <span className="text-gray-800">노출함</span></div>
+                                        <div>PC | <span className={product.displayStatusPC === 'DISPLAY' ? "text-blue-600" : "text-gray-400"}>
+                                            {product.displayStatusPC === 'DISPLAY' ? '노출함' : '노출안함'}
+                                        </span></div>
+                                        <div>모바일 | <span className={product.displayStatusMobile === 'DISPLAY' ? "text-blue-600" : "text-gray-400"}>
+                                            {product.displayStatusMobile === 'DISPLAY' ? '노출함' : '노출안함'}
+                                        </span></div>
                                     </div>
                                 </td>
                                 <td>
                                     <div className="space-y-1">
-                                        <div>PC | <span className="text-gray-800">판매함</span></div>
-                                        <div>모바일 | <span className="text-gray-800">판매함</span></div>
+                                        <div>PC | <span className={product.saleStatusPC === 'ON_SALE' ? "text-blue-600" : "text-gray-400"}>
+                                            {product.saleStatusPC === 'ON_SALE' ? '판매함' : '판매안함'}
+                                        </span></div>
+                                        <div>모바일 | <span className={product.saleStatusMobile === 'ON_SALE' ? "text-blue-600" : "text-gray-400"}>
+                                            {product.saleStatusMobile === 'ON_SALE' ? '판매함' : '판매안함'}
+                                        </span></div>
                                     </div>
                                 </td>
-                                <td>∞</td>
-                                <td className="text-gray-500">
+                                <td>
+                                    {product.stockType === 'LIMITLESS' ? '∞' : product.stockQuantity?.toLocaleString()}
+                                </td>
+                                <td className="text-gray-500 text-[11px]">
                                     <div>{new Date(product.createdAt).toISOString().split('T')[0]}</div>
                                     <div>{new Date(product.updatedAt).toISOString().split('T')[0]}</div>
                                 </td>
                                 <td>
-                                    <button className="btn btn-xs btn-outline border-gray-300 text-gray-600 font-normal h-6 min-h-0 rounded-sm">수정</button>
+                                    <Link href={`/admin/products/edit/${product.id}`}>
+                                        <button className="btn btn-xs btn-outline border-gray-300 text-gray-600 font-normal h-6 min-h-0 rounded-sm">수정</button>
+                                    </Link>
                                 </td>
                             </tr>
                         ))}

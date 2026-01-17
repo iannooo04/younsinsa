@@ -10,6 +10,7 @@ interface SelectContextType {
   setOpen: (open: boolean) => void;
   label?: React.ReactNode;
   setLabel: (label: React.ReactNode) => void;
+  disabled?: boolean;
 }
 
 const SelectContext = React.createContext<SelectContextType | null>(null);
@@ -19,11 +20,13 @@ const Select = ({
   defaultValue,
   onValueChange,
   children,
+  disabled,
 }: {
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
   children: React.ReactNode;
+  disabled?: boolean;
 }) => {
   const [internalValue, setInternalValue] = React.useState(defaultValue || "");
   const [open, setOpen] = React.useState(false);
@@ -49,6 +52,7 @@ const Select = ({
         setOpen,
         label,
         setLabel,
+        disabled,
       }}
     >
       <div className="relative inline-block w-full">{children}</div>
@@ -67,6 +71,7 @@ const SelectTrigger = React.forwardRef<
       onClick={() => context?.setOpen(!context.open)}
       className={`flex h-10 w-full items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-950 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       ref={ref}
+      disabled={context?.disabled || props.disabled}
       {...props}
     >
       {children}
@@ -116,8 +121,8 @@ SelectContent.displayName = "SelectContent";
 
 const SelectItem = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement> & { value: string }
->(({ className = "", children, value, ...props }, ref) => {
+  React.HTMLAttributes<HTMLDivElement> & { value: string; disabled?: boolean }
+>(({ className = "", children, value, disabled, ...props }, ref) => {
   const context = React.useContext(SelectContext);
   const isSelected = context?.value === value;
 
@@ -134,10 +139,13 @@ const SelectItem = React.forwardRef<
   return (
     <div
       ref={ref}
+      data-disabled={disabled ? true : undefined}
+      aria-disabled={disabled ? true : undefined}
       className={`relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-gray-100 focus:text-gray-900 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 hover:bg-gray-100 ${
         isSelected ? "bg-gray-100" : ""
       } ${className}`}
       onClick={(e) => {
+        if (disabled) return;
         e.stopPropagation();
         context?.onValueChange?.(value);
       }}

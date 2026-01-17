@@ -1,14 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useActionState } from "react";
 import { HelpCircle, ChevronUp, ChevronDown, Check, X } from "lucide-react";
+import { createProductAction } from "@/actions/product-actions";
 
 interface Props {
     brands: any[];
     categories: any[];
 }
 
+const initialState = {
+    message: "",
+    success: false,
+};
+
 export default function ProductForm({ brands, categories }: Props) {
+    const [state, formAction] = useActionState(createProductAction, initialState);
+    
     // UI States for collapsible sections
     const [sections, setSections] = useState({
         category: true,
@@ -35,6 +43,8 @@ export default function ProductForm({ brands, categories }: Props) {
         admin_memo: true,
     });
 
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+
     const toggleSection = (key: keyof typeof sections) => {
         setSections(prev => ({ ...prev, [key]: !prev[key] }));
     };
@@ -51,40 +61,45 @@ export default function ProductForm({ brands, categories }: Props) {
                     <button className="px-4 py-2 border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50">
                         기존상품 복사
                     </button>
-                    <button className="px-6 py-2 bg-[#ff4d4f] text-white text-sm font-bold hover:bg-[#ff3032]">
+                    <button 
+                        onClick={() => document.querySelector('form')?.requestSubmit()}
+                        className="px-6 py-2 bg-[#ff4d4f] text-white text-sm font-bold hover:bg-[#ff3032]"
+                    >
                         저장
                     </button>
                 </div>
             </div>
 
-            <form className="space-y-8 px-4">
+            <form action={formAction} className="space-y-8 px-4">
+                <input type="hidden" name="categoryId" value={selectedCategoryId} />
                 
+                {state.message && (
+                    <div className={`p-4 rounded-md ${state.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        {state.message}
+                    </div>
+                )}
+
                 {/* 1. 카테고리 연결 */}
                 <Section title="카테고리 연결" isOpen={sections.category} onToggle={() => toggleSection('category')} 
                     helpText="카테고리가 먼저 등록되어 있어야 카테고리 연결이 가능합니다."
-                    extraLink={{ text: "카테고리 등록하기 >", href: "#" }}
+                    extraLink={{ text: "카테고리 등록하기 >", href: "/admin/categories" }}
                 >
                     <div className="p-4 bg-white">
-                        <div className="flex gap-2 h-48 mb-4">
-                            {[1, 2, 3, 4].map((level) => (
-                                <div key={level} className="flex-1 border border-gray-300 p-2 overflow-y-auto">
-                                    <div className="text-gray-400 text-xs mb-2">=카테고리선택=</div>
-                                    {/* Mock items for first column */}
-                                    {level === 1 && (
-                                        <ul className="text-sm space-y-1">
-                                            <li className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 p-1">New Arrivals</li>
-                                            <li className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 p-1">Best Sellers</li>
-                                            <li className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 p-1">Outer</li>
-                                            <li className="cursor-pointer hover:bg-blue-50 hover:text-blue-600 p-1">Top</li>
-                                        </ul>
-                                    )}
-                                </div>
-                            ))}
-                            <div className="flex flex-col justify-center px-4">
-                                <button type="button" className="px-6 py-8 bg-[#555] text-white font-bold hover:bg-[#444]">
-                                    선택
-                                </button>
-                            </div>
+                        <div className="grid grid-cols-3 gap-2 h-48 mb-4 border border-gray-300 p-2">
+                             {/* Simplified Category Selection for Demo */}
+                             <div className="col-span-3 overflow-y-auto">
+                                <ul className="text-sm space-y-1">
+                                    {categories.map(cat => (
+                                        <li 
+                                            key={cat.id} 
+                                            onClick={() => setSelectedCategoryId(cat.id)}
+                                            className={`cursor-pointer p-2 hover:bg-blue-50 ${selectedCategoryId === cat.id ? 'bg-blue-100 text-blue-600 font-bold' : ''}`}
+                                        >
+                                            {cat.name} <span className="text-gray-400 text-xs">({cat.code})</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                             </div>
                         </div>
                     </div>
                 </Section>

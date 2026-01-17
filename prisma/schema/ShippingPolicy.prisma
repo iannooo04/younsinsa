@@ -60,5 +60,5 @@ model ShippingPolicy {
   updatedAt       DateTime @updatedAt
   
   // Products referencing this policy
-  // products     Product[] (Product 모델에 shippingPolicyId 추가 필요)
+  products        Product[]
 }

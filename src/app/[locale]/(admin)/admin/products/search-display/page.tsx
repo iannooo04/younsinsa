@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -10,15 +11,83 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Youtube, ChevronUp, ChevronDown } from "lucide-react";
+import { Youtube, ChevronUp } from "lucide-react";
+import { getSearchDisplaySettingsAction, updateSearchDisplaySettingsAction } from "@/actions/search-display-actions";
 
 export default function SearchProductDisplayPage() {
+    const [sortBy, setSortBy] = useState("recent");
+    const [searchConditions, setSearchConditions] = useState<string[]>([]);
+    const [pcTheme, setPcTheme] = useState("default");
+    const [mobileTheme, setMobileTheme] = useState("default");
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            const res = await getSearchDisplaySettingsAction();
+            if (res.success && res.settings) {
+                setSortBy(res.settings.sortBy);
+                // JSON is strictly unknown/any from prisma, so cast it
+                setSearchConditions((res.settings.searchConditions as string[]) || []);
+                setPcTheme(res.settings.pcTheme || "default");
+                setMobileTheme(res.settings.mobileTheme || "default");
+            }
+            setLoading(false);
+        }
+        loadData();
+    }, []);
+
+    const handleConditionChange = (id: string, checked: boolean) => {
+        setSearchConditions(prev => {
+            if (checked) {
+                return [...prev, id];
+            } else {
+                return prev.filter(item => item !== id);
+            }
+        });
+    };
+
+    const handleSave = async () => {
+        try {
+            const res = await updateSearchDisplaySettingsAction({
+                sortBy,
+                searchConditions,
+                pcTheme,
+                mobileTheme
+            });
+            alert(res.message);
+        } catch (e) {
+            console.error(e);
+            alert("저장 중 오류가 발생했습니다.");
+        }
+    };
+
+    if (loading) {
+        return <div className="p-6">로딩중...</div>;
+    }
+
+    const conditionOptions = [
+        { id: "s-keyword", label: "검색어" },
+        { id: "s-category", label: "카테고리" },
+        { id: "s-brand", label: "브랜드" },
+        { id: "s-price", label: "가격" },
+        { id: "s-free", label: "무료배송" }, // Fixed typo
+        { id: "s-recent", label: "최근등록상품" },
+        { id: "s-color", label: "대표색상" },
+        { id: "s-icon", label: "아이콘" },
+    ];
+
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">검색페이지 상품진열</h1>
-                <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm">저장</Button>
+                <Button 
+                    onClick={handleSave}
+                    className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm"
+                >
+                    저장
+                </Button>
             </div>
 
             {/* Basic Info Section */}
@@ -38,12 +107,13 @@ export default function SearchProductDisplayPage() {
                              진열방법 선택 <span className="text-gray-400 border border-gray-400 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-normal cursor-help">?</span>
                          </div>
                          <div className="flex-1 p-3 flex items-center h-12">
-                             <Select defaultValue="recent">
+                             <Select value={sortBy} onValueChange={setSortBy}>
                                  <SelectTrigger className="w-48 h-8 text-xs">
-                                     <SelectValue placeholder="최근 등록 상품 위로" />
+                                     <SelectValue placeholder="진열방법 선택" />
                                  </SelectTrigger>
                                  <SelectContent>
                                      <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
+                                     {/* Add more options if needed later */}
                                  </SelectContent>
                              </Select>
                          </div>
@@ -54,18 +124,14 @@ export default function SearchProductDisplayPage() {
                              검색조건 선택 <span className="text-gray-400 border border-gray-400 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-normal cursor-help">?</span>
                          </div>
                          <div className="flex-1 p-3 flex items-center gap-6 h-12">
-                             {[
-                                 { id: "s-keyword", label: "검색어", checked: true },
-                                 { id: "s-category", label: "카테고리", checked: true },
-                                 { id: "s-brand", label: "브랜드", checked: true },
-                                 { id: "s-price", label: "가격", checked: true },
-                                 { id: "s-free", label: "무료변송", checked: true },
-                                 { id: "s-recent", label: "최근등록상품", checked: true },
-                                 { id: "s-color", label: "대표색상", checked: true },
-                                 { id: "s-icon", label: "아이콘", checked: false },
-                             ].map((item) => (
+                             {conditionOptions.map((item) => (
                                  <div key={item.id} className="flex items-center gap-1.5">
-                                     <Checkbox id={item.id} defaultChecked={item.checked} className={item.checked ? "bg-red-500 border-red-500 text-white" : ""} />
+                                     <Checkbox 
+                                        id={item.id} 
+                                        checked={searchConditions.includes(item.id)}
+                                        onCheckedChange={(c) => handleConditionChange(item.id, c as boolean)}
+                                        className={searchConditions.includes(item.id) ? "bg-red-500 border-red-500 text-white" : ""} 
+                                     />
                                      <Label htmlFor={item.id} className="text-gray-600">{item.label}</Label>
                                  </div>
                              ))}
@@ -75,9 +141,9 @@ export default function SearchProductDisplayPage() {
                     <div className="flex items-center">
                          <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 h-12 flex items-center">PC쇼핑몰 테마선택</div>
                          <div className="flex-1 p-3 flex items-center gap-2 h-12 border-r border-gray-200">
-                             <Select defaultValue="default">
+                             <Select value={pcTheme} onValueChange={setPcTheme}>
                                  <SelectTrigger className="w-48 h-8 text-xs">
-                                     <SelectValue placeholder="검색페이지테마" />
+                                     <SelectValue placeholder="PC 테마 선택" />
                                  </SelectTrigger>
                                  <SelectContent>
                                      <SelectItem value="default">검색페이지테마</SelectItem>
@@ -89,9 +155,9 @@ export default function SearchProductDisplayPage() {
                          </div>
                          <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 h-12 flex items-center">모바일쇼핑몰 테마선택</div>
                          <div className="flex-1 p-3 flex items-center gap-2 h-12">
-                             <Select defaultValue="default">
+                             <Select value={mobileTheme} onValueChange={setMobileTheme}>
                                  <SelectTrigger className="w-48 h-8 text-xs">
-                                     <SelectValue placeholder="검색페이지테마" />
+                                     <SelectValue placeholder="모바일 테마 선택" />
                                  </SelectTrigger>
                                  <SelectContent>
                                      <SelectItem value="default">검색페이지테마</SelectItem>
@@ -106,102 +172,106 @@ export default function SearchProductDisplayPage() {
             </div>
 
             {/* PC Theme Info Section */}
-            <div>
-                 <div className="flex items-center justify-between mb-2 mt-8">
-                    <div className="flex items-center gap-1">
-                        <h2 className="text-sm font-bold text-gray-800">선택된 PC쇼핑몰 테마 정보</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
+            {pcTheme === 'default' && (
+                <div>
+                     <div className="flex items-center justify-between mb-2 mt-8">
+                        <div className="flex items-center gap-1">
+                            <h2 className="text-sm font-bold text-gray-800">선택된 PC쇼핑몰 테마 정보</h2>
+                            <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
+                        </div>
+                        <Button variant="link" className="text-blue-500 h-auto p-0 text-xs hover:no-underline">닫힘 ^</Button>
                     </div>
-                    <Button variant="link" className="text-blue-500 h-auto p-0 text-xs hover:no-underline">닫힘 ^</Button>
-                </div>
-                
-                <div className="border border-gray-300 bg-white text-xs">
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
-                        <div className="flex-1 px-4 flex items-center gap-2">
-                            <span className="text-gray-600">검색페이지테마</span>
-                            <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">수정</Button>
+                    
+                    <div className="border border-gray-300 bg-white text-xs">
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
+                            <div className="flex-1 px-4 flex items-center gap-2">
+                                <span className="text-gray-600">검색페이지테마</span>
+                                <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">수정</Button>
+                            </div>
+                        </div>
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">이미지 설정</div>
+                            <div className="flex-1 px-4 text-gray-600">추가리스트1 220pixel</div>
+                        </div>
+                         <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">상품 노출 개수</div>
+                            <div className="flex-1 px-4 text-gray-600">가로 : 4 X 세로 : 5</div>
+                        </div>
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 노출</div>
+                            <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 진열</div>
+                            <div className="flex-1 px-4 text-gray-600">정렬 순서대로 보여주기</div>
+                        </div>
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절 아이콘 노출</div>
+                            <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">아이콘 노출</div>
+                            <div className="flex-1 px-4 text-gray-600">예</div>
+                        </div>
+                         <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">노출항목 설정</div>
+                            <div className="flex-1 px-4 text-gray-600">이미지,상품명,이미지,상품명,판매가</div>
+                        </div>
+                         <div className="flex h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">디스플레이 유형</div>
+                            <div className="flex-1 px-4 text-gray-600">갤러리형</div>
                         </div>
                     </div>
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">이미지 설정</div>
-                        <div className="flex-1 px-4 text-gray-600">추가리스트1 220pixel</div>
-                    </div>
-                     <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">상품 노출 개수</div>
-                        <div className="flex-1 px-4 text-gray-600">가로 : 4 X 세로 : 5</div>
-                    </div>
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 노출</div>
-                        <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 진열</div>
-                        <div className="flex-1 px-4 text-gray-600">정렬 순서대로 보여주기</div>
-                    </div>
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절 아이콘 노출</div>
-                        <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">아이콘 노출</div>
-                        <div className="flex-1 px-4 text-gray-600">예</div>
-                    </div>
-                     <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">노출항목 설정</div>
-                        <div className="flex-1 px-4 text-gray-600">이미지,상품명,이미지,상품명,판매가</div>
-                    </div>
-                     <div className="flex h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">디스플레이 유형</div>
-                        <div className="flex-1 px-4 text-gray-600">갤러리형</div>
-                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Mobile Theme Info Section */}
-            <div>
-                 <div className="flex items-center justify-between mb-2 mt-8">
-                    <div className="flex items-center gap-1">
-                        <h2 className="text-sm font-bold text-gray-800">선택된 모바일쇼핑몰 테마 정보</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
+            {mobileTheme === 'default' && (
+                <div>
+                     <div className="flex items-center justify-between mb-2 mt-8">
+                        <div className="flex items-center gap-1">
+                            <h2 className="text-sm font-bold text-gray-800">선택된 모바일쇼핑몰 테마 정보</h2>
+                            <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
+                        </div>
+                        <Button variant="link" className="text-blue-500 h-auto p-0 text-xs hover:no-underline">닫힘 ^</Button>
                     </div>
-                    <Button variant="link" className="text-blue-500 h-auto p-0 text-xs hover:no-underline">닫힘 ^</Button>
-                </div>
-                
-                <div className="border border-gray-300 bg-white text-xs">
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
-                        <div className="flex-1 px-4 flex items-center gap-2">
-                            <span className="text-gray-600">검색페이지테마</span>
-                            <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">수정</Button>
+                    
+                    <div className="border border-gray-300 bg-white text-xs">
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
+                            <div className="flex-1 px-4 flex items-center gap-2">
+                                <span className="text-gray-600">검색페이지테마</span>
+                                <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">수정</Button>
+                            </div>
+                        </div>
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">이미지 설정</div>
+                            <div className="flex-1 px-4 text-gray-600">리스트이미지(기본) 180pixel</div>
+                        </div>
+                         <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">상품 노출 개수</div>
+                            <div className="flex-1 px-4 text-gray-600">가로 : 2 X 세로 : 5</div>
+                        </div>
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 노출</div>
+                            <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 진열</div>
+                            <div className="flex-1 px-4 text-gray-600">정렬 순서대로 보여주기</div>
+                        </div>
+                        <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절 아이콘 노출</div>
+                            <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">아이콘 노출</div>
+                            <div className="flex-1 px-4 text-gray-600">예</div>
+                        </div>
+                         <div className="flex border-b border-gray-200 h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">노출항목 설정</div>
+                            <div className="flex-1 px-4 text-gray-600">이미지,상품명,이미지,상품명,판매가</div>
+                        </div>
+                         <div className="flex h-12 items-center">
+                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">디스플레이 유형</div>
+                            <div className="flex-1 px-4 text-gray-600">리스트형</div>
                         </div>
                     </div>
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">이미지 설정</div>
-                        <div className="flex-1 px-4 text-gray-600">리스트이미지(기본) 180pixel</div>
-                    </div>
-                     <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">상품 노출 개수</div>
-                        <div className="flex-1 px-4 text-gray-600">가로 : 2 X 세로 : 5</div>
-                    </div>
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 노출</div>
-                        <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 진열</div>
-                        <div className="flex-1 px-4 text-gray-600">정렬 순서대로 보여주기</div>
-                    </div>
-                    <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절 아이콘 노출</div>
-                        <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">아이콘 노출</div>
-                        <div className="flex-1 px-4 text-gray-600">예</div>
-                    </div>
-                     <div className="flex border-b border-gray-200 h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">노출항목 설정</div>
-                        <div className="flex-1 px-4 text-gray-600">이미지,상품명,이미지,상품명,판매가</div>
-                    </div>
-                     <div className="flex h-12 items-center">
-                        <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">디스플레이 유형</div>
-                        <div className="flex-1 px-4 text-gray-600">리스트형</div>
-                    </div>
                 </div>
-            </div>
+            )}
 
 
             {/* Floating Actions */}

@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -13,20 +14,73 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Youtube,
   ChevronUp,
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Link } from "@/i18n/routing";
+import { toast } from "sonner";
+import { getGradeEvaluationAction, updateGradeEvaluationAction } from "@/actions/user-grade-actions";
 
 export default function GradeEvaluationPage() {
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<any>(null);
+  const [grades, setGrades] = useState<any[]>([]);
+
+  useEffect(() => {
+    async function fetchData() {
+        const res = await getGradeEvaluationAction();
+        if (res.success) {
+            setSettings(res.settings);
+            setGrades(res.grades || []);
+        } else {
+            toast.error(res.error || "데이터를 불러오는데 실패했습니다.");
+        }
+        setLoading(false);
+    }
+    fetchData();
+  }, []);
+
+  const handleSave = async () => {
+    const res = await updateGradeEvaluationAction({ settings, grades });
+    if (res.success) {
+        toast.success("저장되었습니다.");
+    } else {
+        toast.error(res.error || "저장에 실패했습니다.");
+    }
+  };
+
+  const handleSettingsChange = (field: string, value: any) => {
+    setSettings((prev: any) => ({ ...prev, [field]: value }));
+  };
+
+  const handleScoreSettingsChange = (category: string, field: string, value: any) => {
+      setSettings((prev: any) => ({
+          ...prev,
+          scoreSettings: {
+              ...prev.scoreSettings,
+              [category]: {
+                  ...prev.scoreSettings?.[category],
+                  [field]: value
+              }
+          }
+      }));
+  };
+
+  const handleGradeChange = (gradeId: string, field: string, value: any) => {
+      setGrades((prev) => prev.map(g => g.id === gradeId ? { ...g, [field]: value } : g));
+  };
+
+  if (loading) return <div className="p-6">Loading...</div>;
+  if (!settings) return <div className="p-6">Error loading settings.</div>;
+
+  const scoreSettings = settings.scoreSettings || {};
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
        {/* Header */}
       <div className="flex items-center justify-between pb-4 border-b-2 border-gray-800 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">회원등급 평가방법 설정</h1>
-        <Button className="h-9 px-6 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
+        <Button onClick={handleSave} className="h-9 px-6 text-xs bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
             저장
         </Button>
       </div>
@@ -45,7 +99,11 @@ export default function GradeEvaluationPage() {
                     자동/수동평가
                 </div>
                 <div className="flex-1 p-4 flex flex-col justify-center gap-2">
-                    <RadioGroup defaultValue="auto" className="flex items-center gap-4">
+                    <RadioGroup 
+                        value={settings.evaluationMethod} 
+                        onValueChange={(val) => handleSettingsChange("evaluationMethod", val)}
+                        className="flex items-center gap-4"
+                    >
                          <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="manual" id="eval-manual" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="eval-manual" className="text-gray-700 font-normal cursor-pointer text-xs">수동 평가</Label>
@@ -72,7 +130,11 @@ export default function GradeEvaluationPage() {
                     하향평가 사용여부
                 </div>
                 <div className="flex-1 p-4 flex flex-col justify-center gap-2">
-                     <RadioGroup defaultValue="use" className="flex items-center gap-4">
+                     <RadioGroup 
+                        value={settings.downgradeUsage}
+                        onValueChange={(val) => handleSettingsChange("downgradeUsage", val)}
+                        className="flex items-center gap-4"
+                    >
                          <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="use" id="downgrade-use" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="downgrade-use" className="text-gray-700 font-normal cursor-pointer text-xs">사용함</Label>
@@ -93,7 +155,14 @@ export default function GradeEvaluationPage() {
              <div className="flex border-b border-gray-200">
                 <div className="w-48 bg-[#FBFBFB] p-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-[80px]">
                      <div className="flex items-center gap-1.5">
-                        <input type="radio" id="method-figures" name="eval-method" className="w-3.5 h-3.5 border-gray-300 text-red-500 focus:ring-red-500" defaultChecked/>
+                        <input 
+                            type="radio" 
+                            id="method-figures" 
+                            name="eval-method" 
+                            className="w-3.5 h-3.5 border-gray-300 text-red-500 focus:ring-red-500" 
+                            checked={settings.criteriaMethod === "figures"}
+                            onChange={() => handleSettingsChange("criteriaMethod", "figures")}
+                        />
                         <Label htmlFor="method-figures" className="text-gray-700 font-bold cursor-pointer text-xs">실적 수치제</Label>
                     </div>
                 </div>
@@ -110,7 +179,14 @@ export default function GradeEvaluationPage() {
              <div className="flex">
                 <div className="w-48 bg-[#FBFBFB] p-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[160px]">
                     <div className="flex items-center gap-1.5">
-                        <input type="radio" id="method-score" name="eval-method" className="w-3.5 h-3.5 border-gray-300 text-gray-600 focus:ring-0" />
+                        <input 
+                            type="radio" 
+                            id="method-score" 
+                            name="eval-method" 
+                            className="w-3.5 h-3.5 border-gray-300 text-gray-600 focus:ring-0" 
+                             checked={settings.criteriaMethod === "score"}
+                             onChange={() => handleSettingsChange("criteriaMethod", "score")}
+                        />
                         <Label htmlFor="method-score" className="text-gray-700 font-normal cursor-pointer text-xs">실적 점수제</Label>
                     </div>
                 </div>
@@ -122,66 +198,137 @@ export default function GradeEvaluationPage() {
                             <div className="flex-1">모바일샵 추가 실적</div>
                         </div>
                         {/* Row 1: Amount */}
-                        <div className="flex h-10 border-b border-gray-200 items-center">
-                            <div className="flex-1 border-r border-gray-200 pl-4 flex items-center gap-2">
-                                <Checkbox id="score-amt" className="border-gray-300 rounded-[2px]" />
-                                <Label htmlFor="score-amt" className="text-gray-600 text-xs font-normal">주문금액</Label>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300 ml-4" defaultValue="0" disabled/>
-                                <span className="text-gray-600">원당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
+                        <div className="flex h-12 border-b border-gray-200 items-center">
+                            <div className="flex-1 border-r border-gray-200 px-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 w-32 shrink-0">
+                                    <Checkbox 
+                                        id="score-amt" 
+                                        className="border-gray-300 rounded-[2px]" 
+                                        checked={scoreSettings.orderAmount?.used || false}
+                                        onCheckedChange={(c) => handleScoreSettingsChange("orderAmount", "used", c)}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <Label htmlFor="score-amt" className="text-gray-600 text-xs font-normal cursor-pointer">주문금액</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Input 
+                                        className="w-20 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.orderAmount?.unit || 0}
+                                        onChange={(e) => handleScoreSettingsChange("orderAmount", "unit", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-8 text-center">원 당</span>
+                                    <Input 
+                                        className="w-16 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.orderAmount?.point || 0}
+                                        onChange={(e) => handleScoreSettingsChange("orderAmount", "point", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-4">점</span>
+                                </div>
                             </div>
-                            <div className="flex-1 pl-4 flex items-center gap-2">
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300 ml-0" defaultValue="0" disabled/>
-                                <span className="text-gray-600">원당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
+                            <div className="flex-1 px-4 flex items-center justify-between">
+                                <div className="w-32 shrink-0"></div> {/* Spacer for symmetry if needed, or just justify-end */}
+                                <div className="flex items-center gap-2 w-full justify-end">
+                                    <Input 
+                                        className="w-20 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.mobileOrderAmount?.unit || 0}
+                                        onChange={(e) => handleScoreSettingsChange("mobileOrderAmount", "unit", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-8 text-center">원 당</span>
+                                    <Input 
+                                        className="w-16 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.mobileOrderAmount?.point || 0}
+                                        onChange={(e) => handleScoreSettingsChange("mobileOrderAmount", "point", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-4">점</span>
+                                </div>
                             </div>
                         </div>
+
                          {/* Row 2: Count */}
-                        <div className="flex h-10 border-b border-gray-200 items-center">
-                            <div className="flex-1 border-r border-gray-200 pl-4 flex items-center gap-2">
-                                <Checkbox id="score-cnt" className="border-gray-300 rounded-[2px]" />
-                                <Label htmlFor="score-cnt" className="text-gray-600 text-xs font-normal">상품주문건수</Label>
-                                <span className="text-gray-600 ml-10">구매 1회당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
+                        <div className="flex h-12 border-b border-gray-200 items-center">
+                            <div className="flex-1 border-r border-gray-200 px-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 w-32 shrink-0">
+                                    <Checkbox 
+                                        id="score-cnt" 
+                                        className="border-gray-300 rounded-[2px]" 
+                                        checked={scoreSettings.orderCount?.used || false}
+                                        onCheckedChange={(c) => handleScoreSettingsChange("orderCount", "used", c)}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <Label htmlFor="score-cnt" className="text-gray-600 text-xs font-normal cursor-pointer">상품주문건수</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-600 mr-2">구매 1회당</span>
+                                    <Input 
+                                        className="w-16 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.orderCount?.point || 0}
+                                        onChange={(e) => handleScoreSettingsChange("orderCount", "point", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-4">점</span>
+                                </div>
                             </div>
-                             <div className="flex-1 pl-4 flex items-center gap-2">
-                                <span className="text-gray-600">구매 1회당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
+                             <div className="flex-1 px-4 flex items-center gap-2">
+                                {/* Placeholder for mobile count if needed */}
                             </div>
                         </div>
+
                          {/* Row 3: Review */}
-                        <div className="flex h-10 border-b border-gray-200 items-center">
-                            <div className="flex-1 border-r border-gray-200 pl-4 flex items-center gap-2">
-                                <Checkbox id="score-review" className="border-gray-300 rounded-[2px]" />
-                                <Label htmlFor="score-review" className="text-gray-600 text-xs font-normal">주문상품후기</Label>
-                                <span className="text-gray-600 ml-10">구매 후기당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
+                        <div className="flex h-12 border-b border-gray-200 items-center">
+                            <div className="flex-1 border-r border-gray-200 px-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 w-32 shrink-0">
+                                    <Checkbox 
+                                        id="score-review" 
+                                        className="border-gray-300 rounded-[2px]" 
+                                        checked={scoreSettings.reviewCount?.used || false}
+                                        onCheckedChange={(c) => handleScoreSettingsChange("reviewCount", "used", c)}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <Label htmlFor="score-review" className="text-gray-600 text-xs font-normal cursor-pointer">주문상품후기</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-600 mr-2">구매 후기당</span>
+                                    <Input 
+                                        className="w-16 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.reviewCount?.point || 0}
+                                        onChange={(e) => handleScoreSettingsChange("reviewCount", "point", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-4">점</span>
+                                </div>
                             </div>
-                             <div className="flex-1 pl-4 flex items-center gap-2">
-                                <span className="text-gray-600">구매 후기당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
-                            </div>
+                            <div className="flex-1 px-4"></div>
                         </div>
+
                          {/* Row 4: Login */}
-                        <div className="flex h-10 items-center">
-                            <div className="flex-1 border-r border-gray-200 pl-4 flex items-center gap-2">
-                                <Checkbox id="score-login" className="border-gray-300 rounded-[2px]" />
-                                <Label htmlFor="score-login" className="text-gray-600 text-xs font-normal">로그인 횟수</Label>
-                                <span className="text-gray-600 ml-12">1회/일 로그인당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
+                        <div className="flex h-12 items-center">
+                            <div className="flex-1 border-r border-gray-200 px-4 flex items-center justify-between">
+                                <div className="flex items-center gap-2 w-32 shrink-0">
+                                    <Checkbox 
+                                        id="score-login" 
+                                        className="border-gray-300 rounded-[2px]" 
+                                        checked={scoreSettings.loginCount?.used || false}
+                                        onCheckedChange={(c) => handleScoreSettingsChange("loginCount", "used", c)}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <Label htmlFor="score-login" className="text-gray-600 text-xs font-normal cursor-pointer">로그인 횟수</Label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-gray-600 mr-2">1회/일 로그인당</span>
+                                    <Input 
+                                        className="w-16 h-7 text-right bg-white border-gray-300" 
+                                        value={scoreSettings.loginCount?.point || 0}
+                                        onChange={(e) => handleScoreSettingsChange("loginCount", "point", Number(e.target.value))}
+                                        disabled={settings.criteriaMethod !== "score"}
+                                    />
+                                    <span className="text-gray-600 w-4">점</span>
+                                </div>
                             </div>
-                             <div className="flex-1 pl-4 flex items-center gap-2">
-                                <span className="text-gray-600">1회/일 로그인당</span>
-                                <Input className="w-24 h-6 text-center bg-[#EDEFF2] border-gray-300" defaultValue="0" disabled/>
-                                <span className="text-gray-600">점</span>
-                            </div>
+                            <div className="flex-1 px-4"></div>
                         </div>
                     </div>
                 </div>
@@ -209,7 +356,9 @@ export default function GradeEvaluationPage() {
                      <tr className="bg-[#EDEFF2] h-10 text-gray-700 font-bold border-b border-gray-300">
                          <th className="border-r border-gray-300 row-span-2">회원등급명</th>
                          <th className="border-r border-gray-300 row-span-2">등급혜택</th>
-                         <th className="border-r border-gray-300 border-b border-gray-300" colSpan={2}>실적 수치</th>
+                         <th className="border-r border-gray-300 border-b border-gray-300" colSpan={2}>
+                             {settings.criteriaMethod === "figures" ? "실적 수치" : "실적 점수"}
+                         </th>
                          <th className="border-r border-gray-300 row-span-2">실적계산기간</th>
                          <th className="row-span-2">등급 평가일</th>
                      </tr>
@@ -219,147 +368,145 @@ export default function GradeEvaluationPage() {
                      </tr>
                  </thead>
                  <tbody>
-                     {/* General Member Row */}
-                     <tr className="border-b border-gray-200">
-                         <td className="border-r border-gray-200 p-4 font-bold text-gray-700">일반회원</td>
-                         <td className="border-r border-gray-200 p-4">
-                             <div className="flex flex-col gap-1 items-start pl-2 text-blue-500">
-                                 <Link href="#" className="hover:underline">추가 0.0% 할인</Link>
-                                 <Link href="#" className="hover:underline">추가 0.0% 적립</Link>
-                                 <Link href="#" className="hover:underline">중복 0.0% 할인</Link>
-                                 <br/>
-                                 <Link href="#" className="hover:underline">쿠폰미발급</Link>
-                             </div>
-                         </td>
-                         <td className="border-r border-gray-200 p-4 text-left">
-                             <div className="space-y-2">
-                                 <div className="flex items-center gap-2">
-                                     <Checkbox className="border-gray-300 rounded-[2px]" />
-                                     <span className="w-12 text-gray-600">주문금액</span>
+                     {grades.map((grade) => (
+                         <tr key={grade.id} className="border-b border-gray-200">
+                             <td className="border-r border-gray-200 p-4 font-bold text-gray-700">{grade.name}</td>
+                             <td className="border-r border-gray-200 p-4">
+                                 <div className="flex flex-col gap-1 items-start pl-2 text-blue-500">
+                                     <span className="hover:underline cursor-pointer">추가 {grade.discountRate}% 할인</span>
+                                     <span className="hover:underline cursor-pointer">추가 {grade.mileageRate}% 적립</span>
+                                 </div>
+                             </td>
+                             <td className="border-r border-gray-200 p-4 text-left">
+                                 {settings.criteriaMethod === "figures" ? (
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-12 text-gray-600">주문금액</span>
+                                            <div className="flex items-center gap-1">
+                                                <Input 
+                                                    className="w-20 h-7 text-center border-gray-300 bg-white" 
+                                                    value={grade.minPurchaseAmount || 0} 
+                                                    onChange={(e) => handleGradeChange(grade.id, "minPurchaseAmount", Number(e.target.value))}
+                                                />
+                                                <span className="text-gray-600">원 이상 ~</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-12 text-gray-600">상품주문건수</span>
+                                            <div className="flex items-center gap-1">
+                                                <Input 
+                                                    className="w-20 h-7 text-center border-gray-300 bg-white" 
+                                                    value={grade.minOrderCount || 0} 
+                                                    onChange={(e) => handleGradeChange(grade.id, "minOrderCount", Number(e.target.value))}
+                                                />
+                                                <span className="text-gray-600">회 이상</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-12 text-gray-600">주문상품후기</span>
+                                            <div className="flex items-center gap-1">
+                                                <Input 
+                                                    className="w-20 h-7 text-center border-gray-300 bg-white" 
+                                                    value={grade.minReviewCount || 0} 
+                                                    onChange={(e) => handleGradeChange(grade.id, "minReviewCount", Number(e.target.value))}
+                                                />
+                                                <span className="text-gray-600">개 이상</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                 ) : (
+                                    <div className="space-y-2">
+                                         <div className="flex items-center gap-2">
+                                            <span className="w-12 text-gray-600">점수</span>
+                                            <div className="flex items-center gap-1">
+                                                <Input 
+                                                    className="w-20 h-7 text-center border-gray-300 bg-white" 
+                                                    value={grade.minScore || 0} 
+                                                    onChange={(e) => handleGradeChange(grade.id, "minScore", Number(e.target.value))}
+                                                />
+                                                <span className="text-gray-600">점 이상</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                 )}
+                             </td>
+                              <td className="border-r border-gray-200 p-4 text-left">
+                                 {/* Mobile shop additional criteria - hidden for now as defined in mock */}
+                             </td>
+                             <td className="border-r border-gray-200 p-4 text-left align-top">
+                                 <div className="space-y-2">
+                                     <RadioGroup 
+                                        value={grade.calcPeriodType}
+                                        onValueChange={(val) => handleGradeChange(grade.id, "calcPeriodType", val)}
+                                        className="gap-2"
+                                     >
+                                        <div className="flex items-center gap-1.5">
+                                            <RadioGroupItem value="unlimit" id={`period-unlimit-${grade.id}`} className="w-3.5 h-3.5 border-gray-300 text-gray-600" />
+                                            <Label htmlFor={`period-unlimit-${grade.id}`} className="text-gray-600 font-normal cursor-pointer">기간제한 없음</Label>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <RadioGroupItem value="limit" id={`period-limit-${grade.id}`} className="w-3.5 h-3.5 border-gray-300 text-gray-600" />
+                                            <Label htmlFor={`period-limit-${grade.id}`} className="text-gray-600 font-normal cursor-pointer">기간제한 있음</Label>
+                                        </div>
+                                     </RadioGroup>
                                      <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">만원 이상 ~</span>
+                                         <Select value={grade.calcPeriodStart} onValueChange={(val) => handleGradeChange(grade.id, "calcPeriodStart", val)}>
+                                            <SelectTrigger className="w-24 h-7 text-xs border-gray-300 bg-white">
+                                                <SelectValue placeholder="직전(어제)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="prev">직전(어제)</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                         <span className="text-gray-600">부터</span>
+                                     </div>
+                                      <div className="flex items-center gap-1">
+                                         <Select value={String(grade.calcPeriod)} onValueChange={(val) => handleGradeChange(grade.id, "calcPeriod", Number(val))}>
+                                            <SelectTrigger className="w-16 h-7 text-xs border-gray-300 bg-white">
+                                                <SelectValue placeholder="3" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1">1</SelectItem>
+                                                <SelectItem value="3">3</SelectItem>
+                                                <SelectItem value="6">6</SelectItem>
+                                                <SelectItem value="12">12</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                         <span className="text-gray-600">개월간</span>
                                      </div>
                                  </div>
-                                  <div className="flex items-center gap-2 pl-[74px]">
-                                     <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">만원 미만</span>
+                             </td>
+                             <td className="p-4 align-top">
+                                  <div className="space-y-2">
+                                      <div className="flex items-center gap-1">
+                                         <Select value={String(grade.evalCycle)} onValueChange={(val) => handleGradeChange(grade.id, "evalCycle", Number(val))}>
+                                            <SelectTrigger className="w-14 h-7 text-xs border-gray-300 bg-white">
+                                                <SelectValue placeholder="1" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1">1</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                         <span className="text-gray-600">개월마다</span>
                                      </div>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                     <Checkbox className="border-gray-300 rounded-[2px]" />
-                                     <span className="w-12 text-gray-600">상품주문건수</span>
                                      <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">회 이상</span>
+                                         <span className="text-gray-600">해당월</span>
+                                         <Select value={String(grade.evalDay)} onValueChange={(val) => handleGradeChange(grade.id, "evalDay", Number(val))}>
+                                            <SelectTrigger className="w-14 h-7 text-xs border-gray-300 bg-white">
+                                                <SelectValue placeholder="1" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="1">1</SelectItem>
+                                                <SelectItem value="10">10</SelectItem>
+                                                <SelectItem value="20">20</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                         <span className="text-gray-600">일</span>
                                      </div>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                     <Checkbox className="border-gray-300 rounded-[2px]" />
-                                     <span className="w-12 text-gray-600">주문상품후기</span>
-                                     <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">개 이상</span>
-                                     </div>
-                                 </div>
-                             </div>
-                         </td>
-                          <td className="border-r border-gray-200 p-4 text-left">
-                             <div className="space-y-2">
-                                 <div className="flex items-center gap-2">
-                                     <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">만원 이상 ~</span>
-                                     </div>
-                                 </div>
-                                  <div className="flex items-center gap-2">
-                                     <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">만원 미만</span>
-                                     </div>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                     <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">회 이상</span>
-                                     </div>
-                                 </div>
-                                 <div className="flex items-center gap-2">
-                                     <div className="flex items-center gap-1">
-                                         <Input className="w-20 h-7 text-center border-gray-300 bg-[#EDEFF2]" defaultValue="0" disabled />
-                                         <span className="text-gray-600">개 이상</span>
-                                     </div>
-                                 </div>
-                             </div>
-                         </td>
-                         <td className="border-r border-gray-200 p-4 text-left align-top">
-                             <div className="space-y-2">
-                                 <div className="flex items-center gap-1.5">
-                                      <input type="radio" id="period-unlimit" name="calc-period" className="w-3.5 h-3.5 border-gray-300 text-gray-600" />
-                                      <Label htmlFor="period-unlimit" className="text-gray-600 font-normal cursor-pointer">기간제한 없음</Label>
-                                 </div>
-                                 <div className="flex items-center gap-1.5">
-                                      <input type="radio" id="period-limit" name="calc-period" className="w-3.5 h-3.5 border-gray-300 text-gray-600" defaultChecked/>
-                                      <Label htmlFor="period-limit" className="text-gray-600 font-normal cursor-pointer">기간제한 있음</Label>
-                                 </div>
-                                 <div className="flex items-center gap-1">
-                                     <Select defaultValue="prev">
-                                        <SelectTrigger className="w-24 h-7 text-xs border-gray-300 bg-[#EDEFF2]">
-                                            <SelectValue placeholder="직전(어제)" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="prev">직전(어제)</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                     <span className="text-gray-600">부터</span>
-                                 </div>
-                                  <div className="flex items-center gap-1">
-                                     <Select defaultValue="3">
-                                        <SelectTrigger className="w-16 h-7 text-xs border-gray-300 bg-[#FBFBFB]">
-                                            <SelectValue placeholder="3" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">1</SelectItem>
-                                            <SelectItem value="3">3</SelectItem>
-                                            <SelectItem value="6">6</SelectItem>
-                                            <SelectItem value="12">12</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                     <span className="text-gray-600">개월간</span>
-                                 </div>
-                             </div>
-                         </td>
-                         <td className="p-4 align-top">
-                              <div className="space-y-2">
-                                  <div className="flex items-center gap-1">
-                                     <Select defaultValue="1">
-                                        <SelectTrigger className="w-14 h-7 text-xs border-gray-300 bg-white">
-                                            <SelectValue placeholder="1" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">1</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                     <span className="text-gray-600">개월마다</span>
-                                 </div>
-                                 <div className="flex items-center gap-1">
-                                     <span className="text-gray-600">해당월</span>
-                                     <Select defaultValue="1">
-                                        <SelectTrigger className="w-14 h-7 text-xs border-gray-300 bg-white">
-                                            <SelectValue placeholder="1" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="1">1</SelectItem>
-                                            <SelectItem value="10">10</SelectItem>
-                                            <SelectItem value="20">20</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                     <span className="text-gray-600">일</span>
-                                 </div>
-                              </div>
-                         </td>
-                     </tr>
+                                  </div>
+                             </td>
+                         </tr>
+                     ))}
                  </tbody>
              </table>
         </div>
@@ -367,12 +514,8 @@ export default function GradeEvaluationPage() {
        
         {/* Floating Actions */}
         <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
+            <Button onClick={handleSave} className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
+                <span className="text-[10px] font-bold">저장</span>
             </Button>
             <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
                 <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,19 +23,91 @@ import {
 } from "@/components/ui/ui-table";
 import { CalendarIcon, Youtube, ChevronUp, Book, Plus, FileSpreadsheet } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { getEssentialInfoTemplatesAction,    deleteEssentialInfoTemplatesAction,
+    copyEssentialInfoTemplatesAction,
+} from "@/actions/product-essential-info-actions";
 
 export default function ProductEssentialInfoPage() {
-    // Mock Data - Empty for now as per screenshot "검색 0개"
+    const [isPending, startTransition] = useTransition();
     const [essentialInfos, setEssentialInfos] = useState<any[]>([]);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Filters
+    const [supplierType, setSupplierType] = useState("all");
+    const [keyword, setKeyword] = useState("");
+
+    useEffect(() => {
+        fetchTemplates();
+    }, []);
+
+    const fetchTemplates = async () => {
+        setLoading(true);
+        const res = await getEssentialInfoTemplatesAction();
+        if (res.success) {
+            setEssentialInfos(res.items || []);
+        }
+        setLoading(false);
+    };
+
+    const handleSelectAll = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(essentialInfos.map(t => t.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelect = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(i => i !== id));
+        }
+    };
+
+    const handleDelete = async () => {
+        if (selectedIds.length === 0) return alert("선택된 정보가 없습니다.");
+        if (!confirm("선택한 정보를 삭제하시겠습니까?")) return;
+
+        startTransition(async () => {
+            const res = await deleteEssentialInfoTemplatesAction(selectedIds);
+            if (res.success) {
+                alert("삭제되었습니다.");
+                setSelectedIds([]);
+                fetchTemplates();
+            } else {
+                alert(res.error || "삭제 실패");
+            }
+        });
+    };
+
+    const handleCopy = async () => {
+        if (selectedIds.length === 0) return alert("선택된 정보가 없습니다.");
+        if (!confirm("선택한 정보를 복사하시겠습니까?")) return;
+
+        startTransition(async () => {
+            const res = await copyEssentialInfoTemplatesAction(selectedIds);
+            if (res.success) {
+                alert("복사되었습니다.");
+                setSelectedIds([]);
+                fetchTemplates();
+            } else {
+                alert(res.error || "복사 실패");
+            }
+        });
+    };
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">상품 필수정보 관리</h1>
-                <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 h-9 px-4 font-medium flex items-center gap-1">
-                    <Plus size={14} /> 상품 필수정보 등록
-                </Button>
+                <Link href="/admin/products/info/create">
+                    <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 h-9 px-4 font-medium flex items-center gap-1">
+                        <Plus size={14} /> 상품 필수정보 등록
+                    </Button>
+                </Link>
             </div>
 
             {/* Search Section */}
@@ -50,7 +122,11 @@ export default function ProductEssentialInfoPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
                         <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                            <RadioGroup 
+                                value={supplierType} 
+                                onValueChange={setSupplierType}
+                                className="flex items-center gap-6"
+                            >
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="supplier-all" />
                                     <Label htmlFor="supplier-all">전체</Label>
@@ -78,7 +154,7 @@ export default function ProductEssentialInfoPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">필수정보명</div>
                         <div className="flex-1 p-3">
-                            <Input className="w-64 h-8" />
+                            <Input className="w-64 h-8" value={keyword} onChange={(e) => setKeyword(e.target.value)} />
                         </div>
                     </div>
 
@@ -159,7 +235,13 @@ export default function ProductEssentialInfoPage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-[#A4A4A4]/20 hover:bg-[#A4A4A4]/20">
-                                <TableHead className="w-10 text-center p-0"><Checkbox className="translate-y-[2px]" /></TableHead>
+                                <TableHead className="w-10 text-center p-0">
+                                    <Checkbox 
+                                        className="translate-y-[2px]" 
+                                        checked={essentialInfos.length > 0 && selectedIds.length === essentialInfos.length}
+                                        onCheckedChange={handleSelectAll}
+                                    />
+                                </TableHead>
                                 <TableHead className="w-16 text-center font-bold text-gray-700 bg">번호</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">필수정보명</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">공급사</TableHead>
@@ -168,25 +250,39 @@ export default function ProductEssentialInfoPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {essentialInfos.length === 0 ? (
+                            {loading ? (
+                                <TableRow>
+                                    <TableCell colSpan={6} className="h-40 text-center text-gray-500">
+                                        로딩중...
+                                    </TableCell>
+                                </TableRow>
+                            ) : essentialInfos.length === 0 ? (
                                 <TableRow>
                                     <TableCell colSpan={6} className="h-40 text-center text-gray-500">
                                         검색된 정보가 없습니다.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                essentialInfos.map((item) => (
+                                essentialInfos.map((item, idx) => (
                                     <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-12">
-                                        <TableCell className="p-0 text-center"><Checkbox className="translate-y-[2px]" /></TableCell>
-                                        <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
+                                        <TableCell className="p-0 text-center">
+                                            <Checkbox 
+                                                className="translate-y-[2px]" 
+                                                checked={selectedIds.includes(item.id)}
+                                                onCheckedChange={(checked) => handleSelect(item.id, !!checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-gray-500 font-normal">{essentialInfos.length - idx}</TableCell>
                                         <TableCell className="text-left pl-4">{item.name}</TableCell>
-                                        <TableCell>{item.supplier}</TableCell>
+                                        <TableCell>{item.supplierName}</TableCell>
                                         <TableCell>
                                             <div>{item.regDate}</div>
-                                            {item.modDate !== "-" && <div className="text-gray-400">{item.modDate}</div>}
+                                            {item.modDate !== item.regDate && <div className="text-gray-400">{item.modDate}</div>}
                                         </TableCell>
                                         <TableCell>
-                                            <Button variant="outline" className="h-6 w-[50px] text-xs px-0 rounded-sm border-gray-300">수정</Button>
+                                            <Link href={`/admin/products/info/edit/${item.id}`}>
+                                                <Button variant="outline" className="h-6 w-[50px] text-xs px-0 rounded-sm border-gray-300">수정</Button>
+                                            </Link>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -197,8 +293,22 @@ export default function ProductEssentialInfoPage() {
 
                 <div className="flex justify-between items-center mt-4">
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm">선택 복사</Button>
-                        <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm">선택 삭제</Button>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleCopy}
+                            disabled={isPending}
+                            className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm"
+                        >
+                            {isPending ? "복사중" : "선택 복사"}
+                        </Button>
+                        <Button 
+                            variant="outline" 
+                            onClick={handleDelete}
+                            disabled={isPending}
+                            className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm"
+                        >
+                            {isPending ? "삭제중" : "선택 삭제"}
+                        </Button>
                     </div>
                     <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm flex items-center gap-1">
                         <span className="text-green-600"><FileSpreadsheet size={14} /></span>

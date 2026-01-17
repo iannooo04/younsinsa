@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,26 +21,132 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Plus, FileSpreadsheet, Image as ImageIcon } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { CalendarIcon, Youtube, ChevronUp, ChevronDown, FileSpreadsheet, Image as ImageIcon } from "lucide-react";
+import { getProductsAction, restoreProductsAction, permanentlyDeleteProductsAction } from "@/actions/product-actions";
+import { format } from "date-fns";
 
 export default function DeletedProductsManagementPage() {
-    // Mock Data based on the screenshot
-    const deletedProducts = [
-        {
-            id: 1,
-            productCode: "1000000182",
-            image: null,
-            name: "남성 사우스크로스 히든 버튼 하이넥 티셔츠_멜란지 그레이",
-            price: "438,000원",
-            supplier: "니아인터내셔널",
-            displayStatus: { pc: "노출함", mobile: "노출함" },
-            saleStatus: { pc: "판매함", mobile: "판매함" },
-            stock: "∞",
-            regDate: "2025-12-15",
-            delDate: "2025-12-15",
+    // Data State
+    const [products, setProducts] = useState<any[]>([]);
+    const [totalCount, setTotalCount] = useState(0);
+    const [loading, setLoading] = useState(true);
+    
+    // Pagination State
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(10);
+
+    // Filter State
+    const [supplierType, setSupplierType] = useState('all');
+    const [searchType, setSearchType] = useState('productName');
+    const [keyword, setKeyword] = useState('');
+    const [dateType, setDateType] = useState('delDate');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    
+    // Selection State
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [searchTrigger, setSearchTrigger] = useState(0);
+
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        const result = await getProductsAction(page, pageSize, {
+            searchType,
+            keyword,
+            startDate,
+            endDate,
+            dateType,
+            isDeleted: true
+        });
+
+        if (result.success) {
+            setProducts(result.items);
+            setTotalCount(result.totalCount);
         }
-    ];
+        setLoading(false);
+    }, [page, pageSize, searchTrigger]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
+
+    const handleSearch = () => {
+        setPage(1);
+        setSearchTrigger(prev => prev + 1);
+    };
+
+    const handleSelectPage = (checked: boolean) => {
+        if (checked) {
+            setSelectedIds(products.map(p => p.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleCheckboxChange = (id: string, checked: boolean) => {
+        if (checked) {
+            setSelectedIds(prev => [...prev, id]);
+        } else {
+            setSelectedIds(prev => prev.filter(item => item !== id));
+        }
+    };
+
+    const handleRestore = async () => {
+        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+        if (!confirm("선택한 상품을 복구하시겠습니까?")) return;
+        
+        const result = await restoreProductsAction(selectedIds);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+
+    const handlePermanentDelete = async () => {
+        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
+        if (!confirm("선택한 상품을 완전 삭제하시겠습니까? 삭제 후 복구가 불가능합니다.")) return;
+        
+        const result = await permanentlyDeleteProductsAction(selectedIds);
+        alert(result.message);
+        if (result.success) {
+            setSelectedIds([]);
+            fetchData();
+        }
+    };
+
+    const setPeriod = (period: string) => {
+        const end = new Date();
+        const start = new Date();
+        
+        switch (period) {
+            case "오늘":
+                break;
+            case "7일":
+                start.setDate(end.getDate() - 7);
+                break;
+            case "15일":
+                start.setDate(end.getDate() - 15);
+                break;
+            case "1개월":
+                start.setMonth(end.getMonth() - 1);
+                break;
+            case "3개월":
+                start.setMonth(end.getMonth() - 3);
+                break;
+            case "전체":
+                setStartDate("");
+                setEndDate("");
+                return;
+            default:
+                break;
+        }
+        if (period !== "전체") {
+             setStartDate(format(start, "yyyy-MM-dd"));
+             setEndDate(format(end, "yyyy-MM-dd"));
+        }
+    };
+
+    const totalPages = Math.ceil(totalCount / pageSize);
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
@@ -66,7 +172,7 @@ export default function DeletedProductsManagementPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
                         <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                            <RadioGroup value={supplierType} onValueChange={setSupplierType} className="flex items-center gap-6">
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="supplier-all" />
                                     <Label htmlFor="supplier-all">전체</Label>
@@ -90,7 +196,7 @@ export default function DeletedProductsManagementPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="productName">
+                            <Select value={searchType} onValueChange={setSearchType}>
                                 <SelectTrigger className="w-[120px] h-8 text-xs">
                                     <SelectValue placeholder="상품명" />
                                 </SelectTrigger>
@@ -99,7 +205,12 @@ export default function DeletedProductsManagementPage() {
                                     <SelectItem value="productCode">상품코드</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Input className="w-64 h-8" />
+                            <Input 
+                                className="w-64 h-8" 
+                                value={keyword} 
+                                onChange={e => setKeyword(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                            />
                         </div>
                     </div>
 
@@ -107,7 +218,7 @@ export default function DeletedProductsManagementPage() {
                      <div className="flex items-center">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select defaultValue="delDate">
+                            <Select value={dateType} onValueChange={setDateType}>
                                 <SelectTrigger className="w-[100px] h-8 text-xs">
                                     <SelectValue placeholder="삭제일" />
                                 </SelectTrigger>
@@ -117,12 +228,22 @@ export default function DeletedProductsManagementPage() {
                                 </SelectContent>
                             </Select>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={startDate}
+                                    onChange={e => setStartDate(e.target.value)}
+                                    placeholder="YYYY-MM-DD"
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                             <span className="text-gray-500">~</span>
                             <div className="relative">
-                                <Input className="w-32 h-8 pl-2 pr-8" />
+                                <Input 
+                                    className="w-32 h-8 pl-2 pr-8" 
+                                    value={endDate}
+                                    onChange={e => setEndDate(e.target.value)}
+                                    placeholder="YYYY-MM-DD"
+                                />
                                 <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                             </div>
                              <div className="flex gap-0.5 ml-2">
@@ -130,7 +251,8 @@ export default function DeletedProductsManagementPage() {
                                     <Button 
                                         key={period} 
                                         variant="outline" 
-                                        className={`h-8 px-3 text-xs rounded-sm ${period === "전체" ? "bg-gray-700 text-white border-gray-700 hover:bg-gray-800" : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"}`}
+                                        onClick={() => setPeriod(period)}
+                                        className={`h-8 px-3 text-xs rounded-sm bg-white text-gray-600 border-gray-300 hover:bg-gray-50`}
                                     >
                                         {period}
                                     </Button>
@@ -145,7 +267,7 @@ export default function DeletedProductsManagementPage() {
                 </div>
 
                 <div className="flex justify-center mt-6 mb-10">
-                    <Button className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
+                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
                 </div>
             </div>
 
@@ -153,7 +275,7 @@ export default function DeletedProductsManagementPage() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <div className="text-sm font-bold text-gray-800">
-                        검색 <span className="text-red-500">{deletedProducts.length}</span>개 / 전체 <span className="text-red-500">{deletedProducts.length}</span>개
+                        검색 <span className="text-red-500">{totalCount}</span>개 / 전체 <span className="text-red-500">{totalCount}</span>개
                     </div>
                     <div className="flex items-center gap-2">
                         <Select defaultValue="delDesc">
@@ -165,7 +287,7 @@ export default function DeletedProductsManagementPage() {
                                 <SelectItem value="delAsc">삭제일 ↑</SelectItem>
                             </SelectContent>
                         </Select>
-                        <Select defaultValue="10">
+                        <Select value={pageSize.toString()} onValueChange={v => { setPageSize(Number(v)); setPage(1); }}>
                             <SelectTrigger className="w-32 h-8 text-xs">
                                 <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
@@ -185,12 +307,17 @@ export default function DeletedProductsManagementPage() {
                     <Table>
                         <TableHeader>
                             <TableRow className="bg-[#A4A4A4]/20 hover:bg-[#A4A4A4]/20 text-xs">
-                                <TableHead className="w-10 text-center p-0"><Checkbox className="translate-y-[2px]" /></TableHead>
+                                <TableHead className="w-10 text-center p-0">
+                                    <Checkbox 
+                                        className="translate-y-[2px]" 
+                                        checked={products.length > 0 && selectedIds.length === products.length}
+                                        onCheckedChange={handleSelectPage}
+                                    />
+                                </TableHead>
                                 <TableHead className="w-16 text-center font-bold text-gray-700 bg">번호</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">상품코드</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">이미지</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700 w-[300px]">상품명</TableHead>
-                                <TableHead className="text-center font-bold text-gray-700">판매가</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">공급사</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">노출상태</TableHead>
                                 <TableHead className="text-center font-bold text-gray-700">판매상태</TableHead>
@@ -199,17 +326,27 @@ export default function DeletedProductsManagementPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {deletedProducts.length === 0 ? (
+                            {loading ? (
                                 <TableRow>
-                                    <TableCell colSpan={11} className="h-40 text-center text-gray-500">
+                                    <TableCell colSpan={10} className="h-40 text-center">로딩중...</TableCell>
+                                </TableRow>
+                            ) : products.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={10} className="h-40 text-center text-gray-500">
                                         검색된 정보가 없습니다.
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                deletedProducts.map((item) => (
+                                products.map((item, index) => (
                                     <TableRow key={item.id} className="hover:bg-gray-50 text-center text-xs text-gray-600 h-16">
-                                        <TableCell className="p-0 text-center"><Checkbox className="translate-y-[2px]" /></TableCell>
-                                        <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
+                                        <TableCell className="p-0 text-center">
+                                            <Checkbox 
+                                                className="translate-y-[2px]" 
+                                                checked={selectedIds.includes(item.id)}
+                                                onCheckedChange={(checked) => handleCheckboxChange(item.id, !!checked)}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-gray-500 font-normal">{totalCount - ((page - 1) * pageSize) - index}</TableCell>
                                         <TableCell>{item.productCode}</TableCell>
                                          <TableCell className="py-1">
                                             <div className="flex justify-center">
@@ -218,31 +355,21 @@ export default function DeletedProductsManagementPage() {
                                                 </div>
                                             </div>
                                         </TableCell>
-                                        <TableCell className="text-left">
-                                             <div className="text-blue-500 hover:underline cursor-pointer font-medium truncate w-[280px]">
-                                                {item.name}
-                                            </div>
+                                        <TableCell className="text-left font-normal text-gray-800">
+                                            {item.name}
                                         </TableCell>
-                                       
-                                        <TableCell className="font-bold text-gray-800">{item.price}</TableCell>
                                         <TableCell>{item.supplier}</TableCell>
                                         <TableCell>
-                                             <div className="space-y-0.5">
-                                                <div>PC | {item.displayStatus.pc}</div>
-                                                <div>모바일 | {item.displayStatus.mobile}</div>
-                                            </div>
+                                             {item.displayStatus}
                                         </TableCell>
                                         <TableCell>
-                                            <div className="space-y-0.5">
-                                                <div>PC | {item.saleStatus.pc}</div>
-                                                <div>모바일 | {item.saleStatus.mobile}</div>
-                                            </div>
+                                            {item.saleStatus}
                                         </TableCell>
                                         <TableCell>{item.stock}</TableCell>
                                         <TableCell>
                                             <div className="space-y-0.5">
-                                                <div>{item.regDate} /</div>
-                                                <div>{item.delDate}</div>
+                                                <div>{item.createdAt ? format(new Date(item.createdAt), "yyyy-MM-dd") : '-'} /</div>
+                                                <div>{item.deletedAt ? format(new Date(item.deletedAt), "yyyy-MM-dd") : '-'}</div>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -254,8 +381,8 @@ export default function DeletedProductsManagementPage() {
 
                 <div className="bg-gray-100 p-3 flex justify-between items-center mt-0 border border-t-0 border-gray-300">
                      <div className="flex items-center gap-2">
-                        <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm bg-white">상품복구</Button>
-                        <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm bg-white">완전삭제</Button>
+                        <Button variant="outline" onClick={handleRestore} className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm bg-white">상품복구</Button>
+                        <Button variant="outline" onClick={handlePermanentDelete} className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm bg-white">완전삭제</Button>
                     </div>
                      <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 text-gray-700 font-medium rounded-sm flex items-center gap-1 bg-white">
                         <span className="text-green-600"><FileSpreadsheet size={14} /></span>
@@ -264,8 +391,45 @@ export default function DeletedProductsManagementPage() {
                 </div>
 
                 {/* Pagination */}
-                 <div className="flex justify-center gap-1 mt-6">
-                    <Button variant="default" className="h-8 w-8 p-0 bg-gray-600 text-white font-bold rounded-sm border-gray-600 hover:bg-gray-700">1</Button>
+                <div className="flex justify-center gap-1 mt-6">
+                    <Button 
+                        variant="outline" 
+                        disabled={page === 1} 
+                        onClick={() => setPage(1)}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{"<<"}</Button>
+                    <Button 
+                        variant="outline" 
+                        disabled={page === 1} 
+                        onClick={() => setPage(p => Math.max(1, p-1))}
+                        className="h-8 w-8 p-0 text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{"<"}</Button>
+                    
+                     {Array.from({ length: totalPages }, (_, i) => i + 1)
+                        .filter(p => p >= page - 2 && p <= page + 2)
+                        .map(p => (
+                        <Button 
+                            key={p} 
+                            variant={p === page ? "default" : "outline"}
+                            onClick={() => setPage(p)}
+                            className={`h-8 w-8 p-0 rounded-sm ${p === page ? "bg-gray-600 text-white font-bold border-gray-600 hover:bg-gray-700" : "text-gray-500 border-gray-300 bg-white hover:bg-gray-50"}`}
+                        >
+                            {p}
+                        </Button>
+                     ))}
+
+                     <Button 
+                        variant="outline" 
+                        disabled={page >= totalPages} 
+                        onClick={() => setPage(p => Math.min(totalPages, p+1))}
+                        className="h-8 w-8 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{">"}</Button>
+                     <Button 
+                        variant="outline" 
+                        disabled={page >= totalPages} 
+                        onClick={() => setPage(totalPages)}
+                        className="h-8 w-8 text-xs text-gray-500 border-gray-300 rounded-sm bg-white hover:bg-gray-50"
+                    >{">>"}</Button>
                 </div>
             </div>
 

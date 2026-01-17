@@ -16,6 +16,7 @@ function isAppLocale(value: string): value is AppLocale {
 
 import SessionProvider from "@/components/auth/SessionProvider";
 import { ToastProvider } from "@/lib/contexts/ToastContext";
+import { Toaster } from "sonner";
 
 export default async function LocaleLayout({
   children,
@@ -38,7 +39,10 @@ export default async function LocaleLayout({
   return (
     <NextIntlClientProvider locale={localeParam} messages={messages}>
       <SessionProvider>
-        <ToastProvider>{children}</ToastProvider>
+        <ToastProvider>
+        {children}
+        <Toaster />
+      </ToastProvider>
       </SessionProvider>
     </NextIntlClientProvider>
   );

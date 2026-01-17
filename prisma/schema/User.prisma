@@ -33,7 +33,21 @@ model UserGrade {
   minPurchaseAmount Int @default(0) // 누적 구매금액
   discountRate      Float @default(0) // 할인율
   mileageRate       Float @default(0) // 적립률
+
+  // 추가 평가 기준
+  minOrderCount    Int @default(0)
+  minReviewCount   Int @default(0)
+  minScore         Int @default(0)
+
+  // 평가 기간 및 주기
+  calcPeriodType   String @default("limit") // limit, unlimit
+  calcPeriod       Int    @default(3)       // months
+  calcPeriodStart  String @default("prev")  // prev
+
+  evalCycle        Int    @default(1)       // months
+  evalDay          Int    @default(1)       // day
   
+  orderIndex  Int      @default(0)
   isDefault   Boolean  @default(false)
   
   users       UserInfo[]
@@ -131,6 +145,15 @@ model UserInfo {
   
   userMemo      String?    @db.Text // 남기는 말씀
   adminMemo     String?    @db.Text // 관리자 메모
+
+  // -- 탈퇴 관리 (Withdrawal) --
+  isWithdrawn      Boolean   @default(false)
+  withdrawalDate   DateTime?
+  withdrawalType   String?   // 'user', 'admin'
+  withdrawalReason String?
+  withdrawalIp     String?
+  processor        String?   // 처리자
+  canRejoin        Boolean   @default(true)
   
   // -- 자산 --
   mileage       Int        @default(0)

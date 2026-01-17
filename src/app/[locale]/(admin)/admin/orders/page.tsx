@@ -1,6 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
+import { getOrdersAction } from "@/actions/order-actions";
+import { OrderStatus } from "@/generated/prisma";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -28,6 +31,20 @@ import {
 export default function OrderIntegratedListPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("주문통합리스트");
+  const [orders, setOrders] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [isPending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(true);
+
+  // Filter States
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [keyword, setKeyword] = useState("");
+  const [searchType, setSearchType] = useState("order_no");
+  const [mallId, setMallId] = useState("all");
+  const [startDate, setStartDate] = useState(format(new Date(new Date().setDate(new Date().getDate() - 7)), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  
   const tabs = [
     "주문통합리스트",
     "입금대기 리스트",
@@ -38,6 +55,43 @@ export default function OrderIntegratedListPage() {
     "구매확정 리스트",
     "결제 중단/실패 리스트"
   ];
+
+  useEffect(() => {
+    fetchOrders();
+  }, [activeTab, page, limit]);
+
+  const fetchOrders = async () => {
+    setLoading(true);
+    try {
+        const res = await getOrdersAction({
+            page,
+            limit,
+            tab: activeTab,
+            startDate,
+            endDate,
+            keyword,
+            searchType,
+            mallId
+        });
+        
+        if (res.success) {
+            setOrders(res.items || []);
+            setTotal(res.total || 0);
+        } else {
+            setOrders([]);
+            setTotal(0);
+        }
+    } catch (e) {
+        console.error(e);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = () => {
+      setPage(1);
+      fetchOrders();
+  };
+
 
   const getDescription = (tab: string) => {
       switch(tab) {
@@ -112,20 +166,20 @@ export default function OrderIntegratedListPage() {
                     상점
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup defaultValue="all" className="flex gap-4">
+                     <RadioGroup value={mallId} onValueChange={setMallId} className="flex gap-4">
                             <div className="flex items-center gap-1.5">
                                 <RadioGroupItem value="all" id="store-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                                 <Label htmlFor="store-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="kr" id="store-kr" className="border-gray-300 text-gray-600" />
+                                <RadioGroupItem value="KR" id="store-kr" className="border-gray-300 text-gray-600" />
                                 <Label htmlFor="store-kr" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
                                     <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-white">🇰🇷</span>
                                     기준몰
                                 </Label>
                             </div>
                              <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="cn" id="store-cn" className="border-gray-300 text-gray-600" />
+                                <RadioGroupItem value="CN" id="store-cn" className="border-gray-300 text-gray-600" />
                                 <Label htmlFor="store-cn" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
                                     <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-red-600 text-white">🇨🇳</span>
                                     중문몰
@@ -167,15 +221,25 @@ export default function OrderIntegratedListPage() {
                     검색어
                 </div>
                 <div className="flex-1 p-3 flex gap-2">
-                    <Select defaultValue="order_no">
+                    <Select value={searchType} onValueChange={setSearchType}>
                         <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300">
                             <SelectValue placeholder="주문번호" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="order_no">주문번호</SelectItem>
+                            <SelectItem value="orderer_name">주문자명</SelectItem>
+                            <SelectItem value="orderer_mobile">주문자휴대폰</SelectItem>
+                            <SelectItem value="recipient_name">수령자명</SelectItem>
+                            <SelectItem value="product_name">상품명</SelectItem>
                         </SelectContent>
                     </Select>
-                     <Input className="w-[400px] h-7 border-gray-300" placeholder="검색어 전체를 정확히 입력하세요." />
+                     <Input 
+                        className="w-[400px] h-7 border-gray-300" 
+                        placeholder="검색어 전체를 정확히 입력하세요." 
+                        value={keyword}
+                        onChange={(e) => setKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    />
                 </div>
             </div>
 
@@ -194,21 +258,47 @@ export default function OrderIntegratedListPage() {
                         </SelectContent>
                     </Select>
                      <div className="flex items-center gap-1">
-                        <Input className="w-28 h-7 text-center border-gray-300" defaultValue="2026-01-04" />
+                        <Input 
+                            className="w-28 h-7 text-center border-gray-300" 
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                        />
                         <Calendar className="w-4 h-4 text-gray-500" />
                     </div>
                     <span>~</span>
                     <div className="flex items-center gap-1">
-                        <Input className="w-28 h-7 text-center border-gray-300" defaultValue="2026-01-10" />
+                        <Input 
+                            className="w-28 h-7 text-center border-gray-300" 
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                        />
                         <Calendar className="w-4 h-4 text-gray-500" />
                     </div>
                     <div className="flex items-center gap-0.5 ml-1">
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">오늘</Button>
-                        <Button variant="default" size="sm" className="h-7 px-2 text-[11px] bg-gray-600 text-white rounded-sm hover:bg-gray-700">7일</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">15일</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1개월</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">3개월</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1년</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            setStartDate(format(new Date(), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(), "yyyy-MM-dd"));
+                        }} className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">오늘</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            setStartDate(format(new Date(new Date().setDate(new Date().getDate() - 7)), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(), "yyyy-MM-dd"));
+                        }} className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">7일</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            setStartDate(format(new Date(new Date().setDate(new Date().getDate() - 15)), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(), "yyyy-MM-dd"));
+                        }} className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">15일</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            setStartDate(format(new Date(new Date().setMonth(new Date().getMonth() - 1)), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(), "yyyy-MM-dd"));
+                        }} className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1개월</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            setStartDate(format(new Date(new Date().setMonth(new Date().getMonth() - 3)), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(), "yyyy-MM-dd"));
+                        }} className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">3개월</Button>
+                        <Button variant="outline" size="sm" onClick={() => {
+                            setStartDate(format(new Date(new Date().setFullYear(new Date().getFullYear() - 1)), "yyyy-MM-dd"));
+                            setEndDate(format(new Date(), "yyyy-MM-dd"));
+                        }} className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1년</Button>
                     </div>
                 </div>
             </div>
@@ -227,7 +317,7 @@ export default function OrderIntegratedListPage() {
         </div>
          
          <div className="bg-white p-4 flex justify-center border-t border-gray-200">
-             <Button className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-10 w-32 rounded-sm text-sm">검색</Button>
+             <Button onClick={handleSearch} className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-10 w-32 rounded-sm text-sm">검색</Button>
          </div>
       </div>
       
@@ -245,7 +335,7 @@ export default function OrderIntegratedListPage() {
       {/* List Header */}
       <div className="flex justify-between items-end mb-2">
           <div className="text-xs text-gray-700 font-bold">
-              검색 <span className="text-red-500">0</span>개 / 전체 <span className="text-red-500">0</span>개 <span className="text-gray-500 font-normal">( 검색된 주문 총 결제금액 : <span className="text-red-500">0</span>원 )</span>
+              검색 <span className="text-red-500">{total}</span>개 / 전체 <span className="text-red-500">{total}</span>개 <span className="text-gray-500 font-normal">( 검색된 주문 총 결제금액 : <span className="text-red-500">{orders.reduce((acc, cur) => acc + cur.totalPayAmount, 0).toLocaleString()}</span>원 )</span>
           </div>
           <div className="flex gap-1 items-center">
                <Select defaultValue="order_date_desc">
@@ -400,13 +490,27 @@ export default function OrderIntegratedListPage() {
                    </tr>
                </thead>
                <tbody className="text-gray-600 bg-white">
-                   <tr>
-                       <td colSpan={9} className="py-20 border-b border-gray-200 text-center text-sm">
-                            <div className="flex justify-center items-center h-full">
-                                검색된 주문이 없습니다.
-                            </div>
-                       </td>
-                   </tr>
+                   {loading ? (
+                        <tr><td colSpan={9} className="py-20 border-b border-gray-200 text-center text-sm">로딩중...</td></tr>
+                   ) : orders.length === 0 ? (
+                        <tr><td colSpan={9} className="py-20 border-b border-gray-200 text-center text-sm">검색된 주문이 없습니다.</td></tr>
+                   ) : (
+                       orders.map((order, idx) => (
+                           <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 text-xs text-center h-8">
+                               <td className="border-r border-[#CDCDCD]"><div className="flex justify-center"><Checkbox className="bg-white border-gray-300 rounded-[2px] w-4 h-4"/></div></td>
+                               <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD] text-red-500 font-bold">{Math.floor((new Date().getTime() - new Date(order.createdAt).getTime()) / (1000 * 3600 * 24))}일</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
+                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: any) => i.productName).join(', ')}>
+                                  {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
+                               </td>
+                               <td className="text-right px-2 font-bold">{order.totalPayAmount.toLocaleString()}</td>
+                           </tr>
+                       ))
+                   )}
                </tbody>
           </table>
         ) : activeTab === "결제완료 리스트" || activeTab === "상품준비중 리스트" || activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트" ? (
@@ -438,13 +542,28 @@ export default function OrderIntegratedListPage() {
                    </tr>
                </thead>
                <tbody className="text-gray-600 bg-white">
-                   <tr>
-                       <td colSpan={(activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트") ? 8 : 7} className="py-20 border-b border-gray-200 text-center text-sm">
-                            <div className="flex justify-center items-center h-full">
-                                검색된 주문이 없습니다.
-                            </div>
-                       </td>
-                   </tr>
+                   {loading ? (
+                        <tr><td colSpan={8} className="py-20 border-b border-gray-200 text-center text-sm">로딩중...</td></tr>
+                   ) : orders.length === 0 ? (
+                        <tr><td colSpan={8} className="py-20 border-b border-gray-200 text-center text-sm">검색된 주문이 없습니다.</td></tr>
+                   ) : (
+                       orders.map((order, idx) => (
+                           <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 text-xs text-center h-8">
+                               <td className="border-r border-[#CDCDCD]"><div className="flex justify-center"><Checkbox className="bg-white border-gray-300 rounded-[2px] w-4 h-4"/></div></td>
+                               <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
+                               <td className={`border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]`} title={order.items.map((i: any) => i.productName).join(', ')}>
+                                  {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
+                               </td>
+                               {(activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트") && (
+                                   <td className="text-right px-2 font-bold">{order.totalPayAmount.toLocaleString()}</td>
+                               )}
+                           </tr>
+                       ))
+                   )}
                </tbody>
           </table>
         ) : activeTab === "결제 중단/실패 리스트" ? (
@@ -476,13 +595,26 @@ export default function OrderIntegratedListPage() {
                    </tr>
                </thead>
                <tbody className="text-gray-600 bg-white">
-                   <tr>
-                       <td colSpan={8} className="py-20 border-b border-gray-200 text-center text-sm">
-                            <div className="flex justify-center items-center h-full">
-                                검색된 주문이 없습니다.
-                            </div>
-                       </td>
-                   </tr>
+                   {loading ? (
+                        <tr><td colSpan={8} className="py-20 border-b border-gray-200 text-center text-sm">로딩중...</td></tr>
+                   ) : orders.length === 0 ? (
+                        <tr><td colSpan={8} className="py-20 border-b border-gray-200 text-center text-sm">검색된 주문이 없습니다.</td></tr>
+                   ) : (
+                       orders.map((order, idx) => (
+                           <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 text-xs text-center h-8">
+                               <td className="border-r border-[#CDCDCD]"><div className="flex justify-center"><Checkbox className="bg-white border-gray-300 rounded-[2px] w-4 h-4"/></div></td>
+                               <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
+                               <td className="border-r border-[#CDCDCD] text-center">-</td>
+                               <td className="text-left px-2 truncate max-w-[200px]" title={order.items.map((i: any) => i.productName).join(', ')}>
+                                  {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
+                               </td>
+                           </tr>
+                       ))
+                   )}
                </tbody>
           </table>
         ) : (
@@ -534,11 +666,49 @@ export default function OrderIntegratedListPage() {
                   </tr>
               </thead>
               <tbody className="text-gray-600 bg-white">
-                  <tr>
-                      <td colSpan={19} className="py-10 border-b border-gray-200 text-center text-sm">
-                          검색된 주문이 없습니다.
-                      </td>
-                  </tr>
+                  {loading ? (
+                       <tr>
+                           <td colSpan={19} className="py-10 border-b border-gray-200 text-center text-sm">
+                               로딩중...
+                           </td>
+                       </tr>
+                  ) : orders.length === 0 ? (
+                      <tr>
+                          <td colSpan={19} className="py-10 border-b border-gray-200 text-center text-sm">
+                              검색된 주문이 없습니다.
+                          </td>
+                      </tr>
+                  ) : (
+                      orders.map((order, idx) => (
+                          <tr key={order.id} className="border-b border-gray-200 hover:bg-gray-50 text-xs text-center h-8">
+                               <td className="border-r border-[#CDCDCD]">
+                                   <div className="flex justify-center">
+                                      <Checkbox className="bg-white border-gray-300 rounded-[2px] w-4 h-4"/>
+                                   </div>
+                               </td>
+                               <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
+                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: any) => i.productName).join(', ')}>
+                                  {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
+                               </td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalItemPrice.toLocaleString()}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.shippingFee.toLocaleString()}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2 font-bold">{order.totalPayAmount.toLocaleString()}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.paymentMethod}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.status}</td>
+                               <td className="border-r border-[#CDCDCD] text-gray-400">-</td>
+                               <td className="border-r border-[#CDCDCD] text-gray-400">-</td>
+                               <td className="border-r border-[#CDCDCD] text-gray-400">-</td>
+                               <td className="border-r border-[#CDCDCD] text-gray-400">-</td>
+                               <td className="border-r border-[#CDCDCD] text-gray-400">-</td>
+                               <td className="border-r border-[#CDCDCD] text-gray-400">-</td>
+                               <td className="text-gray-400">-</td>
+                          </tr>
+                      ))
+                  )}
               </tbody>
           </table>
         )}

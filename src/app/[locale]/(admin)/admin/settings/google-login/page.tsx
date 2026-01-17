@@ -16,7 +16,7 @@ export default function GoogleLoginSettingsPage() {
     const [clientSecret, setClientSecret] = useState("");
 
     // Callback URL state (derived from window location or default)
-    const [callbackUrl, setCallbackUrl] = useState("https://your-mall.com/api/auth/callback/google");
+    const [callbackUrl, setCallbackUrl] = useState("");
 
     useEffect(() => {
         if (typeof window !== "undefined") {

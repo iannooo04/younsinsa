@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -20,8 +20,79 @@ import {
   Info,
   Calendar
 } from "lucide-react";
+import { getFaqsAction, deleteFaqsAction } from "@/actions/board-faq-actions";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { Link } from "@/i18n/routing";
 
 export default function FAQManagementPage() {
+  const [loading, setLoading] = useState(true);
+  const [faqs, setFaqs] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  
+  // Filters
+  const [mallId, setMallId] = useState("KR");
+  const [category, setCategory] = useState("all");
+  const [type, setType] = useState("all"); // 'all', 'normal', 'best'
+  const [keyword, setKeyword] = useState("");
+  
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  
+  // Selection
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchFaqs();
+  }, [page, pageSize]);
+
+  const fetchFaqs = async () => {
+    setLoading(true);
+    const res = await getFaqsAction({
+        mallId: mallId === 'base' ? 'KR' : mallId === 'cn' ? 'CN' : 'KR', // Map UI values
+        category: category,
+        isBest: type === 'best',
+        keyword,
+        page,
+        pageSize
+    });
+
+    if (res.success) {
+        setFaqs(res.items || []);
+        setTotal(res.total || 0);
+    } else {
+        toast.error("데이터를 불러오는데 실패했습니다.");
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+    if (selectedIds.length === 0) return toast.error("선택된 항목이 없습니다.");
+    if (!confirm("선택한 FAQ를 삭제하시겠습니까?")) return;
+
+    const res = await deleteFaqsAction(selectedIds);
+    if (res.success) {
+        toast.success("삭제되었습니다.");
+        setSelectedIds([]);
+        fetchFaqs();
+    } else {
+        toast.error("삭제 실패");
+    }
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+        setSelectedIds(faqs.map(f => f.id));
+    } else {
+        setSelectedIds([]);
+    }
+  };
+
+  const handleSelectOne = (id: string, checked: boolean) => {
+      if (checked) setSelectedIds([...selectedIds, id]);
+      else setSelectedIds(selectedIds.filter(i => i !== id));
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
       {/* Header */}
@@ -30,9 +101,11 @@ export default function FAQManagementPage() {
           <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">FAQ 관리</h1>
           <span className="text-gray-500 text-sm font-normal">FAQ를 수정하고 관리합니다.</span>
         </div>
-        <Button className="h-10 px-8 text-base bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
-          등록
-        </Button>
+        <Link href="/admin/boards/faq/create">
+            <Button className="h-10 px-8 text-base bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
+            등록
+            </Button>
+        </Link>
       </div>
 
       {/* Search Section */}
@@ -49,15 +122,15 @@ export default function FAQManagementPage() {
               상점
             </div>
             <div className="flex-1 p-2 flex items-center px-4">
-              <RadioGroup defaultValue="base" className="flex items-center gap-6">
+              <RadioGroup value={mallId} onValueChange={setMallId} className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <RadioGroupItem value="base" id="skin-base" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
+                  <RadioGroupItem value="KR" id="skin-base" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
                   <Label htmlFor="skin-base" className="text-gray-700 cursor-pointer text-xs font-normal flex items-center gap-1">
                     <span className="text-sm">🇰🇷</span> 기준몰
                   </Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <RadioGroupItem value="cn" id="skin-cn" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
+                  <RadioGroupItem value="CN" id="skin-cn" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
                   <Label htmlFor="skin-cn" className="text-gray-700 cursor-pointer text-xs font-normal flex items-center gap-1">
                     <span className="text-sm">🇨🇳</span> 중문몰
                   </Label>
@@ -72,12 +145,15 @@ export default function FAQManagementPage() {
               카테고리
             </div>
             <div className="w-80 p-2 flex items-center px-4 border-r border-gray-200">
-              <Select defaultValue="all">
+              <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white rounded-[2px]">
                   <SelectValue placeholder="=전체=" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">=전체=</SelectItem>
+                  <SelectItem value="delivery">배송</SelectItem>
+                  <SelectItem value="return">반품/교환</SelectItem>
+                  <SelectItem value="member">회원불편</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -85,7 +161,7 @@ export default function FAQManagementPage() {
               유형
             </div>
             <div className="flex-1 p-2 flex items-center gap-6 px-4">
-               <RadioGroup defaultValue="all" className="flex items-center gap-6">
+               <RadioGroup value={type} onValueChange={setType} className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
                   <RadioGroupItem value="all" id="type-all" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
                   <Label htmlFor="type-all" className="text-gray-700 cursor-pointer text-xs font-normal">전체</Label>
@@ -99,24 +175,6 @@ export default function FAQManagementPage() {
                   <Label htmlFor="type-best" className="text-gray-700 cursor-pointer text-xs font-normal">베스트</Label>
                 </div>
               </RadioGroup>
-            </div>
-          </div>
-
-          {/* Registration Date */}
-          <div className="flex border-b border-gray-200 min-h-[48px]">
-            <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
-              등록일
-            </div>
-            <div className="flex-1 p-2 flex items-center gap-2 px-4 font-normal text-gray-400">
-               <div className="relative">
-                 <Input className="w-48 h-8 text-xs border-gray-300 rounded-[2px] pr-8" placeholder="수기입력 가능" />
-                 <Calendar className="w-4 h-4 text-gray-300 absolute right-2 top-2" />
-               </div>
-               <span className="text-gray-400">~</span>
-               <div className="relative">
-                 <Input className="w-48 h-8 text-xs border-gray-300 rounded-[2px] pr-8" placeholder="수기입력 가능" />
-                 <Calendar className="w-4 h-4 text-gray-300 absolute right-2 top-2" />
-               </div>
             </div>
           </div>
 
@@ -134,13 +192,18 @@ export default function FAQManagementPage() {
                   <SelectItem value="integrated">=통합검색=</SelectItem>
                 </SelectContent>
               </Select>
-              <Input className="w-48 h-8 text-xs border-gray-300 rounded-[2px]" />
+              <Input 
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                className="w-48 h-8 text-xs border-gray-300 rounded-[2px]" 
+                placeholder="검색어 입력"
+              />
             </div>
           </div>
         </div>
 
         <div className="flex justify-center mt-6">
-          <Button className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold border-0">
+          <Button onClick={() => { setPage(1); fetchFaqs(); }} className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold border-0">
             검색
           </Button>
         </div>
@@ -149,7 +212,7 @@ export default function FAQManagementPage() {
       {/* Results Controls */}
       <div className="mb-2">
         <div className="text-[11px] font-normal text-gray-500">
-          검색 <span className="text-red-500 font-bold">0</span> / 전체 <span className="text-red-500 font-bold">0</span>
+          검색 <span className="text-red-500 font-bold">{total}</span> / 전체 <span className="text-red-500 font-bold">{total}</span>
         </div>
       </div>
 
@@ -159,7 +222,11 @@ export default function FAQManagementPage() {
           <thead>
             <tr className="bg-[#B9B9B9] text-white h-10 border-b border-gray-300 font-normal text-[11px]">
               <th className="w-12 border-r border-gray-300">
-                <Checkbox className="border-white data-[state=checked]:bg-white data-[state=checked]:text-gray-400 w-3.5 h-3.5 rounded-[2px]" />
+                <Checkbox 
+                    className="border-white data-[state=checked]:bg-white data-[state=checked]:text-gray-400 w-3.5 h-3.5 rounded-[2px]" 
+                    checked={faqs.length > 0 && selectedIds.length === faqs.length}
+                    onCheckedChange={handleSelectAll}
+                />
               </th>
               <th className="w-20 border-r border-gray-300 font-normal">번호</th>
               <th className="w-24 border-r border-gray-300 font-normal">상점 구분</th>
@@ -171,9 +238,36 @@ export default function FAQManagementPage() {
             </tr>
           </thead>
           <tbody>
-            <tr className="h-16">
-              <td colSpan={8} className="text-gray-400 font-normal text-[11px]">검색된 정보가 없습니다.</td>
-            </tr>
+             {loading ? (
+                 <tr className="h-40"><td colSpan={8} className="text-gray-400">로딩중...</td></tr>
+             ) : faqs.length === 0 ? (
+                <tr className="h-40"><td colSpan={8} className="text-gray-400">FAQ가 없습니다.</td></tr>
+             ) : (
+                 faqs.map((faq, index) => (
+                    <tr key={faq.id} className="h-10 border-b border-gray-200 hover:bg-gray-50">
+                        <td className="border-r border-gray-200">
+                            <Checkbox 
+                                className="w-3.5 h-3.5 border-gray-300 rounded-[2px]"
+                                checked={selectedIds.includes(faq.id)}
+                                onCheckedChange={(c) => handleSelectOne(faq.id, c as boolean)}
+                            />
+                        </td>
+                        <td className="border-r border-gray-200">{total - ((page - 1) * pageSize) - index}</td>
+                        <td className="border-r border-gray-200">
+                             {faq.mallId === 'KR' ? '🇰🇷 기준몰' : '🇨🇳 중문몰'}
+                        </td>
+                        <td className="border-r border-gray-200">{faq.category}</td>
+                        <td className="border-r border-gray-200 text-left px-4">{faq.question}</td>
+                        <td className="border-r border-gray-200">
+                            {faq.isBest ? '베스트' : '일반'}
+                        </td>
+                        <td className="border-r border-gray-200">{format(new Date(faq.createdAt), 'yyyy-MM-dd')}</td>
+                        <td>
+                            <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 font-normal">수정</Button>
+                        </td>
+                    </tr>
+                 ))
+             )}
           </tbody>
         </table>
       </div>
@@ -181,9 +275,9 @@ export default function FAQManagementPage() {
       {/* Bulk Actions */}
       <div className="bg-[#FBFBFB] p-3 border border-gray-200 flex items-center gap-2 mb-8">
         <div className="text-xs font-bold text-gray-600 ml-1 flex items-center gap-1">
-          <span className="text-red-500 font-bold">✓</span> 선택한 FAQ
+          <span className="text-red-500 font-bold">✓</span> 선택한 FAQ {selectedIds.length}개
         </div>
-        <Button variant="outline" className="h-7 px-4 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-gray-700 font-normal">삭제</Button>
+        <Button onClick={handleDelete} variant="outline" className="h-7 px-4 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-gray-700 font-normal">삭제</Button>
       </div>
 
       {/* Guide Section */}

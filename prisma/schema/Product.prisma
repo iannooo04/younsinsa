@@ -39,85 +39,115 @@ enum StockConfigType {
 // ----------------------------------------------------------------------
 
 enum ClassifyType {
-  GENERAL   // 일반 (상품 연결 가능)
-  GROUP     // 그룹/구분 (상품 연결 불가, 분류용)
+  GENERAL // 일반 (상품 연결 가능)
+  GROUP // 그룹/구분 (상품 연결 불가, 분류용)
 }
 
 enum AccessType {
-  ALL       // 전체 (회원+비회원)
-  MEMBER    // 회원전용
-  SPECIFIC  // 특정 회원등급
+  ALL // 전체 (회원+비회원)
+  MEMBER // 회원전용
+  SPECIFIC // 특정 회원등급
 }
 
 model Brand {
-  id          String    @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // -- 기본 정보 --
-  name        String    // 기본 브랜드명 (KR)
-  nameCN      String?   // 중문 브랜드명
-  nameEN      String?   // 영문 브랜드명 (slug 대용 가능)
-  
-  slug        String?   @unique
-  category    String?   // Main category name for filtering (Legacy or specific usage)
-  
+  name   String // 기본 브랜드명 (KR)
+  nameCN String? // 중문 브랜드명
+  nameEN String? // 영문 브랜드명 (slug 대용 가능)
+
+  slug     String? @unique
+  category String? // Main category name for filtering (Legacy or specific usage)
+
   description String?
-  
-  type        ClassifyType @default(GENERAL)
-  
+
+  type ClassifyType @default(GENERAL)
+
   // -- 노출 상점 (Mall Exposure) --
-  isExposedKR Boolean   @default(true)
-  isExposedCN Boolean   @default(false)
-  
+  isExposedKR Boolean @default(true)
+  isExposedCN Boolean @default(false)
+
   // -- 노출 상태 (Display Status) --
   displayStatusPC     DisplayStatus @default(DISPLAY)
   displayStatusMobile DisplayStatus @default(DISPLAY)
-  
+
   // -- 이미지 설정 --
   logoUrl             String? // 대표 로고
   pcImageUrl          String? // PC 브랜드 이미지
   pcMouseoverImageUrl String? // PC 마우스오버 이미지
   mobileImageUrl      String? // 모바일 브랜드 이미지
-  
+
   // -- 권한 및 접근 제어 --
-  isAdultAuth         Boolean    @default(false) // 성인인증 필수 여부
-  accessType          AccessType @default(ALL)
-  accessGrades        String[]   // 접근 가능한 회원 등급 ID 목록
-  
+  isAdultAuth  Boolean    @default(false) // 성인인증 필수 여부
+  accessType   AccessType @default(ALL)
+  accessGrades String[] // 접근 가능한 회원 등급 ID 목록
+
   // -- 진열 및 테마 --
-  productDisplayType  String     @default("AUTO") // AUTO, MANUAL
-  pcTheme             String?
-  mobileTheme         String?
-  
+  productDisplayType String  @default("AUTO") // AUTO, MANUAL
+  pcTheme            String?
+  mobileTheme        String?
+
+  // -- SEO 설정 --
+  isSeoUsed      Boolean  @default(false)
+  seoTitle       String?
+  seoAuthor      String?
+  seoDescription String?
+  seoKeywords    String[]
+
+  // -- 추천 상품 설정 --
+  isRecApplyToChildren  Boolean @default(false)
+  isRecExposedPC        Boolean @default(true)
+  isRecExposedMobile    Boolean @default(true)
+  recProductDisplayType String  @default("AUTO") // AUTO, MANUAL
+  recPcTheme            String?
+  recMobileTheme        String?
+
+  recommendedProducts BrandRecommendedProduct[] @relation("BrandRecommendedProducts")
+
   // -- 꾸미기 (Decorations) - HTML Content --
   // Keys: navTopPC, navTopMobile, recTopPC, recTopMobile, listTopPC, listTopMobile
-  htmlContents        Json?
+  htmlContents Json?
 
-  parentId    String?
-  parent      Brand?    @relation("BrandToBrand", fields: [parentId], references: [id])
-  children    Brand[]   @relation("BrandToBrand")
-  
-  products    Product[]
-  
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  parentId String?
+  parent   Brand?  @relation("BrandToBrand", fields: [parentId], references: [id])
+  children Brand[] @relation("BrandToBrand")
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+model BrandRecommendedProduct {
+  brandId   String
+  productId String
+  order     Int      @default(0)
+
+  brand   Brand   @relation("BrandRecommendedProducts", fields: [brandId], references: [id], onDelete: Cascade)
+  product Product @relation("ProductRecommendedInBrands", fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([brandId, productId])
 }
 
 model Category {
-  id        String     @id @default(cuid())
-  
-  // -- 기본 정보 --
-  name      String     // 기본 카테고리명 (KR)
-  nameCN    String?    // 중문 카테고리명
-  nameEN    String?    // 영문 카테고리명
-  
-  code      String?    @unique // e.g., "104002"
-  slug      String?    // e.g., "sneakers"
+  id String @id @default(cuid())
 
-  type      ClassifyType @default(GENERAL)
+  // -- 기본 정보 --
+  name   String // 기본 카테고리명 (KR)
+  nameCN String? // 중문 카테고리명
+  nameEN String? // 영문 카테고리명
+
+  code String? @unique // e.g., "104002"
+  slug String? // e.g., "sneakers"
+
+  type ClassifyType @default(GENERAL)
 
   // -- 노출 상점 (Mall Exposure) --
-  isExposedKR Boolean   @default(true)
-  isExposedCN Boolean   @default(false)
+  isExposedKR Boolean @default(true)
+  isExposedCN Boolean @default(false)
 
   // -- 노출 상태 (Display Status) --
   displayStatusPC     DisplayStatus @default(DISPLAY)
@@ -130,228 +160,239 @@ model Category {
   mobileImageUrl      String? // 모바일 카테고리 이미지
 
   // -- 권한 및 접근 제어 --
-  isAdultAuth         Boolean    @default(false) // 성인인증 필수 여부
-  accessType          AccessType @default(ALL)
-  accessGrades        String[]   // 접근 가능한 회원 등급 ID 목록
+  isAdultAuth  Boolean    @default(false) // 성인인증 필수 여부
+  accessType   AccessType @default(ALL)
+  accessGrades String[] // 접근 가능한 회원 등급 ID 목록
 
   // -- 진열 및 테마 --
-  productDisplayType  String     @default("AUTO") // AUTO, MANUAL
-  pcTheme             String?
-  mobileTheme         String?
+  productDisplayType String  @default("AUTO") // AUTO, MANUAL
+  pcTheme            String?
+  mobileTheme        String?
 
   // -- 꾸미기 (Decorations) - HTML Content --
   // Keys: navTopPC, navTopMobile, recTopPC, recTopMobile, listTopPC, listTopMobile
-  htmlContents        Json?
+  htmlContents Json?
 
-  parentId  String?
-  parent    Category?  @relation("SubCategories", fields: [parentId], references: [id])
-  children  Category[] @relation("SubCategories")
-  
-  products  Product[]
-  
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  parentId String?
+  parent   Category?  @relation("SubCategories", fields: [parentId], references: [id])
+  children Category[] @relation("SubCategories")
+
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  displaySettings CategoryDisplaySettings?
 
   @@index([slug])
 }
-
 
 // ----------------------------------------------------------------------
 // 2. 상품 (Product)
 // ----------------------------------------------------------------------
 
 model Product {
-  id               String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   // -- 기본 정보 --
-  code             String?  @unique // 시스템 자동 생성 상품코드
-  customCode       String?  // 자체 상품코드
-  
-  name             String   // 기본 상품명
-  extendedName     String?  // 확장 상품명 (제휴 등)
-  isExtendedName   Boolean  @default(false)
-  
-  keywords         String[] // 검색 키워드 (Tags)
-  
-  condition        String   @default("NEW") // 신상품, 중고, 리퍼 등
+  code       String? @unique // 시스템 자동 생성 상품코드
+  customCode String? // 자체 상품코드
+
+  name           String // 기본 상품명
+  extendedName   String? // 확장 상품명 (제휴 등)
+  isExtendedName Boolean @default(false)
+
+  keywords String[] // 검색 키워드 (Tags)
+
+  condition           String        @default("NEW") // 신상품, 중고, 리퍼 등
   representativeColor String? // 대표 색상 (#FFFFFF)
-  gender           ProductGender @default(UNISEX)
-  
+  gender              ProductGender @default(UNISEX)
+
   // -- 공급사 정보 --
-  supplierId       String?  // Supplier Relation ID
-  supplier         Supplier? @relation(fields: [supplierId], references: [id])
-  commissionRate   Decimal? @default(0.00) // 수수료율
-  
+  supplierId     String? // Supplier Relation ID
+  supplier       Supplier? @relation(fields: [supplierId], references: [id])
+  commissionRate Decimal?  @default(0.00) // 수수료율
+
   // -- 카테고리/브랜드 연결 --
-  brandId          String?
-  brand            Brand?    @relation(fields: [brandId], references: [id])
-  
-  categoryId       String
-  category         Category  @relation(fields: [categoryId], references: [id])
-  
+  brandId String?
+  brand   Brand?  @relation(fields: [brandId], references: [id])
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
   // 추가 카테고리들이 있다면 별도 JoinTable 필요, 여기선 JSON 등으로 단순화하거나 생략
-  extraCategories  Json? 
-  
+  extraCategories Json?
+
   // -- 노출 및 판매 상태 --
-  displayStatusPC     DisplayStatus @default(DISPLAY)
-  saleStatusPC        SaleStatus    @default(ON_SALE)
-  
+  displayStatusPC DisplayStatus @default(DISPLAY)
+  saleStatusPC    SaleStatus    @default(ON_SALE)
+
   displayStatusMobile DisplayStatus @default(DISPLAY)
   saleStatusMobile    SaleStatus    @default(ON_SALE)
-  
+
   // 메인 진열 상태 (JSON Array: ['NEW', 'BEST'])
-  mainDisplayPC       Json?
-  mainDisplayMobile   Json?
-  
+  mainDisplayPC     Json?
+  mainDisplayMobile Json?
+
   // 인기상품 포함 여부
-  includeInPopular    Boolean       @default(true)
-  
+  includeInPopular Boolean @default(true)
+
   // -- 가격 설정 --
-  price            Int      // 판매가
-  consumerPrice    Int      @default(0) // 정가
-  supplyPrice      Int      @default(0) // 공급가
-  purchasePrice    Int      @default(0) // 매입가
-  
+  price         Int // 판매가
+  consumerPrice Int @default(0) // 정가
+  supplyPrice   Int @default(0) // 공급가
+  purchasePrice Int @default(0) // 매입가
+
   priceSubstituteText String? // 가격 대체 문구
-  
+
   // -- 재고 및 배송 설정 --
-  stockType        StockConfigType @default(LIMITLESS)
-  stockQuantity    Int      @default(0) // 재고수량
-  
-  soldOutStatus    String   @default("NORMAL") // NORMAL, SOLDOUT_MANUAL
-  
-  minPurchaseQty   Int?     @default(1)
-  maxPurchaseQty   Int?
-  
-  salesPeriodType  String   @default("UNLIMITED") // UNLIMITED, LIMITED
-  salesStartDate   DateTime?
-  salesEndDate     DateTime?
-  
+  stockType     StockConfigType @default(LIMITLESS)
+  stockQuantity Int             @default(0) // 재고수량
+
+  soldOutStatus String @default("NORMAL") // NORMAL, SOLDOUT_MANUAL
+
+  minPurchaseQty Int? @default(1)
+  maxPurchaseQty Int?
+
+  salesPeriodType String    @default("UNLIMITED") // UNLIMITED, LIMITED
+  salesStartDate  DateTime?
+  salesEndDate    DateTime?
+
   restockNotification Boolean @default(false) // 재입고 알림 사용
-  
-  shippingFee      Int      @default(0)
-  shippingMethod   String?
-  
+
+  shippingFee    Int     @default(0)
+  shippingMethod String?
+
+  // Relation to ShippingPolicy (added)
+  shippingPolicyId Int?
+  shippingPolicy   ShippingPolicy? @relation(fields: [shippingPolicyId], references: [id])
+
+  returnFee   Int @default(0)
+  exchangeFee Int @default(0)
+
   // -- 과세 및 무게 --
-  taxType          TaxType  @default(TAX)
-  taxRate          Int      @default(10)
-  
-  weight           Decimal?
-  volume           Decimal? // 용량
-  
-  cultureDeduction Boolean  @default(false) // 도서공연비 소득공제
-  
+  taxType TaxType @default(TAX)
+  taxRate Int     @default(10)
+
+  weight Decimal?
+  volume Decimal? // 용량
+
+  cultureDeduction Boolean @default(false) // 도서공연비 소득공제
+
   // -- 상세 설명 --
   shortDescription String?
   eventText        String?
-  
-  descriptionPC    String?  @db.Text
+
+  descriptionPC     String? @db.Text
   descriptionMobile String? @db.Text
   isDescriptionSame Boolean @default(true)
-  
+
   // -- 이미지 (Relation) --
-  images           ProductImage[]
-  
+  images ProductImage[]
+
   // -- 옵션 (Relation) --
-  optionUsage      Boolean  @default(false)
-  options          ProductOption[]
-  variants         ProductVariant[] // 실제 재고/가격 변형
-  
+  optionUsage Boolean          @default(false)
+  options     ProductOption[]
+  variants    ProductVariant[] // 실제 재고/가격 변형
+
   // -- 추가 구성 --
-  textOptionUsage  Boolean  @default(false)
-  addOnUsage       Boolean  @default(false)
+  textOptionUsage Boolean @default(false)
+  addOnUsage      Boolean @default(false)
   // textOptions   ProductTextOption[]
   // addOnProducts ProductAddOn[]
-  
+
   // -- 마일리지/혜택 --
-  mileageConfigType String  @default("INTEGRATED") // INTEGRATED, INDIVIDUAL
-  mileageRate       Decimal? 
-  
+  mileageConfigType String   @default("INTEGRATED") // INTEGRATED, INDIVIDUAL
+  mileageRate       Decimal?
+
   discountConfigType String @default("Use")
-  
+
   // -- 기타 --
-  accessAuth        String  @default("ALL") // ALL, MEMBER, GRADE
-  
+  accessAuth String @default("ALL") // ALL, MEMBER, GRADE
+
   // 필수정보 (JSON: { material: "...", origin: "..." })
-  essentialInfo     Json? 
-  
+  essentialInfo Json?
+
   // -- 글로벌 상품명 (Global Names) --
-  nameCN           String?
-  nameEN           String?
-  nameJP           String?
+  nameCN String?
+  nameEN String?
+  nameJP String?
 
   // -- 제조/원산지/날짜 (Manufacture/Origin/Dates) --
-  manufacturer     String?   // maker_name
-  origin           String?   // origin_name
-  modelNo          String?   // model_no
-  makeDate         DateTime? // yyyy-mm-dd
-  launchDate       DateTime?
+  manufacturer       String? // maker_name
+  origin             String? // origin_name
+  modelNo            String? // model_no
+  makeDate           DateTime? // yyyy-mm-dd
+  launchDate         DateTime?
   effectiveStartDate DateTime?
   effectiveEndDate   DateTime?
 
   // -- 구매 권한 (Purchase Permission) --
-  purchasePermission String @default("ALL") // ALL, MEMBER, GROUP
-  purchasePermissionGrades String[] // Array of grade codes
+  purchasePermission          String   @default("ALL") // ALL, MEMBER, GROUP
+  purchasePermissionGrades    String[] // Array of grade codes
   purchasePriceSubstituteText String? // goods_permission_price_string
 
   // -- 성인 인증 (Adult Auth) --
-  isAdultOnly         Boolean @default(false)
-  isAdultOnlyDisplay  Boolean @default(false)
-  isAdultOnlyImage    Boolean @default(false)
+  isAdultOnly        Boolean @default(false)
+  isAdultOnlyDisplay Boolean @default(false)
+  isAdultOnlyImage   Boolean @default(false)
 
   // -- 결제 수단 제한 (Payment Config) --
-  paymentConfigType   String  @default("INTEGRATED") // INTEGRATED(n), INDIVIDUAL(y)
+  paymentConfigType     String   @default("INTEGRATED") // INTEGRATED(n), INDIVIDUAL(y)
   allowedPaymentMethods String[] // gb, pg, gm, gd...
 
   // -- KC 인증 (Certifications) --
-  kcMarkUsed          Boolean @default(false)
-  kcCertifications    Json?   // List of { type, code, date }
+  kcMarkUsed       Boolean @default(false)
+  kcCertifications Json? // List of { type, code, date }
 
   // -- 아이콘/배지 (Icons) --
-  iconPeriodStart     DateTime?
-  iconPeriodEnd       DateTime?
-  iconPeriodCodes     String[]
-  iconUnlimitedCodes  String[]
+  iconPeriodStart    DateTime?
+  iconPeriodEnd      DateTime?
+  iconPeriodCodes    String[]
+  iconUnlimitedCodes String[]
 
   // -- 할인 설정 (Discount) --
-  discountPrice       Int?
-  discountUnit        String? // percent, price
+  discountPrice Int?
+  discountUnit  String? // percent, price
 
   // -- 묶음 주문 (Bundle Order) --
-  bundleOrderBasis    String @default("OPTION") // option, goods
-  bundleOrderUnit     Int    @default(1)
+  bundleOrderBasis String @default("OPTION") // option, goods
+  bundleOrderUnit  Int    @default(1)
 
   // -- SEO (Individual) --
-  seoTitle            String?
-  seoAuthor           String?
-  seoDescription      String?
-  seoKeywords         String[]
+  seoTitle       String?
+  seoAuthor      String?
+  seoDescription String?
+  seoKeywords    String[]
 
   // -- 외부 연동 (External Integrations) --
-  daumExpose          Boolean @default(true)
-  naverExpose         Boolean @default(true)
+  daumExpose           Boolean @default(true)
+  naverExpose          Boolean @default(true)
   googleShoppingExpose Boolean @default(false)
-  
+
   externalVideoUrl    String?
   externalVideoWidth  Int?
   externalVideoHeight Int?
 
   // -- HS Code --
-  hsCode              Json? // { kr: '...', us: '...' }
+  hsCode Json? // { kr: '...', us: '...' }
 
   // -- 관리자 메모 --
-  adminMemo           String? @db.Text
-  
+  adminMemo String? @db.Text
+
   // Relations
-  naverSettings       ProductNaverSettings?
+  naverSettings ProductNaverSettings?
   wishlistedBy  WishlistItem[]
   reviews       ProductReview[]
   cartItems     CartItem[]
   orderItems    OrderItem[]
   posts         Post[]
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  recommendedInBrands BrandRecommendedProduct[] @relation("ProductRecommendedInBrands")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([brandId])
   @@index([categoryId])
@@ -363,67 +404,65 @@ model Product {
 // ----------------------------------------------------------------------
 
 model ProductNaverSettings {
-  id                String  @id @default(cuid())
-  productId         String  @unique
-  product           Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  importFlag        String? // f(해외구매대행), d(병행수입), o(주문제작)
-  productFlag       String? // w, r, h, i, s, b, e
-  
-  monthlyRentalFee  Int?
-  totalRentalFee    Int?
-  rentalPeriod      Int?
-  
-  ageGroup          String? // a, y, c, b
-  gender            String? // m, w, c
-  tags              String?
-  attribute         String?
-  
+  id        String  @id @default(cuid())
+  productId String  @unique
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  importFlag  String? // f(해외구매대행), d(병행수입), o(주문제작)
+  productFlag String? // w, r, h, i, s, b, e
+
+  monthlyRentalFee Int?
+  totalRentalFee   Int?
+  rentalPeriod     Int?
+
+  ageGroup  String? // a, y, c, b
+  gender    String? // m, w, c
+  tags      String?
+  attribute String?
+
   naverCategoryId   String?
   priceComparisonId String?
-  
-  npayAble          String? // no, pc, mobile, all
-  npayAcumAble      String?
-  
-  brandCertification Boolean @default(false)
-  
-  bookExpose        Boolean @default(false)
-  isbn              String?
-  bookType          String? // P, E, A
-  
-  updatedAt         DateTime @updatedAt
-}
 
+  npayAble     String? // no, pc, mobile, all
+  npayAcumAble String?
+
+  brandCertification Boolean @default(false)
+
+  bookExpose Boolean @default(false)
+  isbn       String?
+  bookType   String? // P, E, A
+
+  updatedAt DateTime @updatedAt
+}
 
 // ----------------------------------------------------------------------
 // 3. 상품 이미지 (Product Image)
 // ----------------------------------------------------------------------
 
 enum ProductImageType {
-  MAIN           // 대표/확대 이미지
-  DETAIL         // 상세 이미지
-  THUMBNAIL      // 썸네일
-  LIST           // 리스트 기본
-  LIST_GROUP     // 리스트 그룹형
-  SIMPLE         // 심플이미지
-  ADDITIONAL     // 추가 이미지
+  MAIN // 대표/확대 이미지
+  DETAIL // 상세 이미지
+  THUMBNAIL // 썸네일
+  LIST // 리스트 기본
+  LIST_GROUP // 리스트 그룹형
+  SIMPLE // 심플이미지
+  ADDITIONAL // 추가 이미지
 }
 
 model ProductImage {
-  id        String    @id @default(cuid())
+  id        String  @id @default(cuid())
   productId String
-  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  url       String
-  type      ProductImageType @default(MAIN)
-  
-  isOriginal Boolean  @default(false) // 원본이미지 여부
-  
-  order     Int       @default(0)
-  
-  createdAt DateTime  @default(now())
-}
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
+  url  String
+  type ProductImageType @default(MAIN)
+
+  isOriginal Boolean @default(false) // 원본이미지 여부
+
+  order Int @default(0)
+
+  createdAt DateTime @default(now())
+}
 
 // ----------------------------------------------------------------------
 // 4. 상품 옵션 (Product Options)
@@ -433,103 +472,149 @@ model ProductOption {
   id        String               @id @default(cuid())
   productId String
   product   Product              @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name      String               // e.g., "Color", "Size"
+  name      String // e.g., "Color", "Size"
   values    ProductOptionValue[]
-  
-  createdAt DateTime              @default(now()) // Added
+
+  createdAt DateTime @default(now()) // Added
 }
 
 model ProductOptionValue {
   id       String        @id @default(cuid())
   optionId String
   option   ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
-  name     String        // e.g., "Red", "XL"
+  name     String // e.g., "Red", "XL"
 }
-
 
 // ----------------------------------------------------------------------
 // 5. 상품 품목/재고 (Product Variant / SKU)
 // ----------------------------------------------------------------------
 
 model ProductVariant {
-  id             String   @id @default(cuid())
-  productId      String
-  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sku            String?  @unique
-  
-  price          Int?     // 가격 오버라이드
-  stock          Int      @default(0)
-  
+  id        String  @id @default(cuid())
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku       String? @unique
+
+  price Int? // 가격 오버라이드
+  stock Int  @default(0)
+
   // 옵션 조합 (e.g. Red + XL)
   optionValueIds String[] // Array of ProductOptionValue IDs
-  
-  cartItems      CartItem[]
-  orderItems     OrderItem[]
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([productId])
 }
-
 
 // ----------------------------------------------------------------------
 // 6. 자주 쓰는 옵션 (Example: Option Templates)
 // ----------------------------------------------------------------------
 
 model OptionTemplate {
-  id          String   @id @default(cuid())
-  manageName  String   // 관리명 (e.g. "N_SIZE5")
-  name        String   // 옵션명 (e.g. "SIZE")
-  
-  type        String   @default("integrated") // integrated(일체형), separated(분리형)
-  
-  supplierId  Int?     // 공급사
+  id         String @id @default(cuid())
+  manageName String // 관리명 (e.g. "N_SIZE5")
+  name       String // 옵션명 (e.g. "SIZE")
+
+  type String @default("integrated") // integrated(일체형), separated(분리형)
+
+  supplierId   Int? // 공급사
   supplierName String?
-  
-  options     Json     // 옵션값 리스트 (JSON)
-  
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+
+  options Json // 옵션값 리스트 (JSON)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([manageName]) // 관리명 유니크
 }
-
 
 // ----------------------------------------------------------------------
 // 7. 고객 반응/주문 연결 (Product Interactions)
 // ----------------------------------------------------------------------
 
 model WishlistItem {
-  id        String   @id @default(cuid())
-  
-  userId    String
-  user      UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id String @id @default(cuid())
+
+  userId String
+  user   UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 
   @@unique([userId, productId])
 }
 
 model ProductReview {
-  id        String   @id @default(cuid())
-  
+  id String @id @default(cuid())
+
   productId String
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  
-  userId    String
-  user      UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  rating    Int      @default(5)
-  comment   String?
-  images    String[]
-  
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   UserInfo @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rating  Int      @default(5)
+  comment String?
+  images  String[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([productId])
   @@index([userId])
+}
+
+// ----------------------------------------------------------------------
+// 9. 상품 필수정보 관리 (Product Essential Info Template)
+// ----------------------------------------------------------------------
+
+model ProductEssentialInfoTemplate {
+  id         String    @id @default(cuid())
+  name       String // 필수정보명 (e.g. "의류", "가공식품")
+  supplierId String? // 공급사 ID
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  // 항목 데이터 (JSON List of { label: string, value: string, isRequired: boolean })
+  items Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([supplierId])
+}
+
+// ----------------------------------------------------------------------
+// 10. 상품 상세 공통정보 (Product Detail Common Info)
+// ----------------------------------------------------------------------
+
+model ProductCommonInfo {
+  id              String   @id @default(cuid())
+  title           String   // 공통정보 제목
+  
+  // 노출 기간
+  exposureType    String   @default("ALL") // ALL, UNLIMITED, LIMITED
+  startDate       DateTime?
+  endDate         DateTime?
+  
+  displayStatus   DisplayStatus @default(DISPLAY) // 노출상태
+  
+  // 상품 조건 (JSON for complexity) - { type: 'ALL', 'SPECIFIC_PRODUCT', 'SPECIFIC_CATEGORY', 'SPECIFIC_BRAND', 'SPECIFIC_SUPPLIER', ids: string[] }
+  productCondition  Json?
+  
+  // 예외 조건 (JSON) - { ids: string[] }
+  exceptionCondition Json?
+  
+  // 내용 (PC/Mobile)
+  contentPC       String?  @db.Text
+  contentMobile   String?  @db.Text
+  isSameContent   Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }

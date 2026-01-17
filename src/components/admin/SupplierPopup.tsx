@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 
+import { getSuppliersSimpleAction } from "@/actions/supplier-actions";
+
 interface Props {
     isOpen: boolean;
     onClose: () => void;
@@ -24,10 +26,9 @@ export default function SupplierPopup({ isOpen, onClose, onConfirm }: Props) {
     const fetchSuppliers = async () => {
         setLoading(true);
         try {
-            const res = await fetch("/api/admin/brands"); // Using brands as suppliers
-            if (res.ok) {
-                const data = await res.json();
-                setSuppliers(data);
+            const res = await getSuppliersSimpleAction();
+            if (res.success) {
+                setSuppliers(res.items);
             }
         } catch (error) {
             console.error(error);
@@ -37,8 +38,7 @@ export default function SupplierPopup({ isOpen, onClose, onConfirm }: Props) {
     };
 
     const handleSearch = () => {
-        // Simple client-side filtering for now
-        // In real world, pass query to API
+        // Simple client-side filtering handled by filteredSuppliers
     };
 
     const filteredSuppliers = suppliers.filter(s => 

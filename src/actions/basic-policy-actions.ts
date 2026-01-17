@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma";
+import { revalidatePath } from "next/cache";
 
 // --- VAT Settings Actions ---
 
@@ -645,6 +646,7 @@ export async function getProductBasicSettingsAction() {
             currentSettings.modDateRange = defaultRange;
         }
 
+        // Initialize new fields if they are defaults or missing (optional but good for consistency)
         return { success: true, settings: policy.productBasicSettings };
 
     } catch (error) {
@@ -654,11 +656,17 @@ export async function getProductBasicSettingsAction() {
 }
 
 export async function updateProductBasicSettingsAction(data: {
-    modDateRange: any;
-    modDatePopup: string;
-    imageLoadingEnhance: string;
-    priceExposure: string;
-    optionPriceExposure: string;
+    modDateRange?: any;
+    modDatePopup?: string;
+    imageLoadingEnhance?: string;
+    priceExposure?: string;
+    optionPriceExposure?: string;
+    subBrandProductDisplay?: string;
+    parentCategoryAutoRegister?: string;
+    navCategoryUsage?: string;
+    navBrandUsage?: string;
+    countCategoryUsage?: string;
+    countBrandUsage?: string;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -671,22 +679,108 @@ export async function updateProductBasicSettingsAction(data: {
                 modDatePopup: data.modDatePopup,
                 imageLoadingEnhance: data.imageLoadingEnhance,
                 priceExposure: data.priceExposure,
-                optionPriceExposure: data.optionPriceExposure
+                optionPriceExposure: data.optionPriceExposure,
+                subBrandProductDisplay: data.subBrandProductDisplay,
+                parentCategoryAutoRegister: data.parentCategoryAutoRegister,
+                navCategoryUsage: data.navCategoryUsage,
+                navBrandUsage: data.navBrandUsage,
+                countCategoryUsage: data.countCategoryUsage,
+                countBrandUsage: data.countBrandUsage
             },
             create: {
                 basicPolicyId: policy.id,
-                modDateRange: data.modDateRange,
-                modDatePopup: data.modDatePopup,
-                imageLoadingEnhance: data.imageLoadingEnhance,
-                priceExposure: data.priceExposure,
-                optionPriceExposure: data.optionPriceExposure
+                modDateRange: data.modDateRange || {},
+                modDatePopup: data.modDatePopup || "unused",
+                imageLoadingEnhance: data.imageLoadingEnhance || "unused",
+                priceExposure: data.priceExposure || "exposed",
+                optionPriceExposure: data.optionPriceExposure || "exposed",
+                subBrandProductDisplay: data.subBrandProductDisplay || "unsold",
+                parentCategoryAutoRegister: data.parentCategoryAutoRegister || "unused",
+                navCategoryUsage: data.navCategoryUsage || "used",
+                navBrandUsage: data.navBrandUsage || "used",
+                countCategoryUsage: data.countCategoryUsage || "used",
+                countBrandUsage: data.countBrandUsage || "used"
             }
         });
 
-        return { success: true, settings: settings };
+
+        revalidatePath("/admin/products/classification-settings");
+        return { success: true };
     } catch (error) {
-        console.error("updateProductBasicSettings error:", error);
-        return { success: false, error: "설정 저장에 실패했습니다." };
+        console.error("updateProductBasicSettingsAction error:", error);
+        return { success: false, error: "저장 중 오류가 발생했습니다." };
+    }
+}
+
+export async function getProductDetailExposureSettingsAction() {
+    try {
+        let policy = await prisma.basicPolicy.findFirst({
+            include: { productDetailExposureSettings: true },
+        });
+
+        if (!policy) {
+            policy = await prisma.basicPolicy.create({
+                data: {
+                    vatSettings: { create: {} }
+                },
+                include: { productDetailExposureSettings: true },
+            });
+        }
+
+        if (!policy.productDetailExposureSettings) {
+             const defaultSettings = {
+                basicPolicyId: policy.id,
+                isMobileSame: true,
+                pcExposureItems: ["짧은설명", "정가", "판매가", "할인적용가", "구매제한", "구매혜택", "쿠폰받기", "배송비"],
+                mobileExposureItems: ["짧은설명", "정가", "판매가", "할인적용가", "구매제한", "구매혜택", "쿠폰받기", "배송비"],
+                discountSettings: { productDiscount: true, couponDiscount: false },
+                additionalSettings: { optionStock: true, icon: false, representativeColor: true, discountRate: false },
+                strikeSettings: { consumerPrice: true, salePrice: false },
+            };
+            const settings = await prisma.productDetailExposureSettings.create({
+                data: defaultSettings,
+            });
+            return { success: true, data: settings };
+        }
+
+        return { success: true, data: policy.productDetailExposureSettings };
+    } catch (error) {
+        console.error("getProductDetailExposureSettingsAction error:", error);
+        return { success: false, error: "데이터를 가져오는데 실패했습니다." };
+    }
+}
+
+export async function updateProductDetailExposureSettingsAction(data: any) {
+    try {
+        const policy = await prisma.basicPolicy.findFirst();
+        if (!policy) throw new Error("Basic policy not found");
+
+        await prisma.productDetailExposureSettings.upsert({
+            where: { basicPolicyId: policy.id },
+            update: {
+                isMobileSame: data.isMobileSame,
+                pcExposureItems: data.pcExposureItems,
+                mobileExposureItems: data.mobileExposureItems,
+                discountSettings: data.discountSettings,
+                additionalSettings: data.additionalSettings,
+                strikeSettings: data.strikeSettings,
+            },
+            create: {
+                basicPolicyId: policy.id,
+                isMobileSame: data.isMobileSame,
+                pcExposureItems: data.pcExposureItems,
+                mobileExposureItems: data.mobileExposureItems,
+                discountSettings: data.discountSettings,
+                additionalSettings: data.additionalSettings,
+                strikeSettings: data.strikeSettings,
+            },
+        });
+
+        revalidatePath("/admin/products/product-detail-exposure-items");
+        return { success: true };
+    } catch (error) {
+        console.error("updateProductDetailExposureSettingsAction error:", error);
+        return { success: false, error: "저장 중 오류가 발생했습니다." };
     }
 }
 

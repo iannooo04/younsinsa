@@ -57,6 +57,7 @@ model CategoryDisplaySettings {
   id             Int      @id @default(autoincrement())
   
   categoryId     String   @unique // Category 모델 ID와 1:1 매핑
+  category       Category @relation(fields: [categoryId], references: [id])
   
   displayMethod  String   @default("NORMAL") // e.g. NORMAL(기본), EVENT(이벤트형) 등
   
@@ -68,5 +69,25 @@ model CategoryDisplaySettings {
   // 특정 상단 고정 상품 등 커스텀 진열 목록
   pinnedProductIds Json?
   
+  updatedAt      DateTime @updatedAt
+}
+
+// ----------------------------------------------------------------------
+// 3. 검색페이지 상품 진열 (Search Page Display Settings)
+// ----------------------------------------------------------------------
+model SearchPageDisplaySettings {
+  id             Int      @id @default(autoincrement())
+  
+  // 진열방법: "recent" (최근등록상품위로), or other sorts
+  sortBy         String   @default("recent")
+
+  // 검색조건 선택 (JSON)
+  // e.g. ["keyword", "category", "price", ...]
+  searchConditions Json
+
+  // 테마
+  pcTheme        String?
+  mobileTheme    String?
+
   updatedAt      DateTime @updatedAt
 }

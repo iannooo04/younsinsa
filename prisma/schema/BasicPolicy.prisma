@@ -57,6 +57,36 @@ model BasicPolicy {
 
   // 17. 구글 로그인 설정
   googleLoginSettings GoogleLoginSettings?
+
+  // 18. 상품 상세 노출항목 설정
+  productDetailExposureSettings ProductDetailExposureSettings?
+
+  // 19. 회원 가입 정책
+  memberJoinPolicy MemberJoinPolicy?
+
+  // 20. 회원 가입 항목 설정
+  memberJoinItemSettings MemberJoinItemSettings?
+
+  // 21. 회원 등급 설정
+  memberGradeSettings MemberGradeSettings?
+}
+
+// ... existing models ...
+
+// 20. 회원 가입 항목 설정 (Member Join Item Settings)
+model MemberJoinItemSettings {
+  id            Int         @id @default(autoincrement())
+  basicPolicyId Int         @unique
+  basicPolicy   BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  // 가입 항목 설정 (JSON)
+  // {
+  //   "memberType": { "personal": true, "business": false },
+  //   "items": { ... },
+  //   "customItems": [ ... ],
+  //   "captcha": { "use": false }
+  // }
+  schema        Json
 }
 
 // ... existing models ...
@@ -275,6 +305,20 @@ model ProductBasicSettings {
 
   // 옵션가 표시설정 (exposed, hidden)
   optionPriceExposure String @default("exposed")
+
+  // 하위브랜드 상품진열 설정 (sold, unsold)
+  subBrandProductDisplay String @default("unsold")
+
+  // 상위카테고리 자동등록 설정 (used, unused)
+  parentCategoryAutoRegister String @default("unused")
+
+  // 네비게이션 영역 설정 (used, unused)
+  navCategoryUsage String @default("used")
+  navBrandUsage    String @default("used")
+
+  // 상품수 노출여부 설정 (used, unused)
+  countCategoryUsage String @default("used")
+  countBrandUsage    String @default("used")
 }
 
 // 9. 상품 이미지 사이즈 설정 (Product Image Size Settings)
@@ -432,4 +476,99 @@ model GoogleLoginSettings {
 
   // Client Secret
   clientSecret    String      @default("")
+}
+
+// 18. 상품 상세 노출항목 설정 (Product Detail Exposure Settings)
+model ProductDetailExposureSettings {
+  id              Int         @id @default(autoincrement())
+
+  basicPolicyId   Int         @unique
+  basicPolicy     BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  isMobileSame    Boolean     @default(true) // 모바일 쇼핑몰 동일 적용
+  
+  // PC 노출항목 (JSON Array of string)
+  pcExposureItems Json
+  
+  // 모바일 노출항목 (JSON Array of string)
+  mobileExposureItems Json
+  
+  // 할인적용가 설정 (JSON) - { productDiscount: boolean, couponDiscount: boolean }
+  discountSettings Json
+  
+  // 노출항목 추가 설정 (JSON) - { optionStock: boolean, icon: boolean, representativeColor: boolean, discountRate: boolean }
+  additionalSettings Json
+  
+  // 취소선 추가 설정 (JSON) - { consumerPrice: boolean, salePrice: boolean }
+  strikeSettings Json
+
+  updatedAt       DateTime    @updatedAt
+}
+
+// 19. 회원 가입 정책 (Member Join Policy)
+model MemberJoinPolicy {
+  id            Int         @id @default(autoincrement())
+  basicPolicyId Int         @unique
+  basicPolicy   BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  // 가입승인 사용설정: none(승인절차없음), all(승인후가입), business(사업자만승인)
+  approvalMethod String @default("none")
+
+  // 가입연령제한 설정: none(제한안함), limit(제한)
+  ageLimitMethod String @default("none")
+  // '만 14세 이상입니다.' 동의 항목 사용
+  useAgeConsent  Boolean @default(false)
+  // 만 X세 미만인 경우
+  underageAge    Int     @default(14)
+  // 미만인 경우 처리: approval(운영자승인), ban(가입불가)
+  underageAction String  @default("approval")
+
+  // 본인인증 제외설정: use(사용함), exclude(제외함)
+  simpleLoginAuthMethod String @default("use")
+
+  // 재가입 기간제한: unused(사용안함), limit(기간제한)
+  rejoinLimitMethod String @default("unused")
+  rejoinLimitDays   Int    @default(0)
+
+  // 가입불가 회원아이디
+  fraudulentIds     String @db.Text @default("admin,administration,administrator,master,webmaster,manage,manager,godo,godomall")
+}
+
+// 21. 회원 등급 설정 (Member Grade Settings)
+model MemberGradeSettings {
+  id            Int         @id @default(autoincrement())
+  basicPolicyId Int         @unique
+  basicPolicy   BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  // 쇼핑몰페이지 노출이름
+  gradeDisplayName String @default("등급")
+
+  // 쿠폰 발급 시점 설정
+  // 회원등급 평가 완료 시 발급
+  couponEvalDone    Boolean @default(false)
+  // 등급 변경 시에만 발급 (evalDone이 true일 때 유효)
+  couponGradeChangeOnly Boolean @default(false)
+
+  // 회원등급을 직접 수정 시 발급
+  couponManualEdit  Boolean @default(false)
+
+  // 회원 엑셀 업로드로 회원등급 업데이트 시 발급
+  couponExcelUpdate Boolean @default(false)
+  // 등급 변경 시에만 발급 (excelUpdate가 true일 때 유효)
+  couponExcelChangeOnly Boolean @default(false)
+
+  // --- 평가 방법 설정 ---
+  evaluationMethod   String @default("auto") // auto, manual
+  downgradeUsage     String @default("use")  // use, unused
+  criteriaMethod     String @default("figures") // figures, score
+
+  // 실적 점수제 설정 (JSON)
+  // {
+  //   orderAmount: { used: true, unit: 10000, point: 100 },
+  //   mobileOrderAmount: { unit: 10000, point: 50 },
+  //   orderCount: { used: true, point: 10 },
+  //   reviewCount: { used: true, point: 5 },
+  //   loginCount: { used: true, point: 1 }
+  // }
+  scoreSettings      Json?
 }

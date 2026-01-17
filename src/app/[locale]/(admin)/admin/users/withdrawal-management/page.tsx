@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -13,16 +14,101 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Youtube,
   ChevronUp,
   Info,
   Calendar as CalendarIcon
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Link } from "@/i18n/routing";
+import { toast } from "sonner";
+import { 
+    getWithdrawnUsersAction, 
+    deleteWithdrawnUsersAction, 
+    GetWithdrawnUsersParams,
+    restoreWithdrawnUsersAction
+} from "@/actions/user-actions";
+import { format } from "date-fns";
 
 export default function WithdrawalMemberManagementPage() {
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  
+  const [searchParams, setSearchParams] = useState<GetWithdrawnUsersParams>({
+      page: 1,
+      limit: 10,
+      mallId: 'all',
+      keyword: '',
+      withdrawalType: 'all',
+      canRejoin: 'all',
+      startDate: format(new Date(new Date().setMonth(new Date().getMonth() - 1)), "yyyy-MM-dd"),
+      endDate: format(new Date(), "yyyy-MM-dd"),
+  });
+
+  useEffect(() => {
+      handleSearch();
+  }, []);
+
+  const handleSearch = async (page = 1) => {
+      setLoading(true);
+      const params = { ...searchParams, page };
+      const res = await getWithdrawnUsersAction(params);
+      if (res.success) {
+          setUsers(res.items || []);
+          setTotal(res.total || 0);
+          setSearchParams(curr => ({ ...curr, page }));
+          setSelectedIds([]);
+      } else {
+          toast.error(res.error || "검색에 실패했습니다.");
+      }
+      setLoading(false);
+  };
+
+  const handleDelete = async () => {
+      if (selectedIds.length === 0) {
+          toast.error("선택된 회원이 없습니다.");
+          return;
+      }
+      if (!confirm(`선택한 ${selectedIds.length}명의 회원 정보를 영구 삭제하시겠습니까?\n삭제된 정보는 복구할 수 없습니다.`)) return;
+
+      const res = await deleteWithdrawnUsersAction(selectedIds);
+      if (res.success) {
+          toast.success("삭제되었습니다.");
+          handleSearch(searchParams.page);
+      } else {
+           toast.error(res.error || "삭제에 실패했습니다.");
+      }
+  };
+
+  // Optional: Restore functionality (hidden in current UI requirement but good to have prepared or hidden)
+  const handleRestore = async () => {
+       if (selectedIds.length === 0) return;
+       if (!confirm("선택한 회원의 탈퇴 처리를 취소하고 복구하시겠습니까?")) return;
+       
+       const res = await restoreWithdrawnUsersAction(selectedIds);
+       if (res.success) {
+           toast.success("복구되었습니다.");
+           handleSearch(searchParams.page);
+       } else {
+           toast.error(res.error || "복구에 실패했습니다.");
+       }
+  };
+
+  const toggleSelectAll = (checked: boolean) => {
+      if (checked) setSelectedIds(users.map(u => u.id));
+      else setSelectedIds([]);
+  };
+
+  const toggleSelectOne = (id: string, checked: boolean) => {
+      if (checked) setSelectedIds(prev => [...prev, id]);
+      else setSelectedIds(prev => prev.filter(i => i !== id));
+  };
+
+  const handleParamChange = (field: keyof GetWithdrawnUsersParams, value: any) => {
+      setSearchParams(prev => ({ ...prev, [field]: value }));
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
        {/* Header */}
@@ -44,19 +130,23 @@ export default function WithdrawalMemberManagementPage() {
                     상점
                 </div>
                 <div className="flex-1 p-3">
-                    <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                    <RadioGroup 
+                        value={searchParams.mallId} 
+                        onValueChange={(v) => handleParamChange('mallId', v)}
+                        className="flex items-center gap-6"
+                    >
                          <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="all" id="store-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="store-all" className="text-gray-600 font-normal cursor-pointer text-xs">전체</Label>
                         </div>
                         <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="kr" id="store-kr" className="border-gray-300 text-gray-600" />
+                            <RadioGroupItem value="base" id="store-kr" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="store-kr" className="text-gray-600 font-normal cursor-pointer text-xs flex items-center gap-1">
                                 🇰🇷 기준몰
                             </Label>
                         </div>
                          <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="cn" id="store-cn" className="border-gray-300 text-gray-600" />
+                            <RadioGroupItem value="chinese" id="store-cn" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="store-cn" className="text-gray-600 font-normal cursor-pointer text-xs flex items-center gap-1">
                                 🇨🇳 중문몰
                             </Label>
@@ -71,7 +161,13 @@ export default function WithdrawalMemberManagementPage() {
                     아이디
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-1">
-                    <Input className="w-full h-7 text-xs border-gray-300" placeholder="검색어 전체를 정확히 입력하세요." />
+                    <Input 
+                        className="w-full h-7 text-xs border-gray-300" 
+                        placeholder="검색어 전체를 정확히 입력하세요." 
+                        value={searchParams.keyword}
+                        onChange={(e) => handleParamChange('keyword', e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch(1)}
+                    />
                 </div>
             </div>
 
@@ -83,13 +179,21 @@ export default function WithdrawalMemberManagementPage() {
                 <div className="flex-1 p-3">
                      <div className="flex items-center gap-2">
                          <div className="relative">
-                             <Input className="w-32 h-7 text-xs border-gray-300 pr-8" defaultValue="2026-01-04" />
-                             <CalendarIcon className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1.5" />
+                             <Input 
+                                className="w-32 h-7 text-xs border-gray-300 pr-8" 
+                                value={searchParams.startDate || ''}
+                                onChange={(e) => handleParamChange('startDate', e.target.value)}
+                                type="date"
+                             />
                          </div>
                          <span className="text-gray-400">~</span>
                          <div className="relative">
-                             <Input className="w-32 h-7 text-xs border-gray-300 pr-8" defaultValue="2026-01-10" />
-                             <CalendarIcon className="w-3.5 h-3.5 text-gray-400 absolute right-2 top-1.5" />
+                             <Input 
+                                className="w-32 h-7 text-xs border-gray-300 pr-8" 
+                                value={searchParams.endDate || ''}
+                                onChange={(e) => handleParamChange('endDate', e.target.value)}
+                                type="date"
+                             />
                          </div>
                      </div>
                 </div>
@@ -101,7 +205,11 @@ export default function WithdrawalMemberManagementPage() {
                     탈퇴유형
                 </div>
                 <div className="flex-1 p-3 border-r border-gray-200">
-                     <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                     <RadioGroup 
+                        value={searchParams.withdrawalType}
+                        onValueChange={(v) => handleParamChange('withdrawalType', v)}
+                        className="flex items-center gap-6"
+                    >
                          <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="all" id="type-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="type-all" className="text-gray-600 font-normal cursor-pointer text-xs">전체</Label>
@@ -120,7 +228,11 @@ export default function WithdrawalMemberManagementPage() {
                     재가입여부
                 </div>
                 <div className="flex-1 p-3">
-                     <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                     <RadioGroup 
+                        value={searchParams.canRejoin}
+                        onValueChange={(v) => handleParamChange('canRejoin', v)}
+                        className="flex items-center gap-6"
+                    >
                          <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="all" id="rejoin-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="rejoin-all" className="text-gray-600 font-normal cursor-pointer text-xs">전체</Label>
@@ -139,7 +251,7 @@ export default function WithdrawalMemberManagementPage() {
         </div>
         
          <div className="flex justify-center mt-6 mb-8">
-              <Button className="h-9 px-10 text-xs bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
+              <Button onClick={() => handleSearch(1)} className="h-9 px-10 text-xs bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
                 검색
             </Button>
          </div>
@@ -149,7 +261,7 @@ export default function WithdrawalMemberManagementPage() {
        <div className="mb-0">
            <div className="flex items-center justify-between mb-2">
                <div className="text-xs">
-                   검색 <span className="text-red-500 font-bold">0</span>명 / 전체 <span className="text-red-500 font-bold">0</span>명
+                   검색 <span className="text-red-500 font-bold">{total}</span>명 / 전체 <span className="text-red-500 font-bold">?</span>명
                </div>
                <div className="flex items-center gap-1">
                     <Select defaultValue="date_desc">
@@ -161,7 +273,13 @@ export default function WithdrawalMemberManagementPage() {
                             <SelectItem value="date_asc">탈퇴일 ↑</SelectItem>
                         </SelectContent>
                     </Select>
-                   <Select defaultValue="10">
+                   <Select 
+                        value={String(searchParams.limit)}
+                        onValueChange={(v) => {
+                             handleParamChange('limit', Number(v));
+                             handleSearch(1);
+                        }}
+                    >
                         <SelectTrigger className="w-24 h-7 text-xs border-gray-300 bg-white">
                             <SelectValue placeholder="10개 보기" />
                         </SelectTrigger>
@@ -178,7 +296,13 @@ export default function WithdrawalMemberManagementPage() {
                 <table className="w-full text-xs text-center border-collapse">
                      <thead>
                          <tr className="bg-[#B9B9B9] text-white h-9 border-b border-gray-300 font-normal">
-                             <th className="w-10 border-r border-gray-300"><Checkbox className="border-gray-50 opacity-50 bg-white" /></th>
+                             <th className="w-10 border-r border-gray-300">
+                                 <Checkbox 
+                                    className="border-gray-50 opacity-50 bg-white"
+                                    checked={users.length > 0 && selectedIds.length === users.length}
+                                    onCheckedChange={toggleSelectAll}
+                                 />
+                             </th>
                              <th className="w-12 border-r border-gray-300">번호</th>
                              <th className="w-32 border-r border-gray-300">상점 구분</th>
                              <th className="border-r border-gray-300">아이디</th>
@@ -191,16 +315,58 @@ export default function WithdrawalMemberManagementPage() {
                          </tr>
                      </thead>
                      <tbody>
-                         <tr className="h-14">
-                             <td colSpan={10} className="text-center text-gray-500">검색된 정보가 없습니다.</td>
-                         </tr>
+                         {users.length === 0 ? (
+                             <tr className="h-14">
+                                 <td colSpan={10} className="text-center text-gray-500">검색된 정보가 없습니다.</td>
+                             </tr>
+                         ) : (
+                             users.map((user, idx) => (
+                                 <tr key={user.id} className="h-10 border-b border-gray-200 hover:bg-gray-50">
+                                     <td className="border-r border-gray-200">
+                                         <Checkbox 
+                                            className="border-gray-300" 
+                                            checked={selectedIds.includes(user.id)}
+                                            onCheckedChange={(c) => toggleSelectOne(user.id, !!c)}
+                                         />
+                                     </td>
+                                     <td className="border-r border-gray-200">{total - ((searchParams.page || 1) - 1) * (searchParams.limit || 10) - idx}</td>
+                                     <td className="border-r border-gray-200">{user.mallId === 'KR' ? '한국' : '중국'}</td>
+                                     <td className="border-r border-gray-200 font-bold text-gray-800">{user.username}</td>
+                                     <td className="border-r border-gray-200">
+                                         {user.info?.withdrawalType === 'admin' ? '관리자삭제' : '본인탈퇴'}
+                                     </td>
+                                     <td className="border-r border-gray-200">
+                                         {user.info?.withdrawalDate ? format(new Date(user.info.withdrawalDate), "yyyy-MM-dd HH:mm") : '-'}
+                                     </td>
+                                     <td className="border-r border-gray-200">
+                                         {user.info?.canRejoin ? '가능' : '불가능'}
+                                     </td>
+                                     <td className="border-r border-gray-200">
+                                         {user.info?.withdrawalIp || '-'}
+                                     </td>
+                                     <td className="border-r border-gray-200">
+                                         {user.info?.processor || '-'}
+                                     </td>
+                                     <td>
+                                         <Button variant="outline" className="h-6 px-2 text-[11px] border-gray-300">보기</Button>
+                                     </td>
+                                 </tr>
+                             ))
+                         )}
                      </tbody>
                 </table>
            </div>
 
            {/* Footer Action */}
            <div className="bg-[#FBFBFB] p-3 flex justify-start gap-1 border border-gray-200 mb-12">
-                  <Button variant="secondary" className="h-7 px-3 text-[11px] bg-white border border-gray-300 text-gray-600 rounded-[2px] hover:bg-gray-50">선택 삭제</Button>
+                  <Button onClick={handleDelete} variant="secondary" className="h-7 px-3 text-[11px] bg-white border border-gray-300 text-gray-600 rounded-[2px] hover:bg-gray-50">
+                      선택 삭제
+                  </Button>
+                  {selectedIds.length > 0 && (
+                      <Button onClick={handleRestore} variant="secondary" className="h-7 px-3 text-[11px] bg-blue-50 border border-blue-300 text-blue-600 rounded-[2px] hover:bg-blue-100">
+                          선택 복구
+                      </Button>
+                  )}
            </div>
        </div>
        
@@ -229,11 +395,7 @@ export default function WithdrawalMemberManagementPage() {
         {/* Floating Actions */}
         <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
             <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
+                <span className="text-[10px] font-bold">삭제</span>
             </Button>
             <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
                 <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">

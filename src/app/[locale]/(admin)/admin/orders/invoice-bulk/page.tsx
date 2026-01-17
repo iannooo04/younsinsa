@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -20,11 +19,92 @@ import {
   ChevronUp,
   FileSpreadsheet,
   BookOpen,
-  Check,
   AlertCircle
 } from "lucide-react";
+import * as XLSX from "xlsx";
+import { uploadInvoiceExcelAction, getInvoiceUploadHistoryAction } from "@/actions/order-actions";
+import { format } from "date-fns";
 
 export default function InvoiceBulkPage() {
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, startTransition] = useTransition();
+  const [uploadResult, setUploadResult] = useState<any>(null);
+  
+  // History State
+  const [historyItems, setHistoryItems] = useState<any[]>([]);
+  const [historyTotal, setHistoryTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [limit] = useState(20);
+
+  useEffect(() => {
+      fetchHistory();
+  }, [page]);
+
+  const fetchHistory = async () => {
+      try {
+          const res = await getInvoiceUploadHistoryAction({ page, limit });
+          if (res.success) {
+              setHistoryItems(res.items || []);
+              setHistoryTotal(res.total || 0);
+          }
+      } catch (e) {
+          console.error(e);
+      }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+          setFile(e.target.files[0]);
+          setUploadResult(null);
+      }
+  };
+
+  const handleUpload = async () => {
+      if (!file) {
+          alert("파일을 선택해주세요.");
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const data = e.target?.result;
+          const workbook = XLSX.read(data, { type: 'binary' });
+          const sheetName = workbook.SheetNames[0];
+          const workSheet = workbook.Sheets[sheetName];
+          const jsonData = XLSX.utils.sheet_to_json(workSheet, { header: 1 });
+          
+          // Assuming header is row 0: [OrderNo, ProductOrderNo, DeliveryCompany, TrackingNumber, ShippedDate, DeliveryCompleteDate]
+          // Map to objects (Skipping header)
+          const rows = jsonData.slice(1).map((row: any) => ({
+              orderNo: row[0],
+              productOrderNo: row[1], // Optional
+              deliveryCompany: row[2],
+              trackingNumber: row[3],
+              shippedDate: row[4],
+              deliveryCompleteDate: row[5]
+          })).filter((r:any) => r.orderNo && r.trackingNumber); // Filter empty rows
+
+          if (rows.length === 0) {
+              alert("유효한 데이터가 없습니다. 엑셀 양식을 확인해주세요.");
+              return;
+          }
+
+          startTransition(async () => {
+              const res = await uploadInvoiceExcelAction(rows);
+              if (res.success) {
+                  alert(`업로드 완료!\n성공: ${res.successCount}건, 실패: ${res.failCount}건`);
+                  setUploadResult(res);
+                  setFile(null);
+                  fetchHistory(); // Refresh history
+                  // Optional: Reset file input
+              } else {
+                  alert(res.error || "업로드 실패");
+              }
+          });
+      };
+      reader.readAsBinaryString(file);
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
       <div className="flex items-end gap-2 pb-4 border-b border-gray-400 mb-6">
@@ -49,12 +129,27 @@ export default function InvoiceBulkPage() {
                  </div>
                  
                  <div className="flex items-center gap-1">
-                     <Button variant="secondary" size="sm" className="h-7 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2">
-                        찾아보기
-                    </Button>
-                    <Input className="w-64 h-7 bg-[#F5F5F5] border-gray-300" disabled />
-                    <Button variant="outline" size="sm" className="h-7 text-[11px] bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm px-3">
-                        등록하기
+                     <label htmlFor="file-upload" className="cursor-pointer">
+                        <div className="h-7 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-3 flex items-center justify-center whitespace-nowrap min-w-[60px]">
+                            찾아보기
+                        </div>
+                     </label>
+                    <Input 
+                        id="file-upload" 
+                        type="file" 
+                        accept=".xlsx, .xls" 
+                        className="hidden" 
+                        onChange={handleFileChange}
+                    />
+                    <Input className="w-64 h-7 bg-[#F5F5F5] border-gray-300" disabled value={file ? file.name : ""} />
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 text-[11px] bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm px-3"
+                        onClick={handleUpload}
+                        disabled={isUploading}
+                    >
+                        {isUploading ? "등록중..." : "등록하기"}
                     </Button>
                     <span className="text-gray-500 flex items-center gap-1 ml-1">
                          <AlertCircle className="w-3 h-3 text-gray-500 fill-current" />
@@ -78,7 +173,7 @@ export default function InvoiceBulkPage() {
                 </div>
                 <div className="text-gray-600 space-y-1 pl-1">
                      <p>샘플파일을 다운로드 받아 입력양식을 확인합니다.</p>
-                     <p>주문번호, 상품주문번호, 배송업체번호, 송장번호, 배송일, 배송완료일을 입력하고 엑셀 파일로 저장 후 등록합니다.</p>
+                     <p>주문번호(1열/A), 상품주문번호(2열/B), 배송업체명(3열/C), 송장번호(4열/D), 배송일(5열/E), 배송완료일(6열/F) 순서로 입력해주세요.</p>
                      <p>송장번호와 함께 배송일을 입력하면 배송중으로, 배송완료일을 입력하면 배송완료로 주문상태가 자동 변경됩니다.</p>
                      <p className="text-red-500">상품주문번호 상태가 기본설정{'>'}주문정책{'>'}주문상태설정 메뉴의 "입금 상태 설정/상품 상태 설정/배송 상태 설정" 그룹에 포함된 경우에만 송장번호가 일괄등록됩니다.</p>
                 </div>
@@ -96,112 +191,16 @@ export default function InvoiceBulkPage() {
         </div>
 
         <div className="p-0">
-            {/* Supplier Type */}
-            <div className="flex items-center text-xs border-b border-gray-200">
-                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    공급사 구분
-                </div>
-                <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup defaultValue="all" className="flex gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="all" id="supplier-all" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="supplier-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="head" id="supplier-head" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="provider" id="supplier-provider" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                            </div>
-                        </RadioGroup>
-                        <Button variant="secondary" className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2">
-                            공급사 선택
-                        </Button>
-                </div>
-            </div>
-
-             {/* Search Query */}
-             <div className="flex items-center text-xs border-b border-gray-200">
-                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-14">
-                    검색어
-                </div>
-                <div className="flex-1 p-3 flex items-center border-r border-gray-200 gap-2 h-14">
-                    <Select defaultValue="total_search">
-                        <SelectTrigger className="w-28 h-7 text-[11px] border-gray-300">
-                            <SelectValue placeholder="=통합검색=" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="total_search">=통합검색=</SelectItem>
-                        </SelectContent>
-                    </Select>
-                     <Select defaultValue="all_match">
-                        <SelectTrigger className="w-28 h-7 text-[11px] border-gray-300">
-                            <SelectValue placeholder="검색어 전체일치" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all_match">검색어 전체일치</SelectItem>
-                        </SelectContent>
-                    </Select>
-                     <Input className="w-[200px] h-7 border-gray-300" placeholder="검색어 전체를 정확히 입력하세요." />
-                </div>
-                
-                 <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-14">
-                    등록상태
-                </div>
-                <div className="flex-1 p-3 flex items-center gap-4 h-14">
-                     <RadioGroup defaultValue="all" className="flex gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="all" id="status-all" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="status-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="success" id="status-success" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="status-success" className="text-gray-700 font-normal cursor-pointer">성공</Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="fail" id="status-fail" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="status-fail" className="text-gray-700 font-normal cursor-pointer">실패</Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="change-fail" id="status-change-fail" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="status-change-fail" className="text-gray-700 font-normal cursor-pointer">주문상태변경실패</Label>
-                            </div>
-                        </RadioGroup>
-                </div>
-            </div>
-
              {/* Registration Date Search */}
              <div className="flex items-center text-xs">
                 <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    등록일 검색
+                    최근 등록 내역
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-2">
-                     <div className="flex items-center gap-1">
-                        <Input className="w-32 h-7 text-center border-gray-300" defaultValue="2026-01-04 00:00:00" />
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                    </div>
-                    <span>~</span>
-                    <div className="flex items-center gap-1">
-                        <Input className="w-32 h-7 text-center border-gray-300" defaultValue="2026-01-10 20:26:18" />
-                        <Calendar className="w-4 h-4 text-gray-500" />
-                    </div>
-                    <div className="flex items-center gap-0.5 ml-1">
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">오늘</Button>
-                        <Button variant="default" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">7일</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">15일</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1개월</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">3개월</Button>
-                        <Button variant="outline" size="sm" className="h-7 px-2 text-[11px] bg-white text-gray-600 rounded-sm border-gray-300 hover:bg-gray-50">1년</Button>
-                    </div>
+                    <span className="text-gray-500">최근에 등록한 송장 등록 내역입니다.</span>
                 </div>
             </div>
         </div>
-         
-         <div className="bg-white p-4 flex justify-center border-t border-gray-200">
-             <Button className="bg-[#555555] hover:bg-[#444444] text-white font-bold h-10 w-32 rounded-sm text-sm">검색</Button>
-         </div>
       </div>
 
        {/* List Header */}
@@ -213,7 +212,7 @@ export default function InvoiceBulkPage() {
       </div>
       <div className="flex justify-between items-center mb-2">
             <div className="text-xs text-gray-700 font-bold">
-              검색결과 <span className="text-red-500">0</span>개 / 전체 <span className="text-red-500">0</span>개
+              검색결과 <span className="text-red-500">{historyTotal}</span>개 / 전체 <span className="text-red-500">{historyTotal}</span>개
           </div>
           <div className="flex gap-1 items-center">
                  <Select defaultValue="20">
@@ -256,11 +255,29 @@ export default function InvoiceBulkPage() {
                   </tr>
               </thead>
               <tbody className="text-gray-600 bg-white">
-                  <tr>
-                      <td colSpan={9} className="py-20 border-b border-gray-200 text-center text-sm">
-                          조회 내역이 없습니다.
-                      </td>
-                  </tr>
+                  {historyItems.length === 0 ? (
+                      <tr>
+                          <td colSpan={9} className="py-20 border-b border-gray-200 text-center text-sm">
+                              조회 내역이 없습니다.
+                          </td>
+                      </tr>
+                  ) : (
+                      historyItems.map((item, idx) => (
+                           <tr key={item.id} className="border-b border-gray-200 h-8">
+                               <td className="border-r border-[#CDCDCD]">{historyTotal - idx}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(new Date(item.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD]">{item.registrant || 'Admin'}</td>
+                               <td className="border-r border-[#CDCDCD]">{item.supplierId || '-'}</td>
+                               <td className="border-r border-[#CDCDCD]">{item.totalCount}</td>
+                               <td className="border-r border-[#CDCDCD]">{item.successCount}</td>
+                               <td className="border-r border-[#CDCDCD] text-red-500">{item.failCount}</td>
+                               <td className="border-r border-[#CDCDCD]">-</td>
+                               <td>
+                                   <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 py-0">보기</Button>
+                               </td>
+                           </tr>
+                      ))
+                  )}
               </tbody>
           </table>
       </div>

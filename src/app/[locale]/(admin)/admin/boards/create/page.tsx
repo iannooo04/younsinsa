@@ -20,8 +20,116 @@ import {
   Info,
 } from "lucide-react";
 import { Link } from "@/i18n/routing";
+import { createBoardAction, checkBoardIdAction } from "@/actions/board-create-action";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function BoardCreatePage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+      usePcMall: "use",
+      useMobileMall: "use",
+      type: "normal",
+      boardId: "",
+      name: "",
+      listAccess: "all",
+      readAccess: "all",
+      writeAccess: "all",
+      commentAccess: "member",
+      useReply: "use",
+      useComment: "use",
+      authorDisplay: "nickname",
+      useProductLink: "no",
+      productLinkType: "prod",
+      maxFileSize: "10",
+      itemsPerPage: "15",
+      subjectLimit: "30",
+      showNotice: true,
+      useEditor: "use",
+      headerHtml: "",
+      footerHtml: "",
+      seoUse: "no", // "no" by default
+      seoTitle: "",
+      seoAuthor: "",
+      seoDescription: "",
+      seoKeywords: ""
+  });
+
+  const handleChange = (key: string, value: string | boolean) => {
+      setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const checkId = async () => {
+      if (!formData.boardId) {
+          toast.error("아이디를 입력해주세요.");
+          return;
+      }
+      const res = await checkBoardIdAction(formData.boardId);
+      if (res.success && res.available) {
+          toast.success("사용 가능한 아이디입니다.");
+      } else {
+          toast.error("이미 사용 중인 아이디입니다.");
+      }
+  };
+
+  const handleSave = async () => {
+    if (!formData.boardId) return toast.error("게시판 아이디를 입력해주세요.");
+    if (!formData.name) return toast.error("게시판명을 입력해주세요.");
+
+    setLoading(true);
+    
+    // Map data
+    const mapType = (t: string) => {
+        if (t === 'gallery') return 'GALLERY';
+        if (t === 'event') return 'EVENT';
+        if (t === 'one') return 'INQUIRY';
+        return 'BASIC';
+    };
+
+    const mapAuthor = (t: string) => {
+        if (t === 'name') return 'NAME';
+        if (t === 'id') return 'ID';
+        return 'NICKNAME';
+    };
+
+    const result = await createBoardAction({
+        usePcMall: formData.usePcMall === 'use',
+        useMobileMall: formData.useMobileMall === 'use',
+        type: mapType(formData.type),
+        boardId: formData.boardId,
+        name: formData.name,
+        listAccess: formData.listAccess,
+        readAccess: formData.readAccess,
+        writeAccess: formData.writeAccess,
+        commentAccess: formData.commentAccess,
+        useReply: formData.useReply === 'use',
+        useComment: formData.useComment === 'use',
+        useProductLink: formData.useProductLink === 'use',
+        authorDisplay: mapAuthor(formData.authorDisplay),
+        maxFileSize: Number(formData.maxFileSize) || 10,
+        itemsPerPage: Number(formData.itemsPerPage) || 15,
+        subjectLimit: Number(formData.subjectLimit) || 30,
+        showNotice: formData.showNotice,
+        useEditor: formData.useEditor === 'use',
+        headerHtml: formData.headerHtml,
+        footerHtml: formData.footerHtml,
+        seoTitle: formData.seoTitle,
+        seoAuthor: formData.seoAuthor,
+        seoDescription: formData.seoDescription,
+        seoKeywords: formData.seoKeywords
+    });
+
+    if (result.success) {
+        toast.success("게시판이 생성되었습니다.");
+        router.push('/admin/boards');
+    } else {
+        toast.error(result.error || "생성 실패");
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
       {/* Header */}
@@ -30,7 +138,7 @@ export default function BoardCreatePage() {
           <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">게시판 등록</h1>
           <span className="text-gray-500 text-sm">커뮤니티 메뉴에서 서비스하는 게시판을 등록합니다.</span>
         </div>
-        <Button className="h-10 px-10 text-base bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
+        <Button onClick={handleSave} disabled={loading} className="h-10 px-10 text-base bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
           저장
         </Button>
       </div>
@@ -46,7 +154,7 @@ export default function BoardCreatePage() {
           {/* PC Mall Use */}
           <FormRow label="PC쇼핑몰 사용여부" required>
             <div className="flex flex-col gap-2">
-              <RadioGroup defaultValue="use" className="flex items-center gap-6">
+              <RadioGroup value={formData.usePcMall} onValueChange={(v) => handleChange('usePcMall', v)} className="flex items-center gap-6">
                 <OptionItem value="use" label="사용" />
                 <OptionItem value="no" label="사용안함" />
               </RadioGroup>
@@ -60,7 +168,7 @@ export default function BoardCreatePage() {
           {/* Mobile Mall Use */}
           <FormRow label="모바일쇼핑몰 사용여부" required>
              <div className="flex flex-col gap-2">
-              <RadioGroup defaultValue="use" className="flex items-center gap-6">
+              <RadioGroup value={formData.useMobileMall} onValueChange={(v) => handleChange('useMobileMall', v)} className="flex items-center gap-6">
                 <OptionItem value="use" label="사용" />
                 <OptionItem value="no" label="사용안함" />
               </RadioGroup>
@@ -74,7 +182,7 @@ export default function BoardCreatePage() {
           {/* Type */}
           <FormRow label="유형" required help>
             <div className="flex flex-col gap-3">
-               <RadioGroup defaultValue="normal" className="flex items-center gap-10">
+               <RadioGroup value={formData.type} onValueChange={(v) => handleChange('type', v)} className="flex items-center gap-10">
                   <div className="flex flex-col gap-2 items-start">
                      <OptionItem value="normal" label="일반형" />
                      <div className="w-36 h-20 border border-gray-200 bg-[#FBFBFB] flex flex-col p-2 gap-1">
@@ -117,14 +225,22 @@ export default function BoardCreatePage() {
           {/* ID */}
           <FormRow label="아이디" required help>
             <div className="flex items-center gap-1">
-               <Input className="w-48 h-7 text-xs border-gray-300 rounded-[2px]" />
-               <Button variant="outline" className="h-7 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white text-gray-700 font-normal">중복확인</Button>
+               <Input 
+                   value={formData.boardId}
+                   onChange={(e) => handleChange('boardId', e.target.value)}
+                   className="w-48 h-7 text-xs border-gray-300 rounded-[2px]" 
+               />
+               <Button onClick={checkId} variant="outline" className="h-7 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white text-gray-700 font-normal">중복확인</Button>
             </div>
           </FormRow>
 
           {/* Board Name */}
           <FormRow label="게시판명" required>
-             <Input className="w-[450px] h-7 text-xs border-gray-300 rounded-[2px]" />
+             <Input 
+                value={formData.name}
+                onChange={(e) => handleChange('name', e.target.value)}
+                className="w-[450px] h-7 text-xs border-gray-300 rounded-[2px]" 
+             />
           </FormRow>
 
           {/* Board Skin */}
@@ -209,7 +325,7 @@ export default function BoardCreatePage() {
 
           {/* List Permission */}
           <FormRow label="리스트권한 설정">
-             <RadioGroup defaultValue="all" className="flex items-center gap-4 flex-wrap">
+             <RadioGroup value={formData.listAccess} onValueChange={(v) => handleChange('listAccess', v)} className="flex items-center gap-4 flex-wrap">
                 <OptionItem value="all" label="전체(회원+비회원)" />
                 <OptionItem value="admin" label="관리자 전용" />
                 <OptionItem value="member" label="회원전용(비회원제외)" />
@@ -222,7 +338,7 @@ export default function BoardCreatePage() {
 
            {/* Read Permission */}
            <FormRow label="읽기권한 설정">
-             <RadioGroup defaultValue="all" className="flex items-center gap-4 flex-wrap">
+             <RadioGroup value={formData.readAccess} onValueChange={(v) => handleChange('readAccess', v)} className="flex items-center gap-4 flex-wrap">
                 <OptionItem value="all" label="전체(회원+비회원)" />
                 <OptionItem value="admin" label="관리자 전용" />
                 <OptionItem value="member" label="회원전용(비회원제외)" />
@@ -235,7 +351,7 @@ export default function BoardCreatePage() {
 
            {/* Write Permission */}
            <FormRow label="쓰기권한 설정">
-             <RadioGroup defaultValue="all" className="flex items-center gap-4 flex-wrap">
+             <RadioGroup value={formData.writeAccess} onValueChange={(v) => handleChange('writeAccess', v)} className="flex items-center gap-4 flex-wrap">
                 <OptionItem value="all" label="전체(회원+비회원)" />
                 <OptionItem value="admin" label="관리자 전용" />
                 <OptionItem value="member" label="회원전용(비회원제외)" />
@@ -249,7 +365,7 @@ export default function BoardCreatePage() {
           {/* Answer Type */}
           <FormRow label="답변 기능">
              <div className="flex flex-col gap-2">
-                <RadioGroup defaultValue="use" className="flex items-center gap-6">
+                <RadioGroup value={formData.useReply} onValueChange={(v) => handleChange('useReply', v)} className="flex items-center gap-6">
                     <div className="flex items-center gap-2">
                        <RadioGroupItem value="use" id="ans-use" className="border-red-500 text-red-500 w-4 h-4" />
                        <div className="flex items-center gap-1">
@@ -285,7 +401,7 @@ export default function BoardCreatePage() {
 
           {/* Comment Function */}
           <FormRow label="댓글 기능">
-              <RadioGroup defaultValue="use" className="flex items-center gap-6">
+              <RadioGroup value={formData.useComment} onValueChange={(v) => handleChange('useComment', v)} className="flex items-center gap-6">
                  <OptionItem value="use" label="사용" />
                  <OptionItem value="no" label="사용안함" />
               </RadioGroup>
@@ -293,7 +409,7 @@ export default function BoardCreatePage() {
 
           {/* Comment Permission */}
           <FormRow label="댓글권한 설정">
-              <RadioGroup defaultValue="member" className="flex items-center gap-4 flex-wrap">
+              <RadioGroup value={formData.commentAccess} onValueChange={(v) => handleChange('commentAccess', v)} className="flex items-center gap-4 flex-wrap">
                 <OptionItem value="all" label="전체(회원+비회원)" />
                 <OptionItem value="admin" label="관리자 전용" />
                 <OptionItem value="member" label="회원전용(비회원제외)" />
@@ -306,7 +422,7 @@ export default function BoardCreatePage() {
 
           {/* Author Display Method */}
           <FormRow label="작성자 표시방법">
-              <RadioGroup defaultValue="nickname" className="flex items-center gap-6">
+              <RadioGroup value={formData.authorDisplay} onValueChange={(v) => handleChange('authorDisplay', v)} className="flex items-center gap-6">
                  <OptionItem value="name" label="이름표시" />
                  <OptionItem value="nickname" label="닉네임표시" />
                  <OptionItem value="id" label="아이디표시" />
@@ -394,7 +510,7 @@ export default function BoardCreatePage() {
             {/* Product Link */}
             <FormRow label="상품 연동">
                 <div className="flex flex-col gap-4">
-                   <RadioGroup defaultValue="no" className="flex items-center gap-6">
+                   <RadioGroup value={formData.useProductLink} onValueChange={(v) => handleChange('useProductLink', v)} className="flex items-center gap-6">
                       <OptionItem value="use" label="사용" />
                       <OptionItem value="no" label="사용안함" />
                    </RadioGroup>
@@ -402,7 +518,7 @@ export default function BoardCreatePage() {
                    <div className="bg-[#FBFBFB] border border-gray-200 p-4 flex flex-col gap-4">
                       <div className="flex items-center gap-6">
                          <span className="font-bold text-gray-700 w-24">상품/주문연동</span>
-                         <RadioGroup defaultValue="prod" className="flex items-center gap-6">
+                         <RadioGroup value={formData.productLinkType} onValueChange={(v) => handleChange('productLinkType', v)} className="flex items-center gap-6">
                             <OptionItem value="prod" label="상품" />
                             <OptionItem value="order" label="주문상품" />
                          </RadioGroup>
@@ -665,7 +781,12 @@ export default function BoardCreatePage() {
                           <span>개</span>
                        </div>
                        <div className="flex items-center gap-1.5">
-                          <Checkbox id="list-notice" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" checked />
+                          <Checkbox 
+                            id="list-notice" 
+                            className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                            checked={formData.showNotice}
+                            onCheckedChange={(c) => handleChange('showNotice', c === true)}
+                          />
                           <Label htmlFor="list-notice" className="text-gray-700 cursor-pointer">리스트 내 노출</Label>
                        </div>
                        <div className="flex items-center gap-1.5">
@@ -689,7 +810,11 @@ export default function BoardCreatePage() {
              {/* Subject Limit */}
              <FormRow label="제목글 제한" required>
                  <div className="flex items-center gap-1.5 text-gray-700">
-                    <Input className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" defaultValue="30" />
+                    <Input 
+                       value={formData.subjectLimit}
+                       onChange={(e) => handleChange('subjectLimit', e.target.value)}
+                       className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" 
+                    />
                     <span>자</span>
                  </div>
              </FormRow>
@@ -697,7 +822,11 @@ export default function BoardCreatePage() {
              {/* Items Per Page */}
              <FormRow label="페이지당 게시물수" required>
                  <div className="flex flex-col gap-2 text-gray-700">
-                    <Input className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" defaultValue="15" />
+                    <Input 
+                       value={formData.itemsPerPage}
+                       onChange={(e) => handleChange('itemsPerPage', e.target.value)}
+                       className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" 
+                    />
                     <div className="flex items-center gap-1 text-[11px] text-gray-400">
                         <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px]">!</span>
                         <span>게시판 전체보기의 페이지별 게시물 노출 개수를 설정합니다.</span>
@@ -754,7 +883,7 @@ export default function BoardCreatePage() {
         <div className="border-t border-gray-400 border-b border-gray-200">
              {/* Editor Use */}
              <FormRow label="에디터 사용">
-                <RadioGroup defaultValue="use" className="flex items-center gap-6">
+                <RadioGroup value={formData.useEditor} onValueChange={(v) => handleChange('useEditor', v)} className="flex items-center gap-6">
                    <OptionItem value="use" label="사용함" />
                    <OptionItem value="no" label="사용안함" />
                 </RadioGroup>
@@ -787,7 +916,11 @@ export default function BoardCreatePage() {
              {/* Max File Size */}
              <FormRow label="업로드파일 최대크기" required>
                 <div className="flex items-center gap-1.5 text-gray-700">
-                   <Input className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" defaultValue="10" />
+                   <Input 
+                        value={formData.maxFileSize}
+                        onChange={(e) => handleChange('maxFileSize', e.target.value)}
+                        className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" 
+                    />
                    <span>MByte(s)</span>
                 </div>
              </FormRow>
@@ -887,14 +1020,24 @@ export default function BoardCreatePage() {
              {/* Header Design */}
              <FormRow label={"상단디자인\n(Header)"}>
                 <div className="w-full flex flex-col py-2">
-                    <EditorMock />
+                    <textarea 
+                        className="w-full h-32 border border-gray-300 p-2 text-xs font-mono"
+                        value={formData.headerHtml}
+                        onChange={(e) => handleChange('headerHtml', e.target.value)}
+                        placeholder="HTML을 입력하세요."
+                    />
                 </div>
              </FormRow>
 
              {/* Footer Design */}
              <FormRow label={"하단디자인\n(Footer)"}>
                 <div className="w-full flex flex-col py-2">
-                    <EditorMock />
+                    <textarea 
+                        className="w-full h-32 border border-gray-300 p-2 text-xs font-mono"
+                        value={formData.footerHtml}
+                        onChange={(e) => handleChange('footerHtml', e.target.value)}
+                        placeholder="HTML을 입력하세요."
+                    />
                 </div>
              </FormRow>
         </div>
@@ -914,7 +1057,7 @@ export default function BoardCreatePage() {
              {/* Use Status */}
              <FormRow label="개별 설정 사용여부">
                 <div className="flex flex-col gap-2">
-                   <RadioGroup defaultValue="no" className="flex items-center gap-6">
+                   <RadioGroup value={formData.seoUse} onValueChange={(v) => handleChange('seoUse', v)} className="flex items-center gap-6">
                       <OptionItem value="use" label="사용함" />
                       <OptionItem value="no" label="사용안함" />
                    </RadioGroup>
@@ -927,22 +1070,38 @@ export default function BoardCreatePage() {
 
              {/* Title */}
              <FormRow label="타이틀 (Title)">
-                <Input className="w-full h-7 text-xs border-gray-300 rounded-[2px]" />
+                <Input 
+                    value={formData.seoTitle}
+                    onChange={(e) => handleChange('seoTitle', e.target.value)}
+                    className="w-full h-7 text-xs border-gray-300 rounded-[2px]" 
+                />
              </FormRow>
 
              {/* Author */}
              <FormRow label="메타태그 작성자 (Author)">
-                <Input className="w-full h-7 text-xs border-gray-300 rounded-[2px]" />
+                <Input 
+                    value={formData.seoAuthor}
+                    onChange={(e) => handleChange('seoAuthor', e.target.value)}
+                    className="w-full h-7 text-xs border-gray-300 rounded-[2px]" 
+                />
              </FormRow>
 
              {/* Description */}
              <FormRow label="메타태그 설명 (Description)">
-                <Input className="w-full h-7 text-xs border-gray-300 rounded-[2px]" />
+                <Input 
+                    value={formData.seoDescription}
+                    onChange={(e) => handleChange('seoDescription', e.target.value)}
+                    className="w-full h-7 text-xs border-gray-300 rounded-[2px]" 
+                />
              </FormRow>
 
              {/* Keywords */}
              <FormRow label="메타태그 키워드 (Keywords)">
-                <Input className="w-full h-7 text-xs border-gray-300 rounded-[2px]" />
+                <Input 
+                    value={formData.seoKeywords}
+                    onChange={(e) => handleChange('seoKeywords', e.target.value)}
+                    className="w-full h-7 text-xs border-gray-300 rounded-[2px]" 
+                />
              </FormRow>
         </div>
       </div>

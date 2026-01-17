@@ -19,8 +19,97 @@ import {
   Calendar,
   FileSpreadsheet
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getPostsAction, deletePostsAction, getSimpleBoardListAction } from "@/actions/board-post-actions";
+import { toast } from "sonner";
+import { format } from "date-fns";
+import { Link } from "@/i18n/routing";
 
 export default function PostManagementPage() {
+  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [boards, setBoards] = useState<any[]>([]);
+  const [total, setTotal] = useState(0);
+  
+  // Filters
+  const [boardId, setBoardId] = useState("all");
+  const [startDate, setStartDate] = useState(format(new Date(new Date().setMonth(new Date().getMonth() - 1)), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [answerStatus, setAnswerStatus] = useState("all");
+  const [searchType, setSearchType] = useState("subject");
+  const [keyword, setKeyword] = useState("");
+  const [pageSize, setPageSize] = useState("10");
+  const [page, setPage] = useState(1);
+
+  // Selection
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    fetchBoards();
+    fetchPosts();
+  }, []);
+
+  useEffect(() => {
+    fetchPosts();
+  }, [page, pageSize]); // Refetch on page/size change
+
+  const fetchBoards = async () => {
+      const res = await getSimpleBoardListAction();
+      if (res.success) setBoards(res.list || []);
+  };
+
+  const fetchPosts = async () => {
+    setLoading(true);
+    const res = await getPostsAction({
+        page,
+        pageSize: Number(pageSize),
+        boardId: boardId === 'all' ? undefined : boardId,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        answerStatus: answerStatus === 'all' ? undefined : answerStatus,
+        searchType: searchType as any,
+        keyword
+    });
+
+    if (res.success) {
+        setPosts(res.items || []);
+        setTotal(res.total || 0);
+    } else {
+        toast.error(res.error || "목록을 불러오는데 실패했습니다.");
+    }
+    setLoading(false);
+  };
+
+  const handleDelete = async () => {
+      if (selectedIds.length === 0) return toast.error("선택된 게시글이 없습니다.");
+      if (!confirm("선택한 게시글을 삭제하시겠습니까?")) return;
+
+      const res = await deletePostsAction(selectedIds);
+      if (res.success) {
+          toast.success("삭제되었습니다.");
+          setSelectedIds([]);
+          fetchPosts(); // Refresh
+      } else {
+          toast.error(res.error || "삭제 실패");
+      }
+  };
+
+  const toggleSelect = (id: string) => {
+      if (selectedIds.includes(id)) {
+          setSelectedIds(selectedIds.filter(i => i !== id));
+      } else {
+          setSelectedIds([...selectedIds, id]);
+      }
+  };
+
+  const toggleAll = () => {
+      if (selectedIds.length === posts.length) {
+          setSelectedIds([]);
+      } else {
+          setSelectedIds(posts.map(p => p.id));
+      }
+  };
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
       {/* Header */}
@@ -29,9 +118,11 @@ export default function PostManagementPage() {
           <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">게시글 관리</h1>
           <span className="text-gray-500 text-sm">게시물을 수정하고 관리합니다.</span>
         </div>
-        <Button className="h-10 px-8 text-base bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
-          등록
-        </Button>
+        <Link href="/admin/boards/posts/create">
+            <Button className="h-10 px-8 text-base bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
+            등록
+            </Button>
+        </Link>
       </div>
 
       {/* Search Section */}
@@ -48,12 +139,15 @@ export default function PostManagementPage() {
               게시판
             </div>
             <div className="flex-1 p-2 flex items-center gap-1 border-r border-gray-200">
-              <Select defaultValue="cooperation">
+              <Select value={boardId} onValueChange={setBoardId}>
                 <SelectTrigger className="w-64 h-8 text-xs border-gray-300 bg-white rounded-[2px]">
                   <SelectValue placeholder="게시판 선택" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="cooperation">광고 · 제휴게시판 (cooperation)</SelectItem>
+                  <SelectItem value="all">=전체 게시판=</SelectItem>
+                  {boards.map(b => (
+                      <SelectItem key={b.id} value={b.id}>{b.name} ({b.boardId})</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -81,22 +175,22 @@ export default function PostManagementPage() {
               </Select>
               <div className="flex items-center gap-1 ml-1">
                 <div className="relative">
-                  <Input className="w-32 h-8 text-xs border-gray-300 rounded-[2px] pr-8" defaultValue="2026-01-05" />
-                  <Calendar className="w-4 h-4 text-gray-400 absolute right-2 top-2" />
+                  <Input 
+                    type="date"
+                    className="w-32 h-8 text-xs border-gray-300 rounded-[2px] pr-2" 
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                  />
                 </div>
                 <span className="text-gray-400">~</span>
                 <div className="relative">
-                  <Input className="w-32 h-8 text-xs border-gray-300 rounded-[2px] pr-8" defaultValue="2026-01-11" />
-                  <Calendar className="w-4 h-4 text-gray-400 absolute right-2 top-2" />
+                 <Input 
+                    type="date"
+                    className="w-32 h-8 text-xs border-gray-300 rounded-[2px] pr-2" 
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                  />
                 </div>
-              </div>
-              <div className="flex items-center gap-0 ml-2">
-                <DateButton label="오늘" />
-                <DateButton label="7일" active />
-                <DateButton label="15일" />
-                <DateButton label="1개월" />
-                <DateButton label="3개월" />
-                <DateButton label="1년" />
               </div>
             </div>
           </div>
@@ -107,12 +201,14 @@ export default function PostManagementPage() {
               답변상태
             </div>
             <div className="flex-1 p-2 flex items-center">
-              <Select defaultValue="all">
+              <Select value={answerStatus} onValueChange={setAnswerStatus}>
                 <SelectTrigger className="w-24 h-8 text-xs border-gray-300 bg-white rounded-[2px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">=전체=</SelectItem>
+                  <SelectItem value="WAITING">답변대기</SelectItem>
+                  <SelectItem value="COMPLETE">답변완료</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -124,53 +220,47 @@ export default function PostManagementPage() {
               검색어
             </div>
             <div className="flex-1 p-2 flex items-center gap-1">
-              <Select defaultValue="subject">
+              <Select value={searchType} onValueChange={setSearchType}>
                 <SelectTrigger className="w-24 h-8 text-xs border-gray-300 bg-white rounded-[2px]">
                   <SelectValue placeholder="제목" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="subject">제목</SelectItem>
+                  <SelectItem value="content">내용</SelectItem>
+                  <SelectItem value="writer">작성자</SelectItem>
                 </SelectContent>
               </Select>
-              <Input className="w-64 h-8 text-xs border-gray-300 rounded-[2px]" placeholder="검색어에 포함된 내용을 입력하세요." />
+              <Input 
+                value={keyword}
+                onChange={(e) => setKeyword(e.target.value)}
+                className="w-64 h-8 text-xs border-gray-300 rounded-[2px]" 
+                placeholder="검색어에 포함된 내용을 입력하세요." 
+              />
             </div>
           </div>
         </div>
 
         <div className="flex justify-center mt-6">
-          <Button className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
+          <Button onClick={() => { setPage(1); fetchPosts(); }} className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
             검색
           </Button>
         </div>
       </div>
 
-      {/* Tabs Section */}
-      <div className="flex border-b border-gray-300 mb-6">
-        <TabItem label="일반 게시물" active />
-        <TabItem label="신고 게시물" />
-        <TabItem label="신고 댓글" />
-      </div>
-
       {/* Results Controls */}
       <div className="flex items-center justify-between mb-2">
         <div className="text-[11px] font-normal text-gray-500">
-          검색 <span className="text-red-500 font-bold">0</span>개/ 전체 <span className="text-red-500 font-bold">0</span>개
+          검색 <span className="text-red-500 font-bold">{total}</span>개/ 전체 <span className="text-red-500 font-bold">{total}</span>개
         </div>
         <div className="flex items-center gap-1">
-          <Select defaultValue="num_desc">
-            <SelectTrigger className="w-24 h-8 text-[11px] border-gray-300 bg-white rounded-[2px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="num_desc">번호 ↓</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="10">
+            <Select value={pageSize} onValueChange={setPageSize}>
             <SelectTrigger className="w-28 h-8 text-[11px] border-gray-300 bg-white rounded-[2px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="10">10개 보기</SelectItem>
+              <SelectItem value="20">20개 보기</SelectItem>
+              <SelectItem value="50">50개 보기</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -182,7 +272,11 @@ export default function PostManagementPage() {
           <thead>
             <tr className="bg-[#B9B9B9] text-white h-10 border-b border-gray-300 font-normal">
               <th className="w-12 border-r border-gray-300">
-                <Checkbox className="border-white data-[state=checked]:bg-white data-[state=checked]:text-gray-400 w-3.5 h-3.5 rounded-[2px]" />
+                <Checkbox 
+                    className="border-white data-[state=checked]:bg-white data-[state=checked]:text-gray-400 w-3.5 h-3.5 rounded-[2px]" 
+                    checked={posts.length > 0 && selectedIds.length === posts.length}
+                    onCheckedChange={toggleAll}
+                />
               </th>
               <th className="w-16 border-r border-gray-300 font-normal">번호</th>
               <th className="border-r border-gray-300 font-normal">제목</th>
@@ -190,14 +284,46 @@ export default function PostManagementPage() {
               <th className="w-32 border-r border-gray-300 font-normal">작성일</th>
               <th className="w-16 border-r border-gray-300 font-normal">조회</th>
               <th className="w-24 border-r border-gray-300 font-normal">답변상태</th>
-              <th className="w-32 border-r border-gray-300 font-normal">답변일</th>
-              <th className="w-24 font-normal">수정/답변</th>
+              <th className="w-32 border-r border-gray-300 font-normal">게시판</th>
+              <th className="w-24 font-normal">관리</th>
             </tr>
           </thead>
           <tbody>
-            <tr className="h-40">
-              <td colSpan={9} className="text-gray-400 text-sm">게시물이 없습니다.</td>
-            </tr>
+            {loading ? (
+                 <tr className="h-40">
+                    <td colSpan={9} className="text-gray-400 text-sm">로딩중...</td>
+                 </tr>
+            ) : posts.length === 0 ? (
+                <tr className="h-40">
+                    <td colSpan={9} className="text-gray-400 text-sm">게시물이 없습니다.</td>
+                </tr>
+            ) : (
+                posts.map((post, index) => (
+                    <tr key={post.id} className="h-10 border-b border-gray-200 hover:bg-gray-50">
+                        <td className="border-r border-gray-200">
+                            <Checkbox 
+                                className="w-3.5 h-3.5 border-gray-300 rounded-[2px]"
+                                checked={selectedIds.includes(post.id)}
+                                onCheckedChange={() => toggleSelect(post.id)}
+                            />
+                        </td>
+                        <td className="border-r border-gray-200">{total - ((page - 1) * Number(pageSize)) - index}</td>
+                        <td className="border-r border-gray-200 text-left px-2">
+                            {post.subject}
+                        </td>
+                        <td className="border-r border-gray-200">{post.author}</td>
+                        <td className="border-r border-gray-200">{format(new Date(post.createdAt), 'yyyy-MM-dd')}</td>
+                        <td className="border-r border-gray-200">{post.views}</td>
+                        <td className="border-r border-gray-200">
+                            {post.answerStatus === 'WAITING' ? '답변대기' : post.answerStatus === 'COMPLETE' ? '답변완료' : '-'}
+                        </td>
+                        <td className="border-r border-gray-200">{post.boardName}</td>
+                        <td>
+                            <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 leading-none">관리</Button>
+                        </td>
+                    </tr>
+                ))
+            )}
           </tbody>
         </table>
       </div>
@@ -206,9 +332,9 @@ export default function PostManagementPage() {
       <div className="bg-[#F9F9F9] p-3 border border-gray-200 flex items-center justify-between mb-8">
         <div className="flex items-center gap-2">
           <div className="text-xs font-bold text-gray-600 ml-1 flex items-center gap-1">
-            <span className="text-red-500 font-bold">✓</span> 선택한 게시글
+            <span className="text-red-500 font-bold">✓</span> 선택한 게시글 {selectedIds.length}개
           </div>
-          <Button variant="outline" className="h-7 px-4 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-gray-700">삭제</Button>
+          <Button onClick={handleDelete} variant="outline" className="h-7 px-4 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-gray-700">삭제</Button>
         </div>
         <Button variant="outline" className="h-7 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white hover:bg-gray-50 text-[#1D6F42] flex items-center gap-1">
           <FileSpreadsheet className="w-3.5 h-3.5" /> 엑셀다운로드
