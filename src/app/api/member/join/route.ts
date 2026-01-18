@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     try {
         const { email, password, username, name, mobile } = await req.json();
 
-        if (!email || !password || !username || !name || !mobile) {
+        if (!email || !password || !username || !name) {
             return NextResponse.json(
                 { ok: false, message: "Missing required fields" },
                 { status: 400 }
@@ -40,6 +40,8 @@ export async function POST(req: Request) {
 
         const passwordHash = await bcrypt.hash(password, 12);
 
+        console.log("Creating user with:", { email, username, name });
+
         const newUser = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
                 data: {
@@ -47,7 +49,6 @@ export async function POST(req: Request) {
                     username,
                     name,
                     passwordHash,
-                    mobile, // Added required field
                 },
             });
 
@@ -57,7 +58,7 @@ export async function POST(req: Request) {
                     userId: user.id,
                 },
             });
-
+            
             return user;
         });
 
@@ -69,10 +70,10 @@ export async function POST(req: Request) {
                 username: newUser.username,
             },
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Registration error:", error);
         return NextResponse.json(
-            { ok: false, message: "Internal server error" },
+            { ok: false, message: error.message || "Internal server error" },
             { status: 500 }
         );
     }

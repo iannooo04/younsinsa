@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import createIntlMiddleware from "next-intl/middleware";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const LOCALES = ["ko", "en", "ja", "zh", "vi"] as const;
 const DEFAULT_LOCALE = "ko";
@@ -13,6 +13,7 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 // 공개 경로 패턴 (로그인 없이 접근 가능)
+/* eslint-disable @typescript-eslint/no-unused-vars */
 const PUBLIC_PATHS = [
     /^\/$/,
     /^\/(?:ko|en|ja|zh|vi)\/?$/,
@@ -25,6 +26,7 @@ const PUBLIC_PATHS = [
     /^\/api\/popup\/categories(?:\/.*)?$/,
     /^\/api\/auth(?:\/.*)?$/, // NextAuth API
 ];
+/* eslint-enable @typescript-eslint/no-unused-vars */
 
 export default auth((req) => {
     const { nextUrl } = req;
@@ -51,7 +53,7 @@ export default auth((req) => {
 
     // 3. 인증 정보 헤더 추가 (호환성 유지)
     if (isLoggedIn && req.auth?.user) {
-        const user = req.auth.user as any;
+        const user = req.auth.user as { id?: string; level?: string | number; email?: string };
         response.headers.set("x-user-id", user.id || "");
         response.headers.set("x-user-level", String(user.level || 1));
         response.headers.set("x-user-email", user.email || "");

@@ -25,7 +25,7 @@ export async function getRequestUser(): Promise<RequestUser> {
 /** 어드민 여부: 사용자 레벨 21 이상만 어드민 */
 export async function isAdmin(): Promise<boolean> {
   const session = await auth();
-  const user = session?.user as any;
+  const user = session?.user as { level?: number | string };
   if (!user || user.level === undefined) return false;
 
   const levelNum = Number(user.level);
