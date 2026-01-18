@@ -1,68 +1,67 @@
-// src/components/layout/MainHeader.tsx
-
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
-import { Link, usePathname, useRouter } from "@/i18n/routing";
-import { signOut } from "next-auth/react";
-import CategoryPopup from "./CategoryPopup"; // 분리한 컴포넌트 import
-import SearchPopup from "./SearchPopup"; // 🛠️ [신규] 검색 팝업 import
+import { logoutAction } from "@/actions/auth-actions"; // 서버 액션 import
 
-interface MainHeaderProps {
-  authed?: boolean; // 로그인 여부
-  userLevel?: number; // 유저 레벨
-}
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import CategoryPopup from "./CategoryPopup";
+import SearchPopup from "./SearchPopup";
+
+type MainHeaderProps = {
+  authed: boolean;
+  userLevel?: number;
+};
 
 export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
-  const t = useTranslations("header");
+  const t = useTranslations("MainHeader");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
-  // 🚻 성별 필터 상태 (gf: A, M, W)
   const currentGf = searchParams.get("gf") || "A";
 
-  const getGenderUrl = (gf: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("gf", gf);
-    return `${pathname}?${params.toString()}`;
-  };
-
-  // 🍔 햄버거 메뉴 토글 상태 관리
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // 🔍 검색 팝업 토글 상태 관리 (신규)
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [initialTab, setInitialTab] = useState<"category" | "brand" | "service">("category");
 
-  const [initialTab, setInitialTab] = useState<
-    "category" | "brand" | "service"
-  >("category");
-
-  // 메뉴 열기 핸들러 (탭 지정 가능)
   const openMenuWithTab = (tab: "category" | "brand" | "service") => {
     setInitialTab(tab);
     setIsMenuOpen(true);
   };
 
-  // 언어 변경 핸들러
   const handleLanguageChange = (newLocale: string) => {
-    const params = searchParams.toString();
-    const url = params ? `${pathname}?${params}` : pathname;
-    router.replace(url, { locale: newLocale });
+    // pathname에서 locale 부분 교체 (/ko/..., /en/...)
+    // 단순 replace는 위험할 수 있으므로 path parts로 처리 권장하지만, 
+    // 여기서는 간단히 구현 (프로젝트 관례에 따름)
+    const segments = pathname.split("/");
+    if (segments.length > 1) {
+        segments[1] = newLocale; 
+        router.push(segments.join("/"));
+    }
+  };
+
+  const getGenderUrl = (gender: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("gf", gender);
+    return `${pathname}?${params.toString()}`;
   };
 
   // 로그아웃 핸들러
   const handleLogout = async () => {
     // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
     const homeUrl = `/${locale}/main/nkbus/recommend?gf=${currentGf}`;
-    
-    // 서버 환경 변수(AUTH_URL) 설정 문제로 인한 localhost 리다이렉트 방지
-    // redirect: false로 설정하여 클라이언트에서 직접 이동 처리
-    await signOut({ redirect: false });
-    window.location.href = homeUrl;
+
+    try {
+        // 서버 액션을 통해 쿠키 삭제 및 로그아웃 처리
+        await logoutAction();
+    } catch (error) {
+        console.error("Logout action failed:", error);
+    } finally {
+         // 클라이언트에서 홈으로 강제 이동 (새로고침 효과)
+        window.location.href = homeUrl;
+    }
   };
 
   // 🖱️ 스크롤 상태 관리 (최상단 여부)
