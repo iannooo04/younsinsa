@@ -1,7 +1,6 @@
 "use client";
 
-import { logoutAction } from "@/actions/auth-actions"; // 서버 액션 import
-
+import { signOut } from "next-auth/react"; // 클라이언트 사이드 signOut 사용
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -53,15 +52,12 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
     // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
     const homeUrl = `/${locale}/main/nkbus/recommend?gf=${currentGf}`;
 
-    try {
-        // 서버 액션을 통해 쿠키 삭제 및 로그아웃 처리
-        await logoutAction();
-    } catch (error) {
-        console.error("Logout action failed:", error);
-    } finally {
-         // 클라이언트에서 홈으로 강제 이동 (새로고침 효과)
-        window.location.href = homeUrl;
-    }
+    // 클라이언트 사이드 signOut 사용 (가장 확실한 방법)
+    // redirect: true로 설정하여 Auth.js가 처리를 완료한 후 이동하도록 함
+    await signOut({ 
+        redirect: true, 
+        callbackUrl: homeUrl 
+    });
   };
 
   // 🖱️ 스크롤 상태 관리 (최상단 여부)
