@@ -57,9 +57,12 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
   // 로그아웃 핸들러
   const handleLogout = async () => {
     // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
-    // window.location.origin을 사용하여 현재 도메인을 유지하도록 함 (배포 환경 대응)
-    const homeUrl = `${window.location.origin}/${locale}/main/nkbus/recommend?gf=${currentGf}`;
-    await signOut({ callbackUrl: homeUrl });
+    const homeUrl = `/${locale}/main/nkbus/recommend?gf=${currentGf}`;
+    
+    // 서버 환경 변수(AUTH_URL) 설정 문제로 인한 localhost 리다이렉트 방지
+    // redirect: false로 설정하여 클라이언트에서 직접 이동 처리
+    await signOut({ redirect: false });
+    window.location.href = homeUrl;
   };
 
   // 🖱️ 스크롤 상태 관리 (최상단 여부)
