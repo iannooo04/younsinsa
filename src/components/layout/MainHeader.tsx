@@ -50,7 +50,9 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
   // 로그아웃 핸들러
   const handleLogout = async () => {
     // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
-    const homeUrl = `/${locale}/main/nkbus/recommend?gf=${currentGf}`;
+    // 배포 환경에서 localhost로 리다이렉트되는 현상을 방지하기 위해 절대 경로 사용 (window.location.origin)
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const homeUrl = `${origin}/${locale}/main/nkbus/recommend?gf=${currentGf}`;
 
     // 클라이언트 사이드 signOut 사용 (가장 확실한 방법)
     // redirect: true로 설정하여 Auth.js가 처리를 완료한 후 이동하도록 함
