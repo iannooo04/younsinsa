@@ -15,7 +15,7 @@ type MainHeaderProps = {
 };
 
 export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
-  const t = useTranslations("MainHeader");
+  const t = useTranslations("header");
   const locale = useLocale();
   const router = useRouter();
   const pathname = usePathname();
