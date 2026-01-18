@@ -4,35 +4,39 @@ import { signOut } from "@/auth";
 import { cookies } from "next/headers";
 
 export async function logoutAction() {
-    // 1. NextAuth(Auth.js) 로그아웃 시도 (서버 사이드)
-    // redirect: false를 사용하여 서버 사이드에서 자동 리다이렉트를 막고,
-    // 클라이언트에서 제어할 수 있도록 함.
+    // 1. NextAuth(Auth.js) 로그아웃 시도
     try {
         await signOut({ redirect: false });
     } catch (error) {
-        // signOut은 내부적으로 리다이렉트 에러를 던질 수 있음.
-        // 하지만 redirect: false 옵션이 동작한다면 에러 없이 진행될 것임.
-        // 만약 에러가 발생해도 쿠키 삭제를 강제 진행.
         console.error("Logout error (ignored):", error);
     }
 
-    // 2. 쿠키 강제 삭제 (혹시 signOut이 실패하거나 쿠키를 제대로 못 지우는 경우 대비)
-    // 가능한 모든 세션 토큰 이름에 대해 삭제 시도
+    // 2. 쿠키 강제 삭제 (더 강력하게 처리)
     const cookieStore = await cookies();
+    const allCookies = cookieStore.getAll();
     
-    const cookieNames = [
-        "authjs.session-token",
-        "__Secure-authjs.session-token",
-        "next-auth.session-token",
-        "__Secure-next-auth.session-token",
-        "authjs.csrf-token",
-        "__Host-authjs.csrf-token",
-        "__Secure-authjs.callback-url",
-        "next-auth.callback-url",
-        "__Secure-next-auth.callback-url"
-    ];
+    // 지워야 할 쿠키 이름 패턴들
+    const targetCookies = allCookies.filter(cookie => 
+        cookie.name.includes("authjs") || 
+        cookie.name.includes("next-auth") ||
+        cookie.name.includes("session") ||
+        cookie.name.includes("csrf")
+    );
 
-    cookieNames.forEach((name) => {
-        cookieStore.delete(name);
+    targetCookies.forEach((cookie) => {
+        // 기본 삭제
+        cookieStore.delete(cookie.name);
+        
+        // Path 명시 삭제 (하위 경로 문제 방지)
+        cookieStore.set(cookie.name, "", { maxAge: 0, path: '/' });
+        
+        // Secure 옵션 고려한 삭제 (프로덕션 환경 등)
+        cookieStore.set(cookie.name, "", { maxAge: 0, path: '/', secure: true });
+
+        // Domain이 .nkbus.com 일 수도 있으므로 도메인 명시 시도
+        try {
+            cookieStore.set(cookie.name, "", { maxAge: 0, path: '/', domain: '.nkbus.com' });
+            cookieStore.set(cookie.name, "", { maxAge: 0, path: '/', domain: 'nkbus.com' });
+        } catch {} // 로컬호스트 등에서 도메인 설정 실패 시 무시
     });
 }
