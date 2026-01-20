@@ -3,6 +3,7 @@
 import { signOut } from "next-auth/react"; // 클라이언트 사이드 signOut 사용
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import CategoryPopup from "./CategoryPopup";
@@ -50,9 +51,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
   // 로그아웃 핸들러
   const handleLogout = async () => {
     // 로그아웃 후 로그인 페이지로 리다이렉트되는 것을 방지하기 위해 홈으로 이동
-    // 배포 환경에서 localhost로 리다이렉트되는 현상을 방지하기 위해 절대 경로 사용 (window.location.origin)
-    const origin = typeof window !== "undefined" ? window.location.origin : "";
-    const homeUrl = `${origin}/${locale}/main/nkbus/recommend?gf=${currentGf}`;
+    const homeUrl = `/${locale}/main/nkbus/recommend?gf=${currentGf}`;
 
     // 클라이언트 사이드 signOut 사용 (가장 확실한 방법)
     // redirect: true로 설정하여 Auth.js가 처리를 완료한 후 이동하도록 함
@@ -98,10 +97,12 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
               href={`/main/nkbus/recommend?gf=${currentGf}`}
               className="cursor-pointer relative block w-[100px] h-[30px] md:w-[120px] md:h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
             >
-              <img 
+              <Image 
                 src="/images/nkbus_logo_white.png" 
                 alt="NKBUS" 
-                className="absolute top-1/2 left-0 -translate-y-1/2 h-[60px] md:h-[80px] w-auto max-w-none object-contain" // 이미지는 크게 (부모 영역 무시)
+                fill
+                className="object-contain" // 이미지는 크게 (부모 영역 무시하려면 absolute 필요하지만 fill은 absolute임)
+                priority
               />
             </Link>
           ) : (
@@ -382,17 +383,19 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
             {/* ✅ [수정 2] 검색창 왼쪽의 큰 NKBUS 로고 클릭 시 추천 페이지로 이동 */}
             <Link
               href={`/main/nkbus/recommend?gf=${currentGf}`}
-              className="shrink-0 cursor-pointer relative block w-[120px] h-[40px] md:w-[160px] md:h-[60px]" // 부모 높이는 작게
+              className="shrink-0 cursor-pointer relative block w-[180px] h-[40px] md:w-[300px] md:h-[60px]" // 부모 높이는 작게, 너비는 확보
             >
-              <img 
+              <Image 
                 src="/images/nkbus_logo_white.png" 
                 alt="NKBUS" 
-                className="absolute top-1/2 left-0 -translate-y-1/2 h-[80px] md:h-[120px] w-auto max-w-none object-contain" // 이미지는 크게
+                fill
+                className="object-contain object-left scale-[2.0] origin-left"
+                priority
               />
             </Link>
 
             {/* Search Bar */}
-            <div className="flex-1 max-w-5xl relative mx-auto">
+            <div className="absolute left-1/2 -translate-x-1/2 w-full max-w-4xl">
               <input
                 type="text"
                 placeholder={t("searchPlaceholder")}

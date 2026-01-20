@@ -6,7 +6,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Youtube, Plus, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Image from "next/image";
 
 export default function OrderAdditionalInfoSettingsPage() {
     return (

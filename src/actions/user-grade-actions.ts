@@ -32,21 +32,28 @@ export async function getMemberGradeSettingsAction() {
   }
 }
 
-export async function updateMemberGradeSettingsAction(data: any) {
+import { MemberGradeSettings, UserGrade } from "@/generated/prisma";
+
+export async function updateMemberGradeSettingsAction(data: Partial<MemberGradeSettings>) {
   try {
      const policy = await prisma.basicPolicy.findFirst();
      if (!policy) return { success: false, error: "기본 정책이 없습니다." };
 
      // Exclude id and basicPolicyId from data if present to avoid update errors
-     const { id, basicPolicyId, ...updateData } = data;
+     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     const { id: _id, basicPolicyId: _basicPolicyId, ...updateData } = data;
 
      await prisma.memberGradeSettings.upsert({
        where: { basicPolicyId: policy.id },
        create: {
          basicPolicyId: policy.id,
-         ...updateData
+         inputPeriod: updateData.inputPeriod ?? 0, // Ensure required fields are handled if creating
+         gradeCount: updateData.gradeCount ?? 0,
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         ...(updateData as any)
        },
-       update: updateData
+       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       update: updateData as any
      });
      
      revalidatePath("/admin/users/grade");
@@ -58,114 +65,108 @@ export async function updateMemberGradeSettingsAction(data: any) {
 }
 
 
-// --- User Grades ---
-
 export async function getUserGradesAction() {
-    try {
-        const grades = await prisma.userGrade.findMany({
-            orderBy: { orderIndex: 'asc' },
-            include: {
-                _count: {
-                    select: { users: true }
-                }
-            }
-        });
-        return { success: true, grades };
-    } catch (error) {
-        console.error("Error fetching user grades:", error);
-        return { success: false, error: "회원등급 리스트를 불러오는데 실패했습니다." };
-    }
-}
-
-export async function deleteUserGradesAction(ids: string[]) {
-    try {
-        // Check if any grade has users
-        const gradesWithUsers = await prisma.userGrade.findMany({
-            where: {
-                id: { in: ids },
-                users: { some: {} }
-            }
-        });
-        
-        if (gradesWithUsers.length > 0) {
-             const names = gradesWithUsers.map(g => g.name).join(", ");
-             return { success: false, error: `회원이 속해 있는 등급은 삭제할 수 없습니다. (${names})` };
-        }
-
-        await prisma.userGrade.deleteMany({
-            where: { id: { in: ids } }
-        });
-
-        revalidatePath("/admin/users/grade");
-        return { success: true };
-    } catch (error) {
-        console.error("Error deleting user grades:", error);
-        return { success: false, error: "회원등급 삭제에 실패했습니다." };
-    }
-}
-
-export async function updateUserGradeOrderAction(items: {id: string, orderIndex: number}[]) {
-    try {
-        await prisma.$transaction(
-            items.map((item) => 
-                prisma.userGrade.update({
-                    where: { id: item.id },
-                    data: { orderIndex: item.orderIndex }
-                })
-            )
-        );
-        revalidatePath("/admin/users/grade");
-        return { success: true };
-    } catch (error) {
-         console.error("Error updating grade order:", error);
-         return { success: false, error: "등급 순서 저장에 실패했습니다." };
-    }
-}
-
-// --- Evaluation Page Actions ---
-
-export async function getGradeEvaluationAction() {
   try {
-    let policy = await prisma.basicPolicy.findFirst();
-    if (!policy) {
-      policy = await prisma.basicPolicy.create({ data: {} });
-    }
-
-    let settings = await prisma.memberGradeSettings.findUnique({
-      where: { basicPolicyId: policy.id }
-    });
-
-    if (!settings) {
-      settings = await prisma.memberGradeSettings.create({
-        data: {
-          basicPolicyId: policy.id,
-          gradeDisplayName: "등급",
-          // default score settings
-           scoreSettings: {
-               orderAmount: { used: true, unit: 10000, point: 100 },
-               mobileOrderAmount: { unit: 10000, point: 50 },
-               orderCount: { used: true, unit: "per_buy", point: 10 },
-               reviewCount: { used: true, unit: "per_review", point: 5 },
-               loginCount: { used: true, unit: "per_login", point: 1 }
-           }
-        }
-      });
-    }
-
     const grades = await prisma.userGrade.findMany({
-      orderBy: { orderIndex: 'asc' }
+      orderBy: { orderIndex: 'asc' },
+      include: {
+        _count: {
+          select: { users: true }
+        }
+      }
     });
-
-    return { success: true, settings, grades };
+    return { success: true, grades };
   } catch (error) {
-    console.error("Error fetching evaluation data:", error);
-    return { success: false, error: "평가 설정 데이터를 불러오는데 실패했습니다." };
+    console.error("Error fetching user grades:", error);
+    return { success: false, error: "회원 등급을 불러오는데 실패했습니다." };
   }
 }
 
+export async function deleteUserGradesAction(ids: string[]) {
+  try {
+    if (!ids || ids.length === 0) return { success: false, error: "삭제할 등급을 선택해주세요." };
+
+    // Check if any of these grades have users
+    const gradesWithUsers = await prisma.userGrade.findMany({
+      where: {
+        id: { in: ids },
+        users: { some: {} }
+      },
+      select: { name: true }
+    });
+
+    if (gradesWithUsers.length > 0) {
+      const names = gradesWithUsers.map(g => g.name).join(", ");
+      return { success: false, error: `다음 등급에 회원이 존재하여 삭제할 수 없습니다: ${names}` };
+    }
+
+    // Check for default grade (cannot delete)
+     const defaultGrades = await prisma.userGrade.findMany({
+      where: {
+        id: { in: ids },
+        isDefault: true
+      },
+      select: { name: true }
+    });
+
+    if (defaultGrades.length > 0) {
+        return { success: false, error: "가입회원등급은 삭제할 수 없습니다." };
+    }
+
+    await prisma.userGrade.deleteMany({
+      where: { id: { in: ids } }
+    });
+
+    revalidatePath("/admin/users/grade");
+    return { success: true };
+  } catch (error) {
+    console.error("Error deleting user grades:", error);
+    return { success: false, error: "회원 등급 삭제에 실패했습니다." };
+  }
+}
+
+export async function updateUserGradeOrderAction(orderItems: { id: string, orderIndex: number }[]) {
+  try {
+    await prisma.$transaction(
+        orderItems.map((item) => 
+            prisma.userGrade.update({
+                where: { id: item.id },
+                data: { orderIndex: item.orderIndex }
+            })
+        )
+    );
+    revalidatePath("/admin/users/grade");
+    return { success: true };
+  } catch (error) {
+     console.error("Error updating user grade order:", error);
+     return { success: false, error: "등급 순서 저장에 실패했습니다." };
+  }
+}
+
+export async function getGradeEvaluationAction() {
+    try {
+        const [settingsRes, gradesRes] = await Promise.all([
+            getMemberGradeSettingsAction(),
+            getUserGradesAction()
+        ]);
+
+        if (!settingsRes.success) return { success: false, error: settingsRes.error };
+        if (!gradesRes.success) return { success: false, error: gradesRes.error };
+
+        return {
+            success: true,
+            settings: settingsRes.settings,
+            grades: gradesRes.grades
+        };
+    } catch (error) {
+        console.error("Error fetching evaluation data:", error);
+        return { success: false, error: "평가 데이터를 불러오는데 실패했습니다." };
+    }
+}
+
 export async function updateGradeEvaluationAction(data: {
-    settings: any,
-    grades: any[]
+    settings: Partial<MemberGradeSettings>,
+    grades: Partial<UserGrade>[]
 }) {
     try {
         const { settings, grades } = data;
@@ -174,11 +175,13 @@ export async function updateGradeEvaluationAction(data: {
 
         // 1. Update Settings
         // Exclude id and basicPolicyId from settings update to be safe
-        const { id: settingsId, basicPolicyId, ...settingsUpdate } = settings;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { id: _settingsId, basicPolicyId: _basicPolicyId, ...settingsUpdate } = settings;
         
         await prisma.memberGradeSettings.update({
              where: { basicPolicyId: policy.id },
-             data: settingsUpdate
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             data: settingsUpdate as any
         });
 
         // 2. Update Grades

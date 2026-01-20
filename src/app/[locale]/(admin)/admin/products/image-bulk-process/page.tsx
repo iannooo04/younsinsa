@@ -1,8 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Youtube, ChevronUp, ChevronDown, Book } from "lucide-react";
-import { Link } from "@/i18n/routing";
+import { Youtube, ChevronUp, Book } from "lucide-react";
 
 export default function ProductImageBulkProcessPage() {
     return (

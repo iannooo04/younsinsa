@@ -1,6 +1,7 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+
+import Image from "next/image";
 
 export default function SalePage() {
   // Mock Data for Sale Items
@@ -30,10 +31,11 @@ export default function SalePage() {
           {items.map((item) => (
             <div key={item.id} className="group cursor-pointer">
               <div className="relative w-full aspect-[3/4] overflow-hidden bg-gray-100 mb-3">
-                <img
+                <Image
                   src={item.image}
                   alt={item.name}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  fill
+                  className="object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute top-2 left-2 bg-red-600 text-white text-[10px] font-bold px-2 py-1 uppercase tracking-wider">
                   {item.discount}

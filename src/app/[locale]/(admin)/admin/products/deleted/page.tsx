@@ -25,9 +25,27 @@ import { CalendarIcon, Youtube, ChevronUp, ChevronDown, FileSpreadsheet, Image a
 import { getProductsAction, restoreProductsAction, permanentlyDeleteProductsAction } from "@/actions/product-actions";
 import { format } from "date-fns";
 
+
+type ProductItem = {
+    id: string;
+    productCode: string;
+    image: string | null;
+    name: string;
+    supplier: string;
+    brand: string;
+    displayStatus: string;
+    saleStatus: string;
+    stockStatus: string;
+    stock: string;
+    price: number;
+    shippingFee: string;
+    createdAt: Date | string;
+    deletedAt: Date | string | null;
+};
+
 export default function DeletedProductsManagementPage() {
     // Data State
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<ProductItem[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     
@@ -63,11 +81,11 @@ export default function DeletedProductsManagementPage() {
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchTrigger]);
+    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType]);
 
     useEffect(() => {
         fetchData();
-    }, [fetchData]);
+    }, [fetchData, searchTrigger]);
 
     const handleSearch = () => {
         setPage(1);

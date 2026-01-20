@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -28,7 +28,7 @@ export default function OperationSecuritySettingsPage() {
     const [shopIpRestriction, setShopIpRestriction] = useState("unused");
     const [allowedCountries, setAllowedCountries] = useState<string[]>([]);
     const [blockedCountries, setBlockedCountries] = useState<string[]>([]);
-    const [adminIpExceptions, setAdminIpExceptions] = useState<any[]>([]);
+    const [adminIpExceptions, setAdminIpExceptions] = useState<{ ip: string; memo: string }[]>([]);
 
     // Mall Screen Security
     const [dragBlock, setDragBlock] = useState("unused");
@@ -69,7 +69,7 @@ export default function OperationSecuritySettingsPage() {
                     setBlockedCountries(loadedBlocked);
                 }
 
-                setAdminIpExceptions((result.settings.adminIpExceptions as any[]) || []);
+                setAdminIpExceptions((result.settings.adminIpExceptions as { ip: string; memo: string }[]) || []);
                 setDragBlock(result.settings.dragBlock);
                 setRightClickBlock(result.settings.rightClickBlock);
                 setAdminUnblock(result.settings.adminUnblock);
@@ -105,7 +105,7 @@ export default function OperationSecuritySettingsPage() {
         });
     };
 
-    const toggleSelection = (item: string, list: string[], setList: (items: string[]) => void, event: React.MouseEvent) => {
+    const toggleSelection = (item: string, list: string[], setList: (items: string[]) => void) => {
         if (list.includes(item)) {
             setList(list.filter(i => i !== item));
         } else {
@@ -374,7 +374,7 @@ export default function OperationSecuritySettingsPage() {
                                                 <li 
                                                     key={i} 
                                                     className={`p-1 cursor-pointer ${selectedAllowed.includes(country) ? "bg-blue-100 text-blue-800" : "hover:bg-gray-100"}`}
-                                                    onClick={(e) => toggleSelection(country, selectedAllowed, setSelectedAllowed, e)}
+                                                    onClick={() => toggleSelection(country, selectedAllowed, setSelectedAllowed)}
                                                 >
                                                     {country}
                                                 </li>
@@ -413,7 +413,7 @@ export default function OperationSecuritySettingsPage() {
                                                 <li 
                                                     key={i} 
                                                     className={`p-1 cursor-pointer ${selectedBlocked.includes(country) ? "bg-blue-100 text-blue-800" : "hover:bg-gray-100"}`}
-                                                    onClick={(e) => toggleSelection(country, selectedBlocked, setSelectedBlocked, e)}
+                                                    onClick={() => toggleSelection(country, selectedBlocked, setSelectedBlocked)}
                                                 >
                                                     {country}
                                                 </li>

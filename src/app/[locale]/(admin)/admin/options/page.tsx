@@ -22,13 +22,12 @@ import {
     TableRow,
 } from "@/components/ui/ui-table";
 import { CalendarIcon, Youtube, ChevronUp, Book, Plus } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { getOptionTemplatesAction, deleteOptionTemplatesAction, copyOptionTemplatesAction } from "@/actions/option-template-actions";
 import { format } from "date-fns";
 
 export default function CommonlyUsedOptionsPage() {
     // Data State
-    const [data, setData] = useState<any[]>([]);
+    const [data, setData] = useState<{ id: string; manageName: string; type: string; name: string; supplierName?: string | null; createdAt: Date | string; updatedAt: Date | string; }[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -46,36 +45,44 @@ export default function CommonlyUsedOptionsPage() {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     
-    // Temporary Search State (to support "Search" button click)
-    const [searchTrigger, setSearchTrigger] = useState(0);
+    // Applied Filter State (Triggers fetch)
+    const [appliedFilters, setAppliedFilters] = useState({
+        supplierType: 'all',
+        searchType: 'integrated',
+        keyword: '',
+        displayType: 'all',
+        dateType: 'regDate',
+        startDate: '',
+        endDate: ''
+    });
 
     const fetchData = useCallback(async () => {
         setLoading(true);
-        const result = await getOptionTemplatesAction(page, pageSize, {
-            supplierType,
-            searchType,
-            keyword,
-            displayType,
-            dateType,
-            startDate,
-            endDate,
-        });
+        const result = await getOptionTemplatesAction(page, pageSize, appliedFilters);
 
         if (result.success) {
             setData(result.items);
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchTrigger]); // searchTrigger will update when "Search" is clicked
+    }, [page, pageSize, appliedFilters]);
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+         
     }, [fetchData]);
 
     const handleSearch = () => {
         setPage(1);
-        setSearchTrigger(prev => prev + 1);
+        setAppliedFilters({
+            supplierType,
+            searchType,
+            keyword,
+            displayType,
+            dateType,
+            startDate,
+            endDate
+        });
     };
 
     const handleCheckboxChange = (id: string, checked: boolean) => {

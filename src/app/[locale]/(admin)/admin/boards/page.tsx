@@ -22,9 +22,17 @@ import { getBoardsAction, deleteBoardsAction } from "@/actions/board-actions";
 import { toast } from "sonner";
 import { Link } from "@/i18n/routing";
 
+interface Board {
+    id: string;
+    name: string;
+    boardId: string;
+    type: string;
+    stats?: { new: number; total: number; unreplied: number | string; };
+}
+
 export default function BoardListPage() {
   const [loading, setLoading] = useState(true);
-  const [boards, setBoards] = useState<any[]>([]);
+  const [boards, setBoards] = useState<Board[]>([]);
   
   // Search state
   const [keyword, setKeyword] = useState("");
@@ -33,11 +41,7 @@ export default function BoardListPage() {
   const [allChecked, setAllChecked] = useState(false);
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchBoards();
-  }, []);
-
-  const fetchBoards = async () => {
+  const fetchBoards = React.useCallback(async () => {
     setLoading(true);
     const res = await getBoardsAction({
         keyword,
@@ -50,7 +54,11 @@ export default function BoardListPage() {
         toast.error(res.error || "목록을 불러오는데 실패했습니다.");
     }
     setLoading(false);
-  };
+  }, [keyword, searchType, selectedTypes]);
+
+  useEffect(() => {
+    fetchBoards();
+  }, [fetchBoards]);
 
   const handleTypeChange = (type: string, checked: boolean) => {
       if (type === 'all') {

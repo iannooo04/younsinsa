@@ -11,6 +11,7 @@ interface SelectContextType {
   label?: React.ReactNode;
   setLabel: (label: React.ReactNode) => void;
   disabled?: boolean;
+  handleSelect: (value: string, label: React.ReactNode) => void;
 }
 
 const SelectContext = React.createContext<SelectContextType | null>(null);
@@ -43,6 +44,15 @@ const Select = ({
     setOpen(false);
   };
 
+  const handleSelect = (val: string, newLabel: React.ReactNode) => {
+    if (!isControlled) {
+      setInternalValue(val);
+    }
+    setLabel(newLabel);
+    onValueChange?.(val);
+    setOpen(false);
+  };
+
   return (
     <SelectContext.Provider
       value={{
@@ -53,6 +63,7 @@ const Select = ({
         label,
         setLabel,
         disabled,
+        handleSelect,
       }}
     >
       <div className="relative inline-block w-full">{children}</div>
@@ -109,7 +120,7 @@ const SelectContent = React.forwardRef<
         <div className="fixed inset-0 z-40" onClick={() => context.setOpen(false)} />
         <div
             ref={ref}
-            className={`absolute z-50 min-w-[8rem] overflow-hidden rounded-md border border-gray-200 bg-white text-gray-950 shadow-md animate-in fade-in-0 zoom-in-95 mt-1 w-full ${className}`}
+            className={`absolute z-[100] min-w-[8rem] max-h-[300px] overflow-y-auto rounded-md border border-gray-200 bg-white text-gray-950 shadow-md animate-in fade-in-0 zoom-in-95 mt-1 min-w-full ${className}`}
             {...props}
         >
             <div className="p-1">{children}</div>
@@ -147,14 +158,14 @@ const SelectItem = React.forwardRef<
       onClick={(e) => {
         if (disabled) return;
         e.stopPropagation();
-        context?.onValueChange?.(value);
+        context?.handleSelect(value, children);
       }}
       {...props}
     >
       <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
         {isSelected && <Check className="h-4 w-4" />}
       </span>
-      <span className="truncate">{children}</span>
+      <span className="whitespace-nowrap">{children}</span>
     </div>
   );
 });

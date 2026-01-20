@@ -128,7 +128,7 @@ export default function MemberExcelUploadPage() {
             // Row 1: Keys (mem_id, etc) - This is what we map to
             // Row 2: Description
             // Row 3+: Data
-            const rawData = utils.sheet_to_json(sheet, { header: 1 }) as any[][];
+            const rawData = utils.sheet_to_json(sheet, { header: 1 }) as (string | number | boolean | null)[][];
             
             if (rawData.length < 2) {
                  alert('엑셀 파일 형식이 올바르지 않습니다. (헤더를 찾을 수 없습니다)');
@@ -154,7 +154,7 @@ export default function MemberExcelUploadPage() {
             }
 
             const formattedData = dataRows.map(row => {
-                const obj: any = {};
+                const obj: Record<string, string | number | boolean | null> = {};
                 keys.forEach((key, index) => {
                      // Check if key exists and row has value
                      if (key && row[index] !== undefined) obj[key] = row[index];

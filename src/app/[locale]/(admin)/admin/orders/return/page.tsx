@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -27,25 +27,44 @@ import { getOrdersAction } from "@/actions/order-actions";
 import { format } from "date-fns";
 import { OrderStatus } from "@/generated/prisma";
 
+interface OrderItem {
+    id: string;
+    productName: string;
+    quantity: number;
+    price: number;
+}
+
+interface OrderListItem {
+    id: string;
+    orderNo: string;
+    ordererName: string;
+    mallId: string;
+    createdAt: Date | string;
+    totalPayAmount: number;
+    totalItemPrice: number;
+    shippingFee: number;
+    paymentMethod: string;
+    status: OrderStatus;
+    items: OrderItem[];
+    totalProductAmount?: number;
+    totalShippingFee?: number;
+    statusUpdatedAt?: Date | string;
+}
+
 export default function ReturnListPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState("order_no");
-  const [dateRange, setDateRange] = useState("today");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [mallId, setMallId] = useState('all');
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
       setLoading(true);
       try {
           const res = await getOrdersAction({
@@ -59,14 +78,18 @@ export default function ReturnListPage() {
               mallId
           });
           if (res.success) {
-              setOrders(res.items || []);
+              setOrders(res.items as unknown as OrderListItem[] || []);
               setTotal(res.total || 0);
           }
       } catch (e) {
           console.error(e);
       }
       setLoading(false);
-  };
+  }, [page, limit, keyword, searchType, startDate, endDate, mallId]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleSearch = () => {
       setPage(1);
@@ -381,7 +404,7 @@ export default function ReturnListPage() {
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className="border-r border-[#CDCDCD]">-</td>
-                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate" title={order.items.map((i: any) => i.productName).join(', ')}>
+                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate" title={order.items.map((i) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
                                <td className="border-r border-[#CDCDCD]">{order.items.length}</td>

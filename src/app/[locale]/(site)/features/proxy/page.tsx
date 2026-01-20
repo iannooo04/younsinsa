@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Bell, Heart, ChevronUp, Globe } from "lucide-react";
+import Image from "next/image";
 
 export default function ProxyFeaturesPage() {
   const [activeTab, setActiveTab] = useState("전체");
@@ -90,10 +91,11 @@ export default function ProxyFeaturesPage() {
       {/* 2. Hero Banner */}
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=1600&q=80" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">Global Shopping<br/>Week</h2>
@@ -101,10 +103,11 @@ export default function ProxyFeaturesPage() {
             </div>
         </div>
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&w=1600&q=80" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">No Tax<br/>Event</h2>
@@ -139,7 +142,7 @@ export default function ProxyFeaturesPage() {
         <div className="grid grid-cols-2 gap-3">
             {countryFocus.map((country) => (
                 <div key={country.id} className="relative aspect-[4/5] bg-gray-100 rounded-lg overflow-hidden group">
-                     <img src={country.img} alt={country.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                     <Image src={country.img} alt={country.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
                      <div className="absolute inset-0 bg-black/20 group-hover:bg-black/10 transition-colors"></div>
                      <div className="absolute top-3 left-3 bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded-sm">
                         {country.country}
@@ -163,7 +166,7 @@ export default function ProxyFeaturesPage() {
             {hotDeals.map((item) => (
                 <div key={item.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={item.img} alt={item.name} className="w-full h-full object-cover" />
+                        <Image src={item.img} alt={item.name} fill className="object-cover" />
                         <div className="absolute top-2 left-2 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-sm font-bold">-{item.discount}</div>
                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500 bg-white/80 p-1 rounded-full">
                            <Heart size={14} />
@@ -194,7 +197,7 @@ export default function ProxyFeaturesPage() {
              {risingBrands.map((product) => (
                 <div key={product.id} className="w-full">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <span className="absolute top-2 right-2 text-xs">✈️</span>
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                            <Heart size={18} />
@@ -219,7 +222,7 @@ export default function ProxyFeaturesPage() {
          <div className="grid grid-cols-2 gap-4">
              {categoryItems.map((item) => (
                  <div key={item.id} className="relative rounded-lg overflow-hidden aspect-[16/9] group cursor-pointer">
-                     <img src={item.img} alt={item.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+                     <Image src={item.img} alt={item.title} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/30 transition-colors flex flex-col items-center justify-center text-center p-2">
                          <h4 className="text-white font-bold text-lg mb-1">{item.title}</h4>
                          <p className="text-gray-200 text-xs">{item.subtitle}</p>

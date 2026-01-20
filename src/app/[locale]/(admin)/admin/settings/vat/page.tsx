@@ -31,10 +31,10 @@ export default function VatSettingsPage() {
             
             // Ensure array type for JSON fields
             if (Array.isArray(s.customProductRates)) {
-                setCustomProductRates(s.customProductRates as any[]);
+                setCustomProductRates(s.customProductRates as { id: number; value: string }[]);
             }
             if (Array.isArray(s.customShippingRates)) {
-                setCustomShippingRates(s.customShippingRates as any[]);
+                setCustomShippingRates(s.customShippingRates as { id: number; value: string }[]);
             }
         }
     };

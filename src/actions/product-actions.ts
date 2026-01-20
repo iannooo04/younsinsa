@@ -2,11 +2,11 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { DisplayStatus, SaleStatus, Prisma } from "@/generated/prisma";
+import { DisplayStatus, Prisma } from "@/generated/prisma";
 import * as XLSX from "xlsx";
 
 // --- Create Product (Existing) ---
-export async function createProductAction(prevState: any, formData: FormData) {
+export async function createProductAction(prevState: unknown, formData: FormData) {
     const rawFormData = Object.fromEntries(formData.entries());
     
     // 1. Basic Data parsing
@@ -71,7 +71,7 @@ export async function getProductsAction(
     }
 ) {
     try {
-        const where: any = {
+        const where: Prisma.ProductWhereInput = {
             deletedAt: searchParams?.isDeleted ? { not: null } : null
         };
 
@@ -208,9 +208,11 @@ export async function copyProductsAction(ids: string[], targetCategoryId?: strin
             
             // Exclude ID and unique fields
             // Exclude ID and unique fields
-            const { id, code, createdAt, updatedAt, ...productData } = p;
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { id: _id, code: _code, createdAt: _createdAt, updatedAt: _updatedAt, ...productData } = p;
 
             // Handle JSON fields and ensure correct types for creation
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const dataToCreate = { ...productData } as any;
             
             // JSON fields cannot be 'null' in CreateInput in some Prisma configurations; use undefined for nulls
@@ -293,7 +295,7 @@ export async function getCategoriesSimpleAction() {
             select: { id: true, name: true }
         });
         return categories;
-    } catch (e) {
+    } catch {
         return [];
     }
 }
@@ -305,7 +307,7 @@ export async function getBrandsSimpleAction() {
             select: { id: true, name: true }
         });
         return brands;
-    } catch (e) {
+    } catch {
         return [];
     }
 }
@@ -364,6 +366,7 @@ export async function uploadProductsExcelAction(formData: FormData) {
         const sheet = workbook.Sheets[sheetName];
         
         // 엑셀 4번째 줄부터 데이터임 (0-indexed: 3)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1, range: 3 }) as any[][];
 
         if (jsonData.length === 0) return { success: false, message: "업로드할 데이터가 없습니다." };
@@ -377,6 +380,7 @@ export async function uploadProductsExcelAction(formData: FormData) {
         for (const row of jsonData) {
             if (!row || row.length === 0) continue;
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const productData: any = {
                 supplierId: supplierId || null,
             };

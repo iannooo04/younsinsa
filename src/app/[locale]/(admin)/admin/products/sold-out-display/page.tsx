@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Youtube, ChevronUp, ChevronDown, HelpCircle, Skull } from "lucide-react";
+import { Youtube, ChevronUp, Skull } from "lucide-react";
 
 export default function SoldOutProductDisplayPage() {
     return (

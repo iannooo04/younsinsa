@@ -43,7 +43,7 @@ export default function CreateEssentialInfoPage() {
         }));
     };
 
-    const updateItem = (index: number, field: string, value: any) => {
+    const updateItem = (index: number, field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             items: prev.items.map((item, i) => i === index ? { ...item, [field]: value } : item)

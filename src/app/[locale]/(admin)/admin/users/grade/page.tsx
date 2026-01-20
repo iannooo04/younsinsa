@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -55,7 +56,7 @@ export default function MemberGradePage() {
           if (gradesRes.success && gradesRes.grades) {
               setGrades(gradesRes.grades);
           }
-      } catch (e) {
+      } catch {
           toast.error("데이터를 불러오는 중 오류가 발생했습니다.");
       }
       setLoading(false);
@@ -76,6 +77,7 @@ export default function MemberGradePage() {
   const handleSettingsSave = async () => {
       if (!settings) return;
       // Filter only settings fields
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { id, basicPolicyId, ...data } = settings;
       const res = await updateMemberGradeSettingsAction(data);
        if (res.success) {

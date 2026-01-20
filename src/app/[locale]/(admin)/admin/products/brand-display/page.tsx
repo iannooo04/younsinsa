@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Youtube, ChevronUp, ChevronDown } from "lucide-react";
+import { Youtube, ChevronUp } from "lucide-react";
 import { 
     getBrandsAction, 
     getBrandDisplaySettingsAction, 
@@ -20,7 +20,7 @@ import {
 
 export default function BrandProductDisplayPage() {
     // Brands Data
-    const [brands, setBrands] = useState<any[]>([]);
+    const [brands, setBrands] = useState<{ id: string; name: string; parentId?: string | null }[]>([]);
     
     // Selection State (Hierarchy support)
     const [selectedDepth1, setSelectedDepth1] = useState<string>("");
@@ -30,9 +30,19 @@ export default function BrandProductDisplayPage() {
     const [currentBrandId, setCurrentBrandId] = useState<string | null>(null);
 
     // Data Display State
-    const [displaySettings, setDisplaySettings] = useState<any>(null);
+    const [displaySettings, setDisplaySettings] = useState<{
+        displayMethod: string;
+        pcTheme: string;
+        mobileTheme: string;
+    } | null>(null);
     const [productCount, setProductCount] = useState(0);
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<{
+        id: string;
+        name: string;
+        price: number;
+        stockQuantity: number;
+        supplier?: { name: string } | null;
+    }[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Load Brands
@@ -50,7 +60,7 @@ export default function BrandProductDisplayPage() {
     // Handle Search
     const handleSearch = async () => {
         // Determine the deepest selected brand
-        let targetId = selectedDepth3 || selectedDepth2 || selectedDepth1;
+        const targetId = selectedDepth3 || selectedDepth2 || selectedDepth1;
         
         if (!targetId) {
             alert("브랜드를 선택해주세요.");
@@ -67,7 +77,12 @@ export default function BrandProductDisplayPage() {
             ]);
 
             if (settingsRes.success) {
-                setDisplaySettings(settingsRes.settings || { 
+                const s = settingsRes.settings;
+                setDisplaySettings(s ? {
+                    displayMethod: s.displayMethod,
+                    pcTheme: s.pcTheme || "기본형",
+                    mobileTheme: s.mobileTheme || "기본형"
+                } : { 
                     displayMethod: "NORMAL", 
                     pcTheme: "기본형", 
                     mobileTheme: "기본형" 
@@ -176,7 +191,7 @@ export default function BrandProductDisplayPage() {
                              <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center">
                                 <Select 
                                     value={displaySettings?.displayMethod === "AUTO" ? "NORMAL" : (displaySettings?.displayMethod || "NORMAL")} 
-                                    onValueChange={(v) => setDisplaySettings({...displaySettings, displayMethod: v})}
+                                    onValueChange={(v) => displaySettings && setDisplaySettings({...displaySettings, displayMethod: v})}
                                 >
                                     <SelectTrigger className="h-7 w-full border-0 focus:ring-0 text-center"><SelectValue /></SelectTrigger>
                                     <SelectContent>

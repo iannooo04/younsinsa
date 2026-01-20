@@ -1,0 +1,40 @@
+
+> yunsinsa@0.1.0 build
+> prisma generate && next build
+
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma/schema.
+✅ Zod schemas generated successfully with filtering applied
+
+
+[36m🚀 prisma-zod-generator has powered 39 runs on this project![0m
+
+✨ Level up with PZG Pro (14-day trial, no card needed):
+   - Server actions & policy automation
+   - SDK publisher, API docs, drift guard
+   - Performance tooling for large teams and more!
+   [32mhttps://omar-dulaimi.github.io/prisma-zod-generator/pricing[0m
+
+💬 Need help or want to suggest an idea?
+   [32mhttps://github.com/omar-dulaimi/prisma-zod-generator/issues[0m
+
+🙌 Sponsorships literally keep the lights (and tests) running:
+   My current Dell Latitude laptop needs 40+ minutes to finish the full test suite.
+   Helping me upgrade means faster fixes and better tooling for everyone.
+   [32mhttps://github.com/sponsors/omar-dulaimi[0m
+
+
+✔ Generated Prisma Client (v7.2.0) to ./src/generated/prisma in 325ms
+
+✔ Generated Prisma Zod Generator to ./src/generated/zod in 7.33s
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+
+   ▲ Next.js 16.0.10 (Turbopack)
+   - Environments: .env
+
+   Creating an optimized production build ...
+/*! 🌼 daisyUI 5.5.14 */

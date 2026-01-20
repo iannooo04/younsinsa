@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,6 +22,7 @@ import {
     TableRow,
 } from "@/components/ui/ui-table";
 import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Check, Book } from "lucide-react";
+import Image from "next/image";
 
 export default function ProductPriceManagementPage() {
     // Mock Data based on the screenshot
@@ -221,7 +222,7 @@ export default function ProductPriceManagementPage() {
                                     <TableCell>{item.productCode}</TableCell>
                                     <TableCell className="py-1">
                                         <div className="flex justify-center">
-                                            <img src="/placeholder-image.png" alt="상품" className="w-10 h-10 bg-gray-100 object-cover" /> 
+                                            <div className="relative w-10 h-10 bg-gray-100"><Image src="/placeholder-image.png" alt="상품" fill className="object-cover" /></div> 
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-left pl-4 font-normal text-gray-800">{item.name}</TableCell>

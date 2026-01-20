@@ -3,15 +3,13 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import {
   HelpCircle,
   Youtube,
   ChevronUp,
-  Calendar,
-  AlertCircle
+  Calendar
 } from "lucide-react";
 
 export default function AnalyticsMainPage() {
@@ -136,14 +134,14 @@ export default function AnalyticsMainPage() {
 
       {/* Visitor & Pageview Status */}
       <div className="grid grid-cols-2 gap-8 mb-8">
-        <StatusGrid title="방문자 현황" moreLink="#">
+        <StatusGrid title="방문자 현황">
           <StatCard label="전체 방문자 수" value="7" avg="0.9" active />
           <StatCard label="신규 방문자 수" value="3" avg="0.4" />
           <StatCard label="재방문자 수" value="4" avg="0.5" />
           <StatCard label="방문 횟수" value="7" avg="0.9" />
         </StatusGrid>
 
-        <StatusGrid title="페이지뷰 현황" moreLink="#">
+        <StatusGrid title="페이지뷰 현황">
           <StatCard label="전체 방문자 PV" value="10" avg="1.2" active />
           <StatCard label="신규 방문자 PV" value="4" avg="0.5" />
           <StatCard label="재방문자 PV" value="6" avg="0.8" />
@@ -247,7 +245,7 @@ function OrderBlock({ label, value, active = false }: { label: string; value: st
   );
 }
 
-function StatusGrid({ title, children, moreLink }: { title: string; children: React.ReactNode; moreLink: string }) {
+function StatusGrid({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white border border-gray-100 rounded-[20px] p-8 shadow-sm">
       <div className="flex items-center justify-between mb-6">

@@ -29,8 +29,7 @@ export async function getBoardsAction(params: GetBoardsParams) {
         // If UI passes 'normal', 'gallery' etc, we need mapping.
         // Based on UI: 'normal' -> BASIC, 'gallery' -> GALLERY, 'event' -> EVENT, 'oneonone' -> INQUIRY
         
-        const typeEnums: Prisma.EnumBoardTypeFilter = { in: [] };
-        const mappedTypes: any[] = [];
+        const mappedTypes: string[] = [];
         
         if (type.includes('normal')) mappedTypes.push('BASIC');
         if (type.includes('gallery')) mappedTypes.push('GALLERY');
@@ -38,7 +37,8 @@ export async function getBoardsAction(params: GetBoardsParams) {
         if (type.includes('oneonone')) mappedTypes.push('INQUIRY');
         
         if (mappedTypes.length > 0) {
-             where.type = { in: mappedTypes };
+             // eslint-disable-next-line @typescript-eslint/no-explicit-any
+             where.type = { in: mappedTypes as any };
         }
     }
 

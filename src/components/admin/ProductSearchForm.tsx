@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, HelpCircle, ChevronRight, ChevronDown } from "lucide-react";
+import { HelpCircle, ChevronRight } from "lucide-react";
 import SupplierPopup from "@/components/admin/SupplierPopup";
 import SearchSettingSavePopup from "@/components/admin/SearchSettingSavePopup";
 

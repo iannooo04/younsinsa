@@ -69,7 +69,17 @@ model BasicPolicy {
 
   // 21. 회원 등급 설정
   memberGradeSettings MemberGradeSettings?
+
+  // 22. 쇼핑몰/회사 기본 정보
+  basicInfoSettings BasicInfoSettings?
+
+  // 23. 해외 상점 설정
+  globalShopSettings GlobalShopSettings?
+
+  // 24. 주문서 추가정보 설정
+  orderAdditionalInfoSettings OrderAdditionalInfoSettings?
 }
+
 
 // ... existing models ...
 
@@ -562,6 +572,12 @@ model MemberGradeSettings {
   downgradeUsage     String @default("use")  // use, unused
   criteriaMethod     String @default("figures") // figures, score
 
+  // 등급 산정 기간 (개월)
+  inputPeriod        Int    @default(0)
+  
+  // 등급 개수 (자동산출 등에서 사용)
+  gradeCount         Int    @default(0)
+
   // 실적 점수제 설정 (JSON)
   // {
   //   orderAmount: { used: true, unit: 10000, point: 100 },
@@ -571,4 +587,112 @@ model MemberGradeSettings {
   //   loginCount: { used: true, point: 1 }
   // }
   scoreSettings      Json?
+}
+
+// 22. 쇼핑몰/회사 기본 정보 (Basic Info Settings)
+model BasicInfoSettings {
+  id              Int         @id @default(autoincrement())
+
+  basicPolicyId   Int         @unique
+  basicPolicy     BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  // --- 쇼핑몰 기본 정보 ---
+  shopName        String      @default("엔큐버스")
+  shopNameEng     String      @default("nKubus")
+  topTitle        String      @default("nKubus")
+  faviconPath     String      @default("")
+  domain          String      @default("sosexy7654.godomall.com")
+  repCategory     String      @default("구매대행")
+
+  // --- 회사 정보 ---
+  companyName     String      @default("니아인터내셔널")
+  bizLicenseNum   String      @default("291-81-0245")
+  ceoName         String      @default("윤지현")
+  bizCondition    String      @default("도소매") // 업태
+  bizItem         String      @default("전자상거래") // 종목
+  
+  repEmail        String      @default("sosexy76@naver.com") // 대표 이메일
+  
+  // 사업장 주소
+  zipCode         String      @default("06136")
+  address         String      @default("서울특별시 강남구 논현로102길 5(역삼동)")
+  addressDetail   String      @default("4층")
+  
+  // 출고지 주소
+  shipZipCode     String      @default("")
+  shipAddress     String      @default("")
+  shipAddrDetail  String      @default("")
+  
+  // 반품/교환지 주소
+  returnZipCode    String     @default("")
+  returnAddress    String     @default("")
+  returnAddrDetail String     @default("")
+
+  repPhone        String      @default("01071296105")
+  fax             String      @default("")
+  
+  onlineSalesLicense String   @default("2022-서울 강남-0") // 통신판매신고번호
+  
+  sealImagePath   String      @default("")
+  
+  // 현금영수증 로고 (shop, required, direct, none)
+  cashReceiptLogoType String  @default("none")
+  
+  // --- 고객센터 ---
+  csPhone         String      @default("")
+  csEmail         String      @default("sosexy76@naver.com")
+  operatingHours  String      @db.Text // Textarea
+  
+  // --- 회사소개 ---
+  companyIntro    String      @db.Text // HTML content
+}
+
+// 23. 해외 상점 설정 (Global Shop Settings)
+model GlobalShopSettings {
+  id            Int         @id @default(autoincrement())
+  basicPolicyId Int         @unique
+  basicPolicy   BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  // 국가별 설정 (JSON Key: Country Code)
+  // {
+  //   "us": {
+  //     "usage": "unused",
+  //     "domain": "...",
+  //     "connectDomain": "...",
+  //     "currency": { "display": "dollar", "decimals": "2decimals" },
+  //     "referenceCurrency": "unused",
+  //     "priorityRegion": "usa",
+  //     "skin": { "pc": "english-default", "mobile": "english-default" }
+  //   },
+  //   ...
+  // }
+  settings Json
+}
+
+// 24. 주문서 추가정보 설정 (Order Additional Info Settings)
+model OrderAdditionalInfoSettings {
+  id            Int         @id @default(autoincrement())
+  basicPolicyId Int         @unique
+  basicPolicy   BasicPolicy @relation(fields: [basicPolicyId], references: [id])
+
+  // 국가별 사용 여부 (JSON Key: Country Code)
+  // { "kr": "used", "cn": "unused" }
+  usageSettings Json
+
+  // 추가정보 항목 리스트 (JSON Array)
+  // [
+  //   {
+  //     "id": "uuid",
+  //     "mallId": "kr",
+  //     "order": 1,
+  //     "display": true,
+  //     "required": false,
+  //     "name": "...",
+  //     "type": "text", // text, select, radio, etc.
+  //     "detailSettings": { ... },
+  //     "condition": { ... },
+  //     "exception": { ... }
+  //   }
+  // ]
+  items Json
 }

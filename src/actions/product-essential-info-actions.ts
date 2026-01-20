@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function getEssentialInfoTemplatesAction() {
@@ -63,7 +64,7 @@ export async function getEssentialInfoTemplateAction(id: string) {
 export async function createEssentialInfoTemplateAction(data: {
     name: string;
     supplierId?: string;
-    items: any;
+    items: Prisma.InputJsonValue;
 }) {
     try {
         const template = await prisma.productEssentialInfoTemplate.create({
@@ -85,7 +86,7 @@ export async function createEssentialInfoTemplateAction(data: {
 export async function updateEssentialInfoTemplateAction(id: string, data: {
     name: string;
     supplierId?: string;
-    items: any;
+    items: Prisma.InputJsonValue;
 }) {
     try {
         const template = await prisma.productEssentialInfoTemplate.update({
@@ -132,7 +133,7 @@ export async function copyEssentialInfoTemplatesAction(ids: string[]) {
                 data: {
                     name: `(복사) ${template.name}`,
                     supplierId: template.supplierId,
-                    items: template.items as any,
+                    items: template.items as Prisma.InputJsonValue,
                 },
             });
         }

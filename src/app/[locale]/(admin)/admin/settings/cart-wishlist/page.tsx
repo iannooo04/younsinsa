@@ -85,7 +85,7 @@ export default function CartWishlistSettingsPage() {
         fetchData();
     }, []);
 
-    const handleChange = (field: keyof CartWishlistSettingsState, value: any) => {
+    const handleChange = (field: keyof CartWishlistSettingsState, value: string | number) => {
         setSettings(prev => ({ ...prev, [field]: value }));
     };
 

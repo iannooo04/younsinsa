@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -14,10 +12,8 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Calendar,
   Youtube,
   ChevronUp,
-  FileSpreadsheet,
   BookOpen,
   AlertCircle
 } from "lucide-react";
@@ -25,37 +21,61 @@ import * as XLSX from "xlsx";
 import { uploadInvoiceExcelAction, getInvoiceUploadHistoryAction } from "@/actions/order-actions";
 import { format } from "date-fns";
 
+interface InvoiceRow {
+    orderNo: string;
+    productOrderNo?: string;
+    deliveryCompany: string;
+    trackingNumber: string;
+    shippedDate?: string;
+    deliveryCompleteDate?: string;
+}
+
+interface UploadHistoryItem {
+    id: string;
+    createdAt: Date | string;
+    registrant?: string;
+    supplierId?: string;
+    totalCount: number;
+    successCount: number;
+    failCount: number;
+}
+
 export default function InvoiceBulkPage() {
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, startTransition] = useTransition();
-  const [uploadResult, setUploadResult] = useState<any>(null);
+  const [, setUploadResult] = useState<{
+    success: boolean;
+    successCount?: number;
+    failCount?: number;
+    failureDetails?: object[];
+    error?: string;
+  } | null>(null);
   
   // History State
-  const [historyItems, setHistoryItems] = useState<any[]>([]);
+  const [historyItems, setHistoryItems] = useState<UploadHistoryItem[]>([]);
   const [historyTotal, setHistoryTotal] = useState(0);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [limit] = useState(20);
 
-  useEffect(() => {
-      fetchHistory();
-  }, [page]);
-
-  const fetchHistory = async () => {
+  const fetchHistory = useCallback(async () => {
       try {
           const res = await getInvoiceUploadHistoryAction({ page, limit });
           if (res.success) {
-              setHistoryItems(res.items || []);
+              setHistoryItems(res.items as unknown as UploadHistoryItem[] || []);
               setHistoryTotal(res.total || 0);
           }
       } catch (e) {
           console.error(e);
       }
-  };
+  }, [page, limit]);
+
+  useEffect(() => {
+      fetchHistory();
+  }, [fetchHistory]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
           setFile(e.target.files[0]);
-          setUploadResult(null);
       }
   };
 
@@ -75,14 +95,14 @@ export default function InvoiceBulkPage() {
           
           // Assuming header is row 0: [OrderNo, ProductOrderNo, DeliveryCompany, TrackingNumber, ShippedDate, DeliveryCompleteDate]
           // Map to objects (Skipping header)
-          const rows = jsonData.slice(1).map((row: any) => ({
-              orderNo: row[0],
-              productOrderNo: row[1], // Optional
-              deliveryCompany: row[2],
-              trackingNumber: row[3],
-              shippedDate: row[4],
-              deliveryCompleteDate: row[5]
-          })).filter((r:any) => r.orderNo && r.trackingNumber); // Filter empty rows
+          const rows = (jsonData.slice(1) as unknown[][]).map((row) => ({
+              orderNo: String(row[0] || ""),
+              productOrderNo: String(row[1] || ""), 
+              deliveryCompany: String(row[2] || ""),
+              trackingNumber: String(row[3] || ""),
+              shippedDate: String(row[4] || ""),
+              deliveryCompleteDate: String(row[5] || "")
+          })).filter((r: InvoiceRow) => r.orderNo && r.trackingNumber);
 
           if (rows.length === 0) {
               alert("유효한 데이터가 없습니다. 엑셀 양식을 확인해주세요.");

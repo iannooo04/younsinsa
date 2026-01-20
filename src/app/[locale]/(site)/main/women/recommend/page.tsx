@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Bell, Heart, ChevronUp } from "lucide-react";
+import Image from "next/image";
 
 export default function WomenRecommendPage() {
   const [activeTab, setActiveTab] = useState("추천");
@@ -111,10 +112,11 @@ export default function WomenRecommendPage() {
       {/* 2. Hero Banner */}
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=1600&auto=format&fit=crop" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">2024 Winter<br/>Essential Look</h2>
@@ -122,10 +124,11 @@ export default function WomenRecommendPage() {
             </div>
         </div>
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">디자이너 브랜드<br/>시즌 오프 세일</h2>
@@ -162,7 +165,7 @@ export default function WomenRecommendPage() {
             {risingBrands.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -192,7 +195,7 @@ export default function WomenRecommendPage() {
              {basicItems.map((product) => (
                 <div key={product.id} className="min-w-[150px] max-w-[150px] snap-start">
                     <div className="aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-white drop-shadow-md hover:text-red-500">
                            <Heart size={18} />
                          </button>
@@ -218,7 +221,7 @@ export default function WomenRecommendPage() {
             {dailySpecials.map((product) => (
                 <div key={product.id}>
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                        <Image src={product.img} alt={product.name} fill className="object-cover" />
                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500 bg-white/80 p-1 rounded-full">
                            <Heart size={14} />
                         </button>
@@ -248,7 +251,7 @@ export default function WomenRecommendPage() {
             {styleItems.map((item) => (
                 <div key={item.id} className="min-w-[160px] max-w-[160px] snap-start">
                     <div className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden relative">
-                         <img src={item.img} alt="Trending" className="w-full h-full object-cover" />
+                         <Image src={item.img} alt="Trending" fill className="object-cover" />
                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>
@@ -270,7 +273,7 @@ export default function WomenRecommendPage() {
              {outerItems.map((product) => (
                 <div key={product.id} className="w-full">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                            <Heart size={18} />
                          </button>
@@ -306,7 +309,7 @@ export default function WomenRecommendPage() {
                         {index + 1}
                     </div>
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>

@@ -45,19 +45,21 @@ export async function getBrandAction(id: string) {
     }
 }
 
-export async function createBrandAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function createBrandAction(data: Record<string, any>) {
   try {
     const { recommendedProducts, ...createData } = data;
 
     const newBrand = await prisma.brand.create({
       data: {
-        ...createData,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ...(createData as any),
       },
     });
 
     if (recommendedProducts && recommendedProducts.length > 0) {
         await prisma.brandRecommendedProduct.createMany({
-            data: recommendedProducts.map((rp: any, index: number) => ({
+            data: recommendedProducts.map((rp: { productId: string; order?: number }, index: number) => ({
                 brandId: newBrand.id,
                 productId: rp.productId,
                 order: rp.order ?? index
@@ -73,7 +75,8 @@ export async function createBrandAction(data: any) {
   }
 }
 
-export async function updateBrandAction(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateBrandAction(id: string, data: Record<string, any>) {
     try {
         // Handle recommendedProducts separately if passed
         const { recommendedProducts, ...updateData } = data;
@@ -81,7 +84,8 @@ export async function updateBrandAction(id: string, data: any) {
         const updatedBrand = await prisma.brand.update({
             where: { id },
             data: {
-                ...updateData,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(updateData as any),
             }
         });
 
@@ -94,7 +98,7 @@ export async function updateBrandAction(id: string, data: any) {
             // Then create new ones
             if (recommendedProducts.length > 0) {
                 await prisma.brandRecommendedProduct.createMany({
-                    data: recommendedProducts.map((rp: any, index: number) => ({
+                    data: recommendedProducts.map((rp: { productId: string; order?: number }, index: number) => ({
                         brandId: id,
                         productId: rp.productId,
                         order: rp.order ?? index

@@ -9,8 +9,6 @@ import {
   Info
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Link } from "@/i18n/routing";
 
 export default function SmsChargePage() {
   const chargeOptions = [

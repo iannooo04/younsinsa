@@ -59,8 +59,8 @@ export default function ProductImageSizeSettingsPage() {
         startTransition(async () => {
             const result = await updateProductImageSizeSettingsAction({
                 resizeMethod,
-                basicImages,
-                listImages
+                basicImages: basicImages as unknown as Record<string, Record<string, number | string>>,
+                listImages: listImages as unknown as Record<string, string | number>[]
             });
             if (result.success) {
                 alert("저장되었습니다.");

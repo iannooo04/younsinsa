@@ -290,7 +290,7 @@ export default function ProductExcelUploadPage() {
                 <div className="flex-1 p-3 flex items-center">
                     <RadioGroup 
                         value={supplierType} 
-                        onValueChange={(v: any) => setSupplierType(v)}
+                        onValueChange={(v: string) => setSupplierType(v as "head" | "supplier")}
                         className="flex gap-4 items-center"
                     >
                         <div className="flex items-center gap-1.5">

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Folder, FolderPlus, Trash2, Plus, ChevronRight, ChevronDown } from "lucide-react";
 import { type CategoryWithChildren } from "@/lib/admin/categories";
+import Image from "next/image";
 
 interface Props {
     initialCategories: CategoryWithChildren[];
@@ -21,9 +22,7 @@ export default function CategoryList({ initialCategories }: Props) {
         e.preventDefault();
         setLoading(true);
         const formData = new FormData(e.currentTarget);
-        const name = formData.get("name") as string;
-        const parentId = formData.get("parentId") as string;
-        const slug = formData.get("slug") as string;
+
 
         try {
             // Remove Content-Type header to let browser set boundary for FormData
@@ -104,7 +103,7 @@ export default function CategoryList({ initialCategories }: Props) {
                                 {category.imageUrl && (
                                     <div className="avatar mr-2">
                                         <div className="w-8 rounded">
-                                            <img src={category.imageUrl} alt={category.name} />
+                                            <Image src={category.imageUrl} alt={category.name} fill className="object-cover" />
                                         </div>
                                     </div>
                                 )}

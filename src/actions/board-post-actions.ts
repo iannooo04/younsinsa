@@ -25,8 +25,8 @@ export async function getPostsAction(params: GetPostsParams) {
             endDate,
             answerStatus,
             searchType,
-            keyword,
-            sortBy
+            keyword
+            // sortBy - unused
         } = params;
 
         const where: Prisma.PostWhereInput = {};
@@ -142,7 +142,7 @@ export async function getSimpleBoardListAction() {
             orderBy: { name: 'asc' }
         });
         return { success: true, list: boards };
-    } catch (error) {
+    } catch {
         return { success: false, list: [] };
     }
 }
@@ -159,7 +159,7 @@ export async function getPostAction(id: string) {
         });
         if (!post) return { success: false, error: "게시글을 찾을 수 없습니다." };
         return { success: true, post };
-    } catch (error) {
+    } catch {
         return { success: false, error: "오류가 발생했습니다." };
     }
 }

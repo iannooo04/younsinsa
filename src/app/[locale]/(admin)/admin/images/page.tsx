@@ -1,10 +1,12 @@
 
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { Trash2, RefreshCcw, ExternalLink, Folder, ChevronRight, ChevronDown } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 // --- Types ---
 interface S3File {
@@ -395,11 +397,12 @@ export default function AdminImagesPage() {
                             {files.map((img) => (
                                 <div key={img.key} className="card bg-white shadow-sm border border-base-200 group">
                                     <figure className="relative aspect-square bg-base-200/50 overflow-hidden">
-                                        <img
+                                        <Image
                                             src={img.url}
                                             alt={img.key}
-                                            className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
-                                            loading="lazy"
+                                            fill
+                                            className="object-cover transition-transform duration-300 group-hover:scale-105"
+                                            sizes="200px"
                                         />
                                         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                                     </figure>

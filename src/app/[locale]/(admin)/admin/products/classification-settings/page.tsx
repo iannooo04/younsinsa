@@ -4,12 +4,12 @@ import React, { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Youtube, ChevronUp, ChevronDown, HelpCircle, AlertCircle } from "lucide-react";
+import { Youtube, ChevronUp } from "lucide-react";
 import { getProductBasicSettingsAction, updateProductBasicSettingsAction } from "@/actions/basic-policy-actions";
 
 export default function ClassificationSettingsPage() {
     const [isPending, startTransition] = useTransition();
-    const [settings, setSettings] = useState<any>(null);
+    const [settings, setSettings] = useState<Record<string, unknown> | null>(null);
     const [formData, setFormData] = useState({
         subBrandProductDisplay: "unsold",
         parentCategoryAutoRegister: "unused",
@@ -40,7 +40,7 @@ export default function ClassificationSettingsPage() {
                 navBrandUsage: res.settings.navBrandUsage,
                 countCategoryUsage: res.settings.countCategoryUsage,
                 countBrandUsage: res.settings.countBrandUsage,
-                modDateRange: res.settings.modDateRange as any,
+                modDateRange: res.settings.modDateRange as Record<string, unknown>,
                 modDatePopup: res.settings.modDatePopup,
                 imageLoadingEnhance: res.settings.imageLoadingEnhance,
                 priceExposure: res.settings.priceExposure,

@@ -255,7 +255,7 @@ function LineChartMock() {
   return (
     <svg width="100%" height="100%" viewBox="0 0 1000 200" preserveAspectRatio="none">
       {/* Grid lines */}
-      {[0, 0.75, 1.5, 2.25, 3].map((val, i) => (
+      {[0, 0.75, 1.5, 2.25, 3].map((val) => (
         <React.Fragment key={val}>
            <line x1="50" y1={180 - (val / 3) * 160} x2="950" y2={180 - (val / 3) * 160} stroke="#f1f5f9" strokeWidth="1" />
            <text x="40" y={185 - (val / 3) * 160} fill="#94a3b8" fontSize="10" textAnchor="end">{val}</text>

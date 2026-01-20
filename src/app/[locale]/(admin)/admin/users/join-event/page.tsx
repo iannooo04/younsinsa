@@ -2,8 +2,6 @@
 
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -15,7 +13,6 @@ import {
   HelpCircle,
   Youtube,
   ChevronUp,
-  Info,
   AlertCircle
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";

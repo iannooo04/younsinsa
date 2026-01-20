@@ -16,10 +16,9 @@ import {
   Youtube,
   ChevronUp,
   Info,
-  Calendar,
   FileSpreadsheet
 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getPostsAction, deletePostsAction, getSimpleBoardListAction } from "@/actions/board-post-actions";
 import { toast } from "sonner";
 import { format } from "date-fns";
@@ -27,8 +26,9 @@ import { Link } from "@/i18n/routing";
 
 export default function PostManagementPage() {
   const [loading, setLoading] = useState(true);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [boards, setBoards] = useState<any[]>([]);
+  const [posts, setPosts] = useState<{ id: string; subject: string; author: string; createdAt: Date | string; 
+      views: number; answerStatus: string | null; boardName: string; isAnswered: boolean; }[]>([]);
+  const [boards, setBoards] = useState<{ id: string; name: string; boardId: string }[]>([]);
   const [total, setTotal] = useState(0);
   
   // Filters
@@ -44,21 +44,14 @@ export default function PostManagementPage() {
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchBoards();
-    fetchPosts();
-  }, []);
 
-  useEffect(() => {
-    fetchPosts();
-  }, [page, pageSize]); // Refetch on page/size change
 
-  const fetchBoards = async () => {
+  const fetchBoards = useCallback(async () => {
       const res = await getSimpleBoardListAction();
       if (res.success) setBoards(res.list || []);
-  };
+  }, []);
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     setLoading(true);
     const res = await getPostsAction({
         page,
@@ -67,7 +60,7 @@ export default function PostManagementPage() {
         startDate: startDate ? new Date(startDate) : undefined,
         endDate: endDate ? new Date(endDate) : undefined,
         answerStatus: answerStatus === 'all' ? undefined : answerStatus,
-        searchType: searchType as any,
+        searchType: searchType as "subject" | "content" | "writer",
         keyword
     });
 
@@ -78,7 +71,12 @@ export default function PostManagementPage() {
         toast.error(res.error || "목록을 불러오는데 실패했습니다.");
     }
     setLoading(false);
-  };
+  }, [page, pageSize, boardId, startDate, endDate, answerStatus, searchType, keyword]);
+
+  useEffect(() => {
+    fetchBoards();
+    fetchPosts();
+  }, [fetchBoards, fetchPosts]);
 
   const handleDelete = async () => {
       if (selectedIds.length === 0) return toast.error("선택된 게시글이 없습니다.");
@@ -391,18 +389,4 @@ export default function PostManagementPage() {
   );
 }
 
-function DateButton({ label, active = false }: { label: string; active?: boolean }) {
-  return (
-    <button className={`h-8 px-3 text-[11px] border whitespace-nowrap flex-shrink-0 ${active ? 'bg-[#555555] text-white border-[#555555]' : 'bg-white text-gray-600 border-gray-300'} first:rounded-l-[2px] last:rounded-r-[2px] -ml-[1px] hover:z-10`}>
-      {label}
-    </button>
-  );
-}
 
-function TabItem({ label, active = false }: { label: string; active?: boolean }) {
-  return (
-    <div className={`px-6 py-3 text-sm cursor-pointer border-t-[3px] border-x border-b ${active ? 'border-t-[#FF424D] border-x-gray-300 border-b-white bg-white font-bold text-gray-800' : 'border-t-transparent border-x-transparent border-b-transparent text-gray-500 hover:text-gray-700'} -mb-[1px]`}>
-      {label}
-    </div>
-  );
-}

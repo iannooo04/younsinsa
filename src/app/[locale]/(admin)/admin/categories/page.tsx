@@ -1,17 +1,9 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   ChevronUp,
   Folder,
@@ -20,11 +12,7 @@ import {
   File,
   Plus,
   Minus,
-  Youtube,
-  ChevronDown,
-  Trash2,
-  ExternalLink,
-  Copy
+
 } from "lucide-react";
 import React, { useEffect, useState, useTransition } from "react";
 import { 
@@ -35,15 +23,40 @@ import {
 } from "@/actions/category-actions";
 import { Category } from "@/generated/prisma";
 
-// Tree Item Interface
 interface CategoryWithChildren extends Category {
     children?: CategoryWithChildren[];
-    displaySettings?: any;
+    displaySettings?: {
+        displayMethod: string;
+    } | null;
 }
+
+const buildTree = (items: CategoryWithChildren[]) => {
+    const rootItems: CategoryWithChildren[] = [];
+    const lookup: { [key: string]: CategoryWithChildren } = {};
+
+    for (const item of items) {
+        lookup[item.id] = { ...item, children: [] };
+    }
+
+    for (const item of items) {
+        if (item.parentId) {
+            const parent = lookup[item.parentId];
+            if (parent) {
+                parent.children?.push(lookup[item.id]);
+            } else {
+                // Orphan or parent not found, treat as root?
+                rootItems.push(lookup[item.id]);
+            }
+        } else {
+            rootItems.push(lookup[item.id]);
+        }
+    }
+    return rootItems;
+};
 
 export default function CategoryManagementPage() {
   const [categories, setCategories] = useState<CategoryWithChildren[]>([]);
-  const [categoryList, setCategoryList] = useState<CategoryWithChildren[]>([]); // Flat list
+
   const [selectedCategory, setSelectedCategory] = useState<CategoryWithChildren | null>(null);
   const [isPending, startTransition] = useTransition();
 
@@ -63,40 +76,15 @@ export default function CategoryManagementPage() {
 
   const [mode, setMode] = useState<"create_root" | "create_sub" | "edit" | null>(null);
 
-  useEffect(() => {
-      fetchCategories();
+  const fetchCategories = React.useCallback(async () => {
+      const res = await getCategoriesAction();
+      const tree = buildTree(res as CategoryWithChildren[]);
+      setCategories(tree);
   }, []);
 
-  const fetchCategories = async () => {
-      const res = await getCategoriesAction();
-      setCategoryList(res as any);
-      const tree = buildTree(res as any);
-      setCategories(tree);
-  };
-
-  const buildTree = (items: CategoryWithChildren[]) => {
-      const rootItems: CategoryWithChildren[] = [];
-      const lookup: { [key: string]: CategoryWithChildren } = {};
-
-      for (const item of items) {
-          lookup[item.id] = { ...item, children: [] };
-      }
-
-      for (const item of items) {
-          if (item.parentId) {
-              const parent = lookup[item.parentId];
-              if (parent) {
-                  parent.children?.push(lookup[item.id]);
-              } else {
-                  // Orphan or parent not found, treat as root?
-                  rootItems.push(lookup[item.id]);
-              }
-          } else {
-              rootItems.push(lookup[item.id]);
-          }
-      }
-      return rootItems;
-  };
+  useEffect(() => {
+      fetchCategories();
+  }, [fetchCategories]);
 
   const handleSelectCategory = (cat: CategoryWithChildren) => {
       setSelectedCategory(cat);

@@ -18,7 +18,6 @@ import {
   Youtube,
   ChevronUp,
   Info,
-  Calendar
 } from "lucide-react";
 import { getFaqsAction, deleteFaqsAction } from "@/actions/board-faq-actions";
 import { toast } from "sonner";
@@ -27,6 +26,7 @@ import { Link } from "@/i18n/routing";
 
 export default function FAQManagementPage() {
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [faqs, setFaqs] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   
@@ -37,16 +37,12 @@ export default function FAQManagementPage() {
   const [keyword, setKeyword] = useState("");
   
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize] = useState(10);
   
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
-  useEffect(() => {
-    fetchFaqs();
-  }, [page, pageSize]);
-
-  const fetchFaqs = async () => {
+  const fetchFaqs = React.useCallback(async () => {
     setLoading(true);
     const res = await getFaqsAction({
         mallId: mallId === 'base' ? 'KR' : mallId === 'cn' ? 'CN' : 'KR', // Map UI values
@@ -64,7 +60,11 @@ export default function FAQManagementPage() {
         toast.error("데이터를 불러오는데 실패했습니다.");
     }
     setLoading(false);
-  };
+  }, [mallId, category, type, keyword, page, pageSize]);
+
+  useEffect(() => {
+    fetchFaqs();
+  }, [fetchFaqs]);
 
   const handleDelete = async () => {
     if (selectedIds.length === 0) return toast.error("선택된 항목이 없습니다.");

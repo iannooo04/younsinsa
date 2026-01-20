@@ -26,7 +26,7 @@ export default function OptionTemplateManager() {
     const [currentOptions, setCurrentOptions] = useState<{name: string, values: OptionValue[]}[]>([
         { name: "", values: [] }
     ]);
-    const [editingId, setEditingId] = useState<string | null>(null);
+    const [, setEditingId] = useState<string | null>(null);
 
     useEffect(() => {
         fetchTemplates();

@@ -260,7 +260,7 @@ function DualChartMock({ type }: { type: 'counts' | 'amount' }) {
   return (
     <svg width="100%" height="100%" viewBox="0 0 1000 200" preserveAspectRatio="none">
       {/* Grid lines */}
-      {[0, 1, 2, 3, 4].map((val, i) => (
+      {[0, 1, 2, 3, 4].map((val) => (
         <React.Fragment key={val}>
            <line x1="50" y1={180 - (val / 4) * 160} x2="950" y2={180 - (val / 4) * 160} stroke="#f1f5f9" strokeWidth="1" />
            <text x="40" y={185 - (val / 4) * 160} fill="#94a3b8" fontSize="10" textAnchor="end">{val}</text>

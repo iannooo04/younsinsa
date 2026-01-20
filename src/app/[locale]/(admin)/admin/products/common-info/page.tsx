@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Calendar,
   Youtube,
   ChevronUp,
   FileSpreadsheet,
@@ -28,7 +27,21 @@ import { format } from "date-fns";
 import { Link } from "@/i18n/routing";
 
 export default function CommonInfoManagementPage() {
-  const [items, setItems] = React.useState<any[]>([]);
+  const [items, setItems] = React.useState<{
+    id: string;
+    title: string;
+    exposureType: string;
+    startDate: Date | null;
+    endDate: Date | null;
+    progressStatus: string;
+    displayStatus: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    productCondition: { type?: string; [key: string]: any };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    exceptionCondition: { ids?: string[]; [key: string]: any };
+    createdAt: Date;
+    updatedAt: Date;
+  }[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   
@@ -46,7 +59,8 @@ export default function CommonInfoManagementPage() {
     setLoading(true);
     const res = await getProductCommonInfosAction(searchParams);
     if (res.success) {
-      setItems(res.data || []);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setItems((res.data as any) || []);
     }
     setLoading(false);
   }, [searchParams]);
@@ -368,7 +382,7 @@ export default function CommonInfoManagementPage() {
                         <td className="py-2 border-r border-gray-100">
                             {item.exposureType === "ALL" ? "전체" : 
                              item.exposureType === "UNLIMITED" ? "제한없음" :
-                             `${format(new Date(item.startDate), "yyyy-MM-dd")} ~ ${format(new Date(item.endDate), "yyyy-MM-dd")}`}
+                             `${item.startDate ? format(new Date(item.startDate), "yyyy-MM-dd") : ""} ~ ${item.endDate ? format(new Date(item.endDate), "yyyy-MM-dd") : ""}`}
                         </td>
                         <td className="py-2 border-r border-gray-100">
                             <span className={`px-2 py-0.5 rounded-full text-[10px] ${
@@ -385,10 +399,10 @@ export default function CommonInfoManagementPage() {
                             </span>
                         </td>
                         <td className="py-2 border-r border-gray-100">{item.productCondition?.type || "전체"}</td>
-                        <td className="py-2 border-r border-gray-100">{item.exceptionCondition?.ids?.length > 0 ? "있음" : "없음"}</td>
+                        <td className="py-2 border-r border-gray-100">{(item.exceptionCondition?.ids?.length ?? 0) > 0 ? "있음" : "없음"}</td>
                         <td className="py-2 border-r border-gray-100 leading-tight">
-                            {format(new Date(item.createdAt), "yyyy-MM-dd")}<br/>
-                            <span className="text-[10px] text-gray-400">({format(new Date(item.updatedAt), "yyyy-MM-dd")})</span>
+                            {item.createdAt ? format(new Date(item.createdAt), "yyyy-MM-dd") : ""}<br/>
+                            <span className="text-[10px] text-gray-400">({item.updatedAt ? format(new Date(item.updatedAt), "yyyy-MM-dd") : ""})</span>
                         </td>
                         <td className="py-2">
                              <Link href={`/admin/products/common-info/edit/${item.id}`}>

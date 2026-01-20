@@ -10,7 +10,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Youtube, ChevronUp, ChevronDown, HelpCircle, Search } from "lucide-react";
+import { Youtube, ChevronUp } from "lucide-react";
 import { 
     getCategoryLevelsAction, 
     getCategoryDisplaySettingsAction, 
@@ -20,7 +20,12 @@ import {
 
 export default function CategoryProductDisplayPage() {
     // Categories Hierarchy
-    const [categories, setCategories] = useState<any[]>([]);
+    interface Category {
+        id: string;
+        name: string;
+        children?: Category[];
+    }
+    const [categories, setCategories] = useState<Category[]>([]);
     
     // Selection State
     const [selectedDepth1, setSelectedDepth1] = useState<string>("");
@@ -31,9 +36,19 @@ export default function CategoryProductDisplayPage() {
     const [currentCategoryId, setCurrentCategoryId] = useState<string | null>(null);
 
     // Data Display State
-    const [displaySettings, setDisplaySettings] = useState<any>(null);
+    const [displaySettings, setDisplaySettings] = useState<{
+        displayMethod: string;
+        pcTheme: string;
+        mobileTheme: string;
+    } | null>(null);
     const [productCount, setProductCount] = useState(0);
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<{
+        id: string;
+        name: string;
+        price: number;
+        stockQuantity: number;
+        supplier?: { name: string } | null;
+    }[]>([]);
     const [loading, setLoading] = useState(false);
 
     // Load Categories
@@ -46,13 +61,13 @@ export default function CategoryProductDisplayPage() {
     // Derived Lists based on selection
     const depth1Items = categories;
     const depth2Items = depth1Items.find(c => c.id === selectedDepth1)?.children || [];
-    const depth3Items = depth2Items.find((c: any) => c.id === selectedDepth2)?.children || [];
-    const depth4Items = depth3Items.find((c: any) => c.id === selectedDepth3)?.children || [];
+    const depth3Items = depth2Items.find((c: Category) => c.id === selectedDepth2)?.children || [];
+    const depth4Items = depth3Items.find((c: Category) => c.id === selectedDepth3)?.children || [];
 
     // Handle Search / Load Category Data
     const handleSearch = async () => {
         // Determine the deepest selected category
-        let targetId = selectedDepth4 || selectedDepth3 || selectedDepth2 || selectedDepth1;
+        const targetId = selectedDepth4 || selectedDepth3 || selectedDepth2 || selectedDepth1;
         
         if (!targetId) {
             alert("카테고리를 선택해주세요.");
@@ -69,7 +84,12 @@ export default function CategoryProductDisplayPage() {
             ]);
 
             if (settingsRes.success) {
-                setDisplaySettings(settingsRes.settings || { 
+                const s = settingsRes.settings;
+                setDisplaySettings(s ? {
+                    displayMethod: s.displayMethod,
+                    pcTheme: s.pcTheme || "기본형",
+                    mobileTheme: s.mobileTheme || "기본형"
+                } : { 
                     displayMethod: "NORMAL", 
                     pcTheme: "기본형", 
                     mobileTheme: "기본형" 
@@ -129,35 +149,35 @@ export default function CategoryProductDisplayPage() {
                             }}>
                                 <SelectTrigger className="w-40 h-8 text-xs"><SelectValue placeholder="=1차 카테고리=" /></SelectTrigger>
                                 <SelectContent>
-                                    {depth1Items.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                    {depth1Items.map((c: Category) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-
-                            {/* Depth 2 */}
-                            <Select value={selectedDepth2} onValueChange={(val) => {
-                                setSelectedDepth2(val); setSelectedDepth3(""); setSelectedDepth4("");
-                            }}>
-                                <SelectTrigger disabled={!selectedDepth1} className="w-40 h-8 text-xs"><SelectValue placeholder="=2차 카테고리=" /></SelectTrigger>
-                                <SelectContent>
-                                    {depth2Items.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-
-                            {/* Depth 3 */}
-                            <Select value={selectedDepth3} onValueChange={(val) => {
-                                setSelectedDepth3(val); setSelectedDepth4("");
-                            }}>
-                                <SelectTrigger disabled={!selectedDepth2} className="w-40 h-8 text-xs"><SelectValue placeholder="=3차 카테고리=" /></SelectTrigger>
-                                <SelectContent>
-                                    {depth3Items.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-
-                             {/* Depth 4 */}
-                             <Select value={selectedDepth4} onValueChange={setSelectedDepth4}>
-                                <SelectTrigger disabled={!selectedDepth3} className="w-40 h-8 text-xs"><SelectValue placeholder="=4차 카테고리=" /></SelectTrigger>
-                                <SelectContent>
-                                    {depth4Items.map((c: any) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+ 
+                             {/* Depth 2 */}
+                             <Select value={selectedDepth2} onValueChange={(val) => {
+                                 setSelectedDepth2(val); setSelectedDepth3(""); setSelectedDepth4("");
+                             }}>
+                                 <SelectTrigger disabled={!selectedDepth1} className="w-40 h-8 text-xs"><SelectValue placeholder="=2차 카테고리=" /></SelectTrigger>
+                                 <SelectContent>
+                                     {depth2Items.map((c: Category) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                 </SelectContent>
+                             </Select>
+ 
+                             {/* Depth 3 */}
+                             <Select value={selectedDepth3} onValueChange={(val) => {
+                                 setSelectedDepth3(val); setSelectedDepth4("");
+                             }}>
+                                 <SelectTrigger disabled={!selectedDepth2} className="w-40 h-8 text-xs"><SelectValue placeholder="=3차 카테고리=" /></SelectTrigger>
+                                 <SelectContent>
+                                     {depth3Items.map((c: Category) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                                 </SelectContent>
+                             </Select>
+ 
+                              {/* Depth 4 */}
+                              <Select value={selectedDepth4} onValueChange={setSelectedDepth4}>
+                                 <SelectTrigger disabled={!selectedDepth3} className="w-40 h-8 text-xs"><SelectValue placeholder="=4차 카테고리=" /></SelectTrigger>
+                                 <SelectContent>
+                                     {depth4Items.map((c: Category) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
 
@@ -189,7 +209,7 @@ export default function CategoryProductDisplayPage() {
                                 {/* Simple Dropdown for Demo */}
                                 <Select 
                                     value={displaySettings?.displayMethod || "NORMAL"} 
-                                    onValueChange={(v) => setDisplaySettings({...displaySettings, displayMethod: v})}
+                                    onValueChange={(v) => displaySettings && setDisplaySettings({...displaySettings, displayMethod: v})}
                                 >
                                     <SelectTrigger className="h-7 w-full border-0 focus:ring-0 text-center"><SelectValue /></SelectTrigger>
                                     <SelectContent>

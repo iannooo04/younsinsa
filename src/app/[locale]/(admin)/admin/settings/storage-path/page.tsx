@@ -1,20 +1,16 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Save } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { getStorageSettingsAction, updateStorageSettingsAction } from "@/actions/basic-policy-actions";
+import { Prisma } from "@/generated/prisma";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
-  DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
 // Define the structure of our settings
 interface PathSetting {
@@ -57,6 +53,8 @@ export default function StoragePathSettingsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<{ type: 'storage' | 'file', key: string, label: string, currentPath: string } | null>(null);
   const [newPath, setNewPath] = useState("");
+  const [targetDomainType, setTargetDomainType] = useState("기본 경로");
+  const [changeDomainType, setChangeDomainType] = useState("기본 경로");
 
   const [isPending, startTransition] = useTransition();
 
@@ -64,8 +62,8 @@ export default function StoragePathSettingsPage() {
       const result = await getStorageSettingsAction();
       if (result.success && result.settings) {
           // Normalize data structure if needed
-          setStoragePaths(result.settings.storagePaths as any || {});
-          setFilePaths(result.settings.filePaths as any || {});
+          setStoragePaths((result.settings.storagePaths as unknown as StorageSettingsMap) || {});
+          setFilePaths((result.settings.filePaths as unknown as StorageSettingsMap) || {});
       }
   };
 
@@ -81,6 +79,8 @@ export default function StoragePathSettingsPage() {
           currentPath: currentData?.path || ""
       });
       setNewPath(currentData?.path || "");
+      setTargetDomainType("기본 경로");
+      setChangeDomainType("기본 경로");
       setIsDialogOpen(true);
   };
 
@@ -105,8 +105,8 @@ export default function StoragePathSettingsPage() {
 
       startTransition(async () => {
           const result = await updateStorageSettingsAction({
-              storagePaths: newStoragePaths,
-              filePaths: newFilePaths
+              storagePaths: newStoragePaths as unknown as Prisma.InputJsonValue,
+              filePaths: newFilePaths as unknown as Prisma.InputJsonValue
           });
 
           if (result.success) {
@@ -214,30 +214,105 @@ export default function StoragePathSettingsPage() {
       
       {/* Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent>
-              <DialogHeader>
-                  <DialogTitle>경로 변경</DialogTitle>
-                  <DialogDescription>
-                      {editingItem?.label}의 저장소 경로를 변경합니다.
-                  </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                      <Label htmlFor="path-input">새로운 경로</Label>
-                      <Input 
-                        id="path-input" 
-                        value={newPath} 
-                        onChange={(e) => setNewPath(e.target.value)} 
-                        placeholder="/data/skin/front/..."
-                      />
-                  </div>
-              </div>
-              <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>취소</Button>
-                  <Button onClick={handleSavePath} disabled={isPending}>
-                    {isPending ? "저장 중..." : "저장"}
-                  </Button>
-              </DialogFooter>
+          <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-white overflow-hidden block">
+            <div className="flex justify-between items-center px-6 py-5 border-b border-gray-200">
+                <DialogTitle className="text-xl font-bold text-gray-900">저장소 경로 변경하기</DialogTitle>
+                <DialogDescription className="sr-only">
+                    {editingItem?.label}의 저장소 경로를 변경합니다.
+                </DialogDescription>
+            </div>
+            
+            <div className="p-6">
+                <h3 className="text-base font-medium text-gray-800 mb-3">{editingItem?.label}</h3>
+                
+                <div className="border-t border-gray-400 border-b border-gray-200 mb-4">
+                    {/* Header */}
+                    <div className="flex border-b border-gray-200 bg-[#bfbfbf] text-white text-center text-xs font-normal">
+                        <div className="w-[140px] py-2 border-r border-[#d4d4d4] bg-[#b3b3b3]">구분</div>
+                        <div className="flex-1 py-2 bg-[#b3b3b3]">도메인</div>
+                    </div>
+                    
+                    {/* Row 1: Target Domain */}
+                    <div className="flex border-b border-gray-200 items-center h-12">
+                        <div className="w-[140px] h-full flex items-center pl-4 text-sm text-gray-900 bg-white border-r border-gray-200">변경 대상 도메인</div>
+                        <div className="flex-1 h-full p-2 bg-white flex items-center gap-1">
+                            <select 
+                                className="h-8 border border-gray-300 rounded-sm text-sm px-2 w-[120px]"
+                                value={targetDomainType}
+                                onChange={(e) => setTargetDomainType(e.target.value)}
+                            >
+                                <option value="">=저장소 선택=</option>
+                                <option value="기본 경로">기본 경로</option>
+                                <option value="직접입력">직접입력</option>
+                            </select>
+                            {targetDomainType === "직접입력" ? (
+                                <input 
+                                    type="text" 
+                                    className="h-8 flex-1 border border-gray-300 rounded-sm px-2 text-sm outline-none focus:border-gray-500"
+                                    placeholder="http(s)를 포함하여 도메인을 입력하세요."
+                                />
+                            ) : (
+                                <div className="h-8 flex-1 bg-[#f5f5f5] border border-gray-300 rounded-sm px-2 flex items-center text-sm text-gray-500 cursor-not-allowed">
+                                    /
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    
+                    {/* Row 2: Change Domain */}
+                    <div className="flex items-center h-12">
+                        <div className="w-[140px] h-full flex items-center pl-4 text-sm text-gray-900 bg-white border-r border-gray-200">변경 도메인</div>
+                        <div className="flex-1 h-full p-2 bg-white flex items-center gap-1">
+                            <select 
+                                className="h-8 border border-gray-300 rounded-sm text-sm px-2 w-[120px]"
+                                value={changeDomainType}
+                                onChange={(e) => setChangeDomainType(e.target.value)}
+                            >
+                                <option value="">=저장소 선택=</option>
+                                <option value="기본 경로">기본 경로</option>
+                                <option value="직접입력">직접입력</option>
+                            </select>
+                            {changeDomainType === "직접입력" ? (
+                                <input 
+                                    type="text" 
+                                    className="h-8 flex-1 border border-gray-300 rounded-sm px-2 text-sm outline-none focus:border-gray-500"
+                                    value={newPath}
+                                    onChange={(e) => setNewPath(e.target.value)}
+                                    placeholder="http(s)를 포함하여 도메인을 입력하세요."
+                                />
+                            ) : (
+                                <input 
+                                    type="text" 
+                                    className="h-8 flex-1 border border-gray-300 rounded-sm px-2 text-sm outline-none focus:border-gray-500"
+                                    value={newPath}
+                                    onChange={(e) => setNewPath(e.target.value)}
+                                    placeholder="/"
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="text-[11px] text-gray-500 space-y-1.5">
+                    <div className="flex items-start gap-1.5">
+                        <span className="w-3.5 h-3.5 bg-[#666] text-white rounded-[2px] flex items-center justify-center font-bold mt-[1px] text-[10px]">!</span>
+                        <span>저장소 경로 변경은 1회 1번 변경이 가능합니다.</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                        <span className="w-3.5 h-3.5 bg-[#666] text-white rounded-[2px] flex items-center justify-center font-bold mt-[1px] text-[10px]">!</span>
+                        <span>변경 대상 도메인이 다수일 경우 도메인의 수만큼 반복해서 변경 도메인으로 변경하시기 바랍니다.</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                        <span className="w-3.5 h-3.5 bg-[#666] text-white rounded-[2px] flex items-center justify-center font-bold mt-[1px] text-[10px]">!</span>
+                        <span>도메인을 직접 입력할 경우 입력한 도메인을 저장하지 않으므로 신중하게 변경하시기 바랍니다.</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div className="flex justify-center gap-1.5 p-6 border-t border-gray-200">
+                <button onClick={() => setIsDialogOpen(false)} className="w-20 h-10 border border-gray-300 bg-white text-gray-700 text-sm font-medium rounded-sm hover:bg-gray-50">취소</button>
+                <button onClick={handleSavePath} disabled={isPending} className="w-20 h-10 bg-[#555] text-white text-sm font-medium rounded-sm hover:bg-[#444] disabled:opacity-50">확인</button>
+            </div>
           </DialogContent>
       </Dialog>
     </div>

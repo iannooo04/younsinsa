@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { HelpCircle } from "lucide-react";
 import { getGoogleLoginSettingsAction, updateGoogleLoginSettingsAction } from "@/actions/basic-policy-actions";
 
 export default function GoogleLoginSettingsPage() {

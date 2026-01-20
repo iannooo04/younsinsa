@@ -105,7 +105,7 @@ export async function getCategoryProductsAction(categoryId: string) {
         });
         
         return { success: true, items: products };
-    } catch (error) {
+    } catch {
          return { success: false, items: [] };
     }
 }

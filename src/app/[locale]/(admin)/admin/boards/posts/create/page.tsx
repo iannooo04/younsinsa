@@ -22,7 +22,7 @@ import { getSimpleBoardListAction, createPostAction } from "@/actions/board-post
 export default function PostCreatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [boards, setBoards] = useState<any[]>([]);
+  const [boards, setBoards] = useState<{ id: string; name: string }[]>([]);
 
   const [formData, setFormData] = useState({
     boardId: "",

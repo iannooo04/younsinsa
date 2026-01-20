@@ -3,12 +3,125 @@
 
 import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import Image from "next/image";
+
+// 더미 데이터: 상품 목록 (10개로 증가)
+const products = [
+  {
+    id: 1,
+    brand: "넌블랭크",
+    name: "세미 와이드 핏 슬랙스_DARK BROWN",
+    price: "53,100원",
+    discount: "10%",
+    img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 2,
+    brand: "어반드레스",
+    name: "125CM 슈퍼 롱 오버핏 더블 코트",
+    price: "79,900원",
+    discount: "58%",
+    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 3,
+    brand: "조셉트",
+    name: "PAUL BLACK",
+    price: "99,000원",
+    discount: "",
+    img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 4,
+    brand: "마인드브릿지",
+    name: "[루즈핏 선택]투구_테이퍼드 밴딩 슬랙스 - 5color",
+    price: "39,900원",
+    discount: "50%",
+    img: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 5,
+    brand: "데꼬로소",
+    name: "시에르 피크드 더블 오버핏 자켓 [브라운]",
+    price: "141,550원",
+    discount: "29%",
+    img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 6,
+    brand: "넌블랭크",
+    name: "[SET UP] 세미 오버핏 자켓 COAL GREY",
+    price: "178,200원",
+    discount: "10%",
+    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 7,
+    brand: "인사일런스",
+    name: "솔리스트 오버사이즈 캐시미어 코트 BLACK",
+    price: "289,000원",
+    discount: "15%",
+    img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 8,
+    brand: "닥터마틴",
+    name: "1461 모노 3홀 블랙",
+    price: "210,000원",
+    discount: "",
+    img: "https://images.unsplash.com/photo-1605034313761-73ea4a0cfbf3?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 9,
+    brand: "드로우핏",
+    name: "오버사이즈 울 트렌치 코트 [BEIGE]",
+    price: "228,000원",
+    discount: "10%",
+    img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  {
+    id: 10,
+    brand: "토피",
+    name: "와이드 데님 팬츠 (LIGHT BLUE)",
+    price: "49,000원",
+    discount: "12%",
+    img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80",
+    gender: "M",
+  },
+  // 여성 상품 추가 (필터링 테스트용)
+  {
+    id: 11,
+    brand: "닉앤니콜",
+    name: "에센셜 부클 가디건_WHITE",
+    price: "45,000원",
+    discount: "20%",
+    img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80",
+    gender: "W",
+  },
+  {
+    id: 12,
+    brand: "시티브리즈",
+    name: "링클 프리 셔츠_SKY BLUE",
+    price: "39,000원",
+    discount: "15%",
+    img: "https://images.unsplash.com/photo-1589310243389-96a5483213a8?auto=format&fit=crop&w=600&q=80",
+    gender: "W",
+  },
+];
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const locale = useLocale();
 
   // 1. 배너 슬라이드 데이터
   const bannerSlides = [
@@ -54,7 +167,7 @@ export default function HomePage() {
         overlayColor: "bg-black/20",
       },
       right: {
-        img: "https://images.unsplash.com/photo-1596462502278-27bfdd403cc2?q=80&w=800&auto=format&fit=crop",
+        img: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=800&auto=format&fit=crop",
         title: "뷰티 어워즈",
         subTitle: "올해 가장 사랑받은 <br/> 뷰티 아이템",
         desc: "단독 특가 진행 중",
@@ -85,7 +198,7 @@ export default function HomePage() {
       id: 1,
       title: "화심주조 미라온",
       bg: "bg-[#EAE5DD]",
-      img: "https://images.unsplash.com/photo-1563911892437-1cda75894b0d?auto=format&fit=crop&w=100&q=80",
+      img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=100&q=80",
     },
     {
       id: 2,
@@ -103,7 +216,7 @@ export default function HomePage() {
       id: 4,
       title: "뷰티 30% 쿠폰",
       bg: "bg-[#EADCD9]",
-      img: "https://images.unsplash.com/photo-1596462502278-27bfdd403cc2?auto=format&fit=crop&w=100&q=80",
+      img: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?auto=format&fit=crop&w=100&q=80",
       badge: "30%",
     },
     {
@@ -143,119 +256,6 @@ export default function HomePage() {
     { id: 8, title: "라이브", icon: "📺", bg: "bg-gray-100" },
     { id: 9, title: "이미리 월간 랭킹", icon: "🏆", bg: "bg-yellow-50" },
     { id: 10, title: "체험단", icon: "🧢", bg: "bg-blue-50" },
-  ];
-
-  // 더미 데이터: 상품 목록 (10개로 증가)
-  const products = [
-    {
-      id: 1,
-      brand: "넌블랭크",
-      name: "세미 와이드 핏 슬랙스_DARK BROWN",
-      price: "53,100원",
-      discount: "10%",
-      img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 2,
-      brand: "어반드레스",
-      name: "125CM 슈퍼 롱 오버핏 더블 코트",
-      price: "79,900원",
-      discount: "58%",
-      img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 3,
-      brand: "조셉트",
-      name: "PAUL BLACK",
-      price: "99,000원",
-      discount: "",
-      img: "https://images.unsplash.com/photo-1614252235316-06f87760bca8?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 4,
-      brand: "마인드브릿지",
-      name: "[루즈핏 선택]투구_테이퍼드 밴딩 슬랙스 - 5color",
-      price: "39,900원",
-      discount: "50%",
-      img: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 5,
-      brand: "데꼬로소",
-      name: "시에르 피크드 더블 오버핏 자켓 [브라운]",
-      price: "141,550원",
-      discount: "29%",
-      img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 6,
-      brand: "넌블랭크",
-      name: "[SET UP] 세미 오버핏 자켓 COAL GREY",
-      price: "178,200원",
-      discount: "10%",
-      img: "https://images.unsplash.com/photo-1551488852-d81a2506e3df?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 7,
-      brand: "인사일런스",
-      name: "솔리스트 오버사이즈 캐시미어 코트 BLACK",
-      price: "289,000원",
-      discount: "15%",
-      img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 8,
-      brand: "닥터마틴",
-      name: "1461 모노 3홀 블랙",
-      price: "210,000원",
-      discount: "",
-      img: "https://images.unsplash.com/photo-1605034313761-73ea4a0cfbf3?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 9,
-      brand: "드로우핏",
-      name: "오버사이즈 울 트렌치 코트 [BEIGE]",
-      price: "228,000원",
-      discount: "10%",
-      img: "https://images.unsplash.com/photo-1520975661595-64536ef86809?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    {
-      id: 10,
-      brand: "토피",
-      name: "와이드 데님 팬츠 (LIGHT BLUE)",
-      price: "49,000원",
-      discount: "12%",
-      img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80",
-      gender: "M",
-    },
-    // 여성 상품 추가 (필터링 테스트용)
-    {
-      id: 11,
-      brand: "닉앤니콜",
-      name: "에센셜 부클 가디건_WHITE",
-      price: "45,000원",
-      discount: "20%",
-      img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80",
-      gender: "W",
-    },
-    {
-      id: 12,
-      brand: "시티브리즈",
-      name: "링클 프리 셔츠_SKY BLUE",
-      price: "39,000원",
-      discount: "15%",
-      img: "https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?auto=format&fit=crop&w=600&q=80",
-      gender: "W",
-    },
   ];
 
   // 3. 필터링 로직
@@ -325,10 +325,11 @@ export default function HomePage() {
               <div
                 className={`md:col-span-2 relative ${slide.left.bgColor} overflow-hidden cursor-pointer group/item`}
               >
-                <img
+                <Image
                   src={slide.left.img}
                   alt={slide.left.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover group-hover/item:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute bottom-8 left-8 text-white z-10 drop-shadow-md">
                   <h2
@@ -345,10 +346,11 @@ export default function HomePage() {
               <div
                 className={`md:col-span-1 relative ${slide.center.bgColor} overflow-hidden cursor-pointer group/item`}
               >
-                <img
+                <Image
                   src={slide.center.img}
                   alt={slide.center.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover/item:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover opacity-90 group-hover/item:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute top-8 left-6 right-6 text-white z-10">
                   <h2 className="text-2xl font-bold leading-snug mb-1">
@@ -370,10 +372,11 @@ export default function HomePage() {
               <div
                 className={`md:col-span-1 relative ${slide.right.bgColor} overflow-hidden cursor-pointer group/item`}
               >
-                <img
+                <Image
                   src={slide.right.img}
                   alt={slide.right.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover group-hover/item:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute top-8 left-6 text-white z-10">
                   <h2 className="text-xl font-bold">{slide.right.title}</h2>
@@ -404,11 +407,14 @@ export default function HomePage() {
               className={`min-w-70 h-25 ${banner.bg} rounded-md relative cursor-pointer overflow-hidden group shrink-0`}
             >
               {/* 이미지 */}
-              <img
-                src={banner.img}
-                alt={banner.title}
-                className="absolute right-4 bottom-0 w-24 h-24 object-contain group-hover:scale-110 transition-transform duration-300"
-              />
+              <div className="absolute right-4 bottom-0 w-24 h-24 group-hover:scale-110 transition-transform duration-300 relative">
+                  <Image
+                    src={banner.img}
+                    alt={banner.title}
+                    fill
+                    className="object-contain"
+                  />
+              </div>
               {/* 텍스트 */}
               <div className="absolute top-4 left-4 z-10">
                 <h3 className="font-bold text-sm text-gray-800 leading-tight w-32 break-keep">
@@ -474,10 +480,11 @@ export default function HomePage() {
               {/* 이미지 영역 */}
               <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden">
                 <div className="aspect-3/4">
-                  <img
+                  <Image
                     src={product.img}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
 
@@ -528,9 +535,10 @@ export default function HomePage() {
           <h2 className="text-2xl font-bold mb-8">{t("brandFocusTitle")}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="aspect-video bg-gray-200 relative group overflow-hidden">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1516478177764-9fe5bd7e9717?auto=format&fit=crop&w=800&q=80"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
                 alt="Brand Lookbook"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -540,9 +548,10 @@ export default function HomePage() {
               </div>
             </div>
             <div className="aspect-video bg-gray-200 relative group overflow-hidden">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&w=800&q=80"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
                 alt="Special Offer"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">

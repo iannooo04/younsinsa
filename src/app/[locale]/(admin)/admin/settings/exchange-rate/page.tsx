@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { getExchangeRateSettingsAction, updateExchangeRateSettingsAction } from "@/actions/basic-policy-actions";
+import { Prisma } from "@/generated/prisma";
 
 interface RateInfo {
     mode: string;
@@ -40,7 +41,7 @@ export default function ExchangeRateSettingsPage() {
 
     const handleSave = () => {
         startTransition(async () => {
-            const result = await updateExchangeRateSettingsAction({ rates });
+            const result = await updateExchangeRateSettingsAction({ rates: rates as unknown as Prisma.InputJsonValue });
             if (result.success) {
                 alert("저장되었습니다.");
             } else {
@@ -49,7 +50,7 @@ export default function ExchangeRateSettingsPage() {
         });
     };
 
-    const handleRateChange = (currency: string, field: keyof RateInfo, value: any) => {
+    const handleRateChange = (currency: string, field: keyof RateInfo, value: string | number) => {
         setRates(prev => ({
             ...prev,
             [currency]: {

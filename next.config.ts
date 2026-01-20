@@ -16,11 +16,15 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "image.msscdn.net",
       },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
     ],
   },
 
   // [Alias 설정 유지] Webpack이 @/ 경로를 인식하도록 돕습니다.
-  webpack: (config, { isServer, defaultLoaders }) => {
+  webpack: (config) => {
     // 💡 [핵심 수정] JSON 파일이 Webpack에 의해 올바르게 처리되도록 규칙을 추가합니다.
     config.module.rules.push({
       test: /\.json$/,

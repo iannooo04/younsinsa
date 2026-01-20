@@ -29,7 +29,14 @@ import { getEssentialInfoTemplatesAction,    deleteEssentialInfoTemplatesAction,
 
 export default function ProductEssentialInfoPage() {
     const [isPending, startTransition] = useTransition();
-    const [essentialInfos, setEssentialInfos] = useState<any[]>([]);
+    interface EssentialInfo {
+        id: string;
+        name: string;
+        supplierName: string;
+        regDate: string;
+        modDate: string;
+    }
+    const [essentialInfos, setEssentialInfos] = useState<EssentialInfo[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
 

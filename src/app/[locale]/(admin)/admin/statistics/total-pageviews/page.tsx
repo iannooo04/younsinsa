@@ -256,17 +256,17 @@ function LegendItem({ color, label }: { color: string; label: string }) {
 function LineChartMock() {
   return (
     <svg width="100%" height="100%" viewBox="0 0 1000 200" preserveAspectRatio="none">
+      {/* Dates X-axis */}
+      {["2026-01-04", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-10", "2026-01-11"].map((date, i) => (
+        <text key={date} x={50 + i * (900 / 7)} y="195" fill="#94a3b8" fontSize="10" textAnchor="middle" transform={`rotate(-15, ${50 + i * (900 / 7)}, 195)`}>{date}</text>
+      ))}
+
       {/* Grid lines */}
-      {[0, 2, 4, 6, 8].map((val, i) => (
+      {[0, 2, 4, 6, 8].map((val) => (
         <React.Fragment key={val}>
            <line x1="50" y1={180 - (val / 8) * 160} x2="950" y2={180 - (val / 8) * 160} stroke="#f1f5f9" strokeWidth="1" />
            <text x="40" y={185 - (val / 8) * 160} fill="#94a3b8" fontSize="10" textAnchor="end">{val}</text>
         </React.Fragment>
-      ))}
-      
-      {/* Dates X-axis */}
-      {["2026-01-04", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-10", "2026-01-11"].map((date, i) => (
-        <text key={date} x={50 + i * (900 / 7)} y="195" fill="#94a3b8" fontSize="10" textAnchor="middle" transform={`rotate(-15, ${50 + i * (900 / 7)}, 195)`}>{date}</text>
       ))}
 
       {/* Total Pv (Red) */}

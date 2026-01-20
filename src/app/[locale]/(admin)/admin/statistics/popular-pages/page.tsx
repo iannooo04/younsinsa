@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -13,6 +13,8 @@ import {
   FileSpreadsheet
 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+import { useState } from "react";
 
 export default function PopularPagesPage() {
   const [activeTab, setActiveTab] = useState("page");
@@ -33,17 +35,8 @@ export default function PopularPagesPage() {
     { rank: 1, code: "007", name: "Golfwear", pv: 1, ratio: "100%" },
   ];
 
-  const boardDetailData: any[] = [];
 
-  const getActiveTabPV = () => {
-    switch (activeTab) {
-      case "page": return 10;
-      case "goods": return 3;
-      case "category": return 1;
-      case "board": return 0;
-      default: return 0;
-    }
-  };
+
 
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
@@ -177,7 +170,7 @@ export default function PopularPagesPage() {
 
       {/* Detail Section Tabs */}
       <div className="mb-4">
-        <Tabs defaultValue="page" className="w-full" onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="bg-transparent border-b border-gray-100 w-full justify-start rounded-none h-10 p-0">
             <TabsTrigger value="page" className="px-6 h-full data-[state=active]:border-b-2 data-[state=active]:border-gray-800 data-[state=active]:text-gray-900 rounded-none text-gray-500 font-bold border-transparent transition-none">페이지</TabsTrigger>
             <TabsTrigger value="goods" className="px-6 h-full data-[state=active]:border-b-2 data-[state=active]:border-gray-800 data-[state=active]:text-gray-900 rounded-none text-gray-500 font-bold border-transparent transition-none">상품</TabsTrigger>
@@ -190,7 +183,7 @@ export default function PopularPagesPage() {
       {/* Detail Table Container */}
       <div className="bg-white border border-gray-100 rounded-[20px] p-8 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-base font-bold text-gray-800">통계 상세 <span className="text-sm font-normal text-gray-500 ml-2">전체 방문자 PV <span className="text-red-500">{getActiveTabPV()}</span></span></h2>
+          <h2 className="text-base font-bold text-gray-800">통계 상세 <span className="text-sm font-normal text-gray-500 ml-2">전체 방문자 PV <span className="text-red-500">10</span></span></h2>
           <Button variant="outline" className="h-[26px] px-3 gap-1 text-[11px] font-normal border-gray-300 rounded-[4px] bg-white text-gray-600">
             <FileSpreadsheet className="w-3.5 h-3.5 text-green-600" /> 엑셀 다운로드
           </Button>

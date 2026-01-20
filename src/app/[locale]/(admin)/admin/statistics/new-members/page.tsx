@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -12,10 +12,10 @@ import {
   Calendar,
   FileSpreadsheet
 } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Image from "next/image";
 
 export default function NewMembersPage() {
-  const [activeTab, setActiveTab] = useState("daily");
+
 
   const detailData = [
     { date: "2026-01-05", total: 0, pc: 0, mobile: 0, ratio: 0 },
@@ -53,13 +53,13 @@ export default function NewMembersPage() {
                     <div className="flex items-center gap-1.5 leading-none">
                       <RadioGroupItem value="base" id="store-base" className="w-3.5 h-3.5 text-red-500 border-gray-300" />
                       <Label htmlFor="store-base" className="text-xs font-normal text-gray-600 cursor-pointer flex items-center gap-1">
-                        <img src="https://flagcdn.com/w20/kr.png" alt="KR" className="w-4 h-2.5 object-cover" /> 기준몰
+                        <Image src="https://flagcdn.com/w20/kr.png" alt="KR" width={16} height={10} className="object-cover" /> 기준몰
                       </Label>
                     </div>
                     <div className="flex items-center gap-1.5 leading-none">
                       <RadioGroupItem value="cn" id="store-cn" className="w-3.5 h-3.5 text-red-500 border-gray-300" />
                       <Label htmlFor="store-cn" className="text-xs font-normal text-gray-600 cursor-pointer flex items-center gap-1">
-                        <img src="https://flagcdn.com/w20/cn.png" alt="CN" className="w-4 h-2.5 object-cover" /> 중문몰
+                        <Image src="https://flagcdn.com/w20/cn.png" alt="CN" width={16} height={10} className="object-cover" /> 중문몰
                       </Label>
                     </div>
                   </RadioGroup>
@@ -96,17 +96,7 @@ export default function NewMembersPage() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <div className="mb-4">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="bg-transparent border-b border-gray-300 w-full justify-start rounded-none h-10 p-0 overflow-hidden">
-            <TabsTrigger value="daily" className="px-6 h-full data-[state=active]:bg-white data-[state=active]:border-2 data-[state=active]:border-b-0 data-[state=active]:border-gray-300 rounded-none bg-[#f8fafc] border border-gray-200 border-b-0 text-gray-600 font-normal transition-none mr-[-1px]">일별 신규회원 현황</TabsTrigger>
-            <TabsTrigger value="hourly" className="px-6 h-full border border-gray-200 border-b-0 rounded-none bg-[#f8fafc] text-gray-600 font-normal transition-none mr-[-1px]">시간대별 신규회원 현황</TabsTrigger>
-            <TabsTrigger value="weekly" className="px-6 h-full border border-gray-200 border-b-0 rounded-none bg-[#f8fafc] text-gray-600 font-normal transition-none mr-[-1px]">요일별 신규회원 현황</TabsTrigger>
-            <TabsTrigger value="monthly" className="px-6 h-full border border-gray-200 border-b-0 rounded-none bg-[#f8fafc] text-gray-600 font-normal transition-none">월별 신규회원 현황</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+
 
       {/* Summary Table */}
       <div className="border border-gray-200 overflow-hidden mb-8">

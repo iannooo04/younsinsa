@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, ChevronRight, Share2, Heart, Menu, ChevronUp } from "lucide-react";
-import Link from "next/link";
+import { Search, Bell, Heart, ChevronUp } from "lucide-react";
+import Image from "next/image";
 
 export default function PlayerRecommendPage() {
   const [activeTab, setActiveTab] = useState("추천");
-  const [activeCategory, setActiveCategory] = useState("전체");
 
   const tabs = ["추천", "랭킹", "세일", "발매", "스포츠위크"];
   
@@ -144,10 +143,11 @@ export default function PlayerRecommendPage() {
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         {/* Banner 1 */}
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://image.msscdn.net/mfile_s01/_shopstaff/list.staff_651f6868dfd05.jpg" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">가장 갖고 싶은<br/>인기 아이템 추천</h2>
@@ -156,10 +156,11 @@ export default function PlayerRecommendPage() {
         </div>
          {/* Banner 2 */}
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://image.msscdn.net/images/goods_img/20230825/3485791/3485791_16929422055139_500.jpg" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">과하지 않은 실루엣<br/>740 라인</h2>
@@ -168,10 +169,11 @@ export default function PlayerRecommendPage() {
         </div>
          {/* Banner 3 */}
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-300 snap-center">
-            <img 
+            <Image 
                 src="https://image.msscdn.net/images/goods_img/20231102/3679815/3679815_16989098906325_500.jpg" 
                  alt="Banner 3" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">감각적 경량 아우터<br/>최대 50% 할인</h2>
@@ -208,7 +210,7 @@ export default function PlayerRecommendPage() {
             {buffProducts.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -238,7 +240,7 @@ export default function PlayerRecommendPage() {
              {basicItems.map((product) => (
                 <div key={product.id} className="min-w-[150px] max-w-[150px] snap-start">
                     <div className="aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-white drop-shadow-md hover:text-red-500">
                            <Heart size={18} />
                          </button>
@@ -264,7 +266,7 @@ export default function PlayerRecommendPage() {
             {dailySpecials.map((product) => (
                 <div key={product.id}>
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                        <Image src={product.img} alt={product.name} fill className="object-cover" />
                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500 bg-white/80 p-1 rounded-full">
                            <Heart size={14} />
                         </button>
@@ -294,7 +296,7 @@ export default function PlayerRecommendPage() {
             {trendItems.map((item) => (
                 <div key={item.id} className="min-w-[160px] max-w-[160px] snap-start">
                     <div className="aspect-[3/4] bg-gray-100 rounded-lg overflow-hidden relative">
-                         <img src={item.img} alt="Trending" className="w-full h-full object-cover" />
+                         <Image src={item.img} alt="Trending" fill className="object-cover" />
                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                     </div>
                 </div>
@@ -316,7 +318,7 @@ export default function PlayerRecommendPage() {
              {fitnessItems.map((product) => (
                 <div key={product.id} className="w-full">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <div className="absolute top-2 left-2 flex gap-1">
                              <span className="w-2 h-2 rounded-full bg-blue-900"></span>
                              <span className="w-2 h-2 rounded-full bg-black"></span>
@@ -350,7 +352,7 @@ export default function PlayerRecommendPage() {
             {golfItems.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -380,7 +382,7 @@ export default function PlayerRecommendPage() {
             {chapterXItems.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -410,7 +412,7 @@ export default function PlayerRecommendPage() {
              {longSleeveItems.map((product) => (
                 <div key={product.id} className="min-w-[150px] max-w-[150px] snap-start">
                     <div className="aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-white drop-shadow-md hover:text-red-500">
                            <Heart size={18} />
                          </button>
@@ -446,7 +448,7 @@ export default function PlayerRecommendPage() {
                         {index + 1}
                     </div>
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>

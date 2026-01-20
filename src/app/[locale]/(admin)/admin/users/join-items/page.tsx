@@ -6,12 +6,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ChevronUp } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Link } from "@/i18n/routing";
 import { toast } from "sonner";
 import { getMemberJoinItemSettingsAction, updateMemberJoinItemSettingsAction } from "@/actions/member-policy-actions";
 
 export default function MemberJoinItemsPage() {
     const [loading, setLoading] = useState(true);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [settings, setSettings] = useState<any>({
         memberType: { personal: true, business: false },
         items: {
@@ -50,7 +50,9 @@ export default function MemberJoinItemsPage() {
             const res = await getMemberJoinItemSettingsAction();
             if (res.success && res.settings && res.settings.schema) {
                 // Merge with default structure to ensure all keys exist
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const fetched = res.settings.schema as any;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 setSettings((prev: any) => ({
                     ...prev,
                     ...fetched,
@@ -76,13 +78,16 @@ export default function MemberJoinItemsPage() {
     };
 
     const updateMemberType = (key: string, value: boolean) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setSettings((prev: any) => ({
             ...prev,
             memberType: { ...prev.memberType, [key]: value }
         }));
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateItem = (itemKey: string, field: string, value: any) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setSettings((prev: any) => ({
             ...prev,
             items: {
@@ -96,6 +101,7 @@ export default function MemberJoinItemsPage() {
     };
 
     const updateCaptcha = (value: boolean) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         setSettings((prev: any) => ({
             ...prev,
             captcha: { ...prev.captcha, use: value }

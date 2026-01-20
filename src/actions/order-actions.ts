@@ -155,11 +155,18 @@ type InvoiceUploadItem = {
     deliveryCompleteDate?: string; // YYYY-MM-DD
 };
 
+
+type FailureDetail = {
+    row: number;
+    orderNo: string;
+    reason: string;
+};
+
 export async function uploadInvoiceExcelAction(data: InvoiceUploadItem[], registrant: string = "Admin") {
     try {
         let successCount = 0;
         let failCount = 0;
-        const failureDetails: any[] = [];
+        const failureDetails: FailureDetail[] = [];
 
         for (const [index, item] of data.entries()) {
             try {
@@ -202,12 +209,13 @@ export async function uploadInvoiceExcelAction(data: InvoiceUploadItem[], regist
 
                 successCount++;
 
-            } catch (err: any) {
+            } catch (err) {
                 failCount++;
+                const message = err instanceof Error ? err.message : "Unknown error";
                 failureDetails.push({
                     row: index + 1, 
                     orderNo: item.orderNo,
-                    reason: err.message
+                    reason: message
                 });
             }
         }

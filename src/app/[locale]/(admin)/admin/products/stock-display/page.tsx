@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,21 +21,10 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Check, Book } from "lucide-react";
+import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Book } from "lucide-react";
+import Image from "next/image";
 
 export default function ProductStockDisplayManagementPage() {
-    // Mock Data based on the screenshot
-    const products = Array.from({ length: 10 }).map((_, i) => ({
-        id: 969 - i,
-        productCode: i === 0 ? "1000000290" : i === 4 ? "1000000289" : i === 8 ? "1000000288" : "",
-        image: i === 0 ? "/placeholder-1.jpg" : i === 4 ? "/placeholder-2.jpg" : i === 8 ? "/placeholder-3.jpg" : null, 
-        name: i === 0 || i === 4 ? "여성 엠보 로고 모크넥 티셔츠" : i === 8 ? "[26SS] 여성 깅엄 체크 메쉬 레이어드 베이스레이어" : "",
-        supplier: "니아인터내셔널",
-        displayStatusPC: "노출함",
-        displayStatusMobile: "노출함",
-        saleStatusPC: "판매함",
-        saleStatusMobile: "판매함",
-    })).filter(p => p.productCode !== ""); // Only keep rows with data for visual matching
 
     // Filling up to 10 rows with empty logic if needed, but for visual matching I'll just map the visible ones or mock 10 items.
     // The screenshot shows numbers 969 to 960. 
@@ -247,7 +236,7 @@ export default function ProductStockDisplayManagementPage() {
                                     <TableCell>{item.code}</TableCell>
                                     <TableCell className="py-1">
                                         <div className="flex justify-center">
-                                            {item.img && <img src={`/placeholder${item.id}.jpg`} alt="상품" className="w-10 h-10 bg-gray-100 object-cover" />}
+                                            {item.img && <div className="relative w-10 h-10 bg-gray-100"><Image src={`/placeholder${item.id}.jpg`} alt="상품" fill className="object-cover" /></div>}
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-left pl-4 font-normal text-gray-800">{item.name}</TableCell>

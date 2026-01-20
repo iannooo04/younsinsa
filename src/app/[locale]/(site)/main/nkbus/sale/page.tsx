@@ -637,26 +637,26 @@ export default function NkbusSalePage() {
   const searchParams = useSearchParams();
   const gf = searchParams.get("gf") || "A";
 
-  const filterByGf = (items: any[]) => {
+  const filterByGf = React.useCallback(<T extends { gender: string }>(items: T[]) => {
     if (gf === "A") return items;
     return items.filter((item) => item.gender === gf || item.gender === "A");
-  };
+  }, [gf]);
 
   const filteredLimitedItems = useMemo(
     () => filterByGf(LIMITED_ITEMS),
-    [gf]
+    [filterByGf]
   );
-  const filteredDailyItems = useMemo(() => filterByGf(DAILY_ITEMS), [gf]);
+  const filteredDailyItems = useMemo(() => filterByGf(DAILY_ITEMS), [filterByGf]);
   const filteredSeasonOffItems = useMemo(
     () => filterByGf(SEASON_OFF_ITEMS),
-    [gf]
+    [filterByGf]
   );
   const filteredCategorySaleItems = useMemo(
     () => filterByGf(CATEGORY_SALE_ITEMS),
-    [gf]
+    [filterByGf]
   );
-  const filteredCouponItems = useMemo(() => filterByGf(COUPON_ITEMS), [gf]);
-  const filteredRewardItems = useMemo(() => filterByGf(REWARD_ITEMS), [gf]);
+  const filteredCouponItems = useMemo(() => filterByGf(COUPON_ITEMS), [filterByGf]);
+  const filteredRewardItems = useMemo(() => filterByGf(REWARD_ITEMS), [filterByGf]);
 
   return (
     <div className="bg-white min-h-screen pb-20">

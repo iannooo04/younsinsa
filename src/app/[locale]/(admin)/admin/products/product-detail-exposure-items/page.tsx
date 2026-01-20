@@ -5,30 +5,44 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   HelpCircle,
-  Youtube,
-  ChevronUp,
-  ChevronsUp,
-  ChevronDown,
-  ChevronsDown,
 } from "lucide-react";
 import { getProductDetailExposureSettingsAction, updateProductDetailExposureSettingsAction } from "@/actions/basic-policy-actions";
+
+interface DiscountSettings {
+  productDiscount: boolean;
+  couponDiscount: boolean;
+}
+
+interface AdditionalSettings {
+  optionStock: boolean;
+  icon: boolean;
+  representativeColor: boolean;
+  discountRate: boolean;
+}
+
+interface StrikeSettings {
+  consumerPrice: boolean;
+  salePrice: boolean;
+}
+
+interface ExposureSettings {
+  isMobileSame: boolean;
+  pcExposureItems: string[];
+  mobileExposureItems: string[];
+  discountSettings: DiscountSettings;
+  additionalSettings: AdditionalSettings;
+  strikeSettings: StrikeSettings;
+}
 
 export default function ProductDetailExposureItemsPage() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState<ExposureSettings>({
     isMobileSame: true,
-    pcExposureItems: [] as string[],
-    mobileExposureItems: [] as string[],
+    pcExposureItems: [],
+    mobileExposureItems: [],
     discountSettings: { productDiscount: true, couponDiscount: false },
     additionalSettings: { optionStock: true, icon: false, representativeColor: true, discountRate: false },
     strikeSettings: { consumerPrice: true, salePrice: false },
@@ -49,9 +63,9 @@ export default function ProductDetailExposureItemsPage() {
                 isMobileSame: data.isMobileSame,
                 pcExposureItems: (data.pcExposureItems as string[]) || [],
                 mobileExposureItems: (data.mobileExposureItems as string[]) || [],
-                discountSettings: (data.discountSettings as any) || { productDiscount: true, couponDiscount: false },
-                additionalSettings: (data.additionalSettings as any) || { optionStock: true, icon: false, representativeColor: true, discountRate: false },
-                strikeSettings: (data.strikeSettings as any) || { consumerPrice: true, salePrice: false },
+                discountSettings: (data.discountSettings as unknown as DiscountSettings) || { productDiscount: true, couponDiscount: false },
+                additionalSettings: (data.additionalSettings as unknown as AdditionalSettings) || { optionStock: true, icon: false, representativeColor: true, discountRate: false },
+                strikeSettings: (data.strikeSettings as unknown as StrikeSettings) || { consumerPrice: true, salePrice: false },
             });
         }
         setFetching(false);
@@ -61,7 +75,14 @@ export default function ProductDetailExposureItemsPage() {
 
   const handleSave = async () => {
     setLoading(true);
-    const res = await updateProductDetailExposureSettingsAction(settings);
+    const res = await updateProductDetailExposureSettingsAction({
+        ...settings,
+        discountSettings: settings.discountSettings as unknown as Record<string, boolean>,
+        additionalSettings: settings.additionalSettings as unknown as Record<string, boolean>,
+        strikeSettings: settings.strikeSettings as unknown as Record<string, boolean>,
+        pcExposureItems: settings.pcExposureItems as unknown as string[],
+        mobileExposureItems: settings.mobileExposureItems as unknown as string[]
+    });
     if (res.success) {
         alert("저장되었습니다.");
     } else {

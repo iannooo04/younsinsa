@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useActionState } from "react";
-import { HelpCircle, ChevronUp, ChevronDown, Check, X } from "lucide-react";
+import { HelpCircle, ChevronUp, ChevronDown, X } from "lucide-react";
 import { createProductAction } from "@/actions/product-actions";
 
+import { Brand, Category } from "@/generated/prisma";
+
 interface Props {
-    brands: any[];
-    categories: any[];
+    brands: Brand[];
+    categories: Category[];
 }
 
 const initialState = {
@@ -14,7 +16,7 @@ const initialState = {
     success: false,
 };
 
-export default function ProductForm({ brands, categories }: Props) {
+export default function ProductForm({ categories }: Props) {
     const [state, formAction] = useActionState(createProductAction, initialState);
     
     // UI States for collapsible sections
@@ -405,15 +407,7 @@ export default function ProductForm({ brands, categories }: Props) {
                         </Row>
                     </div>
 
-                    <Row label="도서공연비 소득공제 상품 적용 여부">
-                         <div className="space-y-1">
-                             <RadioGroup name="culture_deduction" options={['미적용', '적용']} defaultValue="미적용" />
-                             <div className="text-xs text-gray-500 flex items-start gap-1 mt-1">
-                                <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                도서공연비 소득공제 대상 사업자로 계약이 되어있는 경우 '적용'으로 선택해주세요.
-                            </div>
-                        </div>
-                    </Row>
+
 
                     <div className="grid grid-cols-1 md:grid-cols-2">
                          <Row label="판매 재고">
@@ -482,28 +476,7 @@ export default function ProductForm({ brands, categories }: Props) {
                     </Row>
                 </Section>
 
-                {/* 9. 마일리지 설정 */}
-                <Section title="마일리지 설정" isOpen={sections.mileage} onToggle={() => toggleSection('mileage')}>
-                      <Row label="지급방법 선택">
-                           <RadioGroup name="mileage_method" options={['통합설정', '개별설정']} defaultValue="통합설정" />
-                      </Row>
-                      <Row label="대상 선택">
-                           <div className="flex items-center gap-2">
-                                <RadioGroup name="mileage_target" options={['전체회원', '특정회원등급']} defaultValue="전체회원" />
-                                <button disabled className="px-2 py-1 bg-gray-300 text-white text-xs rounded-sm cursor-not-allowed">회원등급 선택</button>
-                           </div>
-                      </Row>
-                       <Row label="금액 설정">
-                           <div className="text-sm">구매 금액의 0%를 마일리지로 지급</div>
-                      </Row>
-                      <div className="p-4 bg-white text-xs text-gray-500 space-y-1 border-b">
-                         <p><span className="text-blue-600">통합설정 회원&gt;마일리지/예치금 관리&gt;마일리지 지급설정</span>에서 설정한 기준에 따름 : 구매 금액의 0%를 마일리지로 지급</p>
-                          <div className="flex items-start gap-1">
-                                <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                <div>구매금액 <span className="text-blue-600">회원&gt;마일리지/예치금 관리&gt;마일리지 기본설정</span>에서 설정한 기준에 따름 : 판매가</div>
-                          </div>
-                      </div>
-                </Section>
+
 
                 {/* 10. 상품 할인/혜택 설정 */}
                 <Section title="상품 할인/혜택 설정" isOpen={sections.discount} onToggle={() => toggleSection('discount')}>
@@ -1132,42 +1105,7 @@ export default function ProductForm({ brands, categories }: Props) {
                     </Row>
                 </Section>
 
-                {/* 16. 상품 개별 SEO 태그 설정 */}
-                <Section title="상품 개별 SEO 태그 설정" helpText="help" isOpen={sections.seo} onToggle={() => toggleSection('seo')}>
-                    <Row label="개별 설정 사용여부">
-                        <div className="space-y-2 py-2">
-                             <div className="flex items-center gap-6">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="seo_usage" value="used" className="radio radio-xs border-gray-300" />
-                                    <span className="text-sm text-gray-700">사용함</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="seo_usage" value="unused" className="radio radio-xs checked:bg-[#ff4d4f] border-gray-300" defaultChecked />
-                                    <span className="text-sm text-gray-700">사용안함</span>
-                                </label>
-                            </div>
-                            <div className="text-xs text-gray-400 mt-1">
-                                 <div className="flex items-start gap-1">
-                                    <span className="font-bold bg-[#333] text-white px-1 rounded-sm text-[10px] mt-0.5 min-w-[14px] text-center">!</span>
-                                    <div>‘사용함’ 선택 시 기본설정 &gt; 검색엔진 최적화(SEO) 설정보다 개별 설정이 우선적으로 적용됩니다.</div>
-                                 </div>
-                                 <div className="pl-5">설정 결과는 검색 엔진에 따라 평균 2주 ~ 3주 후에 반영될 수 있습니다.</div>
-                            </div>
-                        </div>
-                    </Row>
-                    <Row label="타이틀 (Title)">
-                        <input type="text" className="input input-sm w-full border-gray-300 rounded-sm bg-white" />
-                    </Row>
-                    <Row label="메타태그 작성자 (Author)">
-                         <input type="text" className="input input-sm w-full border-gray-300 rounded-sm bg-white" />
-                    </Row>
-                    <Row label="메타태그 설명 (Description)">
-                         <input type="text" className="input input-sm w-full border-gray-300 rounded-sm bg-white" />
-                    </Row>
-                    <Row label="메타태그 키워드 (Keywords)">
-                         <input type="text" className="input input-sm w-full border-gray-300 rounded-sm bg-white" />
-                    </Row>
-                </Section>
+
 
                 {/* 17. 관리자 메모 */}
                 <Section title="관리자 메모" helpText="help" isOpen={sections.admin_memo} onToggle={() => toggleSection('admin_memo')}>

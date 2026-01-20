@@ -1,23 +1,42 @@
 "use client";
 
 import { useState } from "react";
-import { Download, FileSpreadsheet, Settings } from "lucide-react";
+import { FileSpreadsheet, Settings } from "lucide-react";
+import Image from "next/image";
 import Link from 'next/link';
 import { deleteProductsAction } from "@/actions/product-actions";
 import { useRouter } from "next/navigation";
 
+interface Product {
+    id: string;
+    code: string | null;
+    name: string;
+    price: number;
+    supplier: { id: string; name: string } | null;
+    displayStatusPC: string;
+    displayStatusMobile: string;
+    saleStatusPC: string;
+    saleStatusMobile: string;
+    stockType: string;
+    stockQuantity: number;
+    soldOutStatus: string;
+    createdAt: string | Date;
+    updatedAt: string | Date;
+    images?: { url: string }[];
+}
+
 interface Props {
-    initialProducts: any[];
+    initialProducts: Product[];
 }
 
 export default function ProductTable({ initialProducts }: Props) {
     const router = useRouter();
-    const [products, setProducts] = useState(initialProducts);
+    const [products, setProducts] = useState<Product[]>(initialProducts);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const toggleSelectAll = (checked: boolean) => {
-        if (checked) setSelectedIds(products.map((p: any) => p.id));
+        if (checked) setSelectedIds(products.map((p) => p.id));
         else setSelectedIds([]);
     };
 
@@ -44,11 +63,11 @@ export default function ProductTable({ initialProducts }: Props) {
         setIsDeleting(false);
     };
 
-    const soldOutCount = products.filter((p: any) => 
+    const soldOutCount = products.filter((p) => 
         (p.stockType === 'LIMITED' && p.stockQuantity <= 0) || p.soldOutStatus === 'SOLDOUT_MANUAL'
     ).length;
-    const displayedPcCount = products.filter((p: any) => p.displayStatusPC === 'DISPLAY').length;
-    const displayedMobileCount = products.filter((p: any) => p.displayStatusMobile === 'DISPLAY').length;
+    const displayedPcCount = products.filter((p) => p.displayStatusPC === 'DISPLAY').length;
+    const displayedMobileCount = products.filter((p) => p.displayStatusMobile === 'DISPLAY').length;
 
     return (
         <div className="space-y-4">
@@ -91,7 +110,9 @@ export default function ProductTable({ initialProducts }: Props) {
                         <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">수정일변경</button>
                         <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">품절처리</button>
                         <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">선택 복사</button>
-                        <button onClick={handleDeleteSelected} className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">선택 삭제</button>
+                        <button onClick={handleDeleteSelected} disabled={isDeleting} className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">
+                            {isDeleting ? "삭제중..." : "선택 삭제"}
+                        </button>
                     </div>
                 </div>
                 <div className="flex items-center gap-1">
@@ -122,7 +143,7 @@ export default function ProductTable({ initialProducts }: Props) {
                         </tr>
                     </thead>
                     <tbody className="text-xs">
-                        {products.map((product: any, index: number) => (
+                        {products.map((product, index: number) => (
                             <tr key={product.id} className="hover:bg-gray-50 border-b border-gray-200">
                                 <td>
                                     <input 
@@ -138,7 +159,13 @@ export default function ProductTable({ initialProducts }: Props) {
                                     <div className="flex justify-center">
                                         <div className="w-10 h-10 border bg-gray-100 flex items-center justify-center relative overflow-hidden">
                                             {product.images?.[0] ? (
-                                                <img src={product.images[0].url} alt="" className="w-full h-full object-cover" />
+                                                <Image 
+                                                    src={product.images[0].url} 
+                                                    alt="" 
+                                                    fill
+                                                    className="object-cover" 
+                                                    sizes="40px"
+                                                />
                                             ) : (
                                                 <span className="text-gray-300 text-[10px]">No Img</span>
                                             )}

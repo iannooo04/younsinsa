@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -20,16 +20,10 @@ export default function EditEssentialInfoPage() {
         name: "",
         supplierId: "",
         supplierType: "headquarters",
-        items: [] as any[]
+        items: [] as { label: string; value: string; isRequired: boolean }[]
     });
 
-    useEffect(() => {
-        if (id) {
-            fetchTemplate();
-        }
-    }, [id]);
-
-    const fetchTemplate = async () => {
+    const fetchTemplate = useCallback(async () => {
         setLoading(true);
         const res = await getEssentialInfoTemplateAction(id);
         if (res.success && res.item) {
@@ -37,14 +31,20 @@ export default function EditEssentialInfoPage() {
                 name: res.item.name,
                 supplierId: res.item.supplierId || "",
                 supplierType: res.item.supplierType,
-                items: res.item.items as any[],
+                items: res.item.items as { label: string; value: string; isRequired: boolean }[],
             });
         } else {
             alert(res.error || "데이터 로딩 실패");
             router.push("/admin/products/info");
         }
         setLoading(false);
-    };
+    }, [id, router]);
+
+    useEffect(() => {
+        if (id) {
+            fetchTemplate();
+        }
+    }, [id, fetchTemplate]);
 
     const addItem = () => {
         setFormData(prev => ({
@@ -60,7 +60,7 @@ export default function EditEssentialInfoPage() {
         }));
     };
 
-    const updateItem = (index: number, field: string, value: any) => {
+    const updateItem = (index: number, field: string, value: string | boolean) => {
         setFormData(prev => ({
             ...prev,
             items: prev.items.map((item, i) => i === index ? { ...item, [field]: value } : item)

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -18,13 +18,13 @@ import {
   ChevronDown,
   Download,
   Calendar,
-  Search,
   Info
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { format } from "date-fns";
-import { getUsersAction, getUserGradesAction } from "@/actions/user-actions";
+import { getUsersAction } from "@/actions/user-actions";
+import { getUserGradesAction } from "@/actions/user-grade-actions";
 
 export default function MemberListPage() {
   // Filter States
@@ -39,31 +39,25 @@ export default function MemberListPage() {
   const [endDate, setEndDate] = useState('');
   
   // Data States
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [grades, setGrades] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
-
-  useEffect(() => {
-    fetchGrades();
-    fetchUsers();
-  }, []);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [page]);
-
-  const fetchGrades = async () => {
+  
+  const fetchGrades = useCallback(async () => {
     const res = await getUserGradesAction();
     if (res.success) {
-      setGrades(res.grades || []);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setGrades((res.grades as any[]) || []);
     }
-  };
+  }, []);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getUsersAction({
@@ -81,14 +75,20 @@ export default function MemberListPage() {
       });
       
       if (res.success) {
-        setUsers(res.items || []);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setUsers((res.items as any[]) || []);
         setTotal(res.total || 0);
       }
     } catch(e) {
       console.error(e);
     }
     setLoading(false);
-  };
+  }, [page, limit, mallId, searchType, keyword, exactMatch, memberGrade, memberType, approved, startDate, endDate]);
+
+  useEffect(() => {
+    fetchGrades();
+    fetchUsers();
+  }, [fetchGrades, fetchUsers]);
 
   const handleSearch = () => {
     setPage(1);

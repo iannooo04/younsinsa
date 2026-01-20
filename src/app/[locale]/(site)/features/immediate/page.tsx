@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Bell, Heart, ChevronUp, Zap } from "lucide-react";
+import Image from "next/image";
 
 export default function ImmediatePage() {
   const [activeTab, setActiveTab] = useState("전체");
@@ -93,10 +94,11 @@ export default function ImmediatePage() {
       {/* 2. Hero Banner */}
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://images.unsplash.com/photo-1566150905458-1bf1fc113f0d?auto=format&fit=crop&w=1600&q=80" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">내일 입고<br/>바로 나가는 즐거움</h2>
@@ -104,10 +106,11 @@ export default function ImmediatePage() {
             </div>
         </div>
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://images.unsplash.com/photo-1548036328-c9fa89d128fa?auto=format&fit=crop&w=1600&q=80" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">주말 데이트룩<br/>지금 주문하세요</h2>
@@ -144,7 +147,7 @@ export default function ImmediatePage() {
             {spotItems.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -170,7 +173,7 @@ export default function ImmediatePage() {
             {dailySpecials.map((product) => (
                 <div key={product.id}>
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                        <Image src={product.img} alt={product.name} fill className="object-cover" />
                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500 bg-white/80 p-1 rounded-full">
                            <Heart size={14} />
                         </button>
@@ -200,7 +203,7 @@ export default function ImmediatePage() {
              {clothingItems.map((product) => (
                 <div key={product.id} className="min-w-[150px] max-w-[150px] snap-start">
                     <div className="aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-white drop-shadow-md hover:text-red-500">
                            <Heart size={18} />
                          </button>
@@ -236,7 +239,7 @@ export default function ImmediatePage() {
                         {index + 1}
                     </div>
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>

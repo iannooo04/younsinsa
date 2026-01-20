@@ -14,6 +14,7 @@ export default async function SiteLayout({
 }) {
   const session = await auth();
   const authed = !!session?.user;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const user = session?.user as any;
   const userLevel = user?.level || 1;
 

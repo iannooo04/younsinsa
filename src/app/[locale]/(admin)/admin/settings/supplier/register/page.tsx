@@ -2,15 +2,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { HelpCircle, X } from "lucide-react";
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createSupplierAction } from "@/actions/supplier-actions";
+import { SupplierStatus } from "@/generated/prisma";
 
 export default function SupplierRegisterPage() {
     const router = useRouter();
@@ -20,7 +18,7 @@ export default function SupplierRegisterPage() {
     const [formState, setFormState] = useState({
         name: "",
         code: "", // 시스템 자동생성이면 생략 가능하지만 수동 입력도 지원
-        status: "ACTIVE",
+        status: "ACTIVE" as SupplierStatus,
         
         businessName: "",
         ceoName: "",
@@ -46,7 +44,7 @@ export default function SupplierRegisterPage() {
         memo: "",
     });
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string | number) => {
         setFormState(prev => ({ ...prev, [field]: value }));
     };
 
@@ -59,6 +57,7 @@ export default function SupplierRegisterPage() {
         startTransition(async () => {
             const dataToSubmit = {
                 ...formState,
+                status: formState.status as SupplierStatus,
                 // Ensure number conversion
                 commissionRate: Number(formState.commissionRate),
                 shippingFee: Number(formState.shippingFee),

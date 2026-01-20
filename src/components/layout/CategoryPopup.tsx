@@ -2,22 +2,17 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 
 // 1) [삭제] 하드코딩된 카테고리 목록 제거
 // const CATEGORY_ITEMS = ... (삭제됨)
 
-// 2) 각 카테고리별 서브 아이템 정의 (성별 추가)
-type SubItem = { id: string; icon: string; gender: "common" | "men" | "women"; name?: string };
-
 // 2) [삭제] 하드코딩된 서브 아이템 및 맵 제거
 // const SUB_ITEMS_MAP = ... (삭제됨)
 // 🧑‍💻 [유틸] 한글 초성 추출 함수
 function getInitialConsonant(text: string) {
-  const CHO_HANGUL = [
-    "ㄱ", "7", "ㄴ", "ㄷ", "9", "ㄹ", "ㅁ", "ㅂ", "ㅅ", "ㅇ", "ㅈ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ",
-  ];
   // 7=꾼, 9=뚱 처럼 된 index 보정 필요없음 (일반적인 초성 범위만)
   const CHO_PERIOD = Math.floor("까".charCodeAt(0) - "가".charCodeAt(0));
   const CHO_START = "가".charCodeAt(0);
@@ -55,12 +50,19 @@ type BrandData = {
   description?: string;
 };
 
-const ALL_BRANDS_DATA: BrandData[] = [];
-
 
 interface CategoryPopupProps {
   onClose: () => void;
   initialTab?: "category" | "brand" | "service";
+}
+
+interface Category {
+    id: string;
+    parentId?: string | null;
+    name: string;
+    slug?: string;
+    imageUrl?: string;
+    code?: string;
 }
 
 function buildCategoryHref(
@@ -112,7 +114,7 @@ export default function CategoryPopup({
   const [selectedGender, setSelectedGender] = useState<"all" | "men" | "women">("all");
 
   // 🔹 [Admin Data State]
-  const [adminCategories, setAdminCategories] = useState<any[]>([]);
+  const [adminCategories, setAdminCategories] = useState<Category[]>([]);
   const [brandsData, setBrandsData] = useState<BrandData[]>([]);
 
   // 📡 [Data Fetching]
@@ -120,12 +122,12 @@ export default function CategoryPopup({
   useEffect(() => {
     fetch("/api/popup/categories")
       .then((res) => res.json())
-      .then((data) => {
+      .then((data: Category[]) => {
         if (Array.isArray(data)) {
           setAdminCategories(data);
           
           // Set default active category to the first root category
-          const rootCats = data.filter((c: any) => !c.parentId);
+          const rootCats = data.filter((c: Category) => !c.parentId);
           if (rootCats.length > 0) {
             setActiveCategory(rootCats[0].id);
           }
@@ -136,9 +138,9 @@ export default function CategoryPopup({
       // Fetch Brands
       fetch("/api/popup/brands")
         .then((res) => res.json())
-        .then((data) => {
+        .then((data: BrandData[]) => {
              if (Array.isArray(data)) {
-                 const mapped = data.map((b: any) => ({
+                 const mapped = data.map((b) => ({
                     id: b.id,
                     parentId: b.parentId,
                     name: b.name,
@@ -190,7 +192,7 @@ export default function CategoryPopup({
     // Admin Dynamic Children
     const children = adminCategories.filter(c => c.parentId === activeCategory);
     
-    let items = children.map(c => ({
+    const items = children.map(c => ({
         id: c.slug || c.id,
         icon: c.imageUrl || "📁", // Default icon
         gender: "common",
@@ -293,7 +295,7 @@ export default function CategoryPopup({
     }
 
     return result;
-  }, [brandsData, selectedBrandCategory, searchQuery, selectedConsonant]);
+  }, [brandsData, selectedBrandCategory, searchQuery, selectedConsonant, topLevelBrands]);
 
 
   return (
@@ -459,12 +461,15 @@ export default function CategoryPopup({
                         onClick={onClose}
                         className="flex flex-col items-center group cursor-pointer"
                       >
-                        <div className="w-16 h-16 mb-3 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110">
+                        <div className="w-16 h-16 mb-3 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110 relative">
                              {sub.icon.startsWith("http") || sub.icon.startsWith("/") ? (
-                               <img
+                               <Image
                                  src={sub.icon}
-                                 alt={sub.name}
-                                 className="h-full w-auto object-contain"
+                                 alt={sub.name || ""}
+                                 fill
+                                 className="object-contain"
+                                 sizes="64px"
+                                 unoptimized={sub.icon.startsWith("http")}
                                />
                              ) : (
                                <span className="text-4xl text-gray-400 group-hover:text-black transition-colors">{sub.icon}</span>
@@ -639,9 +644,16 @@ export default function CategoryPopup({
                         >
                           <div className="flex items-center gap-3">
                             {/* Brand Logo Placeholder */}
-                            <div className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0">
+                            <div className="w-9 h-9 rounded-full border border-gray-100 flex items-center justify-center bg-gray-50 text-[10px] text-gray-400 font-bold overflow-hidden shrink-0 relative">
                               {brand.logoUrl ? (
-                                <img src={brand.logoUrl} alt={brand.name} className="w-full h-full object-cover" />
+                                <Image 
+                                  src={brand.logoUrl} 
+                                  alt={brand.name} 
+                                  fill
+                                  className="object-cover" 
+                                  sizes="36px"
+                                  unoptimized={brand.logoUrl.startsWith("http")}
+                                />
                               ) : brand.slug === "nkbus-standard" ? (
                                 <span className="text-black">NKBUS</span>
                               ) : (

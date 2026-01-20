@@ -56,8 +56,8 @@ export async function getVatSettingsAction() {
 export async function updateVatSettingsAction(data: {
     productVatRate: string | number;
     shippingVatRate: string | number;
-    customProductRates: any[];
-    customShippingRates: any[];
+    customProductRates: Prisma.InputJsonValue;
+    customShippingRates: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -141,8 +141,8 @@ export async function getGuideSettingsAction() {
 }
 
 export async function updateGuideSettingsAction(data: {
-    usageGuide: any;
-    withdrawalGuide: any;
+    usageGuide: Prisma.InputJsonValue;
+    withdrawalGuide: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -286,8 +286,8 @@ export async function getStorageSettingsAction() {
 }
 
 export async function updateStorageSettingsAction(data: {
-    storagePaths: any;
-    filePaths: any;
+    storagePaths: Prisma.InputJsonValue;
+    filePaths: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -358,7 +358,7 @@ export async function getSeoSettingsAction() {
 export async function updateSeoSettingsAction(data: {
     pcRobotTxt?: string;
     mobileRobotTxt?: string;
-    majorPageTags?: any;
+    majorPageTags?: Prisma.InputJsonValue;
     ogImage?: string;
     ogTitle?: string;
     ogDescription?: string;
@@ -367,8 +367,8 @@ export async function updateSeoSettingsAction(data: {
     pagePathType?: string;
     pagePathUrl?: string;
     useCanonical?: boolean;
-    relatedChannels?: any;
-    otherPageTags?: any;
+    relatedChannels?: Prisma.InputJsonValue;
+    otherPageTags?: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -477,7 +477,7 @@ export async function getExchangeRateSettingsAction() {
 }
 
 export async function updateExchangeRateSettingsAction(data: {
-    rates: any;
+    rates: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -560,7 +560,7 @@ export async function getOverseasShippingSettingsAction() {
 }
 
 export async function updateOverseasShippingSettingsAction(data: {
-    conditions: any;
+    conditions: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -656,7 +656,7 @@ export async function getProductBasicSettingsAction() {
 }
 
 export async function updateProductBasicSettingsAction(data: {
-    modDateRange?: any;
+    modDateRange?: Prisma.InputJsonValue;
     modDatePopup?: string;
     imageLoadingEnhance?: string;
     priceExposure?: string;
@@ -672,7 +672,7 @@ export async function updateProductBasicSettingsAction(data: {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) return { success: false, error: "기본 정책을 찾을 수 없습니다." };
 
-        const settings = await prisma.productBasicSettings.upsert({
+        await prisma.productBasicSettings.upsert({
             where: { basicPolicyId: policy.id },
             update: {
                 modDateRange: data.modDateRange,
@@ -750,7 +750,14 @@ export async function getProductDetailExposureSettingsAction() {
     }
 }
 
-export async function updateProductDetailExposureSettingsAction(data: any) {
+export async function updateProductDetailExposureSettingsAction(data: {
+    isMobileSame: boolean;
+    pcExposureItems: Prisma.InputJsonValue;
+    mobileExposureItems: Prisma.InputJsonValue;
+    discountSettings: Prisma.InputJsonValue;
+    additionalSettings: Prisma.InputJsonValue;
+    strikeSettings: Prisma.InputJsonValue;
+}) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) throw new Error("Basic policy not found");
@@ -852,8 +859,8 @@ export async function getProductImageSizeSettingsAction() {
 
 export async function updateProductImageSizeSettingsAction(data: {
     resizeMethod: string;
-    basicImages: any;
-    listImages: any;
+    basicImages: Prisma.InputJsonValue;
+    listImages: Prisma.InputJsonValue;
 }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
@@ -931,7 +938,7 @@ export async function getProductUsageGuideSettingsAction() {
     }
 }
 
-export async function updateProductUsageGuideSettingsAction(guides: any[]) {
+export async function updateProductUsageGuideSettingsAction(guides: Prisma.InputJsonValue) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) return { success: false, error: "기본 정책을 찾을 수 없습니다." };
@@ -1145,7 +1152,8 @@ export async function getOrderBasicSettingsAction() {
     }
 }
 
-export async function updateOrderBasicSettingsAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateOrderBasicSettingsAction(data: Record<string, any>) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) return { success: false, error: "기본 정책을 찾을 수 없습니다." };
@@ -1272,7 +1280,7 @@ export async function getOrderStatusSettingsAction() {
     }
 }
 
-export async function updateOrderStatusSettingsAction(data: { autoCancelDays: number, statusSettings: any, benefitSettings: any }) {
+export async function updateOrderStatusSettingsAction(data: { autoCancelDays: number, statusSettings: Prisma.InputJsonValue, benefitSettings: Prisma.InputJsonValue }) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) return { success: false, error: "기본 정책을 찾을 수 없습니다." };
@@ -1332,13 +1340,16 @@ export async function getOrderPrintSettingsAction() {
     }
 }
 
-export async function updateOrderPrintSettingsAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateOrderPrintSettingsAction(data: Record<string, any>) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) return { success: false, error: "기본 정책을 찾을 수 없습니다." };
 
         // Remove ID if present in data just in case
-        const { id, basicPolicyId, ...updateData } = data;
+        const updateData = { ...data };
+        delete updateData.id;
+        delete updateData.basicPolicyId;
 
         const settings = await prisma.orderPrintSettings.upsert({
             where: { basicPolicyId: policy.id },
@@ -1390,12 +1401,15 @@ export async function getCartWishlistSettingsAction() {
     }
 }
 
-export async function updateCartWishlistSettingsAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateCartWishlistSettingsAction(data: Record<string, any>) {
     try {
         const policy = await prisma.basicPolicy.findFirst();
         if (!policy) return { success: false, error: "기본 정책을 찾을 수 없습니다." };
 
-        const { id, basicPolicyId, ...updateData } = data;
+        const updateData = { ...data };
+        delete updateData.id;
+        delete updateData.basicPolicyId;
 
         const settings = await prisma.cartWishlistSettings.upsert({
             where: { basicPolicyId: policy.id },

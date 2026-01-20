@@ -107,7 +107,7 @@ export default function CreateCommonInfoPage() {
                             <Label className="w-32 font-bold text-gray-700">노출 상태</Label>
                             <RadioGroup 
                                 value={formData.displayStatus} 
-                                onValueChange={(val: any) => setFormData(prev => ({ ...prev, displayStatus: val }))}
+                                onValueChange={(val: string) => setFormData(prev => ({ ...prev, displayStatus: val }))}
                                 className="flex gap-4"
                             >
                                 <div className="flex items-center gap-1.5">

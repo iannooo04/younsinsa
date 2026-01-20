@@ -15,23 +15,21 @@ import {
 import {
   HelpCircle,
   ChevronUp,
-  ChevronDown,
-  Calendar as CalendarIcon
+  ChevronDown
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { 
     getUsersAction, 
-    getUserGradesAction, 
     processUserBatchAction,
     GetUsersParams 
 } from "@/actions/user-actions";
+import { getUserGradesAction } from "@/actions/user-grade-actions";
 import { format } from "date-fns";
 
 export default function JoinApprovalChangePage() {
   // State
-  const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [grades, setGrades] = useState<any[]>([]);
@@ -60,20 +58,14 @@ export default function JoinApprovalChangePage() {
   const [targetStatus, setTargetStatus] = useState<string>('approved');
   const [targetGrade, setTargetGrade] = useState<string>("");
 
-  useEffect(() => {
-      loadGrades();
-      handleSearch();
-  }, []);
-
-  const loadGrades = async () => {
+  const loadGrades = React.useCallback(async () => {
       const res = await getUserGradesAction();
       if (res.success) {
           setGrades(res.grades || []);
       }
-  };
+  }, []);
 
-  const handleSearch = async (page = 1) => {
-      setLoading(true);
+  const handleSearch = React.useCallback(async (page = 1) => {
       const params = { ...searchParams, page };
       const res = await getUsersAction(params);
       if (res.success) {
@@ -85,8 +77,12 @@ export default function JoinApprovalChangePage() {
       } else {
           toast.error(res.error || "검색에 실패했습니다.");
       }
-      setLoading(false);
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+      loadGrades();
+      handleSearch();
+  }, [loadGrades, handleSearch]);
 
   const handleProcess = async () => {
       if (targetType === 'selected' && selectedIds.length === 0) {

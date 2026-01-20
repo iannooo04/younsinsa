@@ -39,7 +39,7 @@ export default function OverseasShippingConditionPage() {
 
     const handleSave = () => {
         startTransition(async () => {
-            const result = await updateOverseasShippingSettingsAction({ conditions });
+            const result = await updateOverseasShippingSettingsAction({ conditions: conditions as unknown as Record<string, Record<string, string | number | boolean>> });
             if (result.success) {
                 alert("저장되었습니다.");
             } else {
@@ -48,7 +48,7 @@ export default function OverseasShippingConditionPage() {
         });
     };
 
-    const handleConditionChange = (mallCode: string, field: keyof ShippingCondition, value: any) => {
+    const handleConditionChange = (mallCode: string, field: keyof ShippingCondition, value: string | number | boolean) => {
         setConditions(prev => ({
             ...prev,
             [mallCode]: {

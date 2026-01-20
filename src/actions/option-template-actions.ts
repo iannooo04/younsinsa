@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@/generated/prisma";
 import { revalidatePath } from "next/cache";
 
 export async function getOptionTemplatesAction(
@@ -17,7 +18,7 @@ export async function getOptionTemplatesAction(
   }
 ) {
   try {
-    const where: any = {};
+    const where: Prisma.OptionTemplateWhereInput = {};
 
     // 1. Supplier Filter
     if (searchParams?.supplierType && searchParams.supplierType !== 'all') {

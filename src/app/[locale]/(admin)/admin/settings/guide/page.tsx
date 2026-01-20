@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Save } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { getGuideSettingsAction, updateGuideSettingsAction } from "@/actions/basic-policy-actions";
+import { Prisma } from "@/generated/prisma";
 
 interface GuideContent {
   kr: string;
@@ -32,8 +33,8 @@ export default function GuideSettingsPage() {
   const handleSave = () => {
     startTransition(async () => {
       const result = await updateGuideSettingsAction({
-        usageGuide: usageContent,
-        withdrawalGuide: withdrawalContent
+        usageGuide: usageContent as unknown as Prisma.InputJsonValue,
+        withdrawalGuide: withdrawalContent as unknown as Prisma.InputJsonValue
       });
       if (result.success) {
         alert("저장되었습니다.");

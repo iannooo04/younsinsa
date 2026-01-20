@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Folder, Trash2, Plus, Tag, ChevronDown, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 interface BrandWithCount {
     id: string;
@@ -67,7 +68,7 @@ export default function BrandList({ initialBrands }: Props) {
                                 {brand.logoUrl && (
                                     <div className="avatar mr-2">
                                         <div className="w-8 h-8 rounded border border-base-300">
-                                            <img src={brand.logoUrl} alt={brand.name} className="object-cover" />
+                                            <Image src={brand.logoUrl} alt={brand.name} fill className="object-cover" />
                                         </div>
                                     </div>
                                 )}

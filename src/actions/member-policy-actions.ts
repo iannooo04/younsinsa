@@ -31,7 +31,8 @@ export async function getMemberJoinPolicyAction() {
   }
 }
 
-export async function updateMemberJoinPolicyAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateMemberJoinPolicyAction(data: Record<string, any>) {
   try {
      let policy = await prisma.basicPolicy.findFirst();
     if (!policy) {
@@ -135,7 +136,7 @@ export async function getMemberJoinItemSettingsAction() {
   }
 }
 
-export async function updateMemberJoinItemSettingsAction(schema: any) {
+export async function updateMemberJoinItemSettingsAction(schema: Prisma.InputJsonValue) {
   try {
     let policy = await prisma.basicPolicy.findFirst();
     if (!policy) {

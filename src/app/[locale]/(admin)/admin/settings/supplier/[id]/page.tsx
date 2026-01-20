@@ -8,6 +8,7 @@ import { useState, useTransition, useEffect, use } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { getSupplierByIdAction, updateSupplierAction } from "@/actions/supplier-actions";
+import { SupplierStatus } from "@/generated/prisma";
 
 export default function SupplierEditPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -20,7 +21,7 @@ export default function SupplierEditPage({ params }: { params: Promise<{ id: str
     const [formState, setFormState] = useState({
         name: "",
         code: "", 
-        status: "ACTIVE",
+        status: "ACTIVE" as SupplierStatus,
         
         businessName: "",
         ceoName: "",
@@ -84,7 +85,7 @@ export default function SupplierEditPage({ params }: { params: Promise<{ id: str
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
-    const handleChange = (field: string, value: any) => {
+    const handleChange = (field: string, value: string | number) => {
         setFormState(prev => ({ ...prev, [field]: value }));
     };
 
@@ -97,6 +98,7 @@ export default function SupplierEditPage({ params }: { params: Promise<{ id: str
         startTransition(async () => {
             const dataToSubmit = {
                 ...formState,
+                status: formState.status as SupplierStatus,
                 // Ensure number conversion
                 commissionRate: Number(formState.commissionRate),
                 shippingFee: Number(formState.shippingFee),

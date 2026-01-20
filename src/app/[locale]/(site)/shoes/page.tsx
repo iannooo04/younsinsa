@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Link } from "@/i18n/routing";
+import Image from "next/image";
 
 export default function ShoesPage() {
   // 1. Banner Slides
@@ -212,10 +213,11 @@ export default function ShoesPage() {
               <div
                 className={`md:col-span-2 relative ${slide.left.bgColor} overflow-hidden cursor-pointer group/item`}
               >
-                <img
+                <Image
                   src={slide.left.img}
                   alt={slide.left.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover group-hover/item:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute bottom-8 left-8 text-white z-10 drop-shadow-md">
                   <h2
@@ -231,10 +233,11 @@ export default function ShoesPage() {
               <div
                 className={`md:col-span-1 relative ${slide.center.bgColor} overflow-hidden cursor-pointer group/item`}
               >
-                <img
+                <Image
                   src={slide.center.img}
                   alt={slide.center.title}
-                  className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover/item:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover opacity-90 group-hover/item:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute top-8 left-6 right-6 text-white z-10">
                   <h2 className="text-2xl font-bold leading-snug mb-1">
@@ -255,10 +258,11 @@ export default function ShoesPage() {
               <div
                 className={`md:col-span-1 relative ${slide.right.bgColor} overflow-hidden cursor-pointer group/item`}
               >
-                <img
+                <Image
                   src={slide.right.img}
                   alt={slide.right.title}
-                  className="absolute inset-0 w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  fill
+                  className="object-cover group-hover/item:scale-105 transition-transform duration-700"
                 />
                 <div className="absolute top-8 left-6 text-white z-10">
                   <h2 className="text-xl font-bold">{slide.right.title}</h2>
@@ -312,10 +316,11 @@ export default function ShoesPage() {
             <div key={product.id} className="group cursor-pointer flex flex-col">
               <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden">
                 <div className="aspect-3/4">
-                  <img
+                  <Image
                     src={product.img}
                     alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
                   />
                 </div>
                 <button className="absolute right-2 bottom-2 text-white/70 hover:text-white transition-colors">
@@ -363,9 +368,10 @@ export default function ShoesPage() {
           <h2 className="text-2xl font-bold mb-8">주목할 만한 브랜드</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="aspect-video bg-gray-200 relative group overflow-hidden cursor-pointer">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&w=800&q=80"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
                 alt="Sneakers Lookbook"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
@@ -375,9 +381,10 @@ export default function ShoesPage() {
               </div>
             </div>
             <div className="aspect-video bg-gray-200 relative group overflow-hidden cursor-pointer">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=800&q=80"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
                 alt="Shoes Special Offer"
               />
               <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">

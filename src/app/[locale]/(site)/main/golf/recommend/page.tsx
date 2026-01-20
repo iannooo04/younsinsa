@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, ChevronRight, Share2, Heart, Menu, ChevronUp } from "lucide-react";
-import Link from "next/link";
+import { Search, Bell, Heart } from "lucide-react";
+import Image from "next/image";
 
 export default function GolfRecommendPage() {
   const [activeTab, setActiveTab] = useState("추천");
-  const [activeCategory, setActiveCategory] = useState("전체");
 
   const tabs = ["추천", "랭킹", "스타일", "발매", "골프위크"];
   
@@ -50,12 +49,6 @@ export default function GolfRecommendPage() {
     { id: 4, brand: "왁", name: "여성 플리츠 스커트", price: "189,000원", discount: "30%", img: "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=600&q=80" },
   ];
 
-  const trendItems = [
-    { id: 1, img: "https://images.unsplash.com/photo-1535131749006-b7f58c9f0363?auto=format&fit=crop&w=600&q=80" }, // Golf course style
-    { id: 2, img: "https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?auto=format&fit=crop&w=600&q=80" }, // Golf gear
-    { id: 3, img: "https://images.unsplash.com/photo-1622606548773-4b68e7343e5c?auto=format&fit=crop&w=600&q=80" }, // Swing
-    { id: 4, img: "https://images.unsplash.com/photo-1593111774240-d529f12db4bb?auto=format&fit=crop&w=600&q=80" }, // Putting
-  ];
 
   const fieldItems = [
     { id: 1, brand: "지포어", name: "MG4+ 골프화", price: "350,000원", discount: "10%", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=600&q=80" },
@@ -116,10 +109,11 @@ export default function GolfRecommendPage() {
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         {/* Banner 1 */}
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://images.unsplash.com/photo-1535131749006-b7f58c9f0363?q=80&w=1600&auto=format&fit=crop" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">2024 S/S<br/>골프웨어 컬렉션</h2>
@@ -128,10 +122,11 @@ export default function GolfRecommendPage() {
         </div>
          {/* Banner 2 */}
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://images.unsplash.com/photo-1593111774240-d529f12db4bb?q=80&w=1600&auto=format&fit=crop" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">완벽한 스윙을 위한<br/>프리미엄 클럽</h2>
@@ -168,7 +163,7 @@ export default function GolfRecommendPage() {
             {malbonProducts.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -198,7 +193,7 @@ export default function GolfRecommendPage() {
              {basicItems.map((product) => (
                 <div key={product.id} className="min-w-[150px] max-w-[150px] snap-start">
                     <div className="aspect-[4/5] bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-white drop-shadow-md hover:text-red-500">
                            <Heart size={18} />
                          </button>
@@ -224,7 +219,7 @@ export default function GolfRecommendPage() {
             {dailySpecials.map((product) => (
                 <div key={product.id}>
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                        <Image src={product.img} alt={product.name} fill className="object-cover" />
                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500 bg-white/80 p-1 rounded-full">
                            <Heart size={14} />
                         </button>
@@ -254,7 +249,7 @@ export default function GolfRecommendPage() {
              {fieldItems.map((product) => (
                 <div key={product.id} className="w-full">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <div className="absolute top-2 left-2 flex gap-1">
                              <span className="w-2 h-2 rounded-full bg-green-700"></span>
                              <span className="w-2 h-2 rounded-full bg-black"></span>
@@ -294,7 +289,7 @@ export default function GolfRecommendPage() {
                         {index + 1}
                     </div>
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>

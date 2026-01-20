@@ -43,7 +43,7 @@ async function main(): Promise<void> {
 
   // 선택: 검증용 로그
   const count = await prisma.country.count();
-  // eslint-disable-next-line no-console
+   
   console.log(`Seed OK: countries=${count}`);
 }
 
@@ -52,7 +52,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async (err: unknown) => {
-    // eslint-disable-next-line no-console
+     
     console.error("Seed failed:", err);
     await prisma.$disconnect();
     process.exit(1);

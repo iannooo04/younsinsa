@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect } from "react";
 import { getOrdersAction } from "@/actions/order-actions";
-import { OrderStatus } from "@/generated/prisma";
+import type { OrderStatus } from "@/generated/prisma";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,22 +23,41 @@ import {
   ChevronUp,
   FileSpreadsheet,
   BookOpen,
-  Settings,
   RefreshCcw,
   Printer
 } from "lucide-react";
 
+interface OrderItem {
+    id: string;
+    productName: string;
+    quantity: number;
+    price: number;
+}
+
+interface OrderListItem {
+    id: string;
+    orderNo: string;
+    ordererName: string;
+    mallId: string;
+    createdAt: Date | string;
+    totalPayAmount: number;
+    totalItemPrice: number;
+    shippingFee: number;
+    paymentMethod: string;
+    status: OrderStatus;
+    items: OrderItem[];
+}
+
 export default function OrderIntegratedListPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("주문통합리스트");
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [isPending, startTransition] = useTransition();
   const [loading, setLoading] = useState(true);
 
   // Filter States
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(20);
+  const [limit] = useState(20);
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState("order_no");
   const [mallId, setMallId] = useState("all");
@@ -56,11 +75,7 @@ export default function OrderIntegratedListPage() {
     "결제 중단/실패 리스트"
   ];
 
-  useEffect(() => {
-    fetchOrders();
-  }, [activeTab, page, limit]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = React.useCallback(async () => {
     setLoading(true);
     try {
         const res = await getOrdersAction({
@@ -75,7 +90,7 @@ export default function OrderIntegratedListPage() {
         });
         
         if (res.success) {
-            setOrders(res.items || []);
+            setOrders((res.items as unknown as OrderListItem[]) || []);
             setTotal(res.total || 0);
         } else {
             setOrders([]);
@@ -85,7 +100,11 @@ export default function OrderIntegratedListPage() {
         console.error(e);
     }
     setLoading(false);
-  };
+  }, [activeTab, page, limit, startDate, endDate, keyword, searchType, mallId]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleSearch = () => {
       setPage(1);
@@ -504,7 +523,7 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD] text-red-500 font-bold">{Math.floor((new Date().getTime() - new Date(order.createdAt).getTime()) / (1000 * 3600 * 24))}일</td>
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
-                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: any) => i.productName).join(', ')}>
+                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
                                <td className="text-right px-2 font-bold">{order.totalPayAmount.toLocaleString()}</td>
@@ -555,7 +574,7 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
-                               <td className={`border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]`} title={order.items.map((i: any) => i.productName).join(', ')}>
+                               <td className={`border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]`} title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
                                {(activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트") && (
@@ -609,7 +628,7 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className="border-r border-[#CDCDCD] text-center">-</td>
-                               <td className="text-left px-2 truncate max-w-[200px]" title={order.items.map((i: any) => i.productName).join(', ')}>
+                               <td className="text-left px-2 truncate max-w-[200px]" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
                            </tr>
@@ -691,7 +710,7 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
-                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: any) => i.productName).join(', ')}>
+                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
                                <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalItemPrice.toLocaleString()}</td>

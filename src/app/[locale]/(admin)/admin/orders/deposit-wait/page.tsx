@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -28,23 +28,31 @@ import { OrderStatus } from "@/generated/prisma";
 
 export default function DepositWaitListPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<{
+    id: string;
+    mallId: string;
+    createdAt: Date;
+    orderNo: string;
+    ordererName: string;
+    items: { productName: string }[];
+    totalItemPrice: number;
+    shippingFee: number;
+    totalPayAmount: number;
+    paymentMethod: string;
+    depositorName: string | null;
+  }[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [limit] = useState(20);
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState("order_no");
-  const [dateRange, setDateRange] = useState("today");
+  // const [dateRange, setDateRange] = useState("today"); // Unused
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [mallId, setMallId] = useState('all');
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page]);
-
-  const fetchOrders = async () => {
+  const fetchOrders = React.useCallback(async () => {
       setLoading(true);
       try {
           const res = await getOrdersAction({
@@ -65,7 +73,11 @@ export default function DepositWaitListPage() {
           console.error(e);
       }
       setLoading(false);
-  };
+  }, [page, limit, keyword, searchType, startDate, endDate, mallId]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
 
   const handleSearch = () => {
       setPage(1);
@@ -377,20 +389,20 @@ export default function DepositWaitListPage() {
                                </td>
                                <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * 20) - idx}</td>
                                <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
-                               <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
+                               <td className="border-r border-[#CDCDCD]">{format(order.createdAt, "yyyy-MM-dd HH:mm")}</td>
                                <td className="border-r border-[#CDCDCD] text-red-500 font-bold">
-                                   {Math.floor((new Date().getTime() - new Date(order.createdAt).getTime()) / (1000 * 3600 * 24))}일
+                                   {Math.floor((new Date().getTime() - order.createdAt.getTime()) / (1000 * 3600 * 24))}일
                                </td>
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
-                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate" title={order.items.map((i: any) => i.productName).join(', ')}>
+                               <td className="border-r border-[#CDCDCD] text-left px-2 truncate" title={order.items.map((i) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
-                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalProductAmount?.toLocaleString() || 0}</td>
-                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalShippingFee?.toLocaleString() || 0}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.totalItemPrice?.toLocaleString() || 0}</td>
+                               <td className="border-r border-[#CDCDCD] text-right px-2">{order.shippingFee?.toLocaleString() || 0}</td>
                                <td className="border-r border-[#CDCDCD] text-right px-2 font-bold">{order.totalPayAmount?.toLocaleString() || 0}</td>
                                <td className="border-r border-[#CDCDCD]">{order.paymentMethod || '무통장입금'}</td>
-                               <td className="border-r border-[#CDCDCD]">{order.depositor || '-'}</td>
+                               <td className="border-r border-[#CDCDCD]">{order.depositorName || '-'}</td>
                                <td className="border-r border-[#CDCDCD]">-</td>
                                <td className="border-r border-[#CDCDCD]">-</td>
                                <td>-</td>

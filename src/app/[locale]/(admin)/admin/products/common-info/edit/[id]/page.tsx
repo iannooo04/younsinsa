@@ -18,7 +18,18 @@ export default function EditCommonInfoPage() {
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
     
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<{
+        title: string;
+        exposureType: string;
+        startDate: string;
+        endDate: string;
+        displayStatus: string;
+        isSameContent: boolean;
+        contentPC: string;
+        contentMobile: string;
+        productCondition: { type: string; ids: string[] };
+        exceptionCondition: { ids: string[] };
+    }>({
         title: "",
         exposureType: "ALL",
         startDate: "",
@@ -46,8 +57,8 @@ export default function EditCommonInfoPage() {
                     isSameContent: item.isSameContent,
                     contentPC: item.contentPC || "",
                     contentMobile: item.contentMobile || "",
-                    productCondition: (item.productCondition as any) || { type: "ALL", ids: [] },
-                    exceptionCondition: (item.exceptionCondition as any) || { ids: [] },
+                    productCondition: (item.productCondition as { type: string; ids: string[] }) || { type: "ALL", ids: [] as string[] },
+                    exceptionCondition: (item.exceptionCondition as { ids: string[] }) || { ids: [] as string[] },
                 });
             } else {
                 alert(res.error || "데이터 부르기 실패");
@@ -141,7 +152,7 @@ export default function EditCommonInfoPage() {
                             <Label className="w-32 font-bold text-gray-700">노출 상태</Label>
                             <RadioGroup 
                                 value={formData.displayStatus} 
-                                onValueChange={(val: any) => setFormData(prev => ({ ...prev, displayStatus: val }))}
+                                onValueChange={(val: string) => setFormData(prev => ({ ...prev, displayStatus: val }))}
                                 className="flex gap-4"
                             >
                                 <div className="flex items-center gap-1.5">

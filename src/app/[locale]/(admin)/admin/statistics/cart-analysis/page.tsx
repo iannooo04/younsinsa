@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Youtube, ChevronUp, HelpCircle, FileSpreadsheet } from "lucide-react";
+import { Calendar, Youtube, ChevronUp, HelpCircle } from "lucide-react";
 
 export default function CartAnalysisPage() {
   return (

@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
                 shippingDuration
             },
             keywords: tags,
-            gender: gender as any, // Enum cast
+            gender: gender as "MEN" | "WOMEN" | "UNISEX", // Enum cast
             brand: { connect: { id: brandId } },
             category: { connect: { id: categoryId } },
         });
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
                             productId: product.id,
                             name: opt.name,
                             values: {
-                                create: opt.values.map((val: any) => ({ name: val.name }))
+                                create: opt.values.map((val: { name: string }) => ({ name: val.name }))
                             }
                         }
                     });

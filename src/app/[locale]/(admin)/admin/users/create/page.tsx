@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -21,7 +22,8 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Link, useRouter } from "@/i18n/routing";
-import { checkDuplicateAction, createUserAction, getUserGradesAction } from "@/actions/user-actions";
+import { checkDuplicateAction, createUserAction } from "@/actions/user-actions";
+import { getUserGradesAction } from "@/actions/user-grade-actions";
 
 export default function MemberCreatePage() {
   const router = useRouter();
@@ -79,9 +81,12 @@ export default function MemberCreatePage() {
     getUserGradesAction().then((res: any) => {
         if (res.success && res.grades) {
             setGrades(res.grades);
-            if (res.grades.length > 0 && !formData.gradeId) {
-                setFormData(prev => ({ ...prev, gradeId: res.grades[0].id }));
-            }
+            setFormData(prev => {
+                if (res.grades!.length > 0 && !prev.gradeId) {
+                    return { ...prev, gradeId: res.grades![0].id };
+                }
+                return prev;
+            });
         }
     });
   }, []);

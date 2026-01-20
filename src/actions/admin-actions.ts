@@ -15,7 +15,7 @@ export type AdminSearchFilter = {
 export type GetAdminsParams = {
   page?: number;
   pageSize?: number;
-  orderBy?: "date_desc" | "date_asc";
+  orderBy?: "date_desc" | "date_asc" | "last_login_desc" | "last_login_asc";
   filter?: AdminSearchFilter;
 };
 
@@ -75,8 +75,15 @@ export async function getAdminsAction(params: GetAdminsParams) {
   }
 
   // Order By
-  const orderByClause: Prisma.AdminOrderByWithRelationInput = 
-    orderBy === "date_asc" ? { createdAt: "asc" } : { createdAt: "desc" };
+  let orderByClause: Prisma.AdminOrderByWithRelationInput = { createdAt: "desc" };
+  
+  if (orderBy === "date_asc") {
+      orderByClause = { createdAt: "asc" };
+  } else if (orderBy === "last_login_desc") {
+      orderByClause = { lastLoginAt: "desc" };
+  } else if (orderBy === "last_login_asc") {
+      orderByClause = { lastLoginAt: "asc" };
+  }
 
   try {
     const [total, items] = await Promise.all([
@@ -101,10 +108,14 @@ import bcrypt from "bcryptjs";
 
 // ... existing types and getAdminsAction
 
-export async function createAdminAction(data: any) {
+export async function createAdminAction(data: Omit<Prisma.AdminUncheckedCreateInput, 'passwordHash'> & { password?: string }) {
     try {
         const { password, ...rest } = data;
-        const passwordHash = await bcrypt.hash(password, 12);
+        
+        let passwordHash = "";
+        if (password) {
+            passwordHash = await bcrypt.hash(password, 12);
+        }
         
         const admin = await prisma.admin.create({
             data: {
@@ -115,20 +126,20 @@ export async function createAdminAction(data: any) {
         });
         
         return { success: true, admin };
-    } catch (error: any) {
+    } catch (error) {
         console.error("Failed to create admin:", error);
         // P2002: Unique constraint violation
-        if (error.code === "P2002") {
+        if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
              return { success: false, error: "이미 사용 중인 아이디입니다." };
         }
         return { success: false, error: "운영자 등록에 실패했습니다." };
     }
 }
 
-export async function updateAdminAction(id: string, data: any) {
+export async function updateAdminAction(id: string, data: Prisma.AdminUncheckedUpdateInput & { password?: string }) {
     try {
         const { password, ...rest } = data;
-        const updateData: any = { ...rest };
+        const updateData: Prisma.AdminUncheckedUpdateInput = { ...rest };
         
         if (password) {
              updateData.passwordHash = await bcrypt.hash(password, 12);
@@ -175,3 +186,17 @@ export async function getAdminByIdAction(id: string) {
 }
 
 
+export async function checkAdminIdAction(userId: string) {
+    try {
+        if (!userId) return { success: false, error: "ID is required" };
+        
+        const count = await prisma.admin.count({
+            where: { userId },
+        });
+
+        return { success: true, exists: count > 0 };
+    } catch (error) {
+        console.error("Failed to check admin ID:", error);
+        return { success: false, error: "중복 확인 중 오류가 발생했습니다." };
+    }
+}

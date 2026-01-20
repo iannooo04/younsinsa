@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -15,8 +14,7 @@ import {
 import {
   HelpCircle,
   ChevronUp,
-  Info,
-  Calendar as CalendarIcon
+  Info
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
@@ -28,10 +26,17 @@ import {
     restoreWithdrawnUsersAction
 } from "@/actions/user-actions";
 import { format } from "date-fns";
+import { Prisma } from "@/generated/prisma";
+
+type WithdrawnUser = Prisma.UserGetPayload<{
+    include: {
+        info: true
+    }
+}>;
 
 export default function WithdrawalMemberManagementPage() {
-  const [loading, setLoading] = useState(false);
-  const [users, setUsers] = useState<any[]>([]);
+  const [, setLoading] = useState(false);
+  const [users, setUsers] = useState<WithdrawnUser[]>([]);
   const [total, setTotal] = useState(0);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   
@@ -46,16 +51,14 @@ export default function WithdrawalMemberManagementPage() {
       endDate: format(new Date(), "yyyy-MM-dd"),
   });
 
-  useEffect(() => {
-      handleSearch();
-  }, []);
-
-  const handleSearch = async (page = 1) => {
+  const handleSearch = useCallback(async (page = 1) => {
       setLoading(true);
       const params = { ...searchParams, page };
       const res = await getWithdrawnUsersAction(params);
       if (res.success) {
-          setUsers(res.items || []);
+          // Type assertion might be needed if action return type isn't perfectly inferable as WithdrawnUser[]
+          // but based on include in action it should be compatible.
+          setUsers(res.items as WithdrawnUser[] || []);
           setTotal(res.total || 0);
           setSearchParams(curr => ({ ...curr, page }));
           setSelectedIds([]);
@@ -63,7 +66,11 @@ export default function WithdrawalMemberManagementPage() {
           toast.error(res.error || "검색에 실패했습니다.");
       }
       setLoading(false);
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+      handleSearch();
+  }, [handleSearch]);
 
   const handleDelete = async () => {
       if (selectedIds.length === 0) {
@@ -105,7 +112,7 @@ export default function WithdrawalMemberManagementPage() {
       else setSelectedIds(prev => prev.filter(i => i !== id));
   };
 
-  const handleParamChange = (field: keyof GetWithdrawnUsersParams, value: any) => {
+  const handleParamChange = (field: keyof GetWithdrawnUsersParams, value: string | number) => {
       setSearchParams(prev => ({ ...prev, [field]: value }));
   };
 

@@ -67,7 +67,8 @@ export async function createCategoryAction(data: {
   }
 }
 
-export async function updateCategoryAction(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateCategoryAction(id: string, data: Record<string, any>) {
     try {
         // Separate Category fields from settings if needed
         // For now assuming data contains flat fields or structured
@@ -79,7 +80,8 @@ export async function updateCategoryAction(id: string, data: any) {
         const updatedCategory = await prisma.category.update({
             where: { id },
             data: {
-                ...categoryData,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                ...(categoryData as any),
                 displaySettings: displaySettings ? {
                     upsert: {
                         create: displaySettings,

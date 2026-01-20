@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Bell, Heart, ChevronUp, PartyPopper } from "lucide-react";
+import { Search, Bell, ChevronUp, PartyPopper } from "lucide-react";
+import Image from "next/image";
 
 export default function EventFeaturesPage() {
   const [activeTab, setActiveTab] = useState("진행중");
@@ -83,10 +84,11 @@ export default function EventFeaturesPage() {
       {/* 2. Hero Banner */}
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://images.unsplash.com/photo-1472851294608-415522f96387?auto=format&fit=crop&w=1600&q=80" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">Happy Week<br/>Festival</h2>
@@ -94,10 +96,11 @@ export default function EventFeaturesPage() {
             </div>
         </div>
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://images.unsplash.com/photo-1531297461136-82lw8l208?auto=format&fit=crop&w=1600&q=80" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">Lucky Draw<br/>Challenge</h2>
@@ -133,7 +136,7 @@ export default function EventFeaturesPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {mainEvents.map((event) => (
                 <div key={event.id} className="relative aspect-[2/1] bg-gray-100 rounded-lg overflow-hidden group cursor-pointer">
-                     <img src={event.img} alt={event.title} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                     <Image src={event.img} alt={event.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105" />
                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-4">
                          <h3 className="text-white font-bold text-lg">{event.title}</h3>
                          <p className="text-gray-200 text-sm">{event.subtitle}</p>
@@ -153,7 +156,7 @@ export default function EventFeaturesPage() {
             {raffleItems.map((item) => (
                 <div key={item.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={item.img} alt={item.name} className="w-full h-full object-cover" />
+                        <Image src={item.img} alt={item.name} fill className="object-cover" />
                         <div className="absolute top-2 left-2 bg-black text-white text-[10px] px-2 py-0.5 rounded-sm font-bold">{item.status}</div>
                     </div>
                     <p className="text-xs font-bold text-black mb-1 line-clamp-1">{item.brand}</p>
@@ -178,7 +181,7 @@ export default function EventFeaturesPage() {
              {brandWeeks.map((brand) => (
                 <div key={brand.id} className="relative">
                     <div className="aspect-[4/5] bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={brand.img} alt={brand.name} className="w-full h-full object-cover" />
+                         <Image src={brand.img} alt={brand.name} fill className="object-cover" />
                          <div className="absolute inset-0 bg-black/10"></div>
                          <div className="absolute bottom-0 left-0 w-full p-3 bg-gradient-to-t from-black/60 to-transparent">
                              <p className="text-white text-xs font-bold">{brand.brand}</p>

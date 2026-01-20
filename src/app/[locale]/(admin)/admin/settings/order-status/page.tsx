@@ -86,7 +86,7 @@ export default function OrderStatusSettingsPage() {
         }));
     };
 
-    const handleBenefitChange = (field: keyof BenefitSettings, value: any) => {
+    const handleBenefitChange = (field: keyof BenefitSettings, value: string | boolean) => {
         setBenefitSettings(prev => ({
             ...prev,
             [field]: value

@@ -37,7 +37,22 @@ import { format } from "date-fns";
 
 export default function ProductMoveCopyDeletePage() {
     // Data State
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<{
+        id: string;
+        productCode: string;
+        image: null;
+        name: string;
+        supplier: string;
+        brand: string;
+        displayStatus: string;
+        saleStatus: string;
+        stockStatus: string;
+        stock: string;
+        price: number;
+        shippingFee: string;
+        createdAt: Date;
+        deletedAt: Date | null;
+    }[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     
@@ -90,12 +105,11 @@ export default function ProductMoveCopyDeletePage() {
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchTrigger]);
+    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType]);
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fetchData]);
+    }, [fetchData, searchTrigger]);
 
     const handleSearch = () => {
         setPage(1);

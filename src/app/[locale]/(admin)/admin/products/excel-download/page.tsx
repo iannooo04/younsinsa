@@ -37,8 +37,21 @@ export default function ProductExcelDownloadPage() {
 
       if (res.success && res.items) {
         // Transform data for Excel
-        const excelData = res.items.map((p: any) => ({
-          "상품코드": p.code,
+        const excelData = res.items.map((p: Record<string, unknown> & {
+          code: string | null;
+          name: string;
+          supplier?: { name: string } | null;
+          brand?: { name: string } | null;
+          category?: { name: string } | null;
+          price: number;
+          consumerPrice: number;
+          supplyPrice: number;
+          stockQuantity: number;
+          createdAt: Date;
+          displayStatusPC: string;
+          displayStatusMobile: string;
+        }) => ({
+          "상품코드": p.code || "",
           "상품명": p.name,
           "공급사": p.supplier?.name || "본사",
           "브랜드": p.brand?.name || "-",
@@ -133,7 +146,7 @@ export default function ProductExcelDownloadPage() {
                      <div className="flex-1 p-3 flex items-center">
                           <RadioGroup 
                             value={supplierType} 
-                            onValueChange={(v: any) => setSupplierType(v)}
+                            onValueChange={(v: string) => setSupplierType(v as "all" | "head" | "supplier")}
                             className="flex gap-6"
                           >
                               <div className="flex items-center gap-1.5">
@@ -174,7 +187,7 @@ export default function ProductExcelDownloadPage() {
                      <div className="flex-1 p-3 flex items-center">
                           <RadioGroup 
                             value={range} 
-                            onValueChange={(v: any) => setRange(v)}
+                            onValueChange={(v: string) => setRange(v as "all" | "partial")}
                             className="flex gap-6 items-center"
                           >
                               <div className="flex items-center gap-1.5">

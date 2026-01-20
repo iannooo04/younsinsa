@@ -4,7 +4,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
+
 
 // ----------------------------------------------------------------------
 // 1. 더미 데이터

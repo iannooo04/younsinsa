@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma";
 
 // --- Security Settings Actions ---
 
@@ -46,9 +47,9 @@ export async function updateSecuritySettingsAction(data: {
     longTermUnusedNotice: string;
     adminIpRestriction: string;
     shopIpRestriction: string;
-    allowedCountries?: any; // Json
-    blockedCountries?: any; // Json
-    adminIpExceptions?: any; // Json
+    allowedCountries?: Prisma.InputJsonValue; // Json
+    blockedCountries?: Prisma.InputJsonValue; // Json
+    adminIpExceptions?: Prisma.InputJsonValue; // Json
     dragBlock: string;
     rightClickBlock: string;
     adminUnblock: string;

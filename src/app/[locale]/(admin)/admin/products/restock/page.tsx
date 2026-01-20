@@ -25,7 +25,17 @@ import { Youtube, ChevronUp } from "lucide-react";
 
 export default function ProductRestockNotificationPage() {
     // Mock Data - Empty state as per screenshot
-    const [restockRequests, setRestockRequests] = useState<any[]>([]);
+    const [restockRequests] = useState<RestockRequest[]>([]);
+
+    interface RestockRequest {
+        id: number;
+        supplier: string;
+        name: string;
+        option: string;
+        stock: number;
+        applicant: string;
+        status: string;
+    }
 
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">

@@ -1198,42 +1198,4 @@ function OptionItem({ value, label, id }: { value: string, label: string, id?: s
    );
 }
 
-function EditorMock() {
-  return (
-    <div className="w-full border border-gray-200">
-        {/* Toolbar */}
-        <div className="bg-[#FBFBFB] border-b border-gray-200 p-1 flex items-center justify-between">
-            <div className="flex items-center gap-0.5">
-                <div className="px-2 py-0.5 border border-gray-300 bg-white text-[10px] flex items-center gap-1 cursor-default">글꼴 <div className="border-l border-gray-300 h-3 ml-1" /> <ChevronUp className="w-2.5 h-2.5 rotate-180" /></div>
-                <div className="px-2 py-0.5 border border-gray-300 bg-white text-[10px] flex items-center gap-1 cursor-default">9pt <div className="border-l border-gray-300 h-3 ml-1" /> <ChevronUp className="w-2.5 h-2.5 rotate-180" /></div>
-                <div className="h-4 w-[1px] bg-gray-300 mx-1" />
-                <div className="p-1 hover:bg-gray-100 cursor-pointer font-bold border border-transparent">가</div>
-                <div className="p-1 hover:bg-gray-100 cursor-pointer italic border border-transparent">가</div>
-                <div className="p-1 hover:bg-gray-100 cursor-pointer underline border border-transparent">가</div>
-                {/* Simplified icons */}
-                <div className="h-4 w-[1px] bg-gray-300 mx-1" />
-                <div className="flex items-center gap-1 opacity-50"><div className="w-4 h-4 bg-gray-200 rounded-sm"/><div className="w-4 h-4 bg-gray-200 rounded-sm"/></div>
-            </div>
-            <div className="flex items-center gap-1">
-                <div className="p-1 border border-gray-300 bg-white flex items-center gap-1 px-2 text-[10px] cursor-default opacity-70">🔴 사진</div>
-            </div>
-        </div>
-        {/* Content Area */}
-        <div className="h-64 bg-white relative">
-            <div className="absolute inset-0 bg-transparent" />
-            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 bg-white border border-gray-300 shadow-sm px-4 py-1 text-[11px] text-gray-500 flex items-center gap-2">
-                아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="text-gray-300 cursor-pointer">X</span>
-            </div>
-        </div>
-        {/* Resize Bar & Status */}
-        <div className="bg-[#FBFBFB] border-t border-gray-200 p-0.5 flex items-center justify-between text-[10px] text-gray-400">
-            <div className="flex-1 text-center font-bold">↕ 입력창 크기 조절</div>
-            <div className="flex border-l border-gray-200">
-                <div className="px-2 py-0.5 border-r border-gray-200 hover:bg-gray-100 cursor-pointer text-gray-600">Editor</div>
-                <div className="px-2 py-0.5 border-r border-gray-200 hover:bg-gray-100 cursor-pointer">HTML</div>
-                <div className="px-2 py-0.5 hover:bg-gray-100 cursor-pointer">TEXT</div>
-            </div>
-        </div>
-    </div>
-  );
-}
+

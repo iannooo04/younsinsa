@@ -49,6 +49,7 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
             }
 
             onNext();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
             console.error("Registration error:", err);
             setError(err.message);

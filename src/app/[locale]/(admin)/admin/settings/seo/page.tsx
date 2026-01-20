@@ -8,7 +8,15 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { AlertCircle, HelpCircle, Plus } from "lucide-react";
 import { useState, useEffect, useTransition, useRef } from "react";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { getSeoSettingsAction, updateSeoSettingsAction } from "@/actions/basic-policy-actions";
+
+type SeoTag = {
+    title?: string;
+    author?: string;
+    description?: string;
+    keywords?: string;
+}
 
 export default function SEOSettingsPage() {
     const [activeTab, setActiveTab] = useState<"kr" | "cn">("kr");
@@ -19,7 +27,7 @@ export default function SEOSettingsPage() {
     // SEO Settings State
     const [pcRobotTxt, setPcRobotTxt] = useState("");
     const [mobileRobotTxt, setMobileRobotTxt] = useState("");
-    const [majorPageTags, setMajorPageTags] = useState<any>({}); 
+    const [majorPageTags, setMajorPageTags] = useState<Record<string, SeoTag>>({}); 
     const [ogImage, setOgImage] = useState("");
     const [ogTitle, setOgTitle] = useState("");
     const [ogDescription, setOgDescription] = useState("");
@@ -31,7 +39,17 @@ export default function SEOSettingsPage() {
     const [relatedChannels, setRelatedChannels] = useState<string[]>([]);
     
     // Temporary state for UI inputs
-    const [newChannelInput, setNewChannelInput] = useState("");
+
+    const [isCodeDialogOpen, setIsCodeDialogOpen] = useState(false);
+    const [isOtherPageDialogOpen, setIsOtherPageDialogOpen] = useState(false);
+    const [otherPageForm, setOtherPageForm] = useState({
+        type: "pc",
+        path: "",
+        title: "",
+        author: "",
+        description: "",
+        keywords: ""
+    });
 
     const [isPending, startTransition] = useTransition();
 
@@ -46,7 +64,7 @@ export default function SEOSettingsPage() {
             if (result.success && result.settings) {
                 setPcRobotTxt(result.settings.pcRobotTxt || "");
                 setMobileRobotTxt(result.settings.mobileRobotTxt || "");
-                setMajorPageTags(result.settings.majorPageTags || {});
+                setMajorPageTags((result.settings.majorPageTags as Record<string, SeoTag>) || {});
                 setOgImage(result.settings.ogImage || "");
                 setOgTitle(result.settings.ogTitle || "");
                 setOgDescription(result.settings.ogDescription || "");
@@ -88,7 +106,7 @@ export default function SEOSettingsPage() {
 
     // Helper to update major page tags
     const updateMajorPageTag = (key: string, value: string) => {
-        setMajorPageTags((prev: any) => ({
+        setMajorPageTags((prev) => ({
             ...prev,
             [tagTab]: {
                 ...(prev[tagTab] || {}),
@@ -97,11 +115,27 @@ export default function SEOSettingsPage() {
         }));
     };
 
-    const addRelatedChannel = () => {
-        if (newChannelInput.trim()) {
-            setRelatedChannels([...relatedChannels, newChannelInput.trim()]);
-            setNewChannelInput("");
+    const updateChannel = (index: number, value: string) => {
+        if (relatedChannels.length === 0) {
+             setRelatedChannels([value]);
+             return;
         }
+        const newChannels = [...relatedChannels];
+        newChannels[index] = value;
+        setRelatedChannels(newChannels);
+    };
+
+    const addNewChannel = () => {
+        if (relatedChannels.length >= 9) {
+            alert("최대 9개까지만 등록 가능합니다.");
+            return;
+        }
+        setRelatedChannels([...(relatedChannels.length === 0 ? [""] : relatedChannels), ""]);
+    };
+
+    const removeChannel = (index: number) => {
+        const newChannels = relatedChannels.filter((_, i) => i !== index);
+        setRelatedChannels(newChannels);
     };
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>, setter: (value: string) => void) => {
@@ -203,19 +237,7 @@ export default function SEOSettingsPage() {
                                     className="h-[250px] font-mono text-sm resize-none border-gray-300"
                                     value={robotTab === "pc" ? pcRobotTxt : mobileRobotTxt}
                                     onChange={(e) => robotTab === "pc" ? setPcRobotTxt(e.target.value) : setMobileRobotTxt(e.target.value)}
-                                    placeholder={`# Default Bot Policy List provided by GODOMALL
-User-agent: mj12bot
-User-agent: SemrushBot
-User-agent: ClaudeBot
-User-agent: GPTBot
-Disallow: /
-
-User-agent: facebookexternalhit
-User-agent: DotBot
-User-agent: Screaming Frog SEO Spider
-User-agent: heritrix
-User-agent: bingbot
-User-agent: owasp`}
+                                    placeholder=""
                                 />
                             </div>
                         </div>
@@ -237,7 +259,7 @@ User-agent: owasp`}
                         {["common", "product", "category", "brand", "promotion", "board"].map((tab) => (
                             <button 
                                 key={tab}
-                                onClick={() => setTagTab(tab as any)}
+                                onClick={() => setTagTab(tab as "common" | "product" | "category" | "brand" | "promotion" | "board")}
                                 className={`px-6 py-3 text-sm font-medium border-r border-gray-200 ${tagTab === tab ? "bg-white text-gray-900 border-b-white -mb-[1px]" : "text-gray-500"}`}
                             >
                                 {tab === "common" && "공통"}
@@ -251,12 +273,22 @@ User-agent: owasp`}
                     </div>
 
                     <div className="p-4 space-y-4">
-                         <div className="text-xs text-gray-500 space-y-1 pb-2 border-b border-gray-200 mb-4">
-                            <p>메인 페이지 및 기타페이지에 공통으로 적용됩니다.</p>
-                            <p>쇼핑몰 "상품, 카테고리, 브랜드, 기획전, 게시판"의 주요 페이지별 SEO 태그 설정을 하지 않았을 경우 공통 설정이 자동으로 적용됩니다.</p>
-                            <div className="flex justify-end -mt-6">
-                                <Button size="sm" variant="outline" className="h-6 text-xs bg-gray-400 text-white border-0 hover:bg-gray-500 rounded-sm">치환코드 보기</Button>
-                            </div>
+                        <div className="flex justify-between items-start text-xs text-gray-500 pb-2 border-b border-gray-200 mb-4">
+                            {tagTab === "common" ? (
+                                <div className="flex gap-2">
+                                    <span className="w-4 h-4 bg-[#555] text-white flex items-center justify-center text-[10px] rounded-sm shrink-0 mt-[2px] font-bold">!</span>
+                                    <div className="space-y-1 leading-relaxed">
+                                        <p>메인 페이지 및 기타페이지에 공통으로 적용됩니다.</p>
+                                        <p>쇼핑몰 "상품, 카테고리, 브랜드, 기획전, 게시판"의 주요 페이지별 SEO 태그 설정을 하지 않았을 경우 공통 설정이 자동으로 적용됩니다.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2 min-h-[24px]">
+                                    <span className="w-4 h-4 bg-[#555] text-white flex items-center justify-center text-[10px] rounded-sm shrink-0 font-bold">!</span>
+                                    <p>입력하지 않을 경우 공통 항목에 등록된 SEO 태그 설정 정보가 동일하게 적용됩니다.</p>
+                                </div>
+                            )}
+                            <Button size="sm" className="h-6 text-xs bg-gray-400 text-white border-0 hover:bg-gray-500 rounded-sm shrink-0 ml-2" onClick={() => setIsCodeDialogOpen(true)}>치환코드 보기</Button>
                         </div>
 
                         <div className="grid grid-cols-[180px_1fr] gap-4 items-center">
@@ -271,10 +303,12 @@ User-agent: owasp`}
                             </div>
                         </div>
                         <div className="grid grid-cols-[180px_1fr] gap-4">
-                            <div className="col-start-2 text-xs text-gray-500 flex items-center gap-1">
-                                <span className="w-3 h-3 bg-gray-800 text-white flex items-center justify-center text-[10px] rounded-sm">!</span>
-                                입력하지 않을 경우 <span className="text-blue-500 underline cursor-pointer">기본설정{'>'}기본정책{'>'}기본정보설정</span>의 쇼핑몰 기본정보 중 상단타이틀에 등록된 정보가 적용됩니다.
-                            </div>
+                            {tagTab === 'common' && (
+                                <div className="col-start-2 text-xs text-gray-500 flex items-center gap-1">
+                                    <span className="w-3 h-3 bg-gray-800 text-white flex items-center justify-center text-[10px] rounded-sm">!</span>
+                                    입력하지 않을 경우 <span className="text-blue-500 underline cursor-pointer">기본설정{'>'}기본정책{'>'}기본정보설정</span>의 쇼핑몰 기본정보 중 상단타이틀에 등록된 정보가 적용됩니다.
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-[180px_1fr] gap-4 items-center pt-2">
@@ -494,7 +528,7 @@ User-agent: owasp`}
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="error" id="path-error" />
                                     <Label htmlFor="path-error" className="font-normal text-sm text-gray-700">오류 페이지로 연결</Label>
-                                    <Button size="sm" variant="outline" className="h-6 text-xs bg-gray-400 text-white border-0 hover:bg-gray-500 rounded-sm">미리보기</Button>
+                                    <Button size="sm" className="h-6 text-xs bg-gray-400 text-white border-0 hover:bg-gray-500 rounded-sm">미리보기</Button>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="custom" id="path-custom" />
@@ -551,44 +585,38 @@ User-agent: owasp`}
                     <HelpCircle size={14} className="text-gray-400 mb-2" />
                 </div>
                 <div className="border-t border-b border-gray-300 bg-white">
-                     {relatedChannels.map((channel, index) => (
-                        <div key={index} className="grid grid-cols-[180px_1fr] divide-x border-b border-gray-200">
-                            <div className="p-4 bg-gray-50 font-medium text-gray-700 flex items-center justify-between">
+                     {(relatedChannels.length > 0 ? relatedChannels : [""]).map((channel, index) => (
+                        <div key={index} className="grid grid-cols-[180px_1fr] divide-x border-b border-gray-200 last:border-b-0">
+                            <div className="p-4 bg-gray-50 font-medium text-gray-700">
                                 <span>연관채널 {index + 1}</span>
-                                <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
-                                    onClick={() => setRelatedChannels(relatedChannels.filter((_, i) => i !== index))}
-                                >
-                                    -
-                                </Button>
                             </div>
-                            <div className="p-4">
-                                <span className="text-gray-700">{channel}</span>
+                            <div className="p-4 flex gap-2">
+                                <Input 
+                                    className="w-full h-8 border-gray-300 rounded-sm" 
+                                    placeholder="ex) https://www.facebook.com/nhncommerce" 
+                                    value={channel}
+                                    onChange={(e) => updateChannel(index, e.target.value)}
+                                />
+                                {index === 0 ? (
+                                    <Button 
+                                        variant="outline" 
+                                        className="h-8 border-gray-400 text-gray-800 rounded-sm hover:bg-gray-50 flex items-center gap-1 font-normal w-[70px]"
+                                        onClick={addNewChannel}
+                                    >
+                                        <Plus size={12} className="text-blue-600" /> 추가
+                                    </Button>
+                                ) : (
+                                    <Button 
+                                        variant="outline" 
+                                        className="h-8 border-gray-300 text-gray-600 rounded-sm hover:bg-gray-50 w-[70px] font-normal"
+                                        onClick={() => removeChannel(index)}
+                                    >
+                                        - 삭제
+                                    </Button>
+                                )}
                             </div>
                         </div>
                      ))}
-                     {relatedChannels.length < 9 && (
-                         <div className="grid grid-cols-[180px_1fr] divide-x border-b border-gray-200">
-                            <div className="p-4 bg-gray-50 font-medium text-gray-700">연관채널 추가</div>
-                            <div className="p-4 flex gap-2">
-                                 <Input 
-                                    className="w-full h-8 border-gray-300 rounded-sm" 
-                                    placeholder="ex) https://www.facebook.com/nhncommerce" 
-                                    value={newChannelInput}
-                                    onChange={(e) => setNewChannelInput(e.target.value)}
-                                />
-                                 <Button 
-                                    variant="outline" 
-                                    className="h-8 border-gray-300 rounded-sm text-gray-600 bg-white hover:bg-gray-50"
-                                    onClick={addRelatedChannel}
-                                >
-                                    <Plus size={14} className="mr-1" /> 추가
-                                 </Button>
-                            </div>
-                         </div>
-                     )}
                 </div>
                 <div className="text-xs text-gray-500 space-y-1 pl-1">
                      <p>쇼핑몰과 관련된 SNS채널주소를 URL로 입력하시면 네이버 검색결과의 연관채널 부문에 해당 채널이 노출될 수 있습니다.</p>
@@ -652,13 +680,163 @@ User-agent: owasp`}
                          <Button variant="outline" className="border-gray-300 text-gray-600 hover:bg-gray-100 rounded-sm h-8 px-4 text-sm bg-white">
                             선택 삭제
                         </Button>
-                        <Button variant="outline" className="border-gray-300 text-gray-600 hover:bg-gray-100 rounded-sm h-8 px-4 text-sm bg-white">
+                        <Button variant="outline" className="border-gray-300 text-gray-600 hover:bg-gray-100 rounded-sm h-8 px-4 text-sm bg-white" onClick={() => setIsOtherPageDialogOpen(true)}>
                             페이지 추가
                         </Button>
                     </div>
                 </div>
             </div>
             )}
+            
+            <Dialog open={isCodeDialogOpen} onOpenChange={setIsCodeDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] p-0 gap-0 bg-white block overflow-hidden">
+                    <div className="flex justify-between items-center px-6 py-5 border-b border-gray-200">
+                        <DialogTitle className="text-xl font-bold text-gray-900">치환코드 보기</DialogTitle>
+                         <DialogDescription className="sr-only">
+                            SEO 설정에 사용할 수 있는 치환코드 목록입니다.
+                        </DialogDescription>
+                    </div>
+                    <div className="p-6">
+                        <table className="w-full border-t border-b border-gray-300 text-sm text-center">
+                            <thead className="bg-[#bfbfbf] text-white font-normal">
+                                <tr>
+                                    <th className="py-2.5 w-20 border-r border-[#d4d4d4]">번호</th>
+                                    <th className="py-2.5 border-r border-[#d4d4d4]">치환코드</th>
+                                    <th className="py-2.5 w-40">설명</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                <tr>
+                                    <td colSpan={3} className="py-10 text-center text-gray-500">등록된 치환코드가 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Other Page Settings Dialog */}
+            <Dialog open={isOtherPageDialogOpen} onOpenChange={setIsOtherPageDialogOpen}>
+                <DialogContent className="sm:max-w-[800px] p-0 gap-0 bg-white block overflow-hidden">
+                    <div className="flex justify-between items-center px-6 py-5 border-b border-gray-200">
+                        <DialogTitle className="text-xl font-bold text-gray-900">기타 페이지 SEO 태그 설정</DialogTitle>
+                         <DialogDescription className="sr-only">
+                            기타 페이지를 위한 SEO 태그를 설정합니다.
+                        </DialogDescription>
+                    </div>
+                    
+                    <div className="p-6 space-y-4">
+                        <div className="border-t border-gray-300 text-sm">
+                            {/* Page Classification */}
+                            <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                                <div className="bg-gray-50 p-3 pl-4 font-medium text-gray-700 flex items-center">페이지 분류</div>
+                                <div className="p-3 pl-4 flex items-center">
+                                    <RadioGroup 
+                                        value={otherPageForm.type} 
+                                        onValueChange={(val) => setOtherPageForm({...otherPageForm, type: val})} 
+                                        className="flex items-center gap-6"
+                                    >
+                                        <div className="flex items-center gap-2">
+                                            <RadioGroupItem value="pc" id="op-pc" className="text-[#c13030] border-gray-300" />
+                                            <Label htmlFor="op-pc" className="font-normal text-gray-700 cursor-pointer">PC 쇼핑몰</Label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <RadioGroupItem value="mobile" id="op-mobile" className="text-[#c13030] border-gray-300" />
+                                            <Label htmlFor="op-mobile" className="font-normal text-gray-700 cursor-pointer">모바일 쇼핑몰</Label>
+                                        </div>
+                                    </RadioGroup>
+                                </div>
+                            </div>
+
+                            {/* Page Path */}
+                             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                                <div className="bg-gray-50 p-3 pl-4 font-medium text-gray-700 flex items-start pt-4">페이지 경로</div>
+                                <div className="p-3 pl-4 space-y-2">
+                                    <div className="flex items-center text-gray-600">
+                                        http://sosexy7654.godomall.com/
+                                        <Input 
+                                            className="w-64 h-8 ml-1 border-gray-300 rounded-sm"
+                                            value={otherPageForm.path}
+                                            onChange={(e) => setOtherPageForm({...otherPageForm, path: e.target.value})}
+                                        />
+                                    </div>
+                                     <div className="flex items-start gap-1 text-xs text-gray-500">
+                                        <span className="w-3 h-3 bg-gray-600 text-white flex items-center justify-center text-[10px] rounded-sm shrink-0 mt-0.5 font-bold">!</span>
+                                        <div className="space-y-0.5">
+                                            <p>개별 SEO 태그를 설정할 페이지의 경로를 정확하게 입력해주세요.</p>
+                                            <p className="text-gray-400">ex) service/company.php</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Title */}
+                             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                                <div className="bg-gray-50 p-3 pl-4 font-medium text-gray-700 flex items-center">타이틀 (Title)</div>
+                                <div className="p-3 pl-4">
+                                    <Input 
+                                        className="w-full h-8 border-gray-300 rounded-sm" 
+                                        value={otherPageForm.title}
+                                        onChange={(e) => setOtherPageForm({...otherPageForm, title: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Author */}
+                             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                                <div className="bg-gray-50 p-3 pl-4 font-medium text-gray-700 flex items-center">메타태그 작성자<br/>(Author)</div>
+                                <div className="p-3 pl-4">
+                                    <Input 
+                                        className="w-full h-8 border-gray-300 rounded-sm" 
+                                        value={otherPageForm.author}
+                                        onChange={(e) => setOtherPageForm({...otherPageForm, author: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                                <div className="bg-gray-50 p-3 pl-4 font-medium text-gray-700 flex items-center">메타태그 설명<br/>(Description)</div>
+                                <div className="p-3 pl-4">
+                                    <Input 
+                                        className="w-full h-8 border-gray-300 rounded-sm" 
+                                        value={otherPageForm.description}
+                                        onChange={(e) => setOtherPageForm({...otherPageForm, description: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Keywords */}
+                             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                                <div className="bg-gray-50 p-3 pl-4 font-medium text-gray-700 flex items-center">메타태그 키워드<br/>(Keywords)</div>
+                                <div className="p-3 pl-4">
+                                    <Input 
+                                        className="w-full h-8 border-gray-300 rounded-sm" 
+                                        value={otherPageForm.keywords}
+                                        onChange={(e) => setOtherPageForm({...otherPageForm, keywords: e.target.value})}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-1 pt-2">
+                            <div className="flex items-center gap-1 text-xs text-gray-500">
+                                <span className="w-3 h-3 bg-gray-600 text-white flex items-center justify-center text-[10px] rounded-sm shrink-0 font-bold">!</span>
+                                태그 입력 시, '쇼핑몰 이름' {'{seo_mallNm}'} 치환코드 사용이 가능합니다.
+                            </div>
+                            <div className="flex items-center gap-1 text-xs text-[#FF424D]">
+                                <span className="w-3 h-3 bg-[#FF424D] text-white flex items-center justify-center text-[10px] rounded-sm shrink-0 font-bold">!</span>
+                                기타 페이지 SEO태그 설정에서는 주요 페이지 (상품, 카테고리, 브랜드, 기획전, 게시판) SEO 태그 설정은 불가능합니다.
+                            </div>
+                        </div>
+
+                        <div className="flex justify-center gap-1 pt-4 pb-2">
+                            <Button variant="outline" className="w-[80px] h-[34px] border-gray-300 rounded-sm hover:bg-gray-50 text-gray-700" onClick={() => setIsOtherPageDialogOpen(false)}>닫기</Button>
+                            <Button className="w-[80px] h-[34px] bg-[#4B4B4B] hover:bg-[#3E3E3E] text-white rounded-sm">저장</Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

@@ -3,7 +3,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import Link from "next/link";
+
 import Image from "next/image";
 
 // 더미 데이터: 내가 전에 보고 놓쳤던 상품
@@ -239,9 +239,11 @@ function ProductCard({
   t,
   formatPrice,
 }: {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   item: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   t: any;
-  formatPrice: any;
+  formatPrice: (price: number) => string;
 }) {
   return (
     <div className="flex flex-col group cursor-pointer">

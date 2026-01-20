@@ -124,7 +124,7 @@ export default function SupplierManagementPage() {
                         <div className="p-3 flex items-center gap-6">
                             <RadioGroup 
                                 value={filter.status} 
-                                onValueChange={(v: any) => setFilter({ ...filter, status: v })}
+                                onValueChange={(v) => setFilter({ ...filter, status: v as SupplierSearchFilter['status'] })}
                                 className="flex items-center gap-6"
                             >
                                 <div className="flex items-center gap-2">
@@ -152,7 +152,7 @@ export default function SupplierManagementPage() {
                         <div className="p-3 flex items-center gap-2">
                             <Select 
                                 value={filter.keywordType} 
-                                onValueChange={(v: any) => setFilter({ ...filter, keywordType: v })}
+                                onValueChange={(v) => setFilter({ ...filter, keywordType: v as SupplierSearchFilter['keywordType'] })}
                             >
                                 <SelectTrigger className="w-[120px] h-8 rounded-sm border-gray-300 bg-gray-50 text-xs">
                                     <SelectValue placeholder="=통합검색=" />
@@ -206,7 +206,7 @@ export default function SupplierManagementPage() {
                     <div className="flex items-center gap-1">
                         <Select 
                             value={orderBy}
-                            onValueChange={(v: any) => setOrderBy(v)}
+                            onValueChange={(v) => setOrderBy(v as "date_desc" | "date_asc" | "name_asc")}
                         >
                             <SelectTrigger className="w-[100px] h-8 rounded-sm border-gray-300 text-xs">
                                 <SelectValue placeholder="등록일 ↓" />

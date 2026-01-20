@@ -94,7 +94,7 @@ export async function deleteFaqsAction(ids: string[]) {
             where: { id: { in: ids } }
         });
         return { success: true };
-    } catch (error) {
+    } catch {
         return { success: false, error: "삭제 실패" };
     }
 }

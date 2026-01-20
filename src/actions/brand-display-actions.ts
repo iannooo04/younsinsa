@@ -89,7 +89,7 @@ export async function getBrandProductsAction(brandId: string) {
         });
         
         return { success: true, items: products };
-    } catch (error) {
+    } catch {
          return { success: false, items: [] };
     }
 }

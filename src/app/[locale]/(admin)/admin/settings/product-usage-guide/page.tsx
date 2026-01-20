@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { getProductUsageGuideSettingsAction, updateProductUsageGuideSettingsAction } from "@/actions/basic-policy-actions";
+import { Prisma } from "@/generated/prisma";
 
 interface Guide {
     id: string;
@@ -21,7 +22,7 @@ interface Guide {
 }
 
 export default function ProductUsageGuidePage() {
-    const [isPending, startTransition] = useTransition();
+    const [, startTransition] = useTransition();
     const [guides, setGuides] = useState<Guide[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     
@@ -68,7 +69,7 @@ export default function ProductUsageGuidePage() {
         const newGuides = guides.filter(g => !selectedIds.includes(g.id));
         
         startTransition(async () => {
-             const result = await updateProductUsageGuideSettingsAction(newGuides);
+             const result = await updateProductUsageGuideSettingsAction(newGuides as unknown as Prisma.InputJsonValue);
              if (result.success) {
                  setGuides(newGuides);
                  setSelectedIds([]);

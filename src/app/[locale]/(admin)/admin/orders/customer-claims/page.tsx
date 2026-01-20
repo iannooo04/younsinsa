@@ -24,13 +24,35 @@ import {
 import { getOrdersAction } from "@/actions/order-actions";
 import { format } from "date-fns";
 import { OrderStatus } from "@/generated/prisma";
+import { useCallback } from "react";
+
+interface OrderItem {
+    productName: string;
+}
+
+interface Order {
+    id: string;
+    totalPayAmount: number;
+    createdAt: string | Date;
+    statusUpdatedAt?: string | Date;
+    status: OrderStatus;
+    claims?: { reasonType: string }[];
+    orderNo: string;
+    ordererName: string;
+    items: OrderItem[];
+    totalItemPrice: number;
+    totalProductAmount?: number;
+    shippingFee: number;
+    totalShippingFee?: number;
+    mallId: string;
+}
 
 export default function CustomerClaimsPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("exchange"); // exchange, return, refund
 
   // Data State
-  const [orders, setOrders] = useState<any[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -39,7 +61,7 @@ export default function CustomerClaimsPage() {
   const [limit] = useState(20);
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState("order_no");
-  const [dateRange, setDateRange] = useState("today");
+  const [dateRange] = useState("today");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [mallId, setMallId] = useState('all');
@@ -51,25 +73,32 @@ export default function CustomerClaimsPage() {
       reject: false
   });
 
-  useEffect(() => {
-    fetchOrders();
-  }, [page, activeTab]);
+  // Applied Filters independent of UI state
+  const [appliedFilters, setAppliedFilters] = useState({
+      keyword: "",
+      searchType: "order_no",
+      dateRange: "today",
+      startDate: "",
+      endDate: "",
+      mallId: "all",
+      statusFilters: { request: true, approve: true, reject: false }
+  });
 
-  const fetchOrders = async () => {
+  const fetchOrders = useCallback(async () => {
       setLoading(true);
       try {
           // Determine status filters based on active tab and checkboxes
           const statuses: OrderStatus[] = [];
           
-          if (activeTab === 'exchange') {
-              if (statusFilters.request) statuses.push(OrderStatus.EXCHANGE_REQUEST);
-              if (statusFilters.approve) statuses.push(OrderStatus.EXCHANGE_COMPLETE);
+           if (activeTab === 'exchange') {
+              if (appliedFilters.statusFilters.request) statuses.push(OrderStatus.EXCHANGE_REQUEST);
+              if (appliedFilters.statusFilters.approve) statuses.push(OrderStatus.EXCHANGE_COMPLETE);
           } else if (activeTab === 'return') {
-              if (statusFilters.request) statuses.push(OrderStatus.RETURN_REQUEST);
-              if (statusFilters.approve) statuses.push(OrderStatus.RETURN_COMPLETE);
+              if (appliedFilters.statusFilters.request) statuses.push(OrderStatus.RETURN_REQUEST);
+              if (appliedFilters.statusFilters.approve) statuses.push(OrderStatus.RETURN_COMPLETE);
           } else if (activeTab === 'refund') {
-              if (statusFilters.request) statuses.push(OrderStatus.REFUND_REQUEST);
-              if (statusFilters.approve) statuses.push(OrderStatus.REFUND_COMPLETE);
+              if (appliedFilters.statusFilters.request) statuses.push(OrderStatus.REFUND_REQUEST);
+              if (appliedFilters.statusFilters.approve) statuses.push(OrderStatus.REFUND_COMPLETE);
           }
 
           // If no status selected, maybe show nothing or all for that tab? 
@@ -81,12 +110,12 @@ export default function CustomerClaimsPage() {
           const res = await getOrdersAction({
               page,
               limit,
-              status: statuses.length > 0 ? statuses : undefined, // If undefined, it might fetch all, so let's handle empty array in getOrders if needed, or just pass only if length > 0. Actually if length is 0, we effectively want NO orders for this view if user unchecked everything. But for now let's assumes at least one is checked or if all unchecked it returns nothing.
-              keyword,
-              searchType,
-              startDate: startDate || undefined,
-              endDate: endDate || undefined,
-              mallId
+              status: statuses.length > 0 ? statuses : undefined,
+              keyword: appliedFilters.keyword,
+              searchType: appliedFilters.searchType as string,
+              startDate: appliedFilters.startDate || undefined,
+              endDate: appliedFilters.endDate || undefined,
+              mallId: appliedFilters.mallId
           });
 
           if (res.items && statuses.length === 0) {
@@ -107,11 +136,23 @@ export default function CustomerClaimsPage() {
           console.error(e);
       }
       setLoading(false);
-  };
+  }, [page, limit, activeTab, appliedFilters]);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [page, activeTab, appliedFilters, fetchOrders]);
 
   const handleSearch = () => {
       setPage(1);
-      fetchOrders();
+      setAppliedFilters({
+          keyword,
+          searchType,
+          dateRange,
+          startDate,
+          endDate,
+          mallId,
+          statusFilters
+      });
   };
 
   const getStatusText = (status: OrderStatus) => {
@@ -498,7 +539,7 @@ export default function CustomerClaimsPage() {
                                    {order.statusUpdatedAt && order.status.endsWith('REQUEST') ? format(new Date(order.statusUpdatedAt), "yyyy-MM-dd HH:mm") : '-'}
                                </td>
                                <td className="border-r border-[#CDCDCD]">
-                                    {order.status.endsWith('COMPLETE') ? format(new Date(order.statusUpdatedAt), "yyyy-MM-dd HH:mm") : '-'}
+                                    {order.status.endsWith('COMPLETE') && order.statusUpdatedAt ? format(new Date(order.statusUpdatedAt), "yyyy-MM-dd HH:mm") : '-'}
                                </td>
                                <td className="border-r border-[#CDCDCD]">
                                    {/* Assuming first claim has the reason. In filtering, these are orders, so claims refers to related claims. */}
@@ -507,7 +548,7 @@ export default function CustomerClaimsPage() {
                                <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className="border-r border-[#CDCDCD]">-</td>
-                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate cursor-pointer hover:underline" title={order.items.map((i: any) => i.productName).join(', ')}>
+                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate cursor-pointer hover:underline" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
                                </td>
                                <td className="border-r border-[#CDCDCD]">{getStatusText(order.status)}</td>

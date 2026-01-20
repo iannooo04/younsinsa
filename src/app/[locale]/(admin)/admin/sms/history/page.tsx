@@ -7,8 +7,7 @@ import {
   HelpCircle,
   Youtube,
   ChevronUp,
-  Calendar as CalendarIcon,
-  ChevronDown
+  Calendar as CalendarIcon
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";

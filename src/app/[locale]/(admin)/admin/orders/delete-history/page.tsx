@@ -17,19 +17,25 @@ import {
 } from "@/actions/order-actions";
 import { format } from "date-fns";
 
+interface OrderDeleteRequest {
+    id: string;
+    totalCount: number;
+    createdAt: Date;
+    createdBy: string | null;
+    deletedAt: Date | null;
+    processedBy: string | null;
+    status: string;
+}
+
 export default function OrderDeleteHistoryPage() {
-  const [requests, setRequests] = useState<any[]>([]);
+  const [requests, setRequests] = useState<OrderDeleteRequest[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
   const [limit] = useState(20);
 
-  useEffect(() => {
-      fetchRequests();
-  }, [page]);
-
-  const fetchRequests = async () => {
+  const fetchRequests = React.useCallback(async () => {
       setLoading(true);
       try {
           const res = await getOrderDeleteRequestsAction({ page, limit });
@@ -41,7 +47,11 @@ export default function OrderDeleteHistoryPage() {
           console.error(e);
       }
       setLoading(false);
-  };
+  }, [page, limit]);
+
+  useEffect(() => {
+      fetchRequests();
+  }, [fetchRequests]);
 
   const handleCreateRequest = () => {
       if (!confirm("5년 이상 경과된 주문 내역을 삭제 대상으로 생성하시겠습니까?")) return;

@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+
 import { revalidatePath } from "next/cache";
 
 export async function getProductCommonInfosAction(searchParams: {
@@ -13,8 +14,9 @@ export async function getProductCommonInfosAction(searchParams: {
   productConditionType?: string;
 }) {
   try {
-    const { title, startDate, endDate, exposureType, displayStatus, progressStatus, productConditionType } = searchParams;
+  const { title, startDate, endDate, exposureType, displayStatus, progressStatus } = searchParams;
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
     if (title) {
@@ -84,7 +86,8 @@ export async function deleteProductCommonInfosAction(ids: string[]) {
   }
 }
 
-export async function createProductCommonInfoAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function createProductCommonInfoAction(data: Record<string, any>) {
     try {
         await prisma.productCommonInfo.create({
             data: {
@@ -120,7 +123,8 @@ export async function getProductCommonInfoAction(id: string) {
     }
 }
 
-export async function updateProductCommonInfoAction(id: string, data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function updateProductCommonInfoAction(id: string, data: Record<string, any>) {
     try {
         await prisma.productCommonInfo.update({
             where: { id },

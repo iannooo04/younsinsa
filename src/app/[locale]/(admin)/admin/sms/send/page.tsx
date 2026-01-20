@@ -9,8 +9,7 @@ import {
   Youtube,
   ChevronUp,
   Info,
-  ChevronDown,
-  Calendar as CalendarIcon
+  ChevronDown
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition } from "react";
+import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { Brand } from "@/generated/prisma";
 import { 
   getBrandsAction, 
@@ -37,8 +37,40 @@ interface BrandWithChildren extends Brand {
   children?: BrandWithChildren[];
 }
 
+interface BrandHtmlContents {
+  navTopPC: string;
+  navTopMobile: string;
+  recTopPC: string;
+  recTopMobile: string;
+  listTopPC: string;
+  listTopMobile: string;
+}
+
+const buildTree = (items: BrandWithChildren[]) => {
+  const rootItems: BrandWithChildren[] = [];
+  const lookup: { [key: string]: BrandWithChildren } = {};
+
+  for (const item of items) {
+    lookup[item.id] = { ...item, children: [] };
+  }
+
+  for (const item of items) {
+    if (item.parentId) {
+      const parent = lookup[item.parentId];
+      if (parent) {
+        parent.children?.push(lookup[item.id]);
+      } else {
+        rootItems.push(lookup[item.id]);
+      }
+    } else {
+      rootItems.push(lookup[item.id]);
+    }
+  }
+  return rootItems;
+};
+
 export default function BrandManagementPage() {
-  const [brands, setBrands] = useState<BrandWithChildren[]>([]);
+  // const [brands, setBrands] = useState<BrandWithChildren[]>([]); // Unused
   const [brandTree, setBrandTree] = useState<BrandWithChildren[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<BrandWithChildren | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -98,52 +130,32 @@ export default function BrandManagementPage() {
       },
 
       // 선택된 추천 상품
-      recommendedProducts: [] as { productId: string, product?: any }[],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      recommendedProducts: [] as { productId: string, product?: Record<string, any> }[],
   });
+
+  const fetchBrands = useCallback(async () => {
+    const res = await getBrandsAction();
+    const tree = buildTree(res as BrandWithChildren[]);
+    // setBrands(res as BrandWithChildren[]);
+    setBrandTree(tree);
+  }, []);
 
   useEffect(() => {
     fetchBrands();
-  }, []);
+  }, [fetchBrands]);
 
-  const fetchBrands = async () => {
-    const res = await getBrandsAction();
-    const tree = buildTree(res as BrandWithChildren[]);
-    setBrands(res as BrandWithChildren[]);
-    setBrandTree(tree);
-  };
 
-  const buildTree = (items: BrandWithChildren[]) => {
-    const rootItems: BrandWithChildren[] = [];
-    const lookup: { [key: string]: BrandWithChildren } = {};
-
-    for (const item of items) {
-      lookup[item.id] = { ...item, children: [] };
-    }
-
-    for (const item of items) {
-      if (item.parentId) {
-        const parent = lookup[item.parentId];
-        if (parent) {
-          parent.children?.push(lookup[item.id]);
-        } else {
-          rootItems.push(lookup[item.id]);
-        }
-      } else {
-        rootItems.push(lookup[item.id]);
-      }
-    }
-    return rootItems;
-  };
 
   const handleSelectBrand = async (brand: BrandWithChildren) => {
     startTransition(async () => {
         const fullBrand = await getBrandAction(brand.id);
         if (!fullBrand) return;
 
-        setSelectedBrand(fullBrand as any);
+        setSelectedBrand(fullBrand as unknown as BrandWithChildren);
         setMode("edit");
 
-        const htmlContents = (fullBrand.htmlContents as any) || {
+        const htmlContents = (fullBrand.htmlContents as unknown as BrandHtmlContents) || {
             navTopPC: "",
             navTopMobile: "",
             recTopPC: "",
@@ -190,7 +202,8 @@ export default function BrandManagementPage() {
             recMobileTheme: fullBrand.recMobileTheme || "추천상품테마",
 
             htmlContents,
-            recommendedProducts: (fullBrand as any).recommendedProducts || [],
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            recommendedProducts: (fullBrand as unknown as { recommendedProducts: any[] }).recommendedProducts || [],
         });
     });
   };

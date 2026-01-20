@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Bell, Heart, ChevronUp, Sparkles } from "lucide-react";
+import Image from "next/image";
 
 export default function NewFeaturesPage() {
   const [activeTab, setActiveTab] = useState("전체");
@@ -92,10 +93,11 @@ export default function NewFeaturesPage() {
       {/* 2. Hero Banner */}
       <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <img 
+            <Image 
                 src="https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=1600&q=80" 
                 alt="Banner 1" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
             <div className="absolute bottom-8 left-4 text-white">
                 <h2 className="text-2xl font-bold font-serif mb-1">New Season<br/>Open</h2>
@@ -103,10 +105,11 @@ export default function NewFeaturesPage() {
             </div>
         </div>
          <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <img 
+           <Image 
                 src="https://images.unsplash.com/photo-1469334031218-e382a71b716b?auto=format&fit=crop&w=1600&q=80" 
                  alt="Banner 2" 
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
             />
              <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
                 <h2 className="text-2xl font-bold mb-1">Brand Showcase<br/>Exclusive</h2>
@@ -143,7 +146,7 @@ export default function NewFeaturesPage() {
             {newBrands.map((product) => (
                 <div key={product.id} className="min-w-[140px] max-w-[140px] snap-start">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>
@@ -169,7 +172,7 @@ export default function NewFeaturesPage() {
             {exclusiveItems.map((product) => (
                 <div key={product.id}>
                     <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden mb-2 relative">
-                        <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                        <Image src={product.img} alt={product.name} fill className="object-cover" />
                         <div className="absolute top-2 left-2 bg-black text-white text-[10px] px-2 py-0.5 rounded-sm font-bold">EXCLUSIVE</div>
                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500 bg-white/80 p-1 rounded-full">
                            <Heart size={14} />
@@ -199,7 +202,7 @@ export default function NewFeaturesPage() {
              {upcomingDrops.map((drop) => (
                 <div key={drop.id} className="min-w-[150px] max-w-[150px] snap-start relative">
                     <div className="aspect-[4/5] bg-gray-900 rounded-lg overflow-hidden mb-2 relative opacity-90">
-                         <img src={drop.img} alt={drop.name} className="w-full h-full object-cover opacity-60" />
+                         <Image src={drop.img} alt={drop.name} fill className="object-cover opacity-60" />
                          <div className="absolute inset-0 flex flex-col items-center justify-center text-white p-2 text-center">
                             <span className="text-xs font-bold mb-1 opacity-80">DROP</span>
                             <span className="text-lg font-black leading-tight">{drop.date}</span>
@@ -226,10 +229,10 @@ export default function NewFeaturesPage() {
          </div>
 
          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-8">
-             {editorPicks.map((product, index) => (
+             {editorPicks.map((product) => (
                 <div key={product.id} className="relative">
                     <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <img src={product.img} alt={product.name} className="w-full h-full object-cover" />
+                         <Image src={product.img} alt={product.name} fill className="object-cover" />
                          <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
                             <Heart size={18} />
                          </button>

@@ -3,7 +3,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+// import Link from "next/link";
 
 // ----------------------------------------------------------------------
 // 1. 더미 데이터 (스크린샷 기반)

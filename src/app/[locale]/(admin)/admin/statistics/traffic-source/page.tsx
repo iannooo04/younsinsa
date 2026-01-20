@@ -212,7 +212,7 @@ function PeriodButton({ label, active = false }: { label: string; active?: boole
   );
 }
 
-function LegendItem({ color, label, thick = false, rounded = true }: { color: string; label: string; thick?: boolean; rounded?: boolean }) {
+function LegendItem({ color, label, thick = false }: { color: string; label: string; thick?: boolean }) {
   return (
     <div className="flex items-center gap-1.5 whitespace-nowrap">
       {thick ? (
@@ -237,7 +237,7 @@ function TrafficLineChartMock() {
   return (
     <svg width="100%" height="100%" viewBox="0 0 1000 220" preserveAspectRatio="none">
       {/* Grid lines */}
-      {[0, 0.75, 1.5, 2.25, 3].map((val, i) => (
+      {[0, 0.75, 1.5, 2.25, 3].map((val) => (
         <React.Fragment key={val}>
            <line x1="50" y1={200 - (val / 3) * 180} x2="950" y2={200 - (val / 3) * 180} stroke="#f1f5f9" strokeWidth="1" />
            <text x="40" y={205 - (val / 3) * 180} fill="#94a3b8" fontSize="10" textAnchor="end">{val}</text>

@@ -73,38 +73,44 @@ export async function getSuppliersAction(params: {
   }
 }
 
-export async function createSupplierAction(data: any) {
-    try {
-        // Basic validation or preprocessing can go here
-        const supplier = await prisma.supplier.create({
-            data: {
-                ...data,
-                // Default handling if needed
-                commissionRate: data.commissionRate || 0,
-                shippingFee: data.shippingFee || 0,
-            },
-        });
-        return { success: true, supplier };
-    } catch (error: any) {
-        console.error("Failed to create supplier:", error);
-        if (error.code === "P2002") {
-             return { success: false, error: "이미 존재하는 코드입니다." };
-        }
-        return { success: false, error: "공급사 등록에 실패했습니다." };
+type CreateSupplierData = Omit<Prisma.SupplierCreateInput, 'commissionRate' | 'shippingFee'> & {
+  commissionRate?: number;
+  shippingFee?: number;
+};
+
+export async function createSupplierAction(data: CreateSupplierData) {
+  try {
+    // Ensure required fields are present (Prisma will enforce at runtime)
+    const supplier = await prisma.supplier.create({
+      data: {
+        ...data,
+        commissionRate: data.commissionRate ?? 0,
+        shippingFee: data.shippingFee ?? 0,
+      },
+    });
+    return { success: true, supplier };
+  } catch (error: unknown) {
+    console.error("Failed to create supplier:", error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { success: false, error: "이미 존재하는 코드입니다." };
     }
+    return { success: false, error: "공급사 등록에 실패했습니다." };
+  }
 }
 
-export async function updateSupplierAction(id: string, data: any) {
-    try {
-        const supplier = await prisma.supplier.update({
-            where: { id },
-            data,
-        });
-        return { success: true, supplier };
-    } catch (error) {
-        console.error("Failed to update supplier:", error);
-        return { success: false, error: "공급사 수정에 실패했습니다." };
-    }
+type UpdateSupplierData = Prisma.SupplierUpdateInput;
+
+export async function updateSupplierAction(id: string, data: UpdateSupplierData) {
+  try {
+    const supplier = await prisma.supplier.update({
+      where: { id },
+      data,
+    });
+    return { success: true, supplier };
+  } catch (error: unknown) {
+    console.error("Failed to update supplier:", error);
+    return { success: false, error: "공급사 수정에 실패했습니다." };
+  }
 }
 
 export async function deleteSuppliersAction(ids: string[]) {
@@ -134,10 +140,10 @@ export async function getSupplierByIdAction(id: string) {
 export async function getSuppliersSimpleAction() {
     try {
         const suppliers = await prisma.supplier.findMany({
-            select: { id: true, name: true }
+            select: { id: true, name: true, createdAt: true }
         });
         return { success: true, items: suppliers };
-    } catch (e) {
+    } catch {
         return { success: false, items: [] };
     }
 }

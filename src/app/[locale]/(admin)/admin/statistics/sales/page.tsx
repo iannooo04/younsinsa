@@ -1,31 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Calendar, Youtube, ChevronUp, HelpCircle, FileSpreadsheet } from "lucide-react";
+import { Calendar, Youtube, ChevronUp, HelpCircle } from "lucide-react";
 
 export default function SalesStatisticsPage() {
-  const [activeTab, setActiveTab] = useState("daily");
-
-  const summaryData = {
-    total: { amount: 0, sales: 0, refund: 0 },
-    max: { amount: 0, date: "2026-01-11" },
-    min: { amount: 0, date: "2026-01-11" },
-    pc: { amount: 0, sales: 0, refund: 0 },
-    mobile: { amount: 0, sales: 0, refund: 0 },
-    manual: { amount: 0, sales: 0, refund: 0 },
-  };
-
-  const tableData = [
-    { date: "2026-01-07", type: "pc", sales: 0, productSales: 0, productDiscount: 0, payment: 0, shipping: 0, shippingDiscount: 0, shippingPayment: 0, totalSales: 0, productPay: 0, shippingPay: 0 },
-    { date: "2026-01-07", type: "mobile", sales: 0, productSales: 0, productDiscount: 0, payment: 0, shipping: 0, shippingDiscount: 0, shippingPayment: 0, totalSales: 0, productPay: 0, shippingPay: 0 },
-    { date: "2026-01-07", type: "manual", sales: 0, productSales: 0, productDiscount: 0, payment: 0, shipping: 0, shippingDiscount: 0, shippingPayment: 0, totalSales: 0, productPay: 0, shippingPay: 0 },
-    { date: "2026-01-07", type: "total", sales: 0, productSales: 0, productDiscount: 0, payment: 0, shipping: 0, shippingDiscount: 0, shippingPayment: 0, totalSales: 0, productPay: 0, shippingPay: 0 },
-    // ... repeat for other dates if needed, just showing structure
-  ];
 
   // Helper to render summarized rows for 2026-01-07 to 2026-01-11 as per screenshot
   // The screenshot shows empty data (0s). I will render a few days.

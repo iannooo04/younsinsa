@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Calendar, Youtube, ChevronUp, HelpCircle } from "lucide-react";
 
 export default function SalesByPaymentPage() {
-  const [activeTab, setActiveTab] = useState("daily");
 
   const days = ["2026-01-07", "2026-01-08", "2026-01-09", "2026-01-10", "2026-01-11"];
   

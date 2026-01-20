@@ -10,8 +10,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Table,
@@ -22,13 +20,22 @@ import {
     TableRow,
 } from "@/components/ui/ui-table";
 import { CalendarIcon, Youtube, ChevronUp, ChevronDown, Book, Plus } from "lucide-react";
-import { Link } from "@/i18n/routing";
 import { getMainPageDisplayGroupsAction, deleteMainPageDisplayGroupsAction } from "@/actions/product-display-actions";
 import { format } from "date-fns";
 
 export default function MainProductDisplayPage() {
     // Data State
-    const [items, setItems] = useState<any[]>([]);
+    const [items, setItems] = useState<{
+        id: number;
+        mallType: string; // 'MOBILE' | 'PC'
+        name: string;
+        description: string | null;
+        themeName: string | null;
+        isExposed: boolean;
+        createdAt: Date | string;
+        updatedAt: Date | string;
+        replaceCode?: string | null;
+    }[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
@@ -65,12 +72,12 @@ export default function MainProductDisplayPage() {
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchTrigger, searchType, keyword, startDate, endDate, dateType]);
+    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType]);
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fetchData]);
+         
+    }, [fetchData, searchTrigger]);
 
     const handleSearch = () => {
         setPage(1);

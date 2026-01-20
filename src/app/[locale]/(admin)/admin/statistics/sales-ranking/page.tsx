@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -12,12 +12,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Calendar, Download, Youtube, ChevronUp, FileSpreadsheet, HelpCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Calendar, Youtube, ChevronUp, HelpCircle } from "lucide-react";
+
 
 export default function SalesRankingPage() {
-  const [activeTab, setActiveTab] = useState("product");
+
 
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-xs pb-24 relative">
@@ -191,7 +191,7 @@ export default function SalesRankingPage() {
 
       {/* Tabs */}
       <div className="mb-0">
-        <Tabs defaultValue="product" value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs defaultValue="product" className="w-full">
            <TabsList className="bg-transparent border-b border-gray-300 w-full justify-start rounded-none h-11 p-0 space-x-1">
             <TabsTrigger 
               value="product" 

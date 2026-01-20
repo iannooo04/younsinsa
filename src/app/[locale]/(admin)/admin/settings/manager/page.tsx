@@ -7,17 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Plus, ChevronDown } from "lucide-react";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useCallback } from "react";
 import { getAdminsAction, AdminSearchFilter, deleteAdminsAction } from "@/actions/admin-actions";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
 
 import { getSuppliersAction } from "@/actions/supplier-actions";
 import { Admin, Supplier } from "@/generated/prisma";
-import { Search, X } from "lucide-react";
+import { X } from "lucide-react";
 
 export default function ManagerManagementPage() {
     const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
+    const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false);
     
     // Data State
     const [admins, setAdmins] = useState<Admin[]>([]);
@@ -43,7 +44,7 @@ export default function ManagerManagementPage() {
     // ... existing pagination state ...
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [orderBy, setOrderBy] = useState<"date_desc" | "date_asc">("date_desc");
+    const [orderBy, setOrderBy] = useState<"date_desc" | "date_asc" | "last_login_desc" | "last_login_asc">("date_desc");
 
     // Checkbox State
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -65,7 +66,7 @@ export default function ManagerManagementPage() {
     };
 
     // Fetch Suppliers
-    const fetchSuppliers = async (page = 1) => {
+    const fetchSuppliers = useCallback(async (page = 1) => {
         const result = await getSuppliersAction({
             page,
             pageSize: 5,
@@ -81,14 +82,14 @@ export default function ManagerManagementPage() {
             setSupplierTotal(result.total || 0);
             setSupplierPage(page);
         }
-    };
+    }, [supplierKeyword]);
 
     // Effect for Suppliers (when dialog opens or keyword changes)
     useEffect(() => {
         if (isSupplierDialogOpen) {
             fetchSuppliers(1);
         }
-    }, [isSupplierDialogOpen, supplierKeyword]);
+    }, [isSupplierDialogOpen, supplierKeyword, fetchSuppliers]);
 
     // Initial Fetch & Update on dependencies
     useEffect(() => {
@@ -177,9 +178,11 @@ export default function ManagerManagementPage() {
                         <div className="p-3 flex items-center gap-6">
                             <RadioGroup 
                                 value={filter.supplyType} 
-                                onValueChange={(v: any) => {
-                                    setFilter({ ...filter, supplyType: v });
-                                    if(v !== 'supplier') {
+                                onValueChange={(v) => {
+                                    setFilter({ ...filter, supplyType: v as AdminSearchFilter['supplyType'] });
+                                    if (v === 'supplier') {
+                                        setIsSupplierDialogOpen(true);
+                                    } else {
                                         clearSupplierSelection();
                                     }
                                 }}
@@ -193,9 +196,15 @@ export default function ManagerManagementPage() {
                                     <RadioGroupItem value="headquarters" id="type-hq" />
                                     <Label htmlFor="type-hq" className="font-normal cursor-pointer">본사</Label>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2" onClickCapture={() => setIsSupplierDialogOpen(true)}>
                                     <RadioGroupItem value="supplier" id="type-supplier" />
-                                    <Label htmlFor="type-supplier" className="font-normal cursor-pointer">공급사</Label>
+                                    <Label 
+                                        htmlFor="type-supplier" 
+                                        className="font-normal cursor-pointer"
+                                        onClick={() => setIsSupplierDialogOpen(true)}
+                                    >
+                                        공급사
+                                    </Label>
                                 </div>
                             </RadioGroup>
                              
@@ -208,7 +217,11 @@ export default function ManagerManagementPage() {
                                 )}
                                 <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
                                     <DialogTrigger asChild>
-                                        <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 border-0 rounded-sm">
+                                        <Button 
+                                            variant="secondary" 
+                                            size="sm" 
+                                            className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 border-0 rounded-sm"
+                                        >
                                             공급사 선택
                                         </Button>
                                     </DialogTrigger>
@@ -284,14 +297,14 @@ export default function ManagerManagementPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-[150px_1fr] divide-x">
+                    <div className="grid grid-cols-[150px_1fr] divide-x border-b border-gray-200">
                         <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">검색어</div>
                         <div className="p-3 flex items-center gap-2">
                             <Select 
                                 value={filter.keywordType} 
-                                onValueChange={(v: any) => setFilter({ ...filter, keywordType: v })}
+                                onValueChange={(v) => setFilter({ ...filter, keywordType: v as AdminSearchFilter['keywordType'] })}
                             >
-                                <SelectTrigger className="w-[120px] h-8 rounded-sm border-gray-300 bg-gray-50 text-xs">
+                                <SelectTrigger className="w-[120px] h-8 rounded-sm border-gray-300 bg-gray-50 text-xs text-gray-600">
                                     <SelectValue placeholder="=통합검색=" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -307,9 +320,9 @@ export default function ManagerManagementPage() {
                             
                             <Select 
                                 value={filter.matchType}
-                                onValueChange={(v: any) => setFilter({ ...filter, matchType: v })}
+                                onValueChange={(v) => setFilter({ ...filter, matchType: v as AdminSearchFilter['matchType'] })}
                             >
-                                <SelectTrigger className="w-[140px] h-8 rounded-sm border-gray-300 bg-white text-xs">
+                                <SelectTrigger className="w-[140px] h-8 rounded-sm border-gray-300 bg-white text-xs text-gray-600">
                                     <SelectValue placeholder="검색어 전체일치" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -319,22 +332,133 @@ export default function ManagerManagementPage() {
                             </Select>
 
                             <Input 
-                                className="w-[300px] h-8 rounded-sm border-gray-300" 
-                                placeholder="검색어 입력" 
+                                className="w-[300px] h-8 rounded-sm border-gray-300 placeholder:text-gray-400" 
+                                placeholder="검색어 전체를 정확히 입력하세요." 
                                 value={filter.keyword}
                                 onChange={(e) => setFilter({ ...filter, keyword: e.target.value })}
                                 onKeyDown={handleKeyDown}
                             />
                         </div>
                     </div>
+
+                     {/* Expanded Fields */}
+                     {isDetailedSearchOpen && (
+                        <>
+                            <div className="grid grid-cols-[150px_1fr] divide-x border-b border-gray-200">
+                                <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">장기 미로그인</div>
+                                <div className="p-3 flex items-center gap-2">
+                                     <div className="flex items-center gap-2">
+                                        <Checkbox id="long-term-login" className="border-gray-300 rounded-sm w-4 h-4" />
+                                        <Label htmlFor="long-term-login" className="font-normal text-gray-700 cursor-pointer">
+                                            장기 미로그인 운영자 <span className="text-blue-500">(설정된 장기 미로그인 기간 : 1년)</span>
+                                        </Label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-[150px_1fr] divide-x border-b border-gray-200">
+                                <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">
+                                    SMS 자동발송<br/>수신설정
+                                </div>
+                                <div className="p-3 flex items-center gap-6">
+                                     <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                                        {['전체', 'SMS 수신안함', '주문.배송 관련', '회원 관련', '프로모션 관련', '게시판 관련'].map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-2">
+                                                <RadioGroupItem value={item} id={`sms-${idx}`} className="border-gray-300 text-[#c13030]" />
+                                                <Label htmlFor={`sms-${idx}`} className="font-normal cursor-pointer text-gray-700">{item}</Label>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-[150px_1fr_150px_1fr] border-b border-gray-200">
+                                {/* Employee Status Row */}
+                                <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center border-r border-b border-gray-200">직원여부</div>
+                                <div className="p-3 flex items-center border-r border-b border-gray-200">
+                                    <RadioGroup defaultValue="all" className="flex items-center gap-6">
+                                        {['전체', '직원', '비정규직', '아르바이트', '파견직', '퇴사자'].map((item, idx) => (
+                                            <div key={idx} className="flex items-center gap-2">
+                                                <RadioGroupItem value={item} id={`emp-${idx}`} className="border-gray-300 text-[#c13030]" />
+                                                <Label htmlFor={`emp-${idx}`} className="font-normal cursor-pointer text-gray-700 whitespace-nowrap">{item}</Label>
+                                            </div>
+                                        ))}
+                                    </RadioGroup>
+                                </div>
+                                <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center border-r border-b border-gray-200">부서</div>
+                                <div className="p-3 flex items-center border-b border-gray-200">
+                                     <Select>
+                                        <SelectTrigger className="w-[180px] h-8 rounded-sm border-gray-300 text-xs text-gray-600">
+                                            <SelectValue placeholder="=부서 선택=" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">=부서 선택=</SelectItem>
+                                            <SelectItem value="executive">임원</SelectItem>
+                                            <SelectItem value="finance_accounting">재무회계팀</SelectItem>
+                                            <SelectItem value="development">개발팀</SelectItem>
+                                            <SelectItem value="design">디자인팀</SelectItem>
+                                            <SelectItem value="planning">기획팀</SelectItem>
+                                            <SelectItem value="operations_support">운영지원팀</SelectItem>
+                                            <SelectItem value="marketing">마케팅팀</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+
+                                {/* Rank/Duty Row */}
+                                <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center border-r border-gray-200">직급</div>
+                                <div className="p-3 flex items-center border-r border-gray-200">
+                                     <Select>
+                                        <SelectTrigger className="w-[180px] h-8 rounded-sm border-gray-300 text-xs text-gray-600">
+                                            <SelectValue placeholder="=직급 선택=" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">=직급 선택=</SelectItem>
+                                            <SelectItem value="chairman">회장</SelectItem>
+                                            <SelectItem value="president">사장</SelectItem>
+                                            <SelectItem value="vp">전무</SelectItem>
+                                            <SelectItem value="director">상무</SelectItem>
+                                            <SelectItem value="board_member">이사</SelectItem>
+                                            <SelectItem value="general_manager">부장</SelectItem>
+                                            <SelectItem value="deputy_general_manager">차장</SelectItem>
+                                            <SelectItem value="manager">과장</SelectItem>
+                                            <SelectItem value="assistant_manager">대리</SelectItem>
+                                            <SelectItem value="chief">주임</SelectItem>
+                                            <SelectItem value="staff">사원</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center border-r border-gray-200">직책</div>
+                                <div className="p-3 flex items-center">
+                                     <Select>
+                                        <SelectTrigger className="w-[180px] h-8 rounded-sm border-gray-300 text-xs text-gray-600">
+                                            <SelectValue placeholder="=직책 선택=" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">=직책 선택=</SelectItem>
+                                            <SelectItem value="chairman">회장</SelectItem>
+                                            <SelectItem value="president">사장</SelectItem>
+                                            <SelectItem value="division_head">본부장</SelectItem>
+                                            <SelectItem value="team_leader">팀장</SelectItem>
+                                            <SelectItem value="department_head">부서장</SelectItem>
+                                            <SelectItem value="staff">사원</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                        </>
+                     )}
                 </div>
             </div>
 
             {/* Advanced Search Toggle & Button */}
             <div className="flex flex-col items-center gap-4">
                 <div className="w-full flex justify-start">
-                    <button className="text-blue-500 text-xs flex items-center hover:underline">
-                        상세검색 펼침 <ChevronDown size={14} />
+                    <button 
+                        className="text-blue-500 text-xs flex items-center hover:underline"
+                        onClick={() => setIsDetailedSearchOpen(!isDetailedSearchOpen)}
+                    >
+                        {isDetailedSearchOpen ? "상세검색 닫기" : "상세검색 펼침"} 
+                        {isDetailedSearchOpen ? <ChevronDown className="rotate-180 ml-1 h-4 w-4" /> : <ChevronDown className="ml-1 h-4 w-4" />}
                     </button>
                 </div>
                 <Button 
@@ -357,14 +481,16 @@ export default function ManagerManagementPage() {
                     <div className="flex items-center gap-1">
                         <Select 
                             value={orderBy}
-                            onValueChange={(v) => setOrderBy(v as "date_desc" | "date_asc")}
+                            onValueChange={(v) => setOrderBy(v as "date_desc" | "date_asc" | "last_login_desc" | "last_login_asc")}
                         >
-                            <SelectTrigger className="w-[100px] h-8 rounded-sm border-gray-300 text-xs">
+                            <SelectTrigger className="w-[200px] h-8 rounded-sm border-gray-300 text-xs">
                                 <SelectValue placeholder="등록일 ↓" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="date_desc">등록일 ↓</SelectItem>
                                 <SelectItem value="date_asc">등록일 ↑</SelectItem>
+                                <SelectItem value="last_login_desc">최종 로그인 ↓</SelectItem>
+                                <SelectItem value="last_login_asc">최종 로그인 ↑</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select 
@@ -377,7 +503,17 @@ export default function ManagerManagementPage() {
                             <SelectContent>
                                 <SelectItem value="10">10개 보기</SelectItem>
                                 <SelectItem value="20">20개 보기</SelectItem>
+                                <SelectItem value="30">30개 보기</SelectItem>
+                                <SelectItem value="40">40개 보기</SelectItem>
                                 <SelectItem value="50">50개 보기</SelectItem>
+                                <SelectItem value="60">60개 보기</SelectItem>
+                                <SelectItem value="70">70개 보기</SelectItem>
+                                <SelectItem value="80">80개 보기</SelectItem>
+                                <SelectItem value="90">90개 보기</SelectItem>
+                                <SelectItem value="100">100개 보기</SelectItem>
+                                <SelectItem value="200">200개 보기</SelectItem>
+                                <SelectItem value="300">300개 보기</SelectItem>
+                                <SelectItem value="500">500개 보기</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

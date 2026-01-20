@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { HelpCircle, Plus, Search, ChevronRight, ChevronDown } from "lucide-react";
+import { HelpCircle, Plus } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
@@ -41,9 +41,15 @@ export default function ManagerPermissionPage() {
                                         <RadioGroupItem value="hq" id="type-hq" />
                                         <Label htmlFor="type-hq" className="font-normal cursor-pointer text-xs">본사</Label>
                                     </div>
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-2" onClickCapture={() => setIsSupplierDialogOpen(true)}>
                                         <RadioGroupItem value="supplier" id="type-supplier" />
-                                        <Label htmlFor="type-supplier" className="font-normal cursor-pointer text-xs">공급사</Label>
+                                        <Label 
+                                            htmlFor="type-supplier" 
+                                            className="font-normal cursor-pointer text-xs"
+                                            onClick={() => setIsSupplierDialogOpen(true)}
+                                        >
+                                            공급사
+                                        </Label>
                                     </div>
                                 </RadioGroup>
                                 <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>

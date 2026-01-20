@@ -18,13 +18,7 @@ import {
   Youtube,
   BookOpen,
   LayoutGrid, // 갤러리형
-  List, // 리스트형
   ArrowLeftRight, // 상품이동형
-  MousePointer2, // 스크롤형
-  Grid, // 심플이미지형
-  ShoppingCart, // 장바구니형
-  CheckSquare, // 복수선택형
-  MousePointerClick, // 선택강조형
   MessageSquare, // 말풍선형
 } from "lucide-react";
 

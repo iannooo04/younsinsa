@@ -28,13 +28,25 @@ import { getProductsAction } from "@/actions/product-actions";
 import { getShippingPoliciesAction, updateProductShippingPolicyAction } from "@/actions/shipping-actions";
 import { format } from "date-fns";
 
+interface Product {
+    id: string;
+    productCode: string;
+    name: string;
+    supplier: string;
+    displayStatus: string;
+    saleStatus: string;
+    price: number;
+    shippingFee: string;
+}
+
 export default function ProductShippingManagementPage() {
     // Data State
-    const [products, setProducts] = useState<any[]>([]);
+    const [products, setProducts] = useState<Product[]>([]);
     const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [shippingPolicies, setShippingPolicies] = useState<{id: number, name: string}[]>([]);
 
+    // ... (rest of the states)
     // Pagination State
     const [page, setPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
@@ -77,16 +89,16 @@ export default function ProductShippingManagementPage() {
         });
 
         if (result.success) {
-            setProducts(result.items);
+            setProducts(result.items as Product[]);
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchTrigger, supplierType, searchType, keyword, startDate, endDate, dateType]);
+    }, [page, pageSize, supplierType, searchType, keyword, startDate, endDate, dateType]);
 
     useEffect(() => {
         fetchData();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [fetchData]);
+         
+    }, [fetchData, searchTrigger]);
 
     const handleSearch = () => {
         setPage(1);

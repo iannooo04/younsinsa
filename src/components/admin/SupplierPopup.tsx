@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function SupplierPopup({ isOpen, onClose, onConfirm }: Props) {
-    const [suppliers, setSuppliers] = useState<any[]>([]);
+    const [suppliers, setSuppliers] = useState<{ id: string; name: string; createdAt: Date | string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedId, setSelectedId] = useState<string | null>(null);

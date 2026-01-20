@@ -23,16 +23,7 @@ export async function getUsersAction(params: GetUsersParams) {
   try {
     const {
       page = 1,
-      limit = 20,
-      mallId,
-      searchType,
-      keyword,
-      exactMatch,
-      memberGrade,
-      memberType,
-      approved,
-      startDate,
-      endDate
+      limit = 20
     } = params;
 
     const where = buildUserWhereClause(params);
@@ -228,17 +219,6 @@ export async function restoreWithdrawnUsersAction(ids: string[]) {
     }
 }
 
-export async function getUserGradesAction() {
-    try {
-        const grades = await prisma.userGrade.findMany({
-            orderBy: { minPurchaseAmount: 'asc' }
-        });
-        return { success: true, grades };
-    } catch (error) {
-        console.error("Error fetching user grades:", error);
-        return { success: false, error: "Failed to fetch user grades" }; 
-    }
-}
 
 export async function checkDuplicateAction(field: 'username' | 'email' | 'nickname', value: string) {
   try {
@@ -255,7 +235,8 @@ export async function checkDuplicateAction(field: 'username' | 'email' | 'nickna
   }
 }
 
-export async function createUserAction(data: any) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export async function createUserAction(data: Record<string, any>) {
   try {
     // 1. Validate Recommender if provided
     let recommenderId = null;
@@ -351,7 +332,7 @@ export type UploadUsersResult =
   | { success: true; count: number; failCount: number; errors: string[] }
   | { success: false; error: string };
 
-export async function uploadUsersExcelAction(data: any[]): Promise<UploadUsersResult> {
+export async function uploadUsersExcelAction(data: Record<string, string | number | boolean | null>[]): Promise<UploadUsersResult> {
   try {
     let successCount = 0;
     let failCount = 0;
@@ -360,12 +341,13 @@ export async function uploadUsersExcelAction(data: any[]): Promise<UploadUsersRe
     for (const row of data) {
         try {
             // Validation / Mapping
-            const username = row['mem_id'];
-            if (!username) {
+            const usernameRaw = row['mem_id'];
+            if (!usernameRaw) {
                 failCount++;
                 errors.push(`Row missing username (mem_id)`);
                 continue;
             }
+            const username = String(usernameRaw);
 
             // Check if user exists
             const existing = await prisma.user.findUnique({ where: { username } });
@@ -380,12 +362,12 @@ export async function uploadUsersExcelAction(data: any[]): Promise<UploadUsersRe
             const hashedPassword = await bcrypt.hash(String(passwordRaw), 10);
 
             // Mapping Fields
-            const name = row['mem_name'] || 'Unknown';
-            const email = row['email'] || `${username}@example.com`;
-            const mobile = row['cell_phone'] || row['mobile'] || '';
-            const phone = row['phone'] || '';
-            const fax = row['fax'] || '';
-            const nickname = row['nick_name'] || username;
+            const name = String(row['mem_name'] || 'Unknown');
+            const email = String(row['email'] || `${username}@example.com`);
+            const mobile = String(row['cell_phone'] || row['mobile'] || '');
+            const phone = String(row['phone'] || '');
+            const fax = String(row['fax'] || '');
+            const nickname = String(row['nick_name'] || username);
             
             // Approvals
             const isApproved = row['app_fl'] === 'y';
@@ -398,12 +380,12 @@ export async function uploadUsersExcelAction(data: any[]): Promise<UploadUsersRe
             else if (row['sex_fl'] === 'w') gender = Gender.FEMALE;
 
             // Birthday
-            const birthday = row['birth_dt'] ? new Date(row['birth_dt']) : null;
+            const birthday = (row['birth_dt'] && typeof row['birth_dt'] !== 'boolean') ? new Date(row['birth_dt']) : null;
             const birthdayType = row['calendar_fl'] === 'l' ? DateType.LUNAR : DateType.SOLAR;
 
             // Marital
             const maritalStatus = row['marri_fl'] === 'y' ? MaritalStatus.MARRIED : MaritalStatus.SINGLE;
-            const anniversary = row['marri_date'] ? new Date(row['marri_date']) : null;
+            const anniversary = (row['marri_date'] && typeof row['marri_date'] !== 'boolean') ? new Date(row['marri_date']) : null;
 
             await prisma.user.create({
                 data: {
@@ -428,21 +410,21 @@ export async function uploadUsersExcelAction(data: any[]): Promise<UploadUsersRe
                             maritalStatus,
                             anniversary,
                             zipcode: row['zonecode'] ? String(row['zonecode']) : null,
-                            address: row['address'],
-                            addressDetail: row['address_sub'],
-                            userMemo: row['memo'],
+                            address: row['address'] ? String(row['address']) : null,
+                            addressDetail: row['address_sub'] ? String(row['address_sub']) : null,
+                            userMemo: row['memo'] ? String(row['memo']) : null,
                         }
                     },
                     ...(row['business_no'] && {
                         businessInfo: {
                             create: {
-                                companyName: row['company'],
-                                ceoName: row['ceo_name'],
-                                businessNumber: row['business_no'],
-                                item: row['item'],
-                                category: row['service'],
+                                companyName: String(row['company'] || ''),
+                                ceoName: String(row['ceo_name'] || ''),
+                                businessNumber: String(row['business_no']),
+                                item: row['item'] ? String(row['item']) : null,
+                                category: row['service'] ? String(row['service']) : null,
                                 companyZipcode: row['com_zonecode'] ? String(row['com_zonecode']) : null,
-                                companyAddress: row['com_address']
+                                companyAddress: row['com_address'] ? String(row['com_address']) : null
                             }
                         }
                     })
@@ -450,10 +432,11 @@ export async function uploadUsersExcelAction(data: any[]): Promise<UploadUsersRe
             });
             successCount++;
 
-        } catch (e: any) {
-            console.error(`Error importing row ${row['mem_id']}:`, e);
+        } catch (e: unknown) {
+            const error = e as Error;
+            console.error(`Error importing row ${row['mem_id']}:`, error);
             failCount++;
-            errors.push(`Error importing ${row['mem_id']}: ${e.message}`);
+            errors.push(`Error importing ${row['mem_id']}: ${error.message}`);
         }
     }
 

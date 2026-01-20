@@ -1,4 +1,4 @@
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { type NextRequest, NextResponse } from "next/server";
 import { Readable } from "stream";
 import { s3Client, bucketName } from "@/lib/s3";
@@ -56,6 +56,7 @@ export async function GET(request: NextRequest) {
 
         return new NextResponse(webStream, { headers });
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
         console.error("Image Proxy Error:", error);
         if (error.Code === "NoSuchKey") {
