@@ -1,63 +1,65 @@
 "use client";
 
 import React, { useState, useTransition } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Plus, Minus, Youtube, ChevronUp, Book } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { List, Youtube, HelpCircle } from "lucide-react";
 import { createEssentialInfoTemplateAction } from "@/actions/product-essential-info-actions";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function CreateEssentialInfoPage() {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
-    const [formData, setFormData] = useState({
-        name: "",
-        supplierId: "",
-        supplierType: "headquarters",
-        items: [
-            { label: "소재", value: "상세설명 참조", isRequired: true },
-            { label: "색상", value: "상세설명 참조", isRequired: true },
-            { label: "치수", value: "상세설명 참조", isRequired: true },
-            { label: "제조사/수입자", value: "상세설명 참조", isRequired: true },
-            { label: "제조국", value: "상세설명 참조", isRequired: true },
-            { label: "세탁방법 및 취급시 주의사항", value: "상세설명 참조", isRequired: true },
-            { label: "제조연월", value: "상세설명 참조", isRequired: true },
-            { label: "품질보증기준", value: "상세설명 참조", isRequired: true },
-            { label: "A/S 책임자와 전화번호", value: "상세설명 참조", isRequired: true },
-        ]
-    });
+    
+    // Form State
+    const [supplierType, setSupplierType] = useState("headquarters");
+    const [selectedSupplierName, setSelectedSupplierName] = useState("");
+    const [selectedSupplierId, setSelectedSupplierId] = useState("");
+    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+    const [essentialInfoName, setEssentialInfoName] = useState("");
+    
+    interface Item {
+        id: number;
+        type: 2 | 4;
+        label1: string;
+        value1: string;
+        label2: string;
+        value2: string;
+    }
+    const [items, setItems] = useState<Item[]>([]);
 
-    const addItem = () => {
-        setFormData(prev => ({
-            ...prev,
-            items: [...prev.items, { label: "", value: "", isRequired: false }]
-        }));
+    const addItem = (type: 2 | 4) => {
+        setItems(prev => [...prev, {
+            id: Date.now(),
+            type,
+            label1: "",
+            value1: "",
+            label2: "",
+            value2: ""
+        }]);
     };
 
-    const removeItem = (index: number) => {
-        setFormData(prev => ({
-            ...prev,
-            items: prev.items.filter((_, i) => i !== index)
-        }));
+    const removeItem = (id: number) => {
+        setItems(prev => prev.filter(item => item.id !== id));
     };
 
-    const updateItem = (index: number, field: string, value: string | boolean) => {
-        setFormData(prev => ({
-            ...prev,
-            items: prev.items.map((item, i) => i === index ? { ...item, [field]: value } : item)
-        }));
+    const updateItem = (id: number, field: keyof Item, value: string) => {
+        setItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
     };
 
     const handleSave = async () => {
-        if (!formData.name) return alert("필수정보명을 입력해주세요.");
+        if (!essentialInfoName) return alert("필수정보명을 입력해주세요.");
         
         startTransition(async () => {
             const res = await createEssentialInfoTemplateAction({
-                name: formData.name,
-                supplierId: formData.supplierType === "supplier" ? formData.supplierId : undefined,
-                items: formData.items,
+                name: essentialInfoName,
+                supplierId: supplierType === "supplier" ? selectedSupplierId : undefined,
+                items: items.map(item => ({
+                    type: item.type,
+                    label1: item.label1,
+                    value1: item.value1,
+                    label2: item.label2,
+                    value2: item.value2
+                }))
             });
             if (res.success) {
                 alert("저장되었습니다.");
@@ -69,152 +71,273 @@ export default function CreateEssentialInfoPage() {
     };
 
     return (
-        <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
+        <div className="p-8 bg-white min-h-screen text-[13px] text-gray-700 leading-normal font-sans">
             {/* Header */}
-            <div className="flex items-center justify-between pb-4 border-b border-gray-300">
-                <h1 className="text-2xl font-bold text-gray-900">상품 필수정보 등록</h1>
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-100">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">상품 필수정보 등록</h1>
                 <div className="flex gap-2">
-                    <Button 
-                        variant="outline" 
-                        onClick={() => router.back()}
-                        className="h-9 px-4 border-gray-300"
+                    <button 
+                        onClick={() => router.push("/admin/products/info")}
+                        className="flex items-center gap-1.5 px-4 h-9 bg-white border border-gray-300 rounded-[2px] hover:bg-gray-50 transition-colors"
                     >
-                        취소
-                    </Button>
-                    <Button 
+                        <List size={16} className="text-gray-500" />
+                        <span className="font-medium">목록</span>
+                    </button>
+                    <button 
                         onClick={handleSave}
                         disabled={isPending}
-                        className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 px-6 rounded-sm"
+                        className="flex items-center gap-1.5 px-6 h-9 bg-[#FF3032] text-white rounded-[2px] hover:bg-[#E52B2D] transition-colors font-bold"
                     >
-                        {isPending ? "저장중" : "저장"}
-                    </Button>
+                        <span className="tracking-widest">{isPending ? "저장중" : "저장"}</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Warning Boxes */}
+            <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-2 text-xs">
+                    <div className="w-3.5 h-3.5 bg-[#FF3032] flex items-center justify-center rounded-[2px] mt-0.5 flex-shrink-0">
+                        <span className="text-white font-bold text-[10px]">!</span>
+                    </div>
+                    <p>
+                        <span className="text-[#FF3032] font-bold">공정거래위원회에서 공고한 전자상거래법 상품정보제공 고시에 관한 내용을 필독해 주세요!</span>
+                        <a href="#" className="text-blue-500 underline ml-1 font-medium">내용 확인 &gt;</a>
+                    </p>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs pl-0.5">
+                    <div className="w-3.5 h-3.5 bg-[#666] flex items-center justify-center rounded-[2px] mt-0.5 flex-shrink-0">
+                        <span className="text-white font-bold text-[10px]">!</span>
+                    </div>
+                    <div className="text-gray-500 leading-relaxed">
+                        <p>전자상거래법에 의거하여 판매 상품의 필수 (상세) 정보 등록이 필요합니다.</p>
+                        <p>
+                            <a href="#" className="text-blue-500 underline font-bold">품목별 상품정보고시 내용보기</a>를 참고하여 상품필수 정보를 등록하여 주세요.
+                        </p>
+                        <p>등록된 정보는 쇼핑몰 상품상세페이지에 상품기본정보 아래에 표형태로 출력되어 보여집니다.</p>
+                    </div>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs pl-0.5">
+                    <div className="w-3.5 h-3.5 bg-[#FF3032] flex items-center justify-center rounded-[2px] mt-0.5 flex-shrink-0">
+                        <span className="text-white font-bold text-[10px]">!</span>
+                    </div>
+                    <p>
+                        <span className="text-[#FF3032] font-bold">전기용품 및 생활용품 판매 시 "전기용품 및 생활용품 안전관리법"에 관한 내용을 필독해 주세요!</span>
+                        <a href="#" className="text-blue-500 underline ml-1 font-medium">내용 확인 &gt;</a>
+                    </p>
+                </div>
+
+                <div className="flex items-start gap-2 text-xs pl-0.5">
+                    <div className="w-3.5 h-3.5 bg-[#666] flex items-center justify-center rounded-[2px] mt-0.5 flex-shrink-0">
+                        <span className="text-white font-bold text-[10px]">!</span>
+                    </div>
+                    <div className="text-gray-500 leading-relaxed">
+                        <p>안전관리대상 제품은 안전인증 등의 표시(KC 인증마크 및 인증번호)를 소비자가 확인할 수 있도록 상품 상세페이지 내 표시해야 합니다.</p>
+                        <p>
+                            <a href="#" className="text-blue-500 underline font-bold">국가기술표준원(KATS) 제품안전정보센터</a>에서 인증대상 품목여부를 확인하여 등록하여 주세요.
+                        </p>
+                    </div>
                 </div>
             </div>
 
             {/* Basic Info Section */}
-            <div className="border border-gray-300 bg-white">
-                <div className="flex items-center border-b border-gray-200">
-                    <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center gap-1">
-                        필수정보명 <span className="text-red-500">*</span>
-                    </div>
-                    <div className="flex-1 p-3">
-                        <Input 
-                            value={formData.name} 
-                            onChange={(e) => setFormData({...formData, name: e.target.value})}
-                            className="w-full max-w-md h-9" 
-                            placeholder="예: 의류, 가전제품"
-                        />
-                    </div>
+            <div className="mb-10">
+                <div className="flex items-center gap-2 mb-3">
+                    <h2 className="text-lg font-bold text-gray-800 tracking-tight">기본정보</h2>
+                    <HelpCircle size={16} className="text-gray-400 cursor-help" />
                 </div>
-
-                <div className="flex items-center">
-                    <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
-                    <div className="flex-1 p-3 flex items-center gap-6">
-                        <RadioGroup 
-                            value={formData.supplierType} 
-                            onValueChange={(val) => setFormData({...formData, supplierType: val})}
-                            className="flex items-center gap-6"
-                        >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="headquarters" id="sup-head" />
-                                <Label htmlFor="sup-head">본사</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="supplier" id="sup-vendor" />
-                                <Label htmlFor="sup-vendor">공급사</Label>
-                                <Button variant="secondary" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm ml-2" disabled={formData.supplierType !== "supplier"}>
+                <div className="border-t-2 border-gray-800">
+                    <div className="grid grid-cols-[160px_1fr] border-b border-gray-200 min-h-[50px]">
+                        <div className="bg-[#f9f9f9] p-4 font-bold text-gray-700 border-r border-gray-200 flex items-center">
+                            공급사 구분
+                        </div>
+                        <div className="p-3 flex items-center gap-6">
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="supplier" value="headquarters" checked={supplierType === "headquarters"} onChange={() => setSupplierType("headquarters")} className="radio radio-xs checked:bg-red-500" />
+                                <span>본사</span>
+                            </label>
+                            <div className="flex items-center gap-2">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="supplier" 
+                                        value="supplier" 
+                                        checked={supplierType === "supplier"} 
+                                        onChange={() => {
+                                            setSupplierType("supplier");
+                                            setIsSupplierPopupOpen(true);
+                                        }} 
+                                        className="radio radio-xs checked:bg-red-500" 
+                                    />
+                                    <span>공급사</span>
+                                </label>
+                                <button 
+                                    onClick={() => setIsSupplierPopupOpen(true)}
+                                    className={`px-3 py-1 text-xs rounded-sm transition-colors ${supplierType === "supplier" ? "bg-gray-500 text-white hover:bg-gray-600" : "bg-gray-300 text-white cursor-not-allowed"}`}
+                                    disabled={supplierType !== "supplier"}
+                                >
                                     공급사 선택
-                                </Button>
+                                </button>
+                                {supplierType === "supplier" && selectedSupplierName && (
+                                    <span className="text-blue-600 font-medium ml-1">({selectedSupplierName})</span>
+                                )}
                             </div>
-                        </RadioGroup>
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input type="radio" name="supplier" value="none" checked={supplierType === "none"} onChange={() => setSupplierType("none")} className="radio radio-xs checked:bg-red-500" />
+                                <span>구분없음</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-[160px_1fr] border-b border-gray-200 min-h-[50px]">
+                        <div className="bg-[#f9f9f9] p-4 font-bold text-gray-700 border-r border-gray-200 flex items-center">
+                            <span className="text-red-500 mr-1">*</span> 필수정보명
+                            <HelpCircle size={14} className="ml-1 text-gray-400 cursor-help" />
+                        </div>
+                        <div className="p-3 flex items-center gap-3">
+                            <input 
+                                type="text" 
+                                value={essentialInfoName}
+                                onChange={(e) => setEssentialInfoName(e.target.value)}
+                                className="w-full max-w-[480px] h-9 border border-gray-300 px-3 py-1.5 focus:border-gray-500 outline-none" 
+                                placeholder="필수정보명을 입력해주세요."
+                            />
+                            <span className="text-xs text-gray-400">{essentialInfoName.length} / 100</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* Items Section */}
-            <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-bold text-gray-800">필수항목 설정</h2>
-                    <Button 
-                        variant="outline" 
-                        onClick={addItem}
-                        className="h-8 text-xs border-gray-300"
-                    >
-                        <Plus size={14} className="mr-1" /> 항목 추가
-                    </Button>
+            {/* Detail Info Section */}
+            <div>
+                <div className="flex items-center gap-2 mb-3">
+                    <h2 className="text-lg font-bold text-gray-800 tracking-tight">상세정보</h2>
+                    <HelpCircle size={16} className="text-gray-400 cursor-help" />
                 </div>
+                <div className="w-full space-y-2">
+                    <div className="flex items-center gap-3 mb-1">
+                        <button 
+                            type="button" 
+                            onClick={() => addItem(4)}
+                            className="px-2 py-1 border border-gray-300 bg-white text-xs text-gray-600 rounded-sm hover:bg-gray-50 flex items-center gap-2 h-7"
+                        >
+                            <div className="flex gap-0.5">
+                                <div className="w-3 h-3 border border-gray-400"></div>
+                                <div className="w-3 h-3 border border-gray-400"></div>
+                                <div className="w-3 h-3 border border-gray-400"></div>
+                                <div className="w-3 h-3 border border-gray-400"></div>
+                            </div>
+                            4칸 항목 추가
+                        </button>
+                        <button 
+                            type="button" 
+                            onClick={() => addItem(2)}
+                            className="px-2 py-1 border border-gray-300 bg-white text-xs text-gray-600 rounded-sm hover:bg-gray-50 flex items-center gap-2 h-7"
+                        >
+                            <div className="flex gap-0.5">
+                                <div className="w-3 h-3 border border-gray-400"></div>
+                                <div className="w-3 h-3 border border-gray-400"></div>
+                            </div>
+                            2칸 항목 추가
+                        </button>
+                        
+                        <div className="text-xs text-[#FF3032] flex items-center gap-1 font-medium ml-2">
+                            <div className="w-3.5 h-3.5 bg-[#FF3032] flex items-center justify-center rounded-[2px]">
+                                <span className="text-white font-bold text-[10px]">!</span>
+                            </div>
+                            항목과 내용 란에 아무 내용도 입력하지 않으면 저장되지 않습니다.
+                        </div>
+                    </div>
 
-                <div className="border-t-2 border-gray-800 border-b border-gray-300">
-                    <table className="w-full">
-                        <thead className="bg-[#A4A4A4]/20 border-b border-gray-300">
-                            <tr>
-                                <th className="w-16 p-3 text-center font-bold text-gray-700">순서</th>
-                                <th className="p-3 text-center font-bold text-gray-700 border-x border-gray-300">항목명</th>
-                                <th className="p-3 text-center font-bold text-gray-700 border-r border-gray-300">내용 (기본값)</th>
-                                <th className="w-16 p-3 text-center font-bold text-gray-700">삭제</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {formData.items.map((item, index) => (
-                                <tr key={index} className="border-b border-gray-200 last:border-0 h-12">
-                                    <td className="text-center text-gray-500">{index + 1}</td>
-                                    <td className="p-2 border-x border-gray-200">
-                                        <Input 
-                                            value={item.label} 
-                                            onChange={(e) => updateItem(index, "label", e.target.value)}
-                                            className="h-8 text-xs" 
+                    <div className="border border-gray-300 border-b-0 overflow-hidden">
+                        <div className="w-full bg-[#bfbfbf] h-10 flex items-center text-white text-center text-xs border-b border-gray-300 px-0.5">
+                            <div className="w-48 border-r border-gray-300/50 h-full flex items-center justify-center">항목</div>
+                            <div className="flex-1 border-r border-gray-300/50 h-full flex items-center justify-center">내용</div>
+                            <div className="w-48 border-r border-gray-300/50 h-full flex items-center justify-center">항목</div>
+                            <div className="flex-1 border-r border-gray-300/50 h-full flex items-center justify-center">내용</div>
+                            <div className="w-20 h-full flex items-center justify-center">-</div>
+                        </div>
+                        
+                        {items.length === 0 ? (
+                            <div className="h-40 flex items-center justify-center bg-[#fcfcfc] border-b border-gray-300 text-xs text-gray-400">
+                                상세정보를 추가해주세요.
+                            </div>
+                        ) : (
+                            items.map((item) => (
+                                <div key={item.id} className="flex items-center text-xs border-b border-gray-300 bg-white h-10">
+                                    <div className="w-48 border-r border-gray-300 h-full flex items-center justify-center px-1">
+                                        <input 
+                                            type="text" 
+                                            className="w-full h-7 border border-gray-300 px-2 outline-none focus:border-gray-500" 
+                                            value={item.label1}
+                                            onChange={(e) => updateItem(item.id, 'label1', e.target.value)}
                                         />
-                                    </td>
-                                    <td className="p-2 border-r border-gray-200">
-                                        <Input 
-                                            value={item.value} 
-                                            onChange={(e) => updateItem(index, "value", e.target.value)}
-                                            className="h-8 text-xs" 
+                                    </div>
+                                    <div className={`border-r border-gray-300 h-full flex items-center justify-center px-1 ${item.type === 2 ? 'flex-[3]' : 'flex-1'}`}>
+                                        <input 
+                                            type="text" 
+                                            className="w-full h-7 border border-gray-300 px-2 outline-none focus:border-gray-500" 
+                                            value={item.value1}
+                                            onChange={(e) => updateItem(item.id, 'value1', e.target.value)}
                                         />
-                                    </td>
-                                    <td className="text-center">
-                                        <Button 
-                                            disabled={formData.items.length <= 1}
-                                            variant="ghost" 
-                                            onClick={() => removeItem(index)}
-                                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
+                                    </div>
+                                    {item.type === 4 && (
+                                        <>
+                                            <div className="w-48 border-r border-gray-300 h-full flex items-center justify-center px-1">
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full h-7 border border-gray-300 px-2 outline-none focus:border-gray-500" 
+                                                    value={item.label2}
+                                                    onChange={(e) => updateItem(item.id, 'label2', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="flex-1 border-r border-gray-300 h-full flex items-center justify-center px-1">
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full h-7 border border-gray-300 px-2 outline-none focus:border-gray-500" 
+                                                    value={item.value2}
+                                                    onChange={(e) => updateItem(item.id, 'value2', e.target.value)}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    <div className="w-20 h-full flex items-center justify-center">
+                                        <button 
+                                            type="button" 
+                                            onClick={() => removeItem(item.id)}
+                                            className="px-2 py-0.5 border border-gray-300 bg-white text-[11px] text-gray-400 rounded-sm hover:bg-gray-50 flex items-center gap-1"
                                         >
-                                            <Minus size={16} />
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* Bottom Info */}
-            <div className="pt-8 border-t border-gray-300 space-y-6 mt-12">
-                <div className="flex items-center gap-2">
-                    <span className="text-blue-500"><Book size={16} /></span>
-                    <h3 className="font-bold text-blue-500">안내</h3>
-                </div>
-                <div className="text-xs text-gray-500 leading-relaxed px-2">
-                    <p>· 등록된 필수정보는 상품 등록/수정 시 선택하여 적용할 수 있습니다.</p>
-                    <p>· 내용(기본값)을 입력해두면 상품 등록 시 해당 내용이 기본으로 입력됩니다.</p>
+                                            <span className="text-gray-400">-</span> 삭제
+                                        </button>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
 
             {/* Floating Actions */}
             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <Youtube size={16}/>
-                </Button>
-                <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                    <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100">
-                         <ChevronUp size={16} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none transform rotate-180">
-                         <ChevronUp size={16} />
-                    </Button>
-                </div>
+                <button className="w-12 h-12 rounded-full bg-[#FF3032] text-white flex items-center justify-center shadow-lg hover:bg-[#E52B2D] transition-colors overflow-hidden">
+                    <Youtube size={24} />
+                </button>
+                <button className="w-12 h-12 rounded-full bg-[#8250C6] text-white flex items-center justify-center shadow-lg hover:bg-[#7040B0] transition-colors text-[11px] leading-tight font-bold flex-col pt-0.5">
+                    <span>따라</span>
+                    <span>하기</span>
+                </button>
             </div>
+
+            <SupplierPopup 
+                isOpen={isSupplierPopupOpen}
+                onClose={() => setIsSupplierPopupOpen(false)}
+                onConfirm={(supplier) => {
+                    if (supplier && !Array.isArray(supplier)) {
+                        setSelectedSupplierName(supplier.name);
+                        setSelectedSupplierId(supplier.id);
+                    }
+                }}
+            />
         </div>
     );
 }

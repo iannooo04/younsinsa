@@ -92,6 +92,8 @@ export async function getProductsAction(
             
             if (searchParams.isDeleted && searchParams.dateType === 'delDate') {
                 where.deletedAt = { gte: start, lte: end };
+            } else if (searchParams.dateType === 'modDate') {
+                where.updatedAt = { gte: start, lte: end };
             } else {
                 where.createdAt = { gte: start, lte: end };
             }

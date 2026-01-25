@@ -140,7 +140,7 @@ export default function CartWishlistSettingsPage() {
                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="period" id="cart-period" className="border-[#FF424D] text-[#FF424D]" />
-                                    <Label htmlFor="cart-period" className="font-normal flex items-center gap-2 text-gray-700">
+                                    <Label htmlFor="cart-period" className="font-normal flex items-center gap-2 text-gray-700 whitespace-nowrap">
                                         <Input 
                                             className="w-16 h-7 text-right" 
                                             value={settings.cartStorageDays}
@@ -152,7 +152,7 @@ export default function CartWishlistSettingsPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="forever" id="cart-forever" className="border-gray-300" />
-                                    <Label htmlFor="cart-forever" className="font-normal text-gray-700">고객이 삭제할 때까지 보관</Label>
+                                    <Label htmlFor="cart-forever" className="font-normal text-gray-700 whitespace-nowrap">고객이 삭제할 때까지 보관</Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -171,7 +171,7 @@ export default function CartWishlistSettingsPage() {
                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="limit" id="cart-limit" className="border-[#FF424D] text-[#FF424D]" />
-                                    <Label htmlFor="cart-limit" className="font-normal flex items-center gap-2 text-gray-700">
+                                    <Label htmlFor="cart-limit" className="font-normal flex items-center gap-2 text-gray-700 whitespace-nowrap">
                                         <Input 
                                             className="w-16 h-7 text-right" 
                                             value={settings.cartItemLimitCount}
@@ -183,7 +183,7 @@ export default function CartWishlistSettingsPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="unlimited" id="cart-unlimited" className="border-gray-300" />
-                                    <Label htmlFor="cart-unlimited" className="font-normal text-gray-700">보관상품 개수제한 없음</Label>
+                                    <Label htmlFor="cart-unlimited" className="font-normal text-gray-700 whitespace-nowrap">보관상품 개수제한 없음</Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -252,11 +252,11 @@ export default function CartWishlistSettingsPage() {
                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="keep" id="soldout-keep" className="border-[#FF424D] text-[#FF424D]" />
-                                    <Label htmlFor="soldout-keep" className="font-normal text-gray-700">보관상품 품절 시에도 보관유지</Label>
+                                    <Label htmlFor="soldout-keep" className="font-normal text-gray-700 whitespace-nowrap">보관상품 품절 시에도 보관유지</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="delete" id="soldout-delete" className="border-gray-300" />
-                                    <Label htmlFor="soldout-delete" className="font-normal text-gray-700">보관상품 품절 시 자동삭제</Label>
+                                    <Label htmlFor="soldout-delete" className="font-normal text-gray-700 whitespace-nowrap">보관상품 품절 시 자동삭제</Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -285,14 +285,15 @@ export default function CartWishlistSettingsPage() {
                                         onValueChange={(val) => handleChange("cartMovePageTarget", val)}
                                     >
                                         <SelectTrigger 
-                                            className="w-[80px] h-7 text-xs ml-2"
+                                            className="w-[110px] h-7 text-xs ml-2"
                                             disabled={settings.cartMovePageType !== "popup"}
                                         >
                                             <SelectValue placeholder="PC" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="pc">PC</SelectItem>
-                                            <SelectItem value="mobile">Mobile</SelectItem>
+                                            <SelectItem value="mobile">모바일</SelectItem>
+                                            <SelectItem value="all">PC+모바일</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
@@ -348,7 +349,7 @@ export default function CartWishlistSettingsPage() {
                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="limit" id="wish-limit" className="border-[#FF424D] text-[#FF424D]" />
-                                    <Label htmlFor="wish-limit" className="font-normal flex items-center gap-2 text-gray-700">
+                                    <Label htmlFor="wish-limit" className="font-normal flex items-center gap-2 text-gray-700 whitespace-nowrap">
                                         <Input 
                                             className="w-16 h-7 text-right" 
                                             value={settings.wishItemLimitCount}
@@ -360,7 +361,7 @@ export default function CartWishlistSettingsPage() {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="unlimited" id="wish-unlimited" className="border-gray-300" />
-                                    <Label htmlFor="wish-unlimited" className="font-normal text-gray-700">보관상품 개수제한 없음</Label>
+                                    <Label htmlFor="wish-unlimited" className="font-normal text-gray-700 whitespace-nowrap">보관상품 개수제한 없음</Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -402,11 +403,11 @@ export default function CartWishlistSettingsPage() {
                             >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="keep" id="wish-soldout-keep" className="border-[#FF424D] text-[#FF424D]" />
-                                    <Label htmlFor="wish-soldout-keep" className="font-normal text-gray-700">보관상품 품절 시에도 보관유지</Label>
+                                    <Label htmlFor="wish-soldout-keep" className="font-normal text-gray-700 whitespace-nowrap">보관상품 품절 시에도 보관유지</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="delete" id="wish-soldout-delete" className="border-gray-300" />
-                                    <Label htmlFor="wish-soldout-delete" className="font-normal text-gray-700">보관상품 품절 시 자동삭제</Label>
+                                    <Label htmlFor="wish-soldout-delete" className="font-normal text-gray-700 whitespace-nowrap">보관상품 품절 시 자동삭제</Label>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -435,14 +436,15 @@ export default function CartWishlistSettingsPage() {
                                         onValueChange={(val) => handleChange("wishMovePageTarget", val)}
                                     >
                                         <SelectTrigger 
-                                            className="w-[80px] h-7 text-xs ml-2"
+                                            className="w-[110px] h-7 text-xs ml-2"
                                             disabled={settings.wishMovePageType !== "popup"}
                                         >
                                             <SelectValue placeholder="PC" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="pc">PC</SelectItem>
-                                            <SelectItem value="mobile">Mobile</SelectItem>
+                                            <SelectItem value="mobile">모바일</SelectItem>
+                                            <SelectItem value="all">PC+모바일</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>

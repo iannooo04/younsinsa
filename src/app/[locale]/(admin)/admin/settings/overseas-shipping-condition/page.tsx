@@ -2,10 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, BookOpen, ExternalLink, Image as ImageIcon } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { useState, useEffect, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { getOverseasShippingSettingsAction, updateOverseasShippingSettingsAction } from "@/actions/basic-policy-actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface ShippingCondition {
     rateStandard: string;
@@ -19,6 +24,7 @@ interface ShippingConditions {
 }
 
 export default function OverseasShippingConditionPage() {
+    const router = useRouter();
     const [isPending, startTransition] = useTransition();
     const [conditions, setConditions] = useState<ShippingConditions>({
         "en_US": { rateStandard: "ems", useInsurance: false, boxWeight: 0.0, countryGroupCount: 1 },
@@ -26,6 +32,8 @@ export default function OverseasShippingConditionPage() {
         "ja_JP": { rateStandard: "ems", useInsurance: false, boxWeight: 0.0, countryGroupCount: 1 }
     });
 
+    // Popup state
+    const [isGroupPopupOpen, setIsGroupPopupOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -39,6 +47,9 @@ export default function OverseasShippingConditionPage() {
 
     const handleSave = () => {
         startTransition(async () => {
+             // In read-only mode, this might not be needed, but keeping logic for now or simply alerting.
+             // or effectively doing nothing if no changes are possible.
+             // Given the requirements, we can perhaps leave it saving the current state (which is just what was loaded).
             const result = await updateOverseasShippingSettingsAction({ conditions: conditions as unknown as Record<string, Record<string, string | number | boolean>> });
             if (result.success) {
                 alert("저장되었습니다.");
@@ -46,16 +57,6 @@ export default function OverseasShippingConditionPage() {
                 alert(result.error || "저장 실패");
             }
         });
-    };
-
-    const handleConditionChange = (mallCode: string, field: keyof ShippingCondition, value: string | number | boolean) => {
-        setConditions(prev => ({
-            ...prev,
-            [mallCode]: {
-                ...prev[mallCode],
-                [field]: value
-            }
-        }));
     };
 
     const malls = [
@@ -109,54 +110,36 @@ export default function OverseasShippingConditionPage() {
                                             </div>
                                         </td>
                                         <td className="py-4 px-4 border-r border-gray-200">
-                                            <Select 
-                                                value={condition.rateStandard} 
-                                                onValueChange={(val) => handleConditionChange(mall.code, "rateStandard", val)}
-                                            >
-                                                <SelectTrigger className="w-full h-8 border-gray-300">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="ems">우체국 EMS 표준 요율표 사용</SelectItem>
-                                                    <SelectItem value="custom">직접 설정</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            {condition.rateStandard === 'ems' ? '우체국 EMS 표준 요율표 사용' : '직접 설정'}
                                         </td>
                                         <td className="py-4 px-4 border-r border-gray-200">
-                                             <Select 
-                                                value={condition.useInsurance ? "true" : "false"} 
-                                                onValueChange={(val) => handleConditionChange(mall.code, "useInsurance", val === "true")}
-                                            >
-                                                <SelectTrigger className="w-full h-8 border-gray-300">
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="true">O</SelectItem>
-                                                    <SelectItem value="false">X</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                             {condition.useInsurance ? 'O' : 'X'}
                                         </td>
                                         <td className="py-4 px-4 border-r border-gray-200">
-                                             <div className="flex items-center gap-1">
-                                                <Input 
-                                                    value={condition.boxWeight} 
-                                                    onChange={(e) => handleConditionChange(mall.code, "boxWeight", e.target.value)}
-                                                    className="w-full h-8 text-right"
-                                                    type="number"
-                                                    step="0.01"
-                                                />
+                                             <div className="flex items-center justify-center gap-1">
+                                                <span>{condition.boxWeight}</span>
                                                 <span>kg</span>
                                              </div>
                                         </td>
                                         <td className="py-4 px-4 border-r border-gray-200 space-y-1">
                                             <div>{condition.countryGroupCount}</div>
-                                            <Button variant="outline" size="sm" className="h-6 text-xs px-2 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="h-6 text-xs px-2 bg-white border-gray-300 text-gray-600 font-normal rounded-sm"
+                                                onClick={() => setIsGroupPopupOpen(true)}
+                                            >
                                                 그룹보기
                                             </Button>
                                         </td>
                                         <td className="py-4 px-4">
-                                            <Button variant="outline" size="sm" className="h-7 px-3 bg-white border-gray-300 text-gray-600 font-normal rounded-sm">
-                                                관리
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="h-7 px-3 bg-white border-gray-300 text-gray-600 font-normal rounded-sm"
+                                                onClick={() => router.push(`/admin/settings/overseas-shipping-condition/${mall.code}`)}
+                                            >
+                                                수정
                                             </Button>
                                         </td>
                                     </tr>
@@ -250,6 +233,36 @@ export default function OverseasShippingConditionPage() {
                     <ArrowDown size={20} />
                 </Button>
             </div>
+
+            {/* Group View Popup */}
+            <Dialog open={isGroupPopupOpen} onOpenChange={setIsGroupPopupOpen}>
+                <DialogContent className="max-w-2xl bg-white">
+                    <DialogHeader>
+                        <DialogTitle>선택된 배송그룹 정보</DialogTitle>
+                    </DialogHeader>
+                    <div className="border border-gray-300 border-b-0 mt-4 text-xs">
+                         <table className="w-full text-center">
+                            <thead className="bg-[#A3A3A3] text-white font-bold">
+                                <tr>
+                                    <th className="py-2 px-4 border-r border-gray-400 w-1/2">배송 국가 그룹</th>
+                                    <th className="py-2 px-4 w-1/2">배송비 조건명</th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-gray-700">
+                                <tr className="border-b border-gray-200">
+                                     <td className="py-3 px-4 border-r border-gray-200 h-24"></td>
+                                     <td className="py-3 px-4 h-24"></td>
+                                </tr>
+                            </tbody>
+                         </table>
+                    </div>
+                    <div className="flex justify-center mt-4">
+                        <Button variant="outline" onClick={() => setIsGroupPopupOpen(false)} className="px-8 border-gray-300 bg-white hover:bg-gray-50 text-gray-700 rounded-sm h-8">
+                            닫기
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

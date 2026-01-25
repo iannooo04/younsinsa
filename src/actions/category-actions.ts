@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+import { ClassifyType, DisplayStatus } from "@/generated/prisma";
 
 export type CategoryWithChildren = Awaited<ReturnType<typeof getCategoriesAction>>[number];
 
@@ -42,6 +43,9 @@ export async function createCategoryAction(data: {
   parentId?: string | null;
   code?: string;
   slug?: string;
+  type?: ClassifyType;
+  displayStatusPC?: DisplayStatus;
+  displayStatusMobile?: DisplayStatus;
 }) {
   try {
     const newCategory = await prisma.category.create({
@@ -50,6 +54,9 @@ export async function createCategoryAction(data: {
         parentId: data.parentId || null,
         code: data.code,
         slug: data.slug,
+        type: data.type,
+        displayStatusPC: data.displayStatusPC,
+        displayStatusMobile: data.displayStatusMobile,
         // Create default display settings
         displaySettings: {
             create: {

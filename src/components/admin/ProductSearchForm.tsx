@@ -5,12 +5,19 @@ import { HelpCircle, ChevronRight } from "lucide-react";
 import SupplierPopup from "@/components/admin/SupplierPopup";
 import SearchSettingSavePopup from "@/components/admin/SearchSettingSavePopup";
 
+import BrandPopup from "@/components/admin/BrandPopup";
+
 export default function ProductSearchForm() {
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
+    const [supplierMode, setSupplierMode] = useState("all");
     
     // Supplier Popup State
     const [isPopupOpen, setIsPopupOpen] = useState(false);
     const [selectedSupplier, setSelectedSupplier] = useState<{id: string, name: string} | null>(null);
+
+    // Brand Popup State
+    const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
+    const [selectedBrand, setSelectedBrand] = useState<{id: string, name: string} | null>(null);
 
     // Save Setting Popup State
     const [isSaveSettingPopupOpen, setIsSaveSettingPopupOpen] = useState(false);
@@ -44,15 +51,36 @@ export default function ProductSearchForm() {
                     <div className="font-bold">공급사 구분</div>
                     <div className="flex items-center gap-4">
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="supplier" className="radio radio-xs checked:bg-primary" defaultChecked />
+                            <input 
+                                type="radio" 
+                                name="supplier" 
+                                className="radio radio-xs checked:bg-primary" 
+                                checked={supplierMode === "all"} 
+                                onChange={() => setSupplierMode("all")}
+                            />
                             <span>전체</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="supplier" className="radio radio-xs checked:bg-primary" />
+                            <input 
+                                type="radio" 
+                                name="supplier" 
+                                className="radio radio-xs checked:bg-primary" 
+                                checked={supplierMode === "headquarters"} 
+                                onChange={() => setSupplierMode("headquarters")}
+                            />
                             <span>본사</span>
                         </label>
                         <label className="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="supplier" className="radio radio-xs checked:bg-primary" checked={!!selectedSupplier} readOnly />
+                            <input 
+                                type="radio" 
+                                name="supplier" 
+                                className="radio radio-xs checked:bg-primary" 
+                                checked={supplierMode === "supplier"} 
+                                onChange={() => {
+                                    setSupplierMode("supplier");
+                                    setIsPopupOpen(true);
+                                }}
+                            />
                             <span>공급사</span>
                         </label>
                         <button 
@@ -74,7 +102,17 @@ export default function ProductSearchForm() {
                         <select className="select select-bordered select-sm w-32 rounded-sm bg-gray-50">
                             <option>상품명</option>
                             <option>상품코드</option>
-                            <option>모델명</option>
+                            <option>자체상품코드</option>
+                            <option>검색 키워드</option>
+                            <option disabled>==========</option>
+                            <option>제조사</option>
+                            <option>원산지</option>
+                            <option>모델번호</option>
+                            <option>HS코드</option>
+                            <option>추가항목</option>
+                            <option disabled>==========</option>
+                            <option>관리자 메모</option>
+                            <option>공급사명</option>
                         </select>
                         <input type="text" className="input input-bordered input-sm flex-1 rounded-sm" />
                     </div>
@@ -126,7 +164,11 @@ export default function ProductSearchForm() {
                         <div className="grid grid-cols-[120px_1fr] items-center gap-4 py-3 border-b border-gray-100">
                             <div className="font-bold">메인분류</div>
                             <div className="flex items-center gap-2">
-                                <select className="select select-bordered select-sm w-32 rounded-sm bg-gray-50"><option>=전체=</option></select>
+                                <select className="select select-bordered select-sm w-32 rounded-sm bg-gray-50">
+                                    <option>=전체=</option>
+                                    <option>PC쇼핑몰</option>
+                                    <option>모바일쇼핑몰</option>
+                                </select>
                                 <select className="select select-bordered select-sm w-48 rounded-sm bg-gray-50"><option>=메인페이지 분류 선택=</option></select>
                             </div>
                         </div>
@@ -136,7 +178,15 @@ export default function ProductSearchForm() {
                             <div className="grid grid-cols-[120px_1fr] items-center gap-4">
                                 <div className="font-bold">브랜드</div>
                                 <div className="flex items-center gap-2">
-                                    <button className="btn btn-xs btn-outline rounded-sm font-normal text-gray-600">브랜드선택</button>
+                                    <button 
+                                        className="btn btn-xs btn-outline rounded-sm font-normal text-gray-600"
+                                        onClick={() => setIsBrandPopupOpen(true)}
+                                    >
+                                        브랜드선택
+                                    </button>
+                                    {selectedBrand && (
+                                        <span className="text-blue-600 font-bold ml-1">[{selectedBrand.name}]</span>
+                                    )}
                                     <label className="flex items-center gap-2 cursor-pointer">
                                         <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
                                         <span>브랜드 미지정 상품</span>
@@ -276,38 +326,7 @@ export default function ProductSearchForm() {
                             </div>
                         </div>
 
-                        {/* Icons (Time limited) */}
-                        <div className="grid grid-cols-2 gap-x-12 py-3 border-b border-gray-100">
-                            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">아이콘(기간제한)</div>
-                                <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2"><input type="radio" name="icontime" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-2">
-                                        <input type="checkbox" className="checkbox checkbox-xs bg-black checked:bg-black rounded-sm border-gray-800" />
-                                        <span className="bg-black text-white text-[10px] px-1 py-0.5">예약</span>
-                                    </label>
-                                </div>
-                            </div>
-                             {/* Icons (Unlimited) */}
-                            <div className="grid grid-cols-[120px_1fr] items-start gap-4">
-                                <div className="font-bold pt-1">아이콘(무제한)</div>
-                                <div className="flex flex-wrap gap-x-4 gap-y-2">
-                                    <label className="flex items-center gap-2"><input type="radio" name="iconunlimited" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-gray-400 text-white text-[10px] px-1">BEST</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-[#cc7a00] text-white text-[10px] px-1">EVENT</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-black text-white text-[10px] px-1">NEW</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-gray-400 text-white text-[10px] px-1">인기</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-gray-400 text-white text-[10px] px-1">추천</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-[#cc7a00] text-white text-[10px] px-1">SALE</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-black text-white text-[10px] px-1">기획</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-[#cc7a00] text-white text-[10px] px-1">당일발송</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-black text-white text-[10px] px-1">자체제작</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-black text-white text-[10px] px-1">신상입고</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-[#cc7a00] text-white text-[10px] px-1">주문폭주</span></label>
-                                    <label className="flex items-center gap-1"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" /><span className="bg-gray-400 text-white text-[10px] px-1">최다판매</span></label>
-                                </div>
-                            </div>
-                        </div>
+
 
                         {/* Shipping Fee */}
                         <div className="grid grid-cols-[120px_1fr] items-center gap-4 bg-gray-50/50 p-2 -mx-2 mb-2">
@@ -356,11 +375,22 @@ export default function ProductSearchForm() {
                 isOpen={isPopupOpen} 
                 onClose={() => setIsPopupOpen(false)} 
                 onConfirm={(val) => {
-                    setSelectedSupplier(val);
+                    if (Array.isArray(val)) {
+                        setSelectedSupplier(val[0] || null);
+                    } else {
+                        setSelectedSupplier(val);
+                    }
+                    setSupplierMode("supplier");
                     setIsPopupOpen(false);
                 }} 
             />
             
+            <BrandPopup 
+                isOpen={isBrandPopupOpen}
+                onClose={() => setIsBrandPopupOpen(false)}
+                onConfirm={(val) => setSelectedBrand(val)}
+            />
+
             <SearchSettingSavePopup
                 isOpen={isSaveSettingPopupOpen}
                 onClose={() => setIsSaveSettingPopupOpen(false)}

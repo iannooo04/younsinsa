@@ -171,4 +171,24 @@ const SelectItem = React.forwardRef<
 });
 SelectItem.displayName = "SelectItem";
 
-export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem };
+const SelectGroup = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={className} {...props} />
+));
+SelectGroup.displayName = "SelectGroup";
+
+const SelectLabel = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={`py-1.5 pl-8 pr-2 text-sm font-semibold ${className}`}
+    {...props}
+  />
+));
+SelectLabel.displayName = "SelectLabel";
+
+export { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectGroup, SelectLabel };

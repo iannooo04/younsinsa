@@ -75,7 +75,7 @@ export default function RecentProductsSettingsPage() {
                                 value={expirationHours}
                                 onChange={(e) => setExpirationHours(Number(e.target.value))}
                             />
-                            <span className="text-gray-700">시간</span>
+                            <span className="text-gray-700 whitespace-nowrap">시간</span>
                         </div>
                     </div>
 
@@ -91,7 +91,7 @@ export default function RecentProductsSettingsPage() {
                                 value={maxCount}
                                 onChange={(e) => setMaxCount(Number(e.target.value))}
                             />
-                            <span className="text-gray-700">개 상품</span>
+                            <span className="text-gray-700 whitespace-nowrap">개 상품</span>
                         </div>
                     </div>
                 </div>

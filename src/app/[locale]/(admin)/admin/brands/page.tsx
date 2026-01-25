@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useTransition, useCallback } from "react";
 import { Brand } from "@/generated/prisma";
 import { 
@@ -9,7 +10,6 @@ import {
   updateBrandAction, 
   deleteBrandAction 
 } from "@/actions/brand-actions";
-import { getProductsAction } from "@/actions/product-actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -27,11 +27,11 @@ import {
   Folder,
   HelpCircle,
   Play,
-  Plus,
-  Minus,
   File,
   Youtube,
 } from "lucide-react";
+import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
+import RecommendProductSelectPopup from "@/components/admin/RecommendProductSelectPopup";
 
 interface BrandWithChildren extends Brand {
   children?: BrandWithChildren[];
@@ -70,6 +70,7 @@ const buildTree = (items: BrandWithChildren[]) => {
 };
 
 export default function BrandManagementPage() {
+  const router = useRouter();
   // const [brands, setBrands] = useState<BrandWithChildren[]>([]); // Unused
   const [brandTree, setBrandTree] = useState<BrandWithChildren[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<BrandWithChildren | null>(null);
@@ -80,6 +81,23 @@ export default function BrandManagementPage() {
       recTop: 'pc',
       listTop: 'pc'
   });
+
+  // File Input Refs
+  const pcImageInputRef = React.useRef<HTMLInputElement>(null);
+  const pcMouseoverImageInputRef = React.useRef<HTMLInputElement>(null);
+  const mobileImageInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Selected Files State
+  const [pcImageFile, setPcImageFile] = useState<File | null>(null);
+  const [pcMouseoverImageFile, setPcMouseoverImageFile] = useState<File | null>(null);
+  const [mobileImageFile, setMobileImageFile] = useState<File | null>(null);
+
+  // Member Grade Popup State
+  const [isMemberGradePopupOpen, setIsMemberGradePopupOpen] = useState(false);
+  // const [selectedMemberGrades, setSelectedMemberGrades] = useState<any[]>([]); // Unused
+
+  // Product Select Popup State
+  const [isProductSelectPopupOpen, setIsProductSelectPopupOpen] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -94,7 +112,10 @@ export default function BrandManagementPage() {
       parentId: null as string | null,
       isAdultAuth: false,
       accessType: "ALL",
+      accessInaccessibleExposed: false,
+      accessApplyToChildren: false,
       productDisplayType: "AUTO",
+      productDisplaySort: "RECENT",
       pcTheme: "브랜드테마",
       mobileTheme: "브랜드테마",
 
@@ -145,6 +166,13 @@ export default function BrandManagementPage() {
     fetchBrands();
   }, [fetchBrands]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          setFile(file);
+      }
+  };
+
 
 
   const handleSelectBrand = async (brand: BrandWithChildren) => {
@@ -176,7 +204,10 @@ export default function BrandManagementPage() {
             parentId: fullBrand.parentId,
             isAdultAuth: fullBrand.isAdultAuth,
             accessType: fullBrand.accessType,
+            accessInaccessibleExposed: (fullBrand as unknown as { accessInaccessibleExposed: boolean }).accessInaccessibleExposed || false,
+            accessApplyToChildren: (fullBrand as unknown as { accessApplyToChildren: boolean }).accessApplyToChildren || false,
             productDisplayType: fullBrand.productDisplayType,
+            productDisplaySort: (fullBrand as unknown as { productDisplaySort: string }).productDisplaySort || "RECENT",
             pcTheme: fullBrand.pcTheme || "브랜드테마",
             mobileTheme: fullBrand.mobileTheme || "브랜드테마",
 
@@ -223,7 +254,10 @@ export default function BrandManagementPage() {
       parentId: null,
       isAdultAuth: false,
       accessType: "ALL",
+      accessInaccessibleExposed: false,
+      accessApplyToChildren: false,
       productDisplayType: "AUTO",
+      productDisplaySort: "RECENT",
       pcTheme: "브랜드테마",
       mobileTheme: "브랜드테마",
       logoUrl: "",
@@ -271,7 +305,10 @@ export default function BrandManagementPage() {
       parentId: selectedBrand.id,
       isAdultAuth: false,
       accessType: "ALL",
+      accessInaccessibleExposed: false,
+      accessApplyToChildren: false,
       productDisplayType: "AUTO",
+      productDisplaySort: "RECENT",
       pcTheme: "브랜드테마",
       mobileTheme: "브랜드테마",
       logoUrl: "",
@@ -328,19 +365,32 @@ export default function BrandManagementPage() {
   };
 
   const handleSelectProducts = async () => {
-      // For now, let's just use a simple prompt to get product IDs or fetch first few products for demo
-      const res = await getProductsAction(1, 5);
-      if (res.success && res.items.length > 0) {
-          const newRP = res.items.map(p => ({
-              productId: p.id,
-              product: p
-          }));
-          setFormData({
-              ...formData,
-              recommendedProducts: [...formData.recommendedProducts, ...newRP]
-          });
-          alert(`${res.items.length}개의 상품을 추천상품에 추가했습니다. (데모)`);
+      setIsProductSelectPopupOpen(true);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleProductSelectConfirm = (selectedProducts: { id: number | string; [key: string]: any }[]) => {
+      const newProducts = selectedProducts.map(p => ({
+          productId: String(p.id),
+          product: p
+      }));
+      
+      // Filter out duplicates if necessary, or just append
+      // For now, let's append but check for existing IDs to avoid exact duplicates
+      const existingIds = new Set(formData.recommendedProducts.map(rp => rp.productId));
+      const filteredNew = newProducts.filter(np => !existingIds.has(np.productId));
+
+      if (filteredNew.length === 0 && newProducts.length > 0) {
+          alert("이미 추가된 상품들입니다.");
+          setIsProductSelectPopupOpen(false);
+          return;
       }
+
+      setFormData({
+          ...formData,
+          recommendedProducts: [...formData.recommendedProducts, ...filteredNew]
+      });
+      setIsProductSelectPopupOpen(false);
   };
 
   const handleRemoveSelectedProducts = () => {
@@ -366,6 +416,12 @@ export default function BrandManagementPage() {
         alert(res.error);
       }
     });
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const handleMemberGradeConfirm = (selectedGrades: any[]) => {
+      // setSelectedMemberGrades(selectedGrades);
+      console.log("Selected Grades:", selectedGrades);
   };
 
   const renderTree = (nodes: BrandWithChildren[], depth = 0) => {
@@ -395,6 +451,7 @@ export default function BrandManagementPage() {
     ));
   };
 
+
   return (
     <div className="p-6 bg-white min-h-screen font-sans text-sm pb-24">
       {/* Header */}
@@ -411,7 +468,7 @@ export default function BrandManagementPage() {
 
       <div className="flex gap-6 h-full">
         {/* Left Sidebar: Brand Tree */}
-        <div className="w-[320px] flex-shrink-0 border-r border-gray-200 pr-4 min-h-[800px]">
+        <div className="w-[250px] flex-shrink-0 border-r border-gray-200 pr-4 min-h-[800px]">
           <div className="flex gap-1 mb-2 flex-wrap">
             <Button
               variant="outline"
@@ -429,10 +486,7 @@ export default function BrandManagementPage() {
             >
               하위 브랜드 생성
             </Button>
-             <div className="flex gap-1 ml-auto">
-                 <Button variant="ghost" size="icon" className="h-7 w-7"><Plus className="w-3 h-3 text-blue-500"/></Button>
-                 <Button variant="ghost" size="icon" className="h-7 w-7"><Minus className="w-3 h-3 text-blue-500"/></Button>
-             </div>
+
           </div>
           
           <div className="border border-gray-300 h-full bg-white p-2 overflow-y-auto">
@@ -473,7 +527,7 @@ export default function BrandManagementPage() {
               <div className="border-t border-gray-200 text-xs">
                    {/* Row: Exposure Shop */}
                   <div className="flex border-b border-gray-200">
-                      <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           노출상점
                       </div>
                       <div className="flex-1 p-3 flex flex-col gap-2">
@@ -508,7 +562,7 @@ export default function BrandManagementPage() {
 
                   {/* Row: Brand Name */}
                   <div className="flex border-b border-gray-200">
-                      <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-start pt-6 border-r border-gray-200 relative">
+                      <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-start pt-6 border-r border-gray-200 relative">
                            <div className="flex items-center gap-1">
                                 <div className="w-1 h-1 bg-red-500 rounded-full mb-0.5"></div>
                                 <span>브랜드명</span>
@@ -555,7 +609,7 @@ export default function BrandManagementPage() {
 
                   {/* Row: Brand Type */}
                   <div className="flex border-b border-gray-200">
-                      <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           브랜드 타입
                       </div>
                        <div className="flex-1 p-3">
@@ -578,7 +632,7 @@ export default function BrandManagementPage() {
 
                   {/* Row: PC Display */}
                   <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           PC쇼핑몰<br/>노출상태
                       </div>
                        <div className="flex-1 p-3">
@@ -601,7 +655,7 @@ export default function BrandManagementPage() {
 
                    {/* Row: Mobile Display */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           모바일쇼핑몰<br/>노출상태
                       </div>
                        <div className="flex-1 p-3">
@@ -624,8 +678,8 @@ export default function BrandManagementPage() {
 
                   {/* Row: PC Image */}
                   <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          PC쇼핑몰<br/>브랜드 이미지 등록
+                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          PC쇼핑몰 브랜드 이미지 등록
                       </div>
                       <div className="flex-1 p-3 flex flex-col justify-center gap-2">
                           <label className="flex items-center gap-1.5 cursor-pointer">
@@ -633,37 +687,61 @@ export default function BrandManagementPage() {
                               <span className="text-gray-700">모바일 쇼핑몰과 동일 적용</span>
                           </label>
                           <div className="flex items-center gap-1">
-                               <Button variant="secondary" size="sm" className="h-7 text-xs bg-[#A4A4A4] text-white hover:bg-[#909090] rounded-none px-3">찾아보기</Button>
-                               <div className="w-[180px] h-7 border border-gray-300 bg-[#F1F1F1]"></div>
+                               <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  ref={pcImageInputRef} 
+                                  onChange={(e) => handleFileChange(e, setPcImageFile)}
+                               />
+                               <Button variant="secondary" size="sm" onClick={() => pcImageInputRef.current?.click()} className="h-7 text-xs !bg-[#333333] text-white !hover:bg-[#222222] rounded-none px-3">찾아보기</Button>
+                               <div className="w-[180px] h-7 border border-gray-300 bg-[#F1F1F1] flex items-center px-2 text-xs text-gray-600 truncate">
+                                   {pcImageFile ? pcImageFile.name : ""}
+                               </div>
                           </div>
                       </div>
-                      <div className="w-56 bg-white p-3 font-bold text-gray-700 flex flex-col justify-center gap-2 border-l border-gray-200 items-start">
-                          <span>PC쇼핑몰<br/>마우스오버 이미지 등록</span>
+                      <div className="w-[220px] bg-white p-3 font-bold text-gray-700 flex flex-col justify-center gap-2 border-l border-gray-200 items-start">
+                          <span>PC쇼핑몰 마우스오버 이미지 등록</span>
                       </div>
                        <div className="flex-1 p-3 flex flex-col justify-center gap-2 border-l border-gray-200">
                            <div className="flex items-center gap-1">
-                               <Button variant="secondary" size="sm" className="h-7 text-xs bg-[#A4A4A4] text-white hover:bg-[#909090] rounded-none px-3">찾아보기</Button>
-                               <div className="w-[180px] h-7 border border-gray-300 bg-[#F1F1F1]"></div>
+                               <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  ref={pcMouseoverImageInputRef} 
+                                  onChange={(e) => handleFileChange(e, setPcMouseoverImageFile)}
+                               />
+                               <Button variant="secondary" size="sm" onClick={() => pcMouseoverImageInputRef.current?.click()} className="h-7 text-xs !bg-[#333333] text-white !hover:bg-[#222222] rounded-none px-3">찾아보기</Button>
+                               <div className="w-[180px] h-7 border border-gray-300 bg-[#F1F1F1] flex items-center px-2 text-xs text-gray-600 truncate">
+                                   {pcMouseoverImageFile ? pcMouseoverImageFile.name : ""}
+                               </div>
                           </div>
                       </div>
                   </div>
 
                    {/* Row: Mobile Image */}
                   <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          모바일쇼핑몰<br/>브랜드 이미지 등록
+                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          모바일쇼핑몰 브랜드 이미지 등록
                       </div>
                       <div className="flex-1 p-3 flex items-center">
                           <div className="flex items-center gap-1">
-                               <Button variant="secondary" size="sm" className="h-7 text-xs bg-[#A4A4A4] text-white hover:bg-[#909090] rounded-none px-3">찾아보기</Button>
-                               <div className="w-[200px] h-7 border border-gray-300 bg-[#F1F1F1]"></div>
+                               <input 
+                                  type="file" 
+                                  className="hidden" 
+                                  ref={mobileImageInputRef} 
+                                  onChange={(e) => handleFileChange(e, setMobileImageFile)}
+                               />
+                               <Button variant="secondary" size="sm" onClick={() => mobileImageInputRef.current?.click()} className="h-7 text-xs !bg-[#333333] text-white !hover:bg-[#222222] rounded-none px-3">찾아보기</Button>
+                               <div className="w-[200px] h-7 border border-gray-300 bg-[#F1F1F1] flex items-center px-2 text-xs text-gray-600 truncate">
+                                   {mobileImageFile ? mobileImageFile.name : ""}
+                               </div>
                           </div>
                       </div>
                   </div>
 
                    {/* Row: Adult Auth */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           성인인증
                       </div>
                        <div className="flex-1 p-3 space-y-2">
@@ -699,18 +777,23 @@ export default function BrandManagementPage() {
                       </div>
                   </div>
 
-                  {/* Row: Access Permission */}
+                   {/* Row: Access Permission */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           접근 권한
                       </div>
                        <div className="flex-1 p-3">
-                           <RadioGroup 
-                            value={formData.accessType} 
-                            onValueChange={(val: string) => setFormData({...formData, accessType: val})}
-                            className="flex flex-col gap-2"
-                           >
-                              <div className="flex items-center gap-4">
+                           <div className="flex flex-col gap-2">
+                               <RadioGroup 
+                                value={formData.accessType} 
+                                onValueChange={(val: string) => {
+                                    setFormData({...formData, accessType: val});
+                                    if (val === "SPECIFIC") {
+                                        setIsMemberGradePopupOpen(true);
+                                    }
+                                }}
+                                className="flex flex-row items-center gap-6"
+                               >
                                   <div className="flex items-center gap-2">
                                     <RadioGroupItem value="ALL" id="access-all" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
                                     <Label htmlFor="access-all" className="text-gray-700 font-normal cursor-pointer">전체(회원+비회원)</Label>
@@ -722,27 +805,75 @@ export default function BrandManagementPage() {
                                   <div className="flex items-center gap-2">
                                     <RadioGroupItem value="SPECIFIC" id="access-specific" className="rounded-full border-gray-300 text-gray-600" />
                                     <Label htmlFor="access-specific" className="text-gray-700 font-normal cursor-pointer">특정 회원등급</Label>
+                                    <Button 
+                                        variant="secondary" 
+                                        size="sm" 
+                                        className="h-6 text-xs bg-gray-400 text-white rounded-none px-2 ml-1"
+                                        onClick={() => setIsMemberGradePopupOpen(true)}
+                                    >회원등급 선택</Button>
+                                    <label className="flex items-center gap-1.5 cursor-pointer ml-2">
+                                        <span className="text-gray-500">(</span>
+                                        <Checkbox 
+                                          className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                          checked={formData.accessInaccessibleExposed}
+                                          onCheckedChange={(checked) => setFormData({...formData, accessInaccessibleExposed: !!checked})}
+                                        />
+                                        <span className="text-gray-500 text-xs">접근불가 고객 브랜드 노출함 )</span>
+                                    </label>
                                   </div>
-                              </div>
-                          </RadioGroup>
+                               </RadioGroup>
+                               <label className="flex items-center gap-1.5 cursor-pointer mt-1">
+                                   <Checkbox 
+                                     className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                     checked={formData.accessApplyToChildren}
+                                     onCheckedChange={(checked) => setFormData({...formData, accessApplyToChildren: !!checked})}
+                                   />
+                                   <span className="text-gray-700 text-xs">하위 브랜드 동일 적용</span>
+                               </label>
+                           </div>
                       </div>
                   </div>
 
                    {/* Row: Product Display Type */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           상품진열 타입
                       </div>
                        <div className="flex-1 p-3">
-                           <div className="flex items-center gap-2 mb-2">
+                           <div className="flex flex-col gap-2 mb-2">
                                 <RadioGroup 
                                     value={formData.productDisplayType} 
                                     onValueChange={(val: string) => setFormData({...formData, productDisplayType: val})}
-                                    className="flex flex-col gap-1"
+                                    className="flex flex-col gap-2"
                                 >
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="AUTO" id="disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
-                                        <Label htmlFor="disp-auto" className="text-gray-700 font-normal cursor-pointer">자동진열</Label>
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <RadioGroupItem value="AUTO" id="disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
+                                            <Label htmlFor="disp-auto" className="text-gray-700 font-normal cursor-pointer">자동진열</Label>
+                                        </div>
+                                         <Select 
+                                            value={formData.productDisplaySort} 
+                                            onValueChange={(val: string) => setFormData({...formData, productDisplaySort: val})}
+                                            disabled={formData.productDisplayType !== 'AUTO'}
+                                         >
+                                            <SelectTrigger className="w-48 h-7 text-xs border-red-500 rounded-sm text-gray-700">
+                                                <SelectValue placeholder="최근 등록 상품 위로" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="RECENT_DESC">최근 등록 상품 위로</SelectItem>
+                                                <SelectItem value="RECENT_ASC">최근 등록 상품 아래로</SelectItem>
+                                                <SelectItem value="MOD_DESC">최근 수정 상품 위로</SelectItem>
+                                                <SelectItem value="MOD_ASC">최근 수정 상품 아래로</SelectItem>
+                                                <SelectItem value="NAME_ASC">상품명 가나다순</SelectItem>
+                                                <SelectItem value="NAME_DESC">상품명 가나다역순</SelectItem>
+                                                <SelectItem value="PRICE_DESC">판매가 높은 상품 위로</SelectItem>
+                                                <SelectItem value="PRICE_ASC">판매가 높은 상품 아래로</SelectItem>
+                                                <SelectItem value="SALES_DESC">판매량 높은 상품 위로</SelectItem>
+                                                <SelectItem value="SALES_ASC">판매량 높은 상품 아래로</SelectItem>
+                                                <SelectItem value="VIEW_DESC">조회수 높은 상품 위로</SelectItem>
+                                                <SelectItem value="VIEW_ASC">조회수 높은 상품 아래로</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <RadioGroupItem value="MANUAL" id="disp-manual" className="rounded-full border-gray-300 text-gray-600" />
@@ -756,8 +887,8 @@ export default function BrandManagementPage() {
 
                   {/* Row: Theme Selection */}
                     <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          PC쇼핑몰<br/>테마선택
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          PC쇼핑몰 테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
                            <Select 
@@ -771,10 +902,15 @@ export default function BrandManagementPage() {
                                     <SelectItem value="브랜드테마">브랜드테마</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
+                            <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
+                                onClick={() => router.push('/admin/products/main-display/theme/register')}
+                            >테마 등록</Button>
                       </div>
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          모바일쇼핑몰<br/>테마선택
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          모바일쇼핑몰 테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2">
                            <Select 
@@ -788,7 +924,12 @@ export default function BrandManagementPage() {
                                     <SelectItem value="브랜드테마">브랜드테마</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
+                            <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
+                                onClick={() => router.push('/admin/products/main-display/theme/register')}
+                            >테마 등록</Button>
                       </div>
                   </div>
               </div>
@@ -809,7 +950,12 @@ export default function BrandManagementPage() {
                        <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">테마명</div>
                        <div className="p-3 flex items-center gap-2">
                            <span>브랜드테마</span>
-                           <Button variant="outline" size="sm" className="h-5 text-[10px] px-2 border-gray-300 bg-white">수정</Button>
+                           <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-5 text-[10px] px-2 border-gray-300 bg-white"
+                                onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
+                            >수정</Button>
                        </div>
                    </div>
                    <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
@@ -858,7 +1004,12 @@ export default function BrandManagementPage() {
                        <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">테마명</div>
                        <div className="p-3 flex items-center gap-2">
                            <span>브랜드테마</span>
-                           <Button variant="outline" size="sm" className="h-5 text-[10px] px-2 border-gray-300 bg-white">수정</Button>
+                           <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-5 text-[10px] px-2 border-gray-300 bg-white"
+                                onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
+                            >수정</Button>
                        </div>
                    </div>
                    <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
@@ -905,7 +1056,7 @@ export default function BrandManagementPage() {
                <div className="border-t border-gray-200 text-xs">
                   {/* Row: Scope */}
                   <div className="flex border-b border-gray-200">
-                      <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           적용범위
                       </div>
                       <div className="flex-1 p-3">
@@ -922,8 +1073,8 @@ export default function BrandManagementPage() {
                   </div>
                    {/* Row: PC Display */}
                   <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          PC쇼핑몰<br/>노출상태
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          PC쇼핑몰 노출상태
                       </div>
                       <div className="flex-1 p-3">
                            <RadioGroup 
@@ -944,8 +1095,8 @@ export default function BrandManagementPage() {
                   </div>
                    {/* Row: Mobile Display */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          모바일쇼핑몰<br/>노출상태
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          모바일쇼핑몰 노출상태
                       </div>
                       <div className="flex-1 p-3">
                            <RadioGroup 
@@ -966,7 +1117,7 @@ export default function BrandManagementPage() {
                   </div>
                    {/* Row: Display Type */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           상품진열 타입
                       </div>
                       <div className="flex-1 p-3">
@@ -984,8 +1135,19 @@ export default function BrandManagementPage() {
                                                  <SelectValue placeholder="최근 등록 상품 위로" />
                                              </SelectTrigger>
                                              <SelectContent>
-                                                 <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
-                                             </SelectContent>
+                                                <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
+                                                <SelectItem value="recent_asc">최근 등록 상품 아래로</SelectItem>
+                                                <SelectItem value="mod_desc">최근 수정 상품 위로</SelectItem>
+                                                <SelectItem value="mod_asc">최근 수정 상품 아래로</SelectItem>
+                                                <SelectItem value="name_asc">상품명 가나다순</SelectItem>
+                                                <SelectItem value="name_desc">상품명 가나다역순</SelectItem>
+                                                <SelectItem value="price_desc">판매가 높은 상품 위로</SelectItem>
+                                                <SelectItem value="price_asc">판매가 높은 상품 아래로</SelectItem>
+                                                <SelectItem value="sales_desc">판매량 높은 상품 위로</SelectItem>
+                                                <SelectItem value="sales_asc">판매량 높은 상품 아래로</SelectItem>
+                                                <SelectItem value="view_desc">조회수 높은 상품 위로</SelectItem>
+                                                <SelectItem value="view_asc">조회수 높은 상품 아래로</SelectItem>
+                                            </SelectContent>
                                          </Select>
                                      </div>
                                      <div className="flex items-center gap-2">
@@ -998,8 +1160,8 @@ export default function BrandManagementPage() {
                   </div>
                    {/* Row: Theme Selection */}
                    <div className="flex border-b border-gray-200">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          PC쇼핑몰<br/>테마선택
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          PC쇼핑몰 테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
                            <Select 
@@ -1013,10 +1175,15 @@ export default function BrandManagementPage() {
                                     <SelectItem value="추천상품테마">추천상품테마</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
+                            <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
+                                onClick={() => router.push('/admin/products/main-display/theme/register')}
+                            >테마 등록</Button>
                       </div>
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          모바일쇼핑몰<br/>테마선택
+                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                          모바일쇼핑몰 테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2">
                            <Select 
@@ -1030,7 +1197,12 @@ export default function BrandManagementPage() {
                                     <SelectItem value="추천상품테마">추천상품테마</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <Button variant="secondary" size="sm" className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3">테마 등록</Button>
+                            <Button 
+                                variant="secondary" 
+                                size="sm" 
+                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
+                                onClick={() => router.push('/admin/products/main-display/theme/register')}
+                            >테마 등록</Button>
                       </div>
                   </div>
                </div>
@@ -1051,7 +1223,12 @@ export default function BrandManagementPage() {
                        <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">테마명</div>
                        <div className="p-3 flex items-center gap-2">
                            <span>추천상품테마</span>
-                           <Button variant="outline" size="sm" className="h-5 text-[10px] px-2 border-gray-300 bg-white">수정</Button>
+                           <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-5 text-[10px] px-2 border-gray-300 bg-white"
+                                onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
+                            >수정</Button>
                        </div>
                    </div>
                    <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
@@ -1084,7 +1261,12 @@ export default function BrandManagementPage() {
                        <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">테마명</div>
                        <div className="p-3 flex items-center gap-2">
                            <span>추천상품테마</span>
-                           <Button variant="outline" size="sm" className="h-5 text-[10px] px-2 border-gray-300 bg-white">수정</Button>
+                           <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-5 text-[10px] px-2 border-gray-300 bg-white"
+                                onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
+                            >수정</Button>
                        </div>
                    </div>
                    <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
@@ -1605,6 +1787,16 @@ export default function BrandManagementPage() {
                     </Button>
                 </div>
             </div>
+      <MemberGradeSelectPopup 
+        isOpen={isMemberGradePopupOpen} 
+        onClose={() => setIsMemberGradePopupOpen(false)} 
+        onConfirm={handleMemberGradeConfirm} 
+      />
+      <RecommendProductSelectPopup
+        isOpen={isProductSelectPopupOpen}
+        onClose={() => setIsProductSelectPopupOpen(false)}
+        onConfirm={handleProductSelectConfirm}
+      />
     </div>
   );
 }

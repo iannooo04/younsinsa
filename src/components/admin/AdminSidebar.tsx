@@ -74,7 +74,6 @@ const menuItems: MenuItem[] = [
                 title: "상품 정책",
                 items: [
                     { name: "상품 기본 설정", href: "/admin/settings/product-basic" },
-                    { name: "상품 이미지 사이즈 설정", href: "/admin/settings/product-image-size" },
                     { name: "상품 상세 이용안내 관리", href: "/admin/settings/product-usage-guide" },
                     { name: "최근 본 상품 설정", href: "/admin/settings/recent-products" },
                 ]

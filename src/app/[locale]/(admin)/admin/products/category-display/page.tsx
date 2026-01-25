@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -19,6 +20,7 @@ import {
 } from "@/actions/category-display-actions";
 
 export default function CategoryProductDisplayPage() {
+    const router = useRouter();
     // Categories Hierarchy
     interface Category {
         id: string;
@@ -193,16 +195,15 @@ export default function CategoryProductDisplayPage() {
             </div>
 
             {/* Selected Category Info Section */}
-            {currentCategoryId && (
-                <div>
-                    <div className="flex items-center gap-1 mb-2 mt-4">
-                        <h2 className="text-sm font-bold text-gray-800">선택된 카테고리 정보 ({currentCategoryId})</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
-                    </div>
-                    
-                    <div className="border-t border-gray-300 bg-white">
+            <div>
+                <div className="flex items-center gap-1 mb-2 mt-4">
+                    <h2 className="text-sm font-bold text-gray-800">선택된 카테고리 정보 ({currentCategoryId || '-'})</h2>
+                    <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
+                </div>
+                
+                <div className="border-t border-gray-300 bg-white">
                         <div className="flex text-xs text-center border-b border-gray-200">
-                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 flex items-center justify-center gap-1 border-r border-gray-200">
+                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 flex items-center justify-center gap-1 border-r border-gray-200 whitespace-nowrap">
                                 진열타입 <span className="text-gray-400 border border-gray-400 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-normal cursor-help">?</span>
                             </div>
                             <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center">
@@ -219,42 +220,44 @@ export default function CategoryProductDisplayPage() {
                                 </Select>
                             </div>
                             
-                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 flex items-center justify-center gap-1 border-r border-gray-200">
+                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 flex items-center justify-center gap-1 border-r border-gray-200 whitespace-nowrap">
                                 진열방법 <span className="text-gray-400 border border-gray-400 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-normal cursor-help">?</span>
                             </div>
                             <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center text-gray-500">
                                 설정불가(자동)
                             </div>
                             
-                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200">PC쇼핑몰 테마</div>
+                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200 whitespace-nowrap">PC쇼핑몰 테마</div>
                             <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center">
                                 {displaySettings?.pcTheme || '-'}
                             </div>
                             
-                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200">모바일쇼핑몰 테마</div>
+                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200 whitespace-nowrap">모바일쇼핑몰 테마</div>
                             <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center">
                                 {displaySettings?.mobileTheme || '-'}
                             </div>
                             
-                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200">상품개수</div>
+                            <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200 whitespace-nowrap">상품개수</div>
                             <div className="flex-1 bg-white p-3 flex items-center justify-center font-bold text-blue-600">
                                 {productCount}개
                             </div>
                         </div>
-                    </div>
                 </div>
-            )}
+            </div>
+
+            <div className="flex justify-end mt-4 mb-4">
+                <Button className="bg-[#555] hover:bg-[#444] text-white h-8 text-xs rounded-sm" onClick={() => router.push('/admin/categories')}>진열방법 수정</Button>
+            </div>
 
             {/* Display Product Settings Section */}
-            {currentCategoryId && (
-                <div>
-                    <div className="flex items-center gap-1 mb-2 mt-2">
+            <div>
+                <div className="flex items-center gap-1 mb-2 mt-2">
                         <h2 className="text-sm font-bold text-gray-800">진열 상품 설정</h2>
                         <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
                     </div>
                     
                     <div className="border-t-2 border-gray-400 border-b border-gray-300">
-                        <div className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px] bg-[#f1f1f1] text-xs text-center font-bold text-gray-700 h-10 items-center border-b border-gray-300">
+                        <div className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px_140px_100px_100px] bg-[#f1f1f1] text-xs text-center font-bold text-gray-700 h-10 items-center border-b border-gray-300">
                             <div className="flex justify-center"><Checkbox className="w-4 h-4 rounded-[2px]" /></div>
                             <div>진열순서</div>
                             <div>이미지</div>
@@ -262,7 +265,10 @@ export default function CategoryProductDisplayPage() {
                             <div>판매가</div>
                             <div>공급사</div>
                             <div>재고</div>
-                            <div>품절</div>
+                            <div>품절상태</div>
+                            <div>등록일/수정일</div>
+                            <div>PC쇼핑몰<br/>노출상태</div>
+                            <div>모바일쇼핑몰<br/>노출상태</div>
                         </div>
                         
                         {loading ? (
@@ -276,7 +282,7 @@ export default function CategoryProductDisplayPage() {
                         ) : (
                             <div>
                                 {products.map((p, idx) => (
-                                    <div key={p.id} className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px] text-xs text-center h-16 items-center border-b border-gray-200 hover:bg-gray-50 bg-white">
+                                    <div key={p.id} className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px_140px_100px_100px] text-xs text-center h-16 items-center border-b border-gray-200 hover:bg-gray-50 bg-white">
                                         <div className="flex justify-center"><Checkbox className="w-4 h-4 rounded-[2px]" /></div>
                                         <div className="text-gray-500">{idx + 1}</div>
                                         <div className="flex justify-center">
@@ -286,14 +292,20 @@ export default function CategoryProductDisplayPage() {
                                         <div className="text-right px-4 font-mono">{p.price?.toLocaleString()}</div>
                                         <div className="text-gray-500">{p.supplier?.name || "본사"}</div>
                                         <div>{p.stockQuantity}</div>
-                                        <div>{p.stockQuantity <= 0 ? "품절" : "-"}</div>
+                                        <div>{p.stockQuantity <= 0 ? "품절" : "정상"}</div>
+                                        <div className="text-gray-500 text-[11px]">
+                                            2024-01-01<br/>
+                                            <span className="text-gray-400">2024-01-01</span>
+                                        </div>
+                                        <div className="flex justify-center"><div className="w-4 h-4 rounded-full border border-gray-300" /></div>
+                                        <div className="flex justify-center"><div className="w-4 h-4 rounded-full border border-gray-300" /></div>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
-            )}
+
 
             {/* Floating Actions */}
             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">

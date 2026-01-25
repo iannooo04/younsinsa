@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -36,7 +37,20 @@ export default function OperationSecuritySettingsPage() {
     const [adminUnblock, setAdminUnblock] = useState("unused");
 
     // Temporary Country List for selection (Simplified)
-    const [allCountries] = useState(["가나 (Ghana)", "가봉 (Gabon)", "가이아나(Guyana)", "감비아 (Gambia)", "건지 섬(Guernsey)", "과들루프(Guadeloupe)", "과테말라(Guatemala)", "그레나다(Grenada)", "대한민국 (Korea)", "미국 (USA)"]); 
+    const [allCountries] = useState([
+        "가나 (Ghana)", "가봉(Gabon)", "가이아나(Guyana)", "감비아(Gambia)", "건지 섬(Guernsey)", "과들루프(Guadeloupe)", "과테말라(Guatemala)", "그레나다(Grenada)", "그리스(Greece)", "그린랜드(Greenland)", "기니(Guinea)", "기니비사우(Guinea-Bissau)", "나미비아(Namibia)", "나우루(Nauru)", "나이지리아(Nigeria)", "남극(Antarctica)", "남수단(South Sudan)", "남아프리카 공화국(South Africa)", "네덜란드(Netherlands)", "네덜란드령 안틸리스(Netherlands Antilles)", "네팔(Nepal)", "노르웨이(Norway)", "노퍽 섬(Norfolk Island)", "뉴질랜드(New Zealand (Aotearoa))", "뉴칼레도니아(New Caledonia)", "니우에(Niue)", "니제르(Niger)", "니카라과(Nicaragua)", 
+        "대만(Taiwan)", "대한민국(Korea (South))", "덴마크(Denmark)", "도미니카 공화국(Dominican Republic)", "도미니카 연방(Dominica)", "독일(Germany)", "동티모르(East Timor)", "라오스(Laos)", "라이베리아(Liberia)", "라트비아(Latvia)", "러시아(Russia)", "레바논(Lebanon)", "레소토(Lesotho)", "레위니옹(Reunion)", "루마니아(Romania)", "룩셈부르그(Luxembourg)", "르완다(Rwanda)", "리비아(Libya)", "리투아니아(Lithuania)", "리히텐슈타인(Liechtenstein)", 
+        "마다가스카르(Madagascar)", "마르티니크(Martinique)", "마셜 제도(Marshall Islands)", "마요트(Mayotte)", "마카오(Macau)", "마케도니아 공화국(Macedonia)", "말라위(Malawi)", "말레이시아(Malaysia)", "말리(Mali)", "맨 섬(Isle of Mann)", "멕시코(Mexico)", "모나코(Monaco)", "모로코(Morocco)", "모리셔스(Mauritius)", "모리타니(Mauritania)", "모잠비크(Mozambique)", "몬세라트(Montserrat)", "몬테네그로(Montenegro)", "몰도바(Moldova)", "몰디브(Maldives)", "몰타(Malta)", "몽골(Mongolia)", "미국(United States)", "미국령 괌(Guam)", "미국령 군소 제도(United States Minor Outlying Islands)", "미국령 버진아일랜드(Virgin Islands (U.S.))", "미국령 사모아(American Samoa)", "미얀마(Burma (Myanmar))", "미크로네시아 연방(Micronesia)", 
+        "바누아투(Vanuatu)", "바레인(Bahrain)", "바베이도스(Barbados)", "바티칸 시국(Vatican City State (Holy See))", "바하마(Bahamas)", "방글라데시(Bangladesh)", "버뮤다(Bermuda)", "베네수엘라(Venezuela)", "베넹(Benin)", "베트남(Viet Nam)", "벨기에(Belgium)", "벨라루스(Belarus)", "벨리세(Belize)", "보스니아 헤르체코비나(Bosnia and Herzegovina)", "보츠와나(Botswana)", "볼리비아(Bolivia)", "볼벳도(Bouvet Island)", "부룬디(Burundi)", "부르키나파소(Burkina Faso)", "부탄(Bhutan)", "북마리아나 제도(Northern Mariana Islands)", "불가리아(Bulgaria)", "브라질(Brazil)", "브루나이(Brunei Darussalam)", 
+        "사모아(Samoa)", "사우디아라비아(Saudi Arabia)", "사우스조지아 사우스샌드위치 제도(S. Georgia and S. Sandwich Isls.)", "산마리노(San Marino)", "상투메 프린시페(Sao Tome and Principe)", "생피에르 미클롱(St. Pierre and Miquelon)", "서사하라(Western Sahara)", "세네갈(Senegal)", "세르비아(Republic of Serbia)", "세르비아 몬테네그로(Serbia and Montenegro)", "세이셸(Seychelles)", "세인트 루시아(Saint Lucia)", "세인트 빈센트 그레나딘(Saint Vincent and the Grenadines)", "세인트 크리스토퍼 네비스(Saint Kitts and Nevis)", "세인트헬레나(St. Helena)", "소말리아(Somalia)", "솔로몬 제도(Solomon Islands)", "수단(Sudan)", "수리남(Suriname)", "스리랑카(Sri Lanka)", "스발바르 얀마옌(Svalbard and Jan Mayen Islands)", "스와질란드(Swaziland)", "스웨덴(Sweden)", "스위스(Switzerland)", "스페인(Spain)", "슬로바키아(Slovak Republic)", "슬로베니아(Slovenia)", "시리아(Syria)", "시에라리온(Sierra Leone)", "신트마르텐(Saint Martin (Netherlands))", "싱가포르(Singapore)", 
+        "아랍에미리트(United Arab Emirates)", "아루바(Aruba)", "아르메니아(Armenia)", "아르헨티나(Argentina)", "아이슬란드(Iceland)", "아이티(Haiti)", "아일랜드(Ireland)", "아제르바이잔(Azerbaijan)", "아프카니스탄(Afghanistan)", "안도라(Andorra)", "알바니아(Albania)", "알제리(Algeria)", "앙골라(Angola)", "앙귈라(Anguilla)", "앤티가 바부다(Antigua and Barbuda)", "에리트레아(Eritrea)", "에스토니아(Estonia)", "에콰도르(Ecuador)", "에티오피아(Ethiopia)", "엘살바도르(El Salvador)", "영국(United Kingdom)", "영국령 버진아일랜드(Virgin Islands (British))", "영국령 인도양 지역(British Indian Ocean Territory)", "예멘(Yemen)", "오만(Oman)", "오스트리아(Austria)", "온두라스(Honduras)", "올란도 제도(Aland Islands)", "요르단(Jordan)", "우간다(Uganda)", "우루과이(Uruguay)", "우즈베키스탄(Uzbekistan)", "우크라이나(Ukraine)", "월리스푸투나(Wallis and Futuna Islands)", "이라크(Iraq)", "이란(Iran)", "이스라엘(Israel)", "이집트(Egypt)", "이탈리아(Italy)", "인도(India)", "인도네시아(Indonesia)", "일본(Japan)", 
+        "자메이카(Jamaica)", "잠비아(Zambia)", "저지 (Bailiwick of Jersey)", "적도 기니(Equatorial Guinea)", "조선민주주의 인민공화국(Korea (North))", "조지아(Georgia)", "중앙아프리카 공화국(Central African Republic)", "중화인민공화국(China)", "지부티(Djibouti)", "지브롤(Gibraltar)", "짐바브웨(Zimbabwe)", 
+        "차드(Chad)", "체코(Czech Republic)", "칠레(Chile)", 
+        "카메룬(Cameroon)", "카보베르데(Cape Verde)", "카자흐스탄(Kazakhstan)", "카타르(Qatar)", "캄보디아(Cambodia)", "캐나다(Canada)", "케냐(Kenya)", "케이맨 제도(Cayman Islands)", "코모로(Comoros)", "코스타리카(Costa Rica)", "코코스 제도(Cocos (Keeling) Islands)", "코트디부아르(Ivory Coast)", "콜롬비아(Colombia)", "콩고(Congo)", "콩고 민주 공화국(Democratic Republic of Congo)", "쿠바(Cuba)", "쿠웨이트(Kuwait)", "쿡 제도(Cook Islands)", "크로아티아(Croatia (Hrvatska))", "크리스마스 섬(Christmas Island)", "키르기즈스탄(Kyrgyzstan)", "키리바티(Kiribati)", "키프로스(Cyprus)", 
+        "타지키스탄(Tajikistan)", "탄자니아(Tanzania)", "태국(Thailand)", "터크스 케이커스 제도(Turks and Caicos Islands)", "터키(Turkey)", "토고(Togo)", "토켈라우(Tokelau)", "통가(Tonga)", "투르크메니스탄(Turkmenistan)", "투발루(Tuvalu)", "튀니지(Tunisia)", "트리니다드 토바고(Trinidad and Tobago)", 
+        "파나마(Panama)", "파라과이(Paraguay)", "파키스탄(Pakistan)", "파푸아뉴기니(Papua New Guinea)", "팔라우(Palau)", "팔레스타인(Palestinian Territory, Occupied)", "페로 제도(Faroe Islands)", "페루(Peru)", "포르투칼(Portugal)", "포클랜드 제도(Falkland Islands (Malvinas))", "폴란드(Poland)", "푸에르토리코(Puerto Rico)", "프랑스(France)", "프랑스령 기아나(French Guiana)", "프랑스령 남방 및 남극(French Southern Territories)", "프랑스령 폴리네시아(French Polynesia)", "피지(Fiji)", "핀란드(Finland)", "필리핀(Philippines)", "핏케언 제도(Pitcairn)", 
+        "허드 맥도널드 제도(Heard and McDonald Islands)", "헝가리(Hungary)", "호주(Australia)", "홍콩(Hong Kong)"
+    ]); 
     
     // Selection state for Country Lists
     const [selectedAllowed, setSelectedAllowed] = useState<string[]>([]);
@@ -130,11 +144,18 @@ export default function OperationSecuritySettingsPage() {
     };
 
     const handleAddIpException = () => {
-        const ip = window.prompt("허용할 IP 주소를 입력하세요 (예: 123.123.123.123)");
-        if (!ip) return;
+        setAdminIpExceptions([...adminIpExceptions, { ip: "", memo: "" }]);
+    };
+    
+    const handleIpChange = (index: number, partIndex: number, value: string) => {
+        const newExceptions = [...adminIpExceptions];
+        const currentIp = newExceptions[index].ip || "...";
+        const parts = currentIp.split(".").map(p => p || "");
+        while(parts.length < 4) parts.push("");
         
-        const memo = window.prompt("메모를 입력하세요 (선택사항)") || "";
-        setAdminIpExceptions([...adminIpExceptions, { ip, memo }]);
+        parts[partIndex] = value;
+        newExceptions[index].ip = parts.join(".");
+        setAdminIpExceptions(newExceptions);
     };
 
     const handleRemoveIpException = (index: number) => {
@@ -389,20 +410,20 @@ export default function OperationSecuritySettingsPage() {
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
-                                        className="h-8 w-8 p-0"
+                                        className="h-10 w-10 p-0"
                                         onClick={moveToBlocked}
                                         disabled={selectedAllowed.length === 0}
                                     >
-                                        <Plus size={16} />
+                                        <Plus size={24} />
                                     </Button>
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
-                                        className="h-8 w-8 p-0"
+                                        className="h-10 w-10 p-0"
                                         onClick={moveToAllowed}
                                         disabled={selectedBlocked.length === 0}
                                     >
-                                        <Minus size={16} />
+                                        <Minus size={24} />
                                     </Button>
                                 </div>
                                 <div className="flex-1">
@@ -437,30 +458,57 @@ export default function OperationSecuritySettingsPage() {
                             </Button>
 
                             {/* Exception List */}
-                            {adminIpExceptions.length > 0 && (
-                                <div className="border border-gray-200 rounded-sm mb-2">
-                                    <table className="w-full text-xs text-left">
-                                        <thead className="bg-gray-50 text-gray-500 font-medium">
-                                            <tr>
-                                                <th className="p-2">IP 주소</th>
-                                                <th className="p-2">메모</th>
-                                                <th className="p-2 w-16">관리</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {adminIpExceptions.map((item, index) => (
-                                                <tr key={index} className="border-t border-gray-100">
-                                                    <td className="p-2">{item.ip}</td>
-                                                    <td className="p-2">{item.memo}</td>
-                                                    <td className="p-2">
-                                                        <button onClick={() => handleRemoveIpException(index)} className="text-red-500 hover:underline">삭제</button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
+                            <div className="space-y-2">
+                                {adminIpExceptions.map((item, index) => {
+                                    const parts = item.ip ? item.ip.split(".") : ["", "", "", ""];
+                                    // Ensure we always have 4 parts for rendering
+                                    while(parts.length < 4) parts.push("");
+
+                                    return (
+                                        <div key={index} className="flex items-center gap-1">
+                                            <Input 
+                                                className="w-14 h-8 rounded-sm text-center px-1" 
+                                                value={parts[0]} 
+                                                onChange={(e) => handleIpChange(index, 0, e.target.value)}
+                                                maxLength={3}
+                                            />
+                                            <span className="text-gray-400">.</span>
+                                            <Input 
+                                                className="w-14 h-8 rounded-sm text-center px-1" 
+                                                value={parts[1]} 
+                                                onChange={(e) => handleIpChange(index, 1, e.target.value)}
+                                                maxLength={3}
+                                            />
+                                            <span className="text-gray-400">.</span>
+                                            <Input 
+                                                className="w-14 h-8 rounded-sm text-center px-1" 
+                                                value={parts[2]} 
+                                                onChange={(e) => handleIpChange(index, 2, e.target.value)}
+                                                maxLength={3}
+                                            />
+                                            <span className="text-gray-400">.</span>
+                                            <Input 
+                                                className="w-14 h-8 rounded-sm text-center px-1" 
+                                                value={parts[3]} 
+                                                onChange={(e) => handleIpChange(index, 3, e.target.value)}
+                                                maxLength={3}
+                                            />
+                                            <div className="flex items-center gap-1 ml-2 mr-2 whitespace-nowrap">
+                                                <Checkbox id={`range-${index}`} className="rounded-sm border-gray-300" />
+                                                <Label htmlFor={`range-${index}`} className="font-normal text-xs text-gray-600">대역 지정</Label>
+                                            </div>
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm" 
+                                                className="h-8 text-xs border-gray-300 text-gray-600 bg-white hover:bg-gray-50 px-3"
+                                                onClick={() => handleRemoveIpException(index)}
+                                            >
+                                                <Minus size={12} className="mr-1" /> 삭제
+                                            </Button>
+                                        </div>
+                                    );
+                                })}
+                            </div>
 
                             <div className="text-xs text-gray-500 space-y-1">
                                 <p className="flex items-start gap-1"><span className="w-4 flex justify-center bg-gray-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 특정 IP에 대한 로그인 접속시도 제한을 해지합니다.</p>

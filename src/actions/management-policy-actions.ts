@@ -150,6 +150,10 @@ export async function updateMallUsageSettingsAction(data: {
     soldOutDisplay: string;
     memberAutoLogoutType: string;
     memberAutoLogoutTime?: number;
+    pcIntro: boolean;
+    mobileIntro: boolean;
+    under14Restriction: string;
+    mileageCouponDouble: string;
 }) {
     try {
         const policy = await prisma.managementPolicy.findFirst();
@@ -165,6 +169,10 @@ export async function updateMallUsageSettingsAction(data: {
                 soldOutDisplay: data.soldOutDisplay,
                 memberAutoLogoutType: data.memberAutoLogoutType,
                 memberAutoLogoutTime: data.memberAutoLogoutTime,
+                pcIntro: data.pcIntro,
+                mobileIntro: data.mobileIntro,
+                under14Restriction: data.under14Restriction,
+                mileageCouponDouble: data.mileageCouponDouble,
             },
             create: {
                 managementPolicyId: policy.id,
@@ -175,6 +183,10 @@ export async function updateMallUsageSettingsAction(data: {
                 soldOutDisplay: data.soldOutDisplay,
                 memberAutoLogoutType: data.memberAutoLogoutType,
                 memberAutoLogoutTime: data.memberAutoLogoutTime,
+                pcIntro: data.pcIntro,
+                mobileIntro: data.mobileIntro,
+                under14Restriction: data.under14Restriction,
+                mileageCouponDouble: data.mileageCouponDouble,
             }
         });
 

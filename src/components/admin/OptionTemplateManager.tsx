@@ -18,6 +18,7 @@ interface OptionTemplate {
 
 export default function OptionTemplateManager() {
     const [templates, setTemplates] = useState<OptionTemplate[]>([]);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(false);
     
     // Editor State

@@ -97,4 +97,16 @@ model MallUsageSettings {
   // default: 브라우저 종료 시, custom: 시간 설정
   memberAutoLogoutType String @default("default")
   memberAutoLogoutTime Int?   @default(60) // 분 단위
+
+  // --- 인트로페이지 사용 설정 ---
+  pcIntro     Boolean @default(false)
+  mobileIntro Boolean @default(false)
+
+  // --- 만14세 미만 비회원 주문 제한 ---
+  // unused: 사용안함, agree: 동의 항목 사용, auth: 본인인증 서비스 사용
+  under14Restriction String @default("unused")
+
+  // --- 마일리지 / 쿠폰 중복사용 설정 ---
+  // allow: 허용, disallow: 불가
+  mileageCouponDouble String @default("allow")
 }

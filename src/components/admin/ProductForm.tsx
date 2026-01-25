@@ -1,10 +1,23 @@
 "use client";
 
-import { useState, useActionState } from "react";
-import { HelpCircle, ChevronUp, ChevronDown, X } from "lucide-react";
+import { useState, useActionState, useRef } from "react";
+import { useRouter } from "next/navigation";
+
+import { HelpCircle, ChevronUp, ChevronDown, Calendar } from "lucide-react";
 import { createProductAction } from "@/actions/product-actions";
 
 import { Brand, Category } from "@/generated/prisma";
+import SupplierPopup from "./SupplierPopup";
+import BrandPopup from "./BrandPopup";
+import HSCodePopup from "./HSCodePopup";
+import MemberLevelPopup from "./MemberLevelPopup";
+import EssentialInfoPopup from "./EssentialInfoPopup";
+import KCExamplePopup from "./KCExamplePopup";
+import ShippingFeePopup from "./ShippingFeePopup";
+import PhotoAttachmentPopup from "./PhotoAttachmentPopup";
+import TipTapEditor from "@/components/ui/TipTapEditor";
+import GuideEditor from "./GuideEditor";
+import GuidePopup from "./GuidePopup";
 
 interface Props {
     brands: Brand[];
@@ -17,7 +30,10 @@ const initialState = {
 };
 
 export default function ProductForm({ categories }: Props) {
+    const router = useRouter();
     const [state, formAction] = useActionState(createProductAction, initialState);
+    
+    const formRef = useRef<HTMLFormElement>(null);
     
     // UI States for collapsible sections
     const [sections, setSections] = useState({
@@ -46,6 +62,321 @@ export default function ProductForm({ categories }: Props) {
     });
 
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
+    const [selectedCategoriesList, setSelectedCategoriesList] = useState<Category[]>([]);
+    
+    // Editor State
+    const [descContent, setDescContent] = useState("");
+    const [activeEditorMode, setActiveEditorMode] = useState<'editor' | 'html' | 'text'>('editor');
+    const [productNameType, setProductNameType] = useState('basic');
+    const [isPhotoPopupOpen, setIsPhotoPopupOpen] = useState(false);
+    
+    // Guide Content States
+    const [shippingGuideContent, setShippingGuideContent] = useState(`- 배송비 : 기본배송료는 2,500원 입니다. (도서,산간,오지 일부지역은 배송비가 추가될 수 있습니다) 50,000원 이상 구매시 무료배송입니다.
+- 본 상품의 평균 배송일은 0일입니다.(입금 확인 후) 설치 상품의 경우 다소 늦어질 수 있습니다.[배송예정일은 주문시점(주문순서)에 따른 유동성이 발생하므로 평균 배송일과는 차이가 발생할 수 있습니다.]
+- 본 상품의 배송 가능일은 0일 입니다. 배송 가능일이란 본 상품을 주문 하신 고객님들께 상품 배송이 가능한 기간을 의미합니다. (단, 연휴 및 공휴일은 기간 계산시 제외하며 현금 주문일 경우 입금일 기준 입니다.)`);
+    const [asGuideContent, setAsGuideContent] = useState(`- 소비자분쟁해결 기준(공정거래위원회 고시)에 따라 피해를 보상받을 수 있습니다.
+- A/S는 판매자에게 문의하시기 바랍니다.`);
+    const [refundGuideContent, setRefundGuideContent] = useState(`- 상품 청약철회 가능기간은 상품 수령일로 부터 7일 이내 입니다.`);
+    const [exchangeGuideContent, setExchangeGuideContent] = useState(`- 상품 택(tag)제거 또는 개봉으로 상품 가치 훼손 시에는 상품수령후 7일 이내라도 교환 및 반품이 불가능합니다.
+- 저단가 상품, 일부 특가 상품은 고객 변심에 의한 교환, 반품은 고객께서 배송비를 부담하셔야 합니다(제품의 하자,배송오류는 제외)
+- 일부 상품은 신모델 출시, 부품가격 변동 등 제조사 사정으로 가격이 변동될 수 있습니다.
+- 신발의 경우, 실외에서 착화하였거나 사용흔적이 있는 경우에는 교환/반품 기간내라도 교환 및 반품이 불가능 합니다.
+- 수제화 중 개별 주문제작상품(굽높이,발볼,사이즈 변경)의 경우에는 제작완료, 인수 후에는 교환/반품기간내라도 교환 및 반품이 불가능 합니다.
+- 수입,명품 제품의 경우, 제품 및 본 상품의 박스 훼손, 분실 등으로 인한 상품 가치 훼손 시 교환 및 반품이 불가능 하오니, 양해 바랍니다.
+- 일부 특가 상품의 경우, 인수 후에는 제품 하자나 오배송의 경우를 제외한 고객님의 단순변심에 의한 교환, 반품이 불가능할 수 있사오니, 각 상품의 상품상세정보를 꼭 참조하십시오.`);
+
+    const [photoTarget, setPhotoTarget] = useState<'desc' | 'shipping' | 'as' | 'refund' | 'exchange'>('desc');
+
+    const handlePhotoConfirm = (files: File[]) => {
+        setIsPhotoPopupOpen(false);
+        if (files.length === 0) return;
+
+        // Mock upload - create local object URLs
+        const imagesHtml = files.map(file => {
+            const url = URL.createObjectURL(file);
+            return `<img src="${url}" alt="${file.name}" style="max-width: 100%;" />`;
+        }).join('<br/>');
+
+        if (photoTarget === 'desc') {
+             setDescContent(prev => prev + '<br/>' + imagesHtml);
+        } else if (photoTarget === 'shipping') {
+            setShippingGuideContent(prev => prev + '\n' + imagesHtml);
+        } else if (photoTarget === 'as') {
+            setAsGuideContent(prev => prev + '\n' + imagesHtml);
+        } else if (photoTarget === 'refund') {
+            setRefundGuideContent(prev => prev + '\n' + imagesHtml);
+        } else if (photoTarget === 'exchange') {
+            setExchangeGuideContent(prev => prev + '\n' + imagesHtml);
+        }
+    };
+    
+    const openPhotoPopup = (target: 'desc' | 'shipping' | 'as' | 'refund' | 'exchange') => {
+        setPhotoTarget(target);
+        setIsPhotoPopupOpen(true);
+    };
+    
+    // Supplier Popup State
+    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [selectedSupplierName, setSelectedSupplierName] = useState<string>("");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [supplierType, setSupplierType] = useState("본사");
+
+    // Brand Popup State
+    const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
+    const [selectedBrandName, setSelectedBrandName] = useState<string>("");
+
+    // HSCode Popup State
+    interface HSCodeRow {
+        id: number;
+        country: string;
+        code: string;
+    }
+    const [isHSCodePopupOpen, setIsHSCodePopupOpen] = useState(false);
+    const [selectedHSCode, setSelectedHSCode] = useState<string>(""); // Default Korea code
+    const [additionalHSCodes, setAdditionalHSCodes] = useState<HSCodeRow[]>([]);
+    const [activeHSCodeRowId, setActiveHSCodeRowId] = useState<number | null>(null); // null = default row
+
+    // Essential Info Popup State
+    const [isEssentialInfoPopupOpen, setIsEssentialInfoPopupOpen] = useState(false);
+    const [isKCExamplePopupOpen, setIsKCExamplePopupOpen] = useState(false);
+
+    const handleAddHSCode = () => {
+        setAdditionalHSCodes(prev => [...prev, { id: Date.now(), country: '미국', code: '' }]);
+    };
+
+    const handleRemoveHSCode = (id: number) => {
+        setAdditionalHSCodes(prev => prev.filter(row => row.id !== id));
+    };
+
+    const handleHSCodeRowChange = (id: number, field: keyof HSCodeRow, value: string) => {
+        setAdditionalHSCodes(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
+    };
+
+
+
+    // Date Picker States & Refs for Additional Info
+    const manufactureDateRef = useRef<HTMLInputElement>(null);
+    const releaseDateRef = useRef<HTMLInputElement>(null);
+    const validStartDateRef = useRef<HTMLInputElement>(null);
+    const validEndDateRef = useRef<HTMLInputElement>(null);
+
+    const [manufactureDate, setManufactureDate] = useState("");
+    const [releaseDate, setReleaseDate] = useState("");
+    const [validStartDate, setValidStartDate] = useState("");
+    const [validEndDate, setValidEndDate] = useState("");
+
+
+
+    const handleAdditionalDateIconClick = (ref: React.RefObject<HTMLInputElement | null>) => {
+        try {
+            ref.current?.showPicker();
+        } catch {
+            ref.current?.focus();
+        }
+    };
+
+    // Member Level Popup State
+    interface MemberLevel {
+        id: number;
+        no: number;
+        name: string;
+        date: string;
+    }
+    const [isMemberLevelPopupOpen, setIsMemberLevelPopupOpen] = useState(false);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [selectedMemberLevels, setSelectedMemberLevels] = useState<MemberLevel[]>([]);
+    const [memberLevelOption, setMemberLevelOption] = useState("전체(회원+비회원)");
+    
+    // Access Authority Member Level State
+    const [accessAuthMemberLevelOption, setAccessAuthMemberLevelOption] = useState("전체(회원+비회원)");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [selectedAccessAuthMemberLevels, setSelectedAccessAuthMemberLevels] = useState<MemberLevel[]>([]);
+    
+    // Valid target: 'purchase' (default/existing) or 'access' (new)
+    const [memberLevelPopupTarget, setMemberLevelPopupTarget] = useState<'purchase' | 'access' | null>(null);
+
+    // Date Picker State (Original Exposure Date)
+    const datePickerRef = useRef<HTMLInputElement>(null);
+    const [exposureDate, setExposureDate] = useState(new Date().toISOString().slice(0, 16).replace('T', ' '));
+    
+    // Sales Period States & Refs
+    const salesStartDateRef = useRef<HTMLInputElement>(null);
+    const salesEndDateRef = useRef<HTMLInputElement>(null);
+    const [salesPeriodOption, setSalesPeriodOption] = useState("제한없음");
+    const [salesStartDate, setSalesStartDate] = useState(new Date().toISOString().slice(0, 16).replace('T', ' ').split(' ')[0] + " 00:00");
+    const [salesEndDate, setSalesEndDate] = useState(() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 6);
+        return d.toISOString().slice(0, 16).replace('T', ' ').split(' ')[0] + " 23:59";
+    });
+
+    const handleSalesDateShortcut = (days: number) => {
+        const start = new Date();
+        const end = new Date();
+        end.setDate(start.getDate() + (days === 0 ? 0 : days - 1));
+        
+        setSalesStartDate(start.toISOString().slice(0, 10) + " 00:00");
+        setSalesEndDate(end.toISOString().slice(0, 10) + " 23:59");
+    };
+
+    const handleSalesMonthShortcut = (months: number) => {
+        const start = new Date();
+        const end = new Date();
+        end.setMonth(start.getMonth() + months);
+        
+        setSalesStartDate(start.toISOString().slice(0, 10) + " 00:00");
+        setSalesEndDate(end.toISOString().slice(0, 10) + " 23:59");
+    };
+
+    // Origin Image States
+    interface OriginImage {
+        id: number;
+        name: string;
+    }
+    const [originImages, setOriginImages] = useState<OriginImage[]>([{ id: 0, name: "" }]);
+
+    const handleAddOriginImageRow = () => {
+        setOriginImages(prev => [...prev, { id: Date.now(), name: "" }]);
+    };
+
+    const handleRemoveOriginImageRow = (id: number) => {
+        setOriginImages(prev => prev.filter(item => item.id !== id));
+    };
+
+    const handleOriginImageFileChange = (id: number, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            setOriginImages(prev => prev.map(item => item.id === id ? { ...item, name: file.name } : item));
+        }
+    };
+
+    // Shipping Fee Popup State
+    const [isShippingFeePopupOpen, setIsShippingFeePopupOpen] = useState(false);
+    const [selectedShippingFee, setSelectedShippingFee] = useState<string>("기본 - 금액별배송비 (택배)");
+
+    // Guide Popup States
+    const [guidePopupState, setGuidePopupState] = useState<{
+        isOpen: boolean;
+        type: 'shipping' | 'as' | 'refund' | 'exchange';
+        title: string;
+    }>({
+        isOpen: false,
+        type: 'shipping',
+        title: '배송안내 선택'
+    });
+
+    const [selectedGuides, setSelectedGuides] = useState({
+        shipping: "배송안내 - 기본",
+        as: "AS안내 - 기본",
+        refund: "환불안내 - 기본",
+        exchange: "교환안내 - 기본"
+    });
+
+    const openGuidePopup = (type: 'shipping' | 'as' | 'refund' | 'exchange', title: string) => {
+        setGuidePopupState({ isOpen: true, type, title });
+    };
+
+    const handleDateIconClick = () => {
+        try {
+            datePickerRef.current?.showPicker();
+        } catch {
+            // Fallback for browsers not supporting showPicker, though unlikely on modern desktop
+            datePickerRef.current?.focus(); 
+        }
+    };
+
+    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.value) {
+            // value comes as YYYY-MM-DDTHH:mm, replace T with space to match format
+            setExposureDate(e.target.value.replace('T', ' '));
+        }
+    };
+
+    // Essential Info Items
+    interface EssentialItem {
+        id: number;
+        type: 2 | 4; // 2 slots or 4 slots
+        label1: string;
+        value1: string;
+        label2: string;
+        value2: string;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [essentialItems, setEssentialItems] = useState<EssentialItem[]>([]);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleAddEssentialItem = (type: 2 | 4) => {
+        setEssentialItems(prev => [...prev, { 
+            id: Date.now(), 
+            type, 
+            label1: '', 
+            value1: '', 
+            label2: '', 
+            value2: '' 
+        }]);
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleRemoveEssentialItem = (id: number) => {
+        setEssentialItems(prev => prev.filter(item => item.id !== id));
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleEssentialItemChange = (id: number, field: keyof EssentialItem, value: string) => {
+        setEssentialItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
+    };
+    
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleCopyEssentialItem = (label: string, value: string) => {
+        setEssentialItems(prev => [...prev, {
+            id: Date.now(),
+            type: 2, // Assuming copy creates a 2-slot looking item (filling first pair)
+            label1: label,
+            value1: value,
+            label2: '',
+            value2: ''
+        }]);
+    };
+
+    // Additional Items State
+    interface AdditionalItem {
+        id: number;
+        name: string;
+        value: string;
+    }
+    const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
+
+    const handleAddAdditionalItem = () => {
+        setAdditionalItems(prev => [...prev, { id: Date.now(), name: '', value: '' }]);
+    };
+
+    const handleRemoveAdditionalItem = (id: number) => {
+        setAdditionalItems(prev => prev.filter(item => item.id !== id));
+    };
+
+     const handleAdditionalItemChange = (id: number, field: 'name' | 'value', text: string) => {
+        setAdditionalItems(prev => prev.map(item => item.id === id ? { ...item, [field]: text } : item));
+    };
+    // Color Picker State
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleColorClick = (color: string) => {
+        setSelectedColor(color);
+    };
+    const handleAddCategory = () => {
+        if (!selectedCategoryId) return alert("카테고리를 선택해주세요.");
+        const categoryToAdd = categories.find(c => c.id === selectedCategoryId);
+        if (categoryToAdd && !selectedCategoriesList.find(c => c.id === categoryToAdd.id)) {
+            setSelectedCategoriesList([...selectedCategoriesList, categoryToAdd]);
+        }
+    };
+
+    const handleRemoveCategory = (id: string) => {
+        setSelectedCategoriesList(selectedCategoriesList.filter(c => c.id !== id));
+    };
 
     const toggleSection = (key: keyof typeof sections) => {
         setSections(prev => ({ ...prev, [key]: !prev[key] }));
@@ -57,14 +388,19 @@ export default function ProductForm({ categories }: Props) {
             <div className="flex justify-between items-center mb-6 bg-white p-4 border-b">
                 <h2 className="text-xl font-bold text-gray-800">상품 등록</h2>
                 <div className="flex gap-2">
-                    <button className="px-4 py-2 border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 flex items-center gap-1">
+
+                    <button 
+                        type="button"
+                        onClick={() => router.push('/admin/products')}
+                        className="px-4 py-2 border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50 flex items-center gap-1"
+                    >
                         <span className="text-gray-500">≡</span> 목록
                     </button>
                     <button className="px-4 py-2 border border-gray-300 bg-white text-sm font-medium hover:bg-gray-50">
                         기존상품 복사
                     </button>
                     <button 
-                        onClick={() => document.querySelector('form')?.requestSubmit()}
+                        onClick={() => formRef.current?.requestSubmit()}
                         className="px-6 py-2 bg-[#ff4d4f] text-white text-sm font-bold hover:bg-[#ff3032]"
                     >
                         저장
@@ -72,7 +408,7 @@ export default function ProductForm({ categories }: Props) {
                 </div>
             </div>
 
-            <form action={formAction} className="space-y-8 px-4">
+            <form ref={formRef} action={formAction} className="space-y-8 px-4">
                 <input type="hidden" name="categoryId" value={selectedCategoryId} />
                 
                 {state.message && (
@@ -87,20 +423,44 @@ export default function ProductForm({ categories }: Props) {
                     extraLink={{ text: "카테고리 등록하기 >", href: "/admin/categories" }}
                 >
                     <div className="p-4 bg-white">
-                        <div className="grid grid-cols-3 gap-2 h-48 mb-4 border border-gray-300 p-2">
-                             {/* Simplified Category Selection for Demo */}
-                             <div className="col-span-3 overflow-y-auto">
-                                <ul className="text-sm space-y-1">
+                        <div className="flex gap-2 h-48 mb-4">
+                             {/* Category Depth 1 */}
+                             <div className="flex-1 border border-gray-300 overflow-y-auto">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                                <ul className="text-sm">
                                     {categories.map(cat => (
                                         <li 
                                             key={cat.id} 
                                             onClick={() => setSelectedCategoryId(cat.id)}
-                                            className={`cursor-pointer p-2 hover:bg-blue-50 ${selectedCategoryId === cat.id ? 'bg-blue-100 text-blue-600 font-bold' : ''}`}
+                                            className={`cursor-pointer px-3 py-1.5 hover:bg-blue-50 ${selectedCategoryId === cat.id ? 'bg-[#516d99] text-white' : 'text-gray-600'}`}
                                         >
-                                            {cat.name} <span className="text-gray-400 text-xs">({cat.code})</span>
+                                            {cat.name}
                                         </li>
                                     ))}
                                 </ul>
+                             </div>
+                             {/* Category Depth 2 (Mock) */}
+                             <div className="flex-1 border border-gray-300 bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             </div>
+                             {/* Category Depth 3 (Mock) */}
+                             <div className="flex-1 border border-gray-300 bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             </div>
+                             {/* Category Depth 4 (Mock) */}
+                             <div className="flex-1 border border-gray-300 bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             </div>
+                             
+                             {/* Select Button */}
+                             <div className="flex items-center">
+                                 <button 
+                                    type="button"
+                                    onClick={handleAddCategory}
+                                    className="w-24 h-12 bg-[#666] text-white font-bold rounded-sm hover:bg-[#555]"
+                                 >
+                                    선택
+                                 </button>
                              </div>
                         </div>
                     </div>
@@ -123,9 +483,52 @@ export default function ProductForm({ categories }: Props) {
                         </div>
                     </div>
                     {/* Empty state or list would go here */}
-                     <div className="h-24 flex items-center justify-center text-gray-400 text-sm bg-white">
-                        선택된 카테고리가 없습니다.
-                    </div>
+                    {selectedCategoriesList.length > 0 ? (
+                        <div className="border border-gray-300 border-b-0 mt-4">
+                            <table className="w-full text-center text-sm border-collapse">
+                                <thead className="bg-[#bfbfbf] text-white font-normal">
+                                    <tr>
+                                        <th className="py-2 w-24 border-r border-gray-400/50 font-normal">노출상점</th>
+                                        <th className="py-2 w-24 border-r border-gray-400/50 font-normal">대표설정</th>
+                                        <th className="py-2 border-r border-gray-400/50 font-normal">연결된 카테고리</th>
+                                        <th className="py-2 w-32 border-r border-gray-400/50 font-normal">카테고리 코드</th>
+                                        <th className="py-2 w-24 font-normal">연결해제</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="text-gray-700">
+                                    {selectedCategoriesList.map((cat, idx) => (
+                                        <tr key={cat.id} className="border-b border-gray-300 hover:bg-gray-50">
+                                            <td className="py-2 border-r border-gray-300">
+                                                <div className="bg-white border border-gray-300 w-4 h-4 mx-auto"></div>
+                                            </td>
+                                            <td className="py-2 border-r border-gray-300">
+                                                <input type="radio" name="representative_category" className="radio radio-xs checked:bg-blue-600" defaultChecked={idx === 0} />
+                                            </td>
+                                            <td className="py-2 border-r border-gray-300 text-left px-4 font-bold">
+                                                {cat.name}
+                                            </td>
+                                            <td className="py-2 border-r border-gray-300 text-gray-500">
+                                                {cat.code}
+                                            </td>
+                                            <td className="py-2">
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => handleRemoveCategory(cat.id)}
+                                                    className="px-2 py-1 border border-gray-300 text-xs rounded-sm hover:bg-gray-100 bg-white"
+                                                >
+                                                    삭제
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="h-24 flex items-center justify-center text-gray-400 text-sm bg-white border border-gray-200 mt-4">
+                            선택된 카테고리가 없습니다.
+                        </div>
+                    )}
                 </Section>
 
                 {/* 3. 노출 및 판매상태 설정 */}
@@ -175,47 +578,114 @@ export default function ProductForm({ categories }: Props) {
 
                 {/* 4. 기본 정보 */}
                 <Section title="기본 정보" isOpen={sections.basic} onToggle={() => toggleSection('basic')}>
-                     <div className="grid grid-cols-1 md:grid-cols-2">
-                        <Row label="공급사 구분">
-                            <div className="flex items-center gap-4">
-                                <RadioGroup name="supplier" options={['본사', '공급사']} defaultValue="본사" />
-                                <button type="button" className="px-2 py-1 bg-gray-400 text-white text-xs rounded-sm">공급사 선택</button>
-                            </div>
-                        </Row>
-                        <Row label="수수료" help>
-                            <div className="flex items-center gap-2">
-                                <input type="text" className="input input-sm h-8 w-24 border-gray-300 rounded-sm text-right" defaultValue="0.00" />
-                                <span>%</span>
-                            </div>
-                        </Row>
-                    </div>
+
                     
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         <Row label="상품코드">
                             <span className="text-gray-500 text-sm">상품 등록시 자동 생성됩니다.</span>
                         </Row>
                          <Row label="자체 상품코드" help>
-                             <div className="flex items-center w-full max-w-xs">
-                                <input type="text" className="input input-sm h-8 w-full border-gray-300 rounded-sm" />
-                                <span className="text-xs text-gray-400 ml-2">0 / 30</span>
+                             <div className="flex items-center w-full">
+                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
+                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 30</span>
                              </div>
                         </Row>
                     </div>
 
-                    <Row label="상품명" required help>
+                    <Row label="기준몰 상품명" required help>
                         <div className="space-y-3 w-full">
-                            <RadioGroup name="name_type" options={['기본 상품명', '확장 상품명']} defaultValue="기본 상품명" />
-                            <div className="bg-gray-50 p-3 border border-gray-200 rounded-sm">
-                                <div className="grid grid-cols-[100px_1fr] items-center gap-4 mb-2">
-                                    <span className="text-sm font-bold text-gray-700">기준몰 상품명</span>
-                                    <div className="bg-gray-100 p-2 text-sm text-gray-400">입력된 상품명이 없습니다.</div>
-                                </div>
+                            <div className="flex items-center gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="name_type" 
+                                        className="radio radio-xs border-gray-300" 
+                                        checked={productNameType === 'basic'}
+                                        onChange={() => setProductNameType('basic')}
+                                    />
+                                    <span className="text-sm text-gray-700">기본 상품명</span>
+                                </label>
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="name_type" 
+                                        className="radio radio-xs border-gray-300 checked:bg-[#ff4d4f]" 
+                                        checked={productNameType === 'expanded'}
+                                        onChange={() => setProductNameType('expanded')}
+                                    />
+                                    <span className="text-sm text-gray-700 font-bold">확장 상품명</span>
+                                </label>
+                            </div>
+
+                            <div className="bg-gray-50 p-3 border border-gray-200 rounded-sm space-y-3">
+                                {/* Basic Name (Always Visible) */}
                                 <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                                     <span className="text-sm font-bold text-gray-700">기본</span>
                                      <div className="flex items-center gap-2 w-full">
                                         <input type="text" name="name" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" required />
                                         <span className="text-xs text-gray-400">0 / 250</span>
                                      </div>
+                                </div>
+
+                                {/* Expanded Fields */}
+                                {productNameType === 'expanded' && (
+                                    <>
+                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                                            <span className="text-sm font-bold text-gray-700">메인</span>
+                                             <div className="flex items-center gap-2 w-full">
+                                                <input type="text" name="name_main" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
+                                                <span className="text-xs text-gray-400">0 / 250</span>
+                                             </div>
+                                        </div>
+                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                                            <span className="text-sm font-bold text-gray-700">리스트</span>
+                                             <div className="flex items-center gap-2 w-full">
+                                                <input type="text" name="name_list" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
+                                                <span className="text-xs text-gray-400">0 / 250</span>
+                                             </div>
+                                        </div>
+                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                                            <span className="text-sm font-bold text-gray-700">상세</span>
+                                             <div className="flex items-center gap-2 w-full">
+                                                <input type="text" name="name_detail" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
+                                                <span className="text-xs text-gray-400">0 / 250</span>
+                                             </div>
+                                        </div>
+                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
+                                            <span className="text-sm font-bold text-gray-700">제휴</span>
+                                             <div className="flex items-center gap-2 w-full">
+                                                <input type="text" name="name_affiliate" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
+                                                <span className="text-xs text-gray-400">0 / 250</span>
+                                             </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Overseas Store Product Name */}
+                            <div className="border border-gray-200 rounded-sm">
+                                <div className="bg-[#f9f9f9] px-4 py-2 border-b border-gray-200 text-sm text-gray-700">
+                                    해외 상점 상품명(기본)
+                                </div>
+                                <div className="p-4 bg-white flex gap-4 items-start">
+                                    <div className="w-8 pt-1 flex justify-center">
+                                        <div className="w-6 h-4 bg-red-600 relative border border-gray-200 shadow-sm">
+                                            <span className="absolute top-0 left-0.5 text-[8px] leading-3 text-yellow-400">★</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex items-center gap-2 w-full">
+                                            <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm bg-gray-100" disabled />
+                                            <div className="bg-gray-50 border border-gray-200 px-2 h-8 flex items-center text-xs text-gray-500 rounded-sm w-16 justify-center">0 / 250</div>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <label className="flex items-center gap-1.5 cursor-pointer">
+                                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300 checked:bg-[#ff4d4f] rounded-[2px]" defaultChecked />
+                                                <span className="text-sm text-gray-600 tracking-tight">기준몰 기본 상품명 공통사용</span>
+                                            </label>
+                                            <button type="button" className="px-2 py-1 bg-[#666] text-white text-xs rounded-sm hover:bg-[#555]">참고 번역</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div className="text-xs text-gray-500 flex items-center gap-1">
@@ -240,31 +710,41 @@ export default function ProductForm({ categories }: Props) {
                     </Row>
 
                     <Row label="상품 노출시간" help>
-                        <div className="flex items-center gap-2">
-                            <input type="text" className="input input-sm h-8 w-32 border-gray-300 rounded-sm bg-gray-100" defaultValue="수기입력 가능" disabled />
-                            <span className="text-gray-500">부터</span>
+                        <div className="flex items-center gap-1 relative">
+                            <input 
+                                type="text" 
+                                className="input input-sm h-8 w-40 border-gray-300 rounded-sm text-center" 
+                                value={exposureDate}
+                                onChange={(e) => setExposureDate(e.target.value)}
+                            />
+                            <input 
+                                type="datetime-local"
+                                ref={datePickerRef}
+                                className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0"
+                                onChange={handleDateChange}
+                            />
+                            <button 
+                                type="button" 
+                                onClick={handleDateIconClick}
+                                className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                            >
+                                <Calendar size={16} className="text-gray-500" />
+                            </button>
+                            <span className="text-gray-700 ml-1">부터</span>
                         </div>
                     </Row>
 
-                    <Row label="상품상태">
-                        <RadioGroup name="condition" options={['신상품', '중고', '반품', '리퍼', '전시', '스크래치']} defaultValue="신상품" />
-                    </Row>
 
-                     <Row label="상품 대표색상">
-                        <div className="flex gap-1">
-                            {['#8B4513', '#FF0000', '#FFA500', '#FFD700', '#FFFF00', '#ADFF2F', '#008000', '#006400', '#87CEEB', '#0000FF', '#000080', '#FFC0CB', '#FFFFFF', '#D3D3D3', '#808080', '#000000'].map(color => (
-                                <div key={color} className="w-6 h-6 border border-gray-300 cursor-pointer" style={{ backgroundColor: color }}></div>
-                            ))}
-                        </div>
-                    </Row>
                 </Section>
 
                 {/* 5. 이미지 설정 */}
                 <Section title="이미지 설정" isOpen={sections.image} onToggle={() => toggleSection('image')}>
                     <Row label="저장소 선택">
                         <div className="flex items-center gap-2">
-                            <select className="select select-bordered select-sm h-8 rounded-sm">
-                                <option>기본 경로</option>
+                            <select className="select select-bordered select-sm h-8 rounded-sm" defaultValue="default">
+                                <option disabled>=저장소 선택=</option>
+                                <option value="default">기본 경로</option>
+                                <option value="direct">URL 직접입력</option>
                             </select>
                              <div className="text-xs text-gray-500 flex items-center gap-1">
                                 <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
@@ -272,71 +752,369 @@ export default function ProductForm({ categories }: Props) {
                             </div>
                         </div>
                     </Row>
-                    {/* Simplified Image Uploader */}
-                    <div className="p-4 bg-white border-b">
-                         <div className="flex gap-4">
-                            {[1, 2, 3, 4, 5].map(i => (
-                                <div key={i} className="w-24 h-24 border border-dashed border-gray-300 flex flex-col items-center justify-center text-gray-400 bg-gray-50 cursor-pointer hover:bg-gray-100">
-                                    <span className="text-2xl">+</span>
-                                    <span className="text-xs">이미지 {i}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
                 </Section>
 
-                {/* 6. 결제 정보 */}
-                <Section title="결제 정보" isOpen={sections.payment} onToggle={() => toggleSection('payment')}>
-                    <Row label="결제수단 설정">
-                         <div className="space-y-4 py-2">
-                            <div className="flex items-center gap-4">
-                                <input type="radio" name="payment_method" className="radio radio-xs checked:bg-red-500 checkbox-accent" defaultChecked />
-                                <span className="text-sm font-bold w-20">통합설정</span>
-                                <span className="text-sm text-blue-600 cursor-pointer hover:underline">기본설정&gt;결제정책&gt;결제 수단 설정에서 설정한 기준에 따름</span>
-                            </div>
-                            <div className="flex items-center gap-4">
-                                <input type="radio" name="payment_method" className="radio radio-xs" />
-                                <span className="text-sm text-gray-600 w-20">개별설정</span>
-                                <span className="text-sm text-gray-600">이 상품의 구매 가능한 결제수단 기준을 따로 설정함</span>
-                            </div>
-                            <div className="text-xs text-gray-500 pt-2 border-t mt-2">
-                                <p>상품의 개별결제수단을 설정하는 경우 선택된 결제수단으로만 상품 구매가 가능합니다.</p>
-                                <p className="flex items-start gap-1 mt-1">
-                                    <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                    신용카드 가맹점인 경우, 결제수단을 현금으로만 제한하는 것은 여신전문금융업법 위반이 되어 처벌 받을 수 있습니다.
-                                </p>
-                            </div>
-                        </div>
-                    </Row>
-                </Section>
 
-                {/* 7. 추가 정보 (New Section) */}
-                <Section title="추가 정보" isOpen={sections.additional} onToggle={() => toggleSection('additional')}>
-                    <Row label="접근 권한">
-                         <div className="flex items-center gap-4 flex-wrap">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="access_auth" className="radio radio-xs checked:bg-red-500" defaultChecked />
-                                <span className="text-sm">전체(회원+비회원)</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="access_auth" className="radio radio-xs" />
-                                <span className="text-sm">회원전용(비회원제외)</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="access_auth" className="radio radio-xs" />
-                                <span className="text-sm">특정회원등급</span>
-                            </label>
-                            <button type="button" className="px-2 py-1 bg-gray-400 text-white text-xs rounded-sm hover:bg-gray-500">회원등급 선택</button>
-                            <label className="flex items-center gap-2 cursor-pointer ml-4">
+
+                <Section title="추가 정보" helpText="help" isOpen={sections.additional} onToggle={() => toggleSection('additional')}>
+                    <Row label="매입처 상품명">
+                         <div className="w-full">
+                            <label className="flex items-center gap-2 cursor-pointer mb-2">
                                 <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
-                                <span className="text-sm text-gray-500">접근불가 고객 상품 노출함</span>
+                                <span className="text-sm text-gray-700">체크시 기본 상품명이 매입처 상품명에 추가됩니다.</span>
                             </label>
+                            <div className="flex items-center w-full">
+                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
+                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 250</span>
+                             </div>
                          </div>
                     </Row>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                        <Row label="브랜드">
+                            <div className="flex flex-col gap-1 w-full">
+                                <div className="flex items-center gap-1 w-full">
+                                    <input type="text" className="input input-sm h-8 w-24 border-gray-300 rounded-sm bg-gray-100 flex-shrink-0" value={selectedBrandName} disabled />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => setIsBrandPopupOpen(true)}
+                                        className="px-2 py-1 bg-[#999] text-white text-xs rounded-sm hover:bg-[#888] whitespace-nowrap flex-shrink-0"
+                                    >
+                                        브랜드 선택
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => router.push('/admin/brands')}
+                                        className="px-2 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 whitespace-nowrap flex-shrink-0"
+                                    >
+                                        + 브랜드 추가
+                                    </button>
+                                </div>
+                                <div className="text-xs text-red-500 mt-1 flex items-start gap-1">
+                                    <span className="font-bold bg-red-500 text-white px-1 rounded-sm text-[10px] flex-shrink-0">!</span>
+                                    <div className="leading-tight">
+                                        대표 카테고리와 노출상점이 다른 경우<br/>
+                                        브랜드 페이지에 상품이 노출되지않습니다.
+                                    </div>
+                                </div>
+                            </div>
+                        </Row>
+                        <Row label="제조사" help>
+                             <div className="flex items-center w-full">
+                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
+                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 30</span>
+                             </div>
+                        </Row>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                         <Row label="원산지" help>
+                             <div className="flex items-center w-full">
+                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
+                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 30</span>
+                             </div>
+                        </Row>
+                        <Row label="모델번호" help>
+                             <div className="flex items-center w-full">
+                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
+                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 30</span>
+                             </div>
+                        </Row>
+                    </div>
+
+                    <Row label="HS코드">
+                        <div className="space-y-2">
+                             <div className="flex items-center gap-1">
+                                <select className="select select-bordered select-sm h-8 rounded-sm w-32 bg-[#f2f2f2]">
+                                    <option>대한민국</option>
+                                </select>
+                                <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        setActiveHSCodeRowId(null);
+                                        setIsHSCodePopupOpen(true);
+                                    }}
+                                    className="px-3 py-1 bg-[#999] text-white text-xs rounded-sm hover:bg-[#888]"
+                                >
+                                    HS코드 선택
+                                </button>
+                                <input type="text" className="input input-sm h-8 w-40 border-gray-300 rounded-sm" value={selectedHSCode} disabled />
+                                <button type="button" onClick={handleAddHSCode} className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1">
+                                    <span className="font-bold">+</span> 추가
+                                </button>
+                             </div>
+                             
+                             {/* Dynamic HS Code Rows */}
+                             {additionalHSCodes.map(row => (
+                                <div key={row.id} className="flex items-center gap-1">
+                                    <select 
+                                        className="select select-bordered select-sm h-8 rounded-sm w-32 border-red-500 text-gray-800"
+                                        value={row.country}
+                                        onChange={(e) => handleHSCodeRowChange(row.id, 'country', e.target.value)}
+                                    >
+                                        <option value="미국">미국</option>
+                                        <option value="중국">중국</option>
+                                        <option value="일본">일본</option>
+                                    </select>
+                                    <button 
+                                        type="button" 
+                                        onClick={() => {
+                                            setActiveHSCodeRowId(row.id);
+                                            setIsHSCodePopupOpen(true);
+                                        }}
+                                        className="px-3 py-1 bg-[#999] text-white text-xs rounded-sm hover:bg-[#888]"
+                                    >
+                                        HS코드 선택
+                                    </button>
+                                    <input type="text" className="input input-sm h-8 w-40 border-gray-300 rounded-sm" value={row.code} disabled />
+                                    <button 
+                                        type="button" 
+                                        onClick={() => handleRemoveHSCode(row.id)}
+                                        className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1"
+                                    >
+                                        <span className="font-bold">-</span> 삭제
+                                    </button>
+                                </div>
+                             ))}
+                             <div className="text-xs text-gray-400 flex items-center gap-1">
+                                <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
+                                추가 버튼을 이용하여 국가별 HS코드를 추가 입력할 수 있습니다.
+                             </div>
+                        </div>
+                    </Row>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                        <Row label="제조일">
+                            <div className="flex items-center gap-1 relative">
+                                <input 
+                                    type="text" 
+                                    className="input input-sm h-8 w-40 border-gray-300 rounded-sm text-center placeholder-gray-300" 
+                                    placeholder="수기입력 가능"
+                                    value={manufactureDate} 
+                                    onChange={(e) => setManufactureDate(e.target.value)}
+                                />
+                                <input 
+                                    type="date" 
+                                    ref={manufactureDateRef} 
+                                    className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
+                                    onChange={(e) => setManufactureDate(e.target.value)} 
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => handleAdditionalDateIconClick(manufactureDateRef)}
+                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                                >
+                                    <Calendar size={16} className="text-gray-500" />
+                                </button>
+                            </div>
+                        </Row>
+                        <Row label="출시일">
+                            <div className="flex items-center gap-1 relative">
+                                <input 
+                                    type="text" 
+                                    className="input input-sm h-8 w-40 border-gray-300 rounded-sm text-center placeholder-gray-300" 
+                                    placeholder="수기입력 가능" 
+                                    value={releaseDate} 
+                                    onChange={(e) => setReleaseDate(e.target.value)}
+                                />
+                                <input 
+                                    type="date" 
+                                    ref={releaseDateRef} 
+                                    className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
+                                    onChange={(e) => setReleaseDate(e.target.value)} 
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => handleAdditionalDateIconClick(releaseDateRef)}
+                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                                >
+                                    <Calendar size={16} className="text-gray-500" />
+                                </button>
+                            </div>
+                        </Row>
+                    </div>
+                    
+                    <Row label="유효일자">
+                        <div className="flex items-center gap-1 relative">
+                            <span className="text-sm text-gray-700 mr-2">시작일 / 종료일</span>
+                             <input 
+                                type="text" 
+                                className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-center placeholder-gray-300" 
+                                placeholder="수기입력 가능" 
+                                value={validStartDate}
+                                onChange={(e) => setValidStartDate(e.target.value)}
+                             />
+                             <input 
+                                type="date" 
+                                ref={validStartDateRef} 
+                                className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
+                                onChange={(e) => setValidStartDate(e.target.value)} 
+                            />
+                            <button 
+                                type="button" 
+                                onClick={() => handleAdditionalDateIconClick(validStartDateRef)}
+                                className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                            >
+                                <Calendar size={16} className="text-gray-500" />
+                            </button>
+                            <span className="text-gray-500 mx-1">~</span>
+                            <div className="relative flex items-center gap-1">
+                                <input 
+                                    type="text" 
+                                    className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-center placeholder-gray-300" 
+                                    placeholder="수기입력 가능" 
+                                    value={validEndDate}
+                                    onChange={(e) => setValidEndDate(e.target.value)}
+                                />
+                                <input 
+                                    type="date" 
+                                    ref={validEndDateRef} 
+                                    className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
+                                    onChange={(e) => setValidEndDate(e.target.value)} 
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => handleAdditionalDateIconClick(validEndDateRef)}
+                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                                >
+                                    <Calendar size={16} className="text-gray-500" />
+                                </button>
+                            </div>
+                        </div>
+                    </Row>
+
+                    <Row label="구매가능 회원등급" help>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-4 flex-wrap">
+                                <div className="flex items-center gap-4">
+                                    {['전체(회원+비회원)', '회원전용(비회원제외)', '특정회원등급'].map((option) => (
+                                        <label key={option} className="flex items-center gap-2 cursor-pointer">
+                                            <input 
+                                                type="radio" 
+                                                name="member_level" 
+                                                className="radio radio-xs" 
+                                                checked={memberLevelOption === option}
+                                                onChange={() => {
+                                                    setMemberLevelOption(option);
+                                                    if (option === '특정회원등급') {
+                                                        setMemberLevelPopupTarget('purchase');
+                                                        setIsMemberLevelPopupOpen(true);
+                                                    }
+                                                }}
+                                            />
+                                            <span className="text-sm">{option}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                                <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        setMemberLevelPopupTarget('purchase');
+                                        setIsMemberLevelPopupOpen(true);
+                                    }}
+                                    className="px-2 py-1 bg-gray-400 text-white text-xs rounded-sm hover:bg-gray-500"
+                                >
+                                    회원등급 선택
+                                </button>
+                                <label className="flex items-center gap-2 cursor-pointer ml-2">
+                                    <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
+                                    <span className="text-sm text-gray-500">구매불가 고객 가격 대체문구 사용</span>
+                                </label>
+                            </div>
+                             <div className="text-xs text-gray-500 flex items-center gap-1">
+                                <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
+                                "구매불가 고객 가격 대체문구 사용"에 체크 및 내용 입력 시, 구매가 불가능한 고객들을 대상으로 가격 대신 해당 문구가 노출됩니다.
+                             </div>
+                        </div>
+                    </Row>
+
+                    <Row label="성인인증" help>
+                        <div className="relative w-full">
+                            <div className="space-y-3">
+                                <div className="flex items-center gap-6">
+                                    <RadioGroup name="adult_auth" options={['사용안함', '사용함']} defaultValue="사용안함" />
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" checked disabled />
+                                        <span className="text-sm text-gray-400">미인증 고객 상품 노출함</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
+                                        <span className="text-sm text-gray-500">미인증 고객 상품 이미지 노출함</span>
+                                    </label>
+                                </div>
+                                <div className="text-xs text-gray-400 space-y-1">
+                                    <p className="flex items-start gap-1">
+                                         <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
+                                         해당 상품의 상세페이지 접근시 성인인증확인 인트로 페이지가 출력되며, 진열 이미지는 19금 이미지로 대체되어 보여집니다.
+                                    </p>
+                                    <p className="pl-5">성인인증 기능은 별도의 인증 서비스 신청완료 후 이용 가능합니다.</p>
+                                    <p className="pl-5 pt-1">
+                                        <a href="#" className="text-blue-500 underline">휴대폰인증 설정 바로가기</a> <a href="#" className="text-blue-500 underline ml-2">아이핀인증 설정 바로가기</a>
+                                    </p>
+                                    <p className="flex items-center gap-1 text-red-500 mt-2">
+                                        <span className="font-bold bg-red-500 text-white px-1 rounded-sm text-[10px]">!</span>
+                                        구 실명인증 서비스는 성인인증 수단으로 연결되지 않습니다.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </Row>
+
+                    <Row label="접근 권한">
+                         <div className="flex items-center gap-4 flex-wrap">
+                            <div className="flex items-center gap-4">
+                                {['전체(회원+비회원)', '회원전용(비회원제외)', '특정회원등급'].map((option) => (
+                                    <label key={option} className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="access_auth_2" 
+                                            className="radio radio-xs" 
+                                            checked={accessAuthMemberLevelOption === option}
+                                            onChange={() => {
+                                                setAccessAuthMemberLevelOption(option);
+                                                if (option === '특정회원등급') {
+                                                    setMemberLevelPopupTarget('access');
+                                                    setIsMemberLevelPopupOpen(true);
+                                                }
+                                            }}
+                                        />
+                                        <span className="text-sm">{option}</span>
+                                    </label>
+                                ))}
+                            </div>
+                            <button 
+                                type="button" 
+                                onClick={() => {
+                                    setMemberLevelPopupTarget('access');
+                                    setIsMemberLevelPopupOpen(true);
+                                }}
+                                className="px-2 py-1 bg-gray-400 text-white text-xs rounded-sm hover:bg-gray-500"
+                            >
+                                회원등급 선택
+                            </button>
+                            <label className="flex items-center gap-2 cursor-pointer ml-4">
+                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" defaultChecked />
+                                <span className="text-sm text-gray-500">접근불가 고객 상품 노출함</span>
+                            </label>
+                            
+                             {/* Scroll buttons overlay simulation */}
+                             <div className="absolute right-0 -mr-6 top-0 flex flex-col gap-1">
+                                <button className="w-8 h-8 rounded-full bg-[#d0d0d0] text-white flex items-center justify-center mb-1">↑</button>
+                                <button className="w-8 h-8 rounded-full bg-[#d0d0d0] text-white flex items-center justify-center">↓</button>
+                            </div>
+                         </div>
+                    </Row>
+
                     <Row label="추가항목" help>
                         <div className="w-full space-y-2">
                             <div className="flex items-center gap-2">
-                                <button type="button" className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1">
+                                <button 
+                                    type="button" 
+                                    onClick={handleAddAdditionalItem}
+                                    className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1"
+                                >
                                     <span className="text-gray-600 font-bold">+</span> 항목추가
                                 </button>
                                 <div className="text-xs text-gray-500 flex items-center gap-1 ml-2">
@@ -345,40 +1123,61 @@ export default function ProductForm({ categories }: Props) {
                                 </div>
                             </div>
                             
-                            {/* Table Header like bar */}
-                            <div className="w-full bg-[#bfbfbf] h-9 flex items-center text-white text-center text-xs mt-2">
-                                <div className="w-20 border-r border-gray-400/30">순서</div>
-                                <div className="w-48 border-r border-gray-400/30">항목</div>
-                                <div className="flex-1 border-r border-gray-400/30">내용</div>
-                                <div className="w-20">삭제</div>
+                            {/* Table */}
+                            <div className="border border-gray-300 border-b-0">
+                                {/* Header */}
+                                <div className="w-full bg-[#bfbfbf] h-9 flex items-center text-white text-center text-xs border-b border-gray-300">
+                                    <div className="w-20 border-r border-gray-300/50 h-full flex items-center justify-center">순서</div>
+                                    <div className="w-48 border-r border-gray-300/50 h-full flex items-center justify-center">항목</div>
+                                    <div className="flex-1 border-r border-gray-300/50 h-full flex items-center justify-center">내용</div>
+                                    <div className="w-20 h-full flex items-center justify-center">삭제</div>
+                                </div>
+                                
+                                {/* Rows */}
+                                {additionalItems.length === 0 ? (
+                                    <div className="h-20 flex items-center justify-center bg-[#f9f9f9] border-b border-gray-300 text-xs text-gray-500">
+                                        추가된 항목이 없습니다.
+                                    </div>
+                                ) : (
+                                    additionalItems.map((item, index) => (
+                                        <div key={item.id} className="flex items-center text-xs border-b border-gray-300 bg-white">
+                                            <div className="w-20 border-r border-gray-300 h-9 flex items-center justify-center text-gray-600">
+                                                {index + 1}
+                                            </div>
+                                            <div className="w-48 border-r border-gray-300 h-9 flex items-center justify-center px-2">
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full h-6 border border-gray-300 px-2 outline-none" 
+                                                    value={item.name}
+                                                    onChange={(e) => handleAdditionalItemChange(item.id, 'name', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="flex-1 border-r border-gray-300 h-9 flex items-center justify-center px-2">
+                                                <input 
+                                                    type="text" 
+                                                    className="w-full h-6 border border-gray-300 px-2 outline-none" 
+                                                    value={item.value}
+                                                    onChange={(e) => handleAdditionalItemChange(item.id, 'value', e.target.value)}
+                                                />
+                                            </div>
+                                            <div className="w-20 h-9 flex items-center justify-center">
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => handleRemoveAdditionalItem(item.id)}
+                                                    className="px-2 py-0.5 border border-gray-300 bg-white text-[11px] rounded-sm hover:bg-gray-50 flex items-center gap-1"
+                                                >
+                                                    <span className="text-gray-400">-</span> 삭제
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
-                            {/* Placeholder for items if needed, empty for now as in new state */}
                         </div>
                     </Row>
                 </Section>
 
-                {/* 7. 상품 필수정보 */}
-                <Section title="상품 필수정보" isOpen={sections.essential} onToggle={() => toggleSection('essential')}>
-                    <div className="p-4 bg-white text-sm space-y-2 border-b">
-                        <p className="text-red-500 font-bold flex items-center gap-1">
-                             <span className="font-bold bg-red-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                             공정거래위원회에서 공고한 전자상거래법 상품정보제공 고시에 관한 내용을 필독해 주세요! <a href="#" className="underline">내용 확인 &gt;</a>
-                        </p>
-                    </div>
-                    <Row label="필수정보 선택" help>
-                        <button type="button" className="px-3 py-1 bg-gray-500 text-white text-xs rounded-sm hover:bg-gray-600">필수정보 선택</button>
-                        <button type="button" className="px-3 py-1 bg-white border border-gray-300 text-xs rounded-sm ml-2 hover:bg-gray-50">+ 필수정보 추가</button>
-                    </Row>
-                    <Row label="KC인증 표시 여부">
-                        <div className="space-y-2">
-                            <RadioGroup name="kc_cert" options={['사용함', '사용안함']} defaultValue="사용안함" />
-                            <div className="text-xs text-gray-500 flex items-start gap-1">
-                                <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                <div>안전관리대상 제품은 안전인증 등의 표시(KC 인증마크 및 인증번호)를 소비자가 확인할 수 있도록... <a href="#" className="text-blue-600 underline">국가기술표준원</a>에서 확인하세요.</div>
-                            </div>
-                        </div>
-                    </Row>
-                </Section>
+
 
                 {/* 8. 판매 정보 */}
                 <Section title="판매 정보" isOpen={sections.sales} onToggle={() => toggleSection('sales')}>
@@ -386,7 +1185,10 @@ export default function ProductForm({ categories }: Props) {
                          <Row label="과세/면세">
                             <div className="flex items-center gap-4">
                                 <label className="flex items-center gap-2"><input type="radio" name="tax" className="radio radio-xs checked:bg-red-500" defaultChecked /> <span>과세</span></label>
-                                <select className="select select-bordered select-xs w-16" defaultValue="10"><option>10</option></select>
+                                <select className="select select-bordered select-xs w-24" defaultValue="10">
+                                    <option value="">=세율=</option>
+                                    <option value="10">10</option>
+                                </select>
                                 <span>%</span>
                                 <label className="flex items-center gap-2"><input type="radio" name="tax" className="radio radio-xs" /> <span>면세</span></label>
                             </div>
@@ -424,7 +1226,10 @@ export default function ProductForm({ categories }: Props) {
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         <Row label="묶음주문 단위">
                              <div className="flex items-center gap-2">
-                                <select className="select select-bordered select-xs w-24"><option>옵션기준</option></select>
+                                <select className="select select-bordered select-xs w-24" defaultValue="옵션기준">
+                                    <option value="옵션기준">옵션기준</option>
+                                    <option value="상품기준">상품기준</option>
+                                </select>
                                 <input type="number" className="input input-sm h-8 w-16 border-gray-300 rounded-sm text-right" defaultValue="1" />
                                 <span className="text-sm">개 단위로 주문 및 장바구니에 담김</span>
                              </div>
@@ -450,15 +1255,102 @@ export default function ProductForm({ categories }: Props) {
 
                     <Row label="판매기간" help>
                         <div className="flex items-center gap-2 flex-wrap">
-                            <RadioGroup name="sales_period" options={['제한없음', '시작일 / 종료일']} defaultValue="제한없음" />
-                             <input type="text" className="input input-sm h-8 w-40 border-gray-300 bg-gray-100 rounded-sm text-center text-xs" defaultValue="2026-01-04 00:00" disabled />
-                             <span>~</span>
-                             <input type="text" className="input input-sm h-8 w-40 border-gray-300 bg-gray-100 rounded-sm text-center text-xs" defaultValue="2026-01-10 23:59" disabled />
-                             <div className="flex gap-0.5 ml-2">
-                                {['오늘', '7일', '15일', '1개월', '3개월', '1년'].map(t => (
-                                    <button key={t} type="button" className={`px-2 py-1 border border-gray-300 text-xs rounded-sm ${t === '7일' ? 'bg-[#555] text-white border-[#555]' : 'bg-white hover:bg-gray-50'}`}>{t}</button>
+                            <div className="flex items-center gap-4">
+                                {['제한없음', '시작일 / 종료일'].map(option => (
+                                    <label key={option} className="flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="radio" 
+                                            name="sales_period" 
+                                            className="radio radio-xs checked:bg-red-500" 
+                                            checked={salesPeriodOption === option}
+                                            onChange={() => setSalesPeriodOption(option)}
+                                        />
+                                        <span className="text-sm">{option}</span>
+                                    </label>
                                 ))}
-                             </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-1">
+                                <input 
+                                    type="text" 
+                                    className="input input-sm h-8 w-40 border-gray-300 bg-gray-50 rounded-sm text-center text-xs" 
+                                    value={salesStartDate}
+                                    readOnly
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => salesStartDateRef.current?.showPicker()}
+                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                                >
+                                    <Calendar size={16} className="text-gray-500" />
+                                </button>
+                                <input 
+                                    type="datetime-local" 
+                                    ref={salesStartDateRef}
+                                    className="absolute invisible w-0 h-0"
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            setSalesStartDate(e.target.value.replace('T', ' '));
+                                            setSalesPeriodOption('시작일 / 종료일');
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <span className="text-gray-400">~</span>
+
+                            <div className="flex items-center gap-1">
+                                <input 
+                                    type="text" 
+                                    className="input input-sm h-8 w-40 border-gray-300 bg-gray-50 rounded-sm text-center text-xs" 
+                                    value={salesEndDate}
+                                    readOnly
+                                />
+                                <button 
+                                    type="button" 
+                                    onClick={() => salesEndDateRef.current?.showPicker()}
+                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
+                                >
+                                    <Calendar size={16} className="text-gray-500" />
+                                </button>
+                                <input 
+                                    type="datetime-local" 
+                                    ref={salesEndDateRef}
+                                    className="absolute invisible w-0 h-0"
+                                    onChange={(e) => {
+                                        if (e.target.value) {
+                                            setSalesEndDate(e.target.value.replace('T', ' '));
+                                            setSalesPeriodOption('시작일 / 종료일');
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <div className="flex gap-0.5 ml-2">
+                                {[
+                                    { label: '오늘', value: 1 },
+                                    { label: '7일', value: 7 },
+                                    { label: '15일', value: 15 },
+                                    { label: '1개월', value: '1m' },
+                                    { label: '3개월', value: '3m' },
+                                    { label: '1년', value: '1y' }
+                                ].map((t) => (
+                                    <button 
+                                        key={t.label} 
+                                        type="button" 
+                                        onClick={() => {
+                                            if (t.value === '1m') handleSalesMonthShortcut(1);
+                                            else if (t.value === '3m') handleSalesMonthShortcut(3);
+                                            else if (t.value === '1y') handleSalesMonthShortcut(12);
+                                            else handleSalesDateShortcut(t.value as number);
+                                            setSalesPeriodOption('시작일 / 종료일');
+                                        }}
+                                        className={`px-2 py-1 border border-gray-300 text-xs rounded-sm bg-white hover:bg-gray-50`}
+                                    >
+                                        {t.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     </Row>
 
@@ -641,12 +1533,49 @@ export default function ProductForm({ categories }: Props) {
                                 <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-400 checked:bg-[#ff4d4f]" defaultChecked />
                                 <span className="text-sm">체크시 개별이미지의 선택된 사이즈로 자동 리사이즈되어 등록됩니다.</span>
                             </label>
-                            <div className="flex gap-1 mb-2">
-                                <button type="button" className="px-3 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500">찾아보기</button>
-                                <input type="text" className="input input-sm h-7 w-64 border-gray-300 bg-gray-50" disabled />
-                                <button type="button" className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1">
-                                    <span className="font-bold text-gray-500">+</span> 추가
-                                </button>
+                            <div className="space-y-1.5 mb-2">
+                                {originImages.map((img, index) => (
+                                    <div key={img.id} className="flex gap-1">
+                                        <input 
+                                            type="file" 
+                                            id={`origin-file-${img.id}`}
+                                            className="hidden" 
+                                            accept="image/*"
+                                            onChange={(e) => handleOriginImageFileChange(img.id, e)}
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => document.getElementById(`origin-file-${img.id}`)?.click()}
+                                            className="px-3 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500"
+                                        >
+                                            찾아보기
+                                        </button>
+                                        <input 
+                                            type="text" 
+                                            className="input input-sm h-7 w-64 border-gray-300 bg-gray-50" 
+                                            value={img.name}
+                                            readOnly 
+                                            placeholder="파일을 선택해주세요"
+                                        />
+                                        {index === 0 ? (
+                                            <button 
+                                                type="button" 
+                                                onClick={handleAddOriginImageRow}
+                                                className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1 min-w-[60px] justify-center"
+                                            >
+                                                <span className="font-bold text-gray-500">+</span> 추가
+                                            </button>
+                                        ) : (
+                                            <button 
+                                                type="button" 
+                                                onClick={() => handleRemoveOriginImageRow(img.id)}
+                                                className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1 min-w-[60px] justify-center text-gray-600"
+                                            >
+                                                <span className="font-bold text-gray-400">-</span> 삭제
+                                            </button>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
                              <div className="text-xs text-gray-500 flex items-start gap-1">
                                  <span className="font-bold bg-[#333] text-white px-1 rounded-sm text-[10px] mt-0.5">!</span>
@@ -707,46 +1636,8 @@ export default function ProductForm({ categories }: Props) {
                         </div>
                     </div>
 
-                     <Row label="짧은 설명" help>
-                        <div className="w-full space-y-2">
-                             <div className="flex items-center gap-2">
-                                <span className="text-xs font-bold w-12">기준몰</span>
-                                <input type="text" className="input input-sm h-8 w-full border-gray-300 rounded-sm" />
-                                <span className="text-xs text-gray-400 w-10 text-right">0 / 250</span>
-                             </div>
-                              <div className="flex items-center gap-2">
-                                <span className="text-2xl">🇨🇳</span>
-                                <div className="flex-1 bg-gray-100 p-2 border border-gray-200">
-                                     <label className="flex items-center gap-2">
-                                         <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-400 checked:bg-red-500" defaultChecked />
-                                         <span className="text-sm">기준몰 기본 상품명 공통사용</span>
-                                     </label>
-                                      <button className="bg-[#555] text-white text-xs px-2 py-0.5 ml-2">참고 번역</button>
-                                </div>
-                                <span className="text-xs text-gray-400 w-10 text-right">0 / 250</span>
-                             </div>
-                        </div>
-                    </Row>
-                    
-                    <Row label="이벤트문구">
-                        <div className="w-full space-y-1">
-                             <input type="text" className="input input-sm h-8 w-full border-gray-300 rounded-sm" />
-                             <span className="text-xs text-gray-400 block text-right">0 / 250</span>
-                             <div className="text-xs text-gray-500 space-y-1 mt-2">
-                                 <p>마케팅 제휴서비스 (네이버 쇼핑, 다음 쇼핑하우) 이용 시 공통으로 사용되는 항목입니다.</p>
-                                 <a href="#" className="text-blue-600 underline block">네이버 쇼핑 설정 바로가기</a>
-                                 <p>"마케팅&gt;네이버쇼핑 설정&gt;네이버쇼핑 이벤트 문구 설정&gt;상품별 문구 사용" 설정 후 사용하세요.</p>
-                                 <div className="flex items-start gap-1">
-                                    <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                                    이벤트 문구(공통문구+상품별 문구)는 최대 100자까지 입력 가능합니다.
-                                 </div>
-                                 <a href="#" className="text-blue-600 underline block mt-2">다음 쇼핑하우 설정 바로가기</a>
-                             </div>
-                        </div>
-                    </Row>
-
                     <div className="border-t border-gray-200">
-                        {/* Editor Tabs & Toolbar Mock */}
+                         {/* Editor Tabs */}
                         <div className="bg-[#f2f2f2] border-b border-gray-300 p-1 flex items-center justify-between">
                             <div className="flex">
                                 <div className="bg-[#777] text-white text-xs px-3 py-2 font-bold cursor-pointer">PC쇼핑몰 상세 설명</div>
@@ -757,29 +1648,80 @@ export default function ProductForm({ categories }: Props) {
                                 <span>PC/모바일 상세설명 동일사용</span>
                             </label>
                         </div>
-                        
-                        {/* Legacy Toolbar Visual Mock */}
-                        <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1 flex-wrap">
-                            <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-16"><option>굴림</option></select>
-                            <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-12"><option>9pt</option></select>
-                            <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                            {['B', 'I', 'U', 'S'].map(t => <button key={t} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs font-bold hover:bg-gray-100">{t}</button>)}
-                            <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                             {['Left', 'Center', 'Right', 'Justify'].map(t => <button key={t} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100">≡</button>)}
-                             <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                             <button type="button" className="px-2 h-6 bg-white border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-100">📷 사진</button>
+
+                        {/* Photo Button Toolbar */}
+                        <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1">
+                             <button 
+                                type="button" 
+                                onClick={() => openPhotoPopup('desc')}
+                                className="px-2 h-6 bg-white border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-100"
+                            >
+                                📷 사진
+                            </button>
                         </div>
                         
                         {/* Editor Content Area */}
                         <div className="relative">
-                            <textarea className="w-full h-80 p-4 outline-none resize-none border-b border-gray-300" placeholder=""></textarea>
+                            <input type="hidden" name="description" value={descContent} />
+                            
+                            {activeEditorMode === 'editor' && (
+                                <TipTapEditor 
+                                    content={descContent} 
+                                    onChange={setDescContent}
+                                />
+                            )}
+                            
+                            {activeEditorMode === 'html' && (
+                                <textarea 
+                                    className="w-full h-[400px] p-4 outline-none resize-none border-b border-gray-300 font-mono text-sm" 
+                                    value={descContent}
+                                    onChange={(e) => setDescContent(e.target.value)}
+                                    placeholder="HTML 코드를 입력하세요."
+                                />
+                            )}
+                            
+                            {activeEditorMode === 'text' && (
+                                <textarea 
+                                    className="w-full h-[400px] p-4 outline-none resize-none border-b border-gray-300 text-sm" 
+                                    value={descContent.replace(/<[^>]*>?/gm, '')} 
+                                    onChange={(e) => setDescContent(e.target.value)} // Note: This is simple text binding. In a real app you might want to wrap plain text in <p> tags or similar when going back to HTML.
+                                    placeholder="텍스트를 입력하세요."
+                                />
+                            )}
+
                             <div className="absolute bottom-0 w-full bg-[#f9f9f9] border-t border-gray-200 text-center py-1 cursor-ns-resize text-xs text-gray-400 hover:bg-gray-100">
                                 ↕ 입력창 크기 조절
                             </div>
-                            <div className="absolute bottom-1 right-1 flex">
-                                 <button type="button" className="px-2 py-0.5 border border-gray-300 bg-white text-xs">Editor</button>
-                                 <button type="button" className="px-2 py-0.5 border border-gray-300 bg-white text-xs">HTML</button>
-                                 <button type="button" className="px-2 py-0.5 border border-gray-300 bg-white text-xs">TEXT</button>
+                            <div className="absolute bottom-1 right-1 flex z-10">
+                                 <button 
+                                    type="button" 
+                                    onClick={() => setActiveEditorMode('editor')}
+                                    className={`px-2 py-0.5 border border-gray-300 text-xs ${activeEditorMode === 'editor' ? 'bg-gray-200 font-bold' : 'bg-white'}`}
+                                >
+                                    Editor
+                                </button>
+                                 <button 
+                                    type="button" 
+                                    onClick={() => setActiveEditorMode('html')}
+                                    className={`px-2 py-0.5 border border-gray-300 text-xs ${activeEditorMode === 'html' ? 'bg-gray-200 font-bold' : 'bg-white'}`}
+                                >
+                                    HTML
+                                </button>
+                                 <button 
+                                    type="button" 
+                                    onClick={() => {
+                                        if (confirm('TEXT 모드로 전환하면 HTML 태그가 삭제됩니다. 계속하시겠습니까?')) {
+                                            setActiveEditorMode('text');
+                                            // Optional: strip tags effectively here if we wanted to change the underlying state, 
+                                            // but for now the visual textarea handles the strip view. 
+                                            // If we really want to convert the content, we should do:
+                                            // setDescContent(prev => prev.replace(/<[^>]*>?/gm, ''));
+                                        }
+                                    }}
+                                    className={`px-2 py-0.5 border border-gray-300 text-xs ${activeEditorMode === 'text' ? 'bg-gray-200 font-bold' : 'bg-white'}`}
+                                >
+                                    TEXT
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -789,8 +1731,14 @@ export default function ProductForm({ categories }: Props) {
                 <Section title="배송 설정" isOpen={sections.shipping} onToggle={() => toggleSection('shipping')}>
                     <Row label="배송비 선택" help>
                         <div className="flex items-center gap-2">
-                            <button type="button" className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm">배송비 선택</button>
-                            <span className="text-sm">선택된 배송비 : 기본 - 금액별배송비 (택배)</span>
+                            <button 
+                                type="button" 
+                                onClick={() => setIsShippingFeePopupOpen(true)}
+                                className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500"
+                            >
+                                배송비 선택
+                            </button>
+                            <span className="text-sm">선택된 배송비 : {selectedShippingFee}</span>
                         </div>
                         <div className="ml-2 text-xs text-gray-400 flex items-center gap-1">
                              <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
@@ -850,55 +1798,22 @@ export default function ProductForm({ categories }: Props) {
                                     <span className="text-sm text-gray-700 font-bold">선택입력</span>
                                 </label>
                                 
-                                <button type="button" className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm">선택</button>
-                                <span className="text-sm text-gray-600">선택된 배송안내 : 배송안내 - 기본</span>
+                                <button 
+                                    type="button" 
+                                    onClick={() => openGuidePopup('shipping', '배송안내 선택')}
+                                    className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500"
+                                >
+                                    선택
+                                </button>
+                                <span className="text-sm text-gray-600">선택된 배송안내 : {selectedGuides.shipping}</span>
                             </div>
 
-                            {/* Editor Mock */}
-                            <div className="border border-gray-300">
-                                {/* Toolbar */}
-                                <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1 flex-wrap">
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-16"><option>굴림</option></select>
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-12"><option>9pt</option></select>
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                    {['가', '가', '가', '가'].map((t, i) => <button key={i} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t}</button>)}
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center text-red-500 font-bold">A</button>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center">가</button>
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     {['Left', 'Center', 'Right', 'Justify'].map(t => <button key={t} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100">≡</button>)}
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="px-2 h-6 bg-white border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-100 ml-auto">📷 사진</button>
-                                </div>
-                                
-                                {/* Content */}
-                                <div className="relative">
-                                    <textarea 
-                                        className="w-full h-64 p-4 outline-none resize-none text-xs leading-relaxed text-gray-800 font-sans" 
-                                        defaultValue={`- 배송비 : 기본배송료는 2,500원 입니다. (도서,산간,오지 일부지역은 배송비가 추가될 수 있습니다) 50,000원 이상 구매시 무료배송입니다.
-- 본 상품의 평균 배송일은 0일입니다.(입금 확인 후) 설치 상품의 경우 다소 늦어질 수 있습니다.[배송예정일은 주문시점(주문순서)에 따른 유동성이 발생하므로 평균 배송일과는 차이가 발생할 수 있습니다.]
-- 본 상품의 배송 가능일은 0일 입니다. 배송 가능일이란 본 상품을 주문 하신 고객님들께 상품 배송이 가능한 기간을 의미합니다. (단, 연휴 및 공휴일은 기간 계산시 제외하며 현금 주문일 경우 입금일 기준 입니다.)`}
-                                    ></textarea>
-                                    
-                                     {/* Resize Handle Overlay */}
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#fffce5] border border-gray-300 px-3 py-1 text-[11px] text-gray-600 shadow-sm flex items-center gap-2">
-                                        아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다.
-                                        <button className="text-gray-400 hover:text-gray-600"><X size={12}/></button>
-                                    </div>
-
-                                    {/* Bottom Bar */}
-                                     <div className="bg-[#f2f2f2] border-t border-gray-300 flex justify-between items-center h-6 px-1">
-                                        <div className="flex-1 text-center cursor-ns-resize">
-                                             <span className="text-[10px] text-gray-500">↕ 입력창 크기조절</span>
-                                        </div>
-                                        <div className="flex bg-white border border-gray-300">
-                                            <button type="button" className="px-2 py-0.5 text-[10px] bg-gray-100 font-bold border-r border-gray-300">Editor</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px]">TEXT</button>
-                                        </div>
-                                     </div>
-                                </div>
-                            </div>
+                            {/* Guide Editor */}
+                            <GuideEditor 
+                                content={shippingGuideContent}
+                                onChange={setShippingGuideContent}
+                                onPhotoClick={() => openPhotoPopup('shipping')}
+                            />
                         </div>
                     </Row>
                     <Row label="AS안내 선택">
@@ -917,54 +1832,22 @@ export default function ProductForm({ categories }: Props) {
                                     <span className="text-sm text-gray-700 font-bold">선택입력</span>
                                 </label>
                                 
-                                <button type="button" className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm">선택</button>
-                                <span className="text-sm text-gray-600">선택된 AS안내 : AS안내 - 기본</span>
+                                <button 
+                                    type="button" 
+                                    onClick={() => openGuidePopup('as', 'AS안내 선택')}
+                                    className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500"
+                                >
+                                    선택
+                                </button>
+                                <span className="text-sm text-gray-600">선택된 AS안내 : {selectedGuides.as}</span>
                             </div>
 
-                            {/* Editor Mock */}
-                            <div className="border border-gray-300">
-                                {/* Toolbar */}
-                                <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1 flex-wrap">
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-16"><option>굴림</option></select>
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-12"><option>9pt</option></select>
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                    {['가', '가', '가', '가'].map((t, i) => <button key={i} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t}</button>)}
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center text-red-500 font-bold">A</button>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center">가</button>
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     {['Left', 'Center', 'Right', 'Justify'].map(t => <button key={t} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100">≡</button>)}
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="px-2 h-6 bg-white border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-100 ml-auto">📷 사진</button>
-                                </div>
-                                
-                                {/* Content */}
-                                <div className="relative">
-                                    <textarea 
-                                        className="w-full h-64 p-4 outline-none resize-none text-xs leading-relaxed text-gray-800 font-sans" 
-                                        defaultValue={`- 소비자분쟁해결 기준(공정거래위원회 고시)에 따라 피해를 보상받을 수 있습니다.
-- A/S는 판매자에게 문의하시기 바랍니다.`}
-                                    ></textarea>
-                                    
-                                     {/* Resize Handle Overlay */}
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#fffce5] border border-gray-300 px-3 py-1 text-[11px] text-gray-600 shadow-sm flex items-center gap-2">
-                                        아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다.
-                                        <button className="text-gray-400 hover:text-gray-600"><X size={12}/></button>
-                                    </div>
-
-                                    {/* Bottom Bar */}
-                                     <div className="bg-[#f2f2f2] border-t border-gray-300 flex justify-between items-center h-6 px-1">
-                                        <div className="flex-1 text-center cursor-ns-resize">
-                                             <span className="text-[10px] text-gray-500">↕ 입력창 크기조절</span>
-                                        </div>
-                                        <div className="flex bg-white border border-gray-300">
-                                            <button type="button" className="px-2 py-0.5 text-[10px] bg-gray-100 font-bold border-r border-gray-300">Editor</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px]">TEXT</button>
-                                        </div>
-                                     </div>
-                                </div>
-                            </div>
+                            {/* Guide Editor */}
+                            <GuideEditor 
+                                content={asGuideContent}
+                                onChange={setAsGuideContent}
+                                onPhotoClick={() => openPhotoPopup('as')}
+                            />
                         </div>
                     </Row>
                     <Row label="환불안내 선택">
@@ -983,53 +1866,22 @@ export default function ProductForm({ categories }: Props) {
                                     <span className="text-sm text-gray-700 font-bold">선택입력</span>
                                 </label>
                                 
-                                <button type="button" className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm">선택</button>
-                                <span className="text-sm text-gray-600">선택된 환불안내 : 환불안내 - 기본</span>
+                                <button 
+                                    type="button" 
+                                    onClick={() => openGuidePopup('refund', '환불안내 선택')}
+                                    className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500"
+                                >
+                                    선택
+                                </button>
+                                <span className="text-sm text-gray-600">선택된 환불안내 : {selectedGuides.refund}</span>
                             </div>
 
-                            {/* Editor Mock */}
-                            <div className="border border-gray-300">
-                                {/* Toolbar */}
-                                <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1 flex-wrap">
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-16"><option>굴림</option></select>
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-12"><option>9pt</option></select>
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                    {['가', '가', '가', '가'].map((t, i) => <button key={i} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t}</button>)}
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center text-red-500 font-bold">A</button>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center">가</button>
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     {['Left', 'Center', 'Right', 'Justify'].map(t => <button key={t} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100">≡</button>)}
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="px-2 h-6 bg-white border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-100 ml-auto">📷 사진</button>
-                                </div>
-                                
-                                {/* Content */}
-                                <div className="relative">
-                                    <textarea 
-                                        className="w-full h-64 p-4 outline-none resize-none text-xs leading-relaxed text-gray-800 font-sans" 
-                                        defaultValue={`- 상품 청약철회 가능기간은 상품 수령일로 부터 7일 이내 입니다.`}
-                                    ></textarea>
-                                    
-                                     {/* Resize Handle Overlay */}
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#fffce5] border border-gray-300 px-3 py-1 text-[11px] text-gray-600 shadow-sm flex items-center gap-2">
-                                        아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다.
-                                        <button className="text-gray-400 hover:text-gray-600"><X size={12}/></button>
-                                    </div>
-
-                                    {/* Bottom Bar */}
-                                     <div className="bg-[#f2f2f2] border-t border-gray-300 flex justify-between items-center h-6 px-1">
-                                        <div className="flex-1 text-center cursor-ns-resize">
-                                             <span className="text-[10px] text-gray-500">↕ 입력창 크기조절</span>
-                                        </div>
-                                        <div className="flex bg-white border border-gray-300">
-                                            <button type="button" className="px-2 py-0.5 text-[10px] bg-gray-100 font-bold border-r border-gray-300">Editor</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px]">TEXT</button>
-                                        </div>
-                                     </div>
-                                </div>
-                            </div>
+                            {/* Guide Editor */}
+                            <GuideEditor 
+                                content={refundGuideContent}
+                                onChange={setRefundGuideContent}
+                                onPhotoClick={() => openPhotoPopup('refund')}
+                            />
                         </div>
                     </Row>
                     <Row label="교환안내 선택">
@@ -1048,59 +1900,22 @@ export default function ProductForm({ categories }: Props) {
                                     <span className="text-sm text-gray-700 font-bold">선택입력</span>
                                 </label>
                                 
-                                <button type="button" className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm">선택</button>
-                                <span className="text-sm text-gray-600">선택된 교환안내 : 교환안내 - 기본</span>
+                                <button 
+                                    type="button" 
+                                    onClick={() => openGuidePopup('exchange', '교환안내 선택')}
+                                    className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm hover:bg-gray-500"
+                                >
+                                    선택
+                                </button>
+                                <span className="text-sm text-gray-600">선택된 교환안내 : {selectedGuides.exchange}</span>
                             </div>
 
-                            {/* Editor Mock */}
-                            <div className="border border-gray-300">
-                                {/* Toolbar */}
-                                <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1 flex-wrap">
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-16"><option>굴림</option></select>
-                                    <select className="select select-xs h-6 min-h-0 bg-white border border-gray-400 rounded-none text-xs w-12"><option>9pt</option></select>
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                    {['가', '가', '가', '가'].map((t, i) => <button key={i} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs text-gray-600 hover:bg-gray-100">{t}</button>)}
-                                    <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center text-red-500 font-bold">A</button>
-                                     <button type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100 flex items-center justify-center">가</button>
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     {['Left', 'Center', 'Right', 'Justify'].map(t => <button key={t} type="button" className="w-6 h-6 bg-white border border-gray-300 text-xs hover:bg-gray-100">≡</button>)}
-                                     <div className="w-[1px] h-4 bg-gray-400 mx-1"></div>
-                                     <button type="button" className="px-2 h-6 bg-white border border-gray-300 text-xs flex items-center gap-1 hover:bg-gray-100 ml-auto">📷 사진</button>
-                                </div>
-                                
-                                {/* Content */}
-                                <div className="relative">
-                                    <textarea 
-                                        className="w-full h-64 p-4 outline-none resize-none text-xs leading-relaxed text-gray-800 font-sans" 
-                                        defaultValue={`- 상품 택(tag)제거 또는 개봉으로 상품 가치 훼손 시에는 상품수령후 7일 이내라도 교환 및 반품이 불가능합니다.
-- 저단가 상품, 일부 특가 상품은 고객 변심에 의한 교환, 반품은 고객께서 배송비를 부담하셔야 합니다(제품의 하자,배송오류는 제외)
-- 일부 상품은 신모델 출시, 부품가격 변동 등 제조사 사정으로 가격이 변동될 수 있습니다.
-- 신발의 경우, 실외에서 착화하였거나 사용흔적이 있는 경우에는 교환/반품 기간내라도 교환 및 반품이 불가능 합니다.
-- 수제화 중 개별 주문제작상품(굽높이,발볼,사이즈 변경)의 경우에는 제작완료, 인수 후에는 교환/반품기간내라도 교환 및 반품이 불가능 합니다.
-- 수입,명품 제품의 경우, 제품 및 본 상품의 박스 훼손, 분실 등으로 인한 상품 가치 훼손 시 교환 및 반품이 불가능 하오니, 양해 바랍니다.
-- 일부 특가 상품의 경우, 인수 후에는 제품 하자나 오배송의 경우를 제외한 고객님의 단순변심에 의한 교환, 반품이 불가능할 수 있사오니, 각 상품의 상품상세정보를 꼭 참조하십시오.`}
-                                    ></textarea>
-                                    
-                                     {/* Resize Handle Overlay */}
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-[#fffce5] border border-gray-300 px-3 py-1 text-[11px] text-gray-600 shadow-sm flex items-center gap-2">
-                                        아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다.
-                                        <button className="text-gray-400 hover:text-gray-600"><X size={12}/></button>
-                                    </div>
-
-                                    {/* Bottom Bar */}
-                                     <div className="bg-[#f2f2f2] border-t border-gray-300 flex justify-between items-center h-6 px-1">
-                                        <div className="flex-1 text-center cursor-ns-resize">
-                                             <span className="text-[10px] text-gray-500">↕ 입력창 크기조절</span>
-                                        </div>
-                                        <div className="flex bg-white border border-gray-300">
-                                            <button type="button" className="px-2 py-0.5 text-[10px] bg-gray-100 font-bold border-r border-gray-300">Editor</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</button>
-                                            <button type="button" className="px-2 py-0.5 text-[10px]">TEXT</button>
-                                        </div>
-                                     </div>
-                                </div>
-                            </div>
+                            {/* Guide Editor */}
+                            <GuideEditor 
+                                content={exchangeGuideContent}
+                                onChange={setExchangeGuideContent}
+                                onPhotoClick={() => openPhotoPopup('exchange')}
+                            />
                         </div>
                     </Row>
                 </Section>
@@ -1113,8 +1928,109 @@ export default function ProductForm({ categories }: Props) {
                          <textarea className="w-full h-20 p-2 border border-gray-300 rounded-sm outline-none resize-none"></textarea>
                     </Row>
                 </Section>
-
             </form>
+
+            <PhotoAttachmentPopup 
+                isOpen={isPhotoPopupOpen}
+                onClose={() => setIsPhotoPopupOpen(false)}
+                onConfirm={handlePhotoConfirm}
+            />
+
+            <SupplierPopup 
+                isOpen={isSupplierPopupOpen}
+                onClose={() => setIsSupplierPopupOpen(false)}
+                onConfirm={(supplier) => {
+                    if (supplier) {
+                        if (Array.isArray(supplier)) {
+                            if (supplier.length > 0) {
+                                setSelectedSupplierName(supplier[0].name);
+                            }
+                        } else {
+                            setSelectedSupplierName(supplier.name);
+                        }
+                    }
+                }}
+            />
+
+            <BrandPopup 
+                isOpen={isBrandPopupOpen}
+                onClose={() => setIsBrandPopupOpen(false)}
+                onConfirm={(brand) => {
+                    if (brand) {
+                        // The brand.name in dummy data includes category path (e.g. Malbon Golf > Men...), 
+                        // matching the user request to just "show popup like photo", but typically we might just want the brand name.
+                        // For now we'll use the full string as user might expect.
+                        // Or maybe just split ' > ' and take first part? 
+                        // The screenshot shows 'brand name' column has 'Malbon Golf > ...'.
+                        // I'll assume the input should show this selected Name.
+                        setSelectedBrandName(brand.name);
+                    }
+                }}
+            />
+
+            <HSCodePopup
+                isOpen={isHSCodePopupOpen}
+                onClose={() => {
+                    setIsHSCodePopupOpen(false);
+                    setActiveHSCodeRowId(null);
+                }}
+                onConfirm={(code) => {
+                    if (code) {
+                        if (activeHSCodeRowId === null) {
+                            setSelectedHSCode(code.code);
+                        } else {
+                            handleHSCodeRowChange(activeHSCodeRowId, 'code', code.code);
+                        }
+                    }
+                    setActiveHSCodeRowId(null);
+                }}
+                country={activeHSCodeRowId === null ? "대한민국" : additionalHSCodes.find(r => r.id === activeHSCodeRowId)?.country || ""}
+            />
+
+            <MemberLevelPopup 
+                isOpen={isMemberLevelPopupOpen}
+                onClose={() => setIsMemberLevelPopupOpen(false)}
+                onConfirm={(levels) => {
+                    if (memberLevelPopupTarget === 'purchase') {
+                        setSelectedMemberLevels(levels);
+                    } else if (memberLevelPopupTarget === 'access') {
+                        setSelectedAccessAuthMemberLevels(levels);
+                    }
+                }}
+            />
+            <EssentialInfoPopup 
+                isOpen={isEssentialInfoPopupOpen}
+                onClose={() => setIsEssentialInfoPopupOpen(false)}
+            />
+            <KCExamplePopup 
+                isOpen={isKCExamplePopupOpen} 
+                onClose={() => setIsKCExamplePopupOpen(false)} 
+            />
+
+            <ShippingFeePopup 
+                isOpen={isShippingFeePopupOpen}
+                onClose={() => setIsShippingFeePopupOpen(false)}
+                onConfirm={(selected) => {
+                    if (selected) {
+                        setSelectedShippingFee(selected.name);
+                    }
+                }}
+            />
+
+            <GuidePopup 
+                isOpen={guidePopupState.isOpen}
+                popupTitle={guidePopupState.title}
+                type={guidePopupState.type}
+                onClose={() => setGuidePopupState(prev => ({ ...prev, isOpen: false }))}
+                onConfirm={(selected) => {
+                    if (selected) {
+                        setSelectedGuides(prev => ({
+                            ...prev,
+                            [guidePopupState.type]: selected.title
+                        }));
+                    }
+                }}
+            />
         </div>
     );
 }

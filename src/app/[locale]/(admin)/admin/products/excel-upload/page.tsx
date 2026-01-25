@@ -266,7 +266,7 @@ export default function ProductExcelUploadPage() {
                       <Button 
                         variant="secondary" 
                         onClick={() => fileInputRef.current?.click()}
-                        className="h-8 bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-none rounded-r-sm text-xs px-3"
+                        className="h-8 bg-gray-700 text-white hover:bg-gray-600 rounded-none rounded-r-sm text-xs px-3"
                       >
                           찾아보기
                       </Button>
@@ -290,7 +290,13 @@ export default function ProductExcelUploadPage() {
                 <div className="flex-1 p-3 flex items-center">
                     <RadioGroup 
                         value={supplierType} 
-                        onValueChange={(v: string) => setSupplierType(v as "head" | "supplier")}
+                        onValueChange={(v: string) => {
+                            const newVal = v as "head" | "supplier";
+                            setSupplierType(newVal);
+                            if (newVal === "supplier") {
+                                setIsSupplierPopupOpen(true);
+                            }
+                        }}
                         className="flex gap-4 items-center"
                     >
                         <div className="flex items-center gap-1.5">
@@ -300,20 +306,18 @@ export default function ProductExcelUploadPage() {
                         <div className="flex items-center gap-1.5">
                             <RadioGroupItem value="supplier" id="supplier-provider" className="border-gray-300 text-gray-600 focus:ring-red-500" />
                             <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                            {supplierType === 'supplier' && (
-                                <div className="flex items-center gap-2 ml-2">
-                                    <div className="h-7 px-2 flex items-center border border-gray-300 bg-white min-w-[100px]">
-                                        {selectedSupplier?.name || "선택된 공급사 없음"}
-                                    </div>
-                                    <Button 
-                                        variant="secondary" 
-                                        className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2"
-                                        onClick={() => setIsSupplierPopupOpen(true)}
-                                    >
-                                        공급사 선택
-                                    </Button>
+                            <div className="flex items-center gap-2 ml-2">
+                                <div className="h-7 px-2 flex items-center border border-gray-300 bg-white min-w-[100px]">
+                                    {selectedSupplier?.name || "선택된 공급사 없음"}
                                 </div>
-                            )}
+                                <Button 
+                                    variant="secondary" 
+                                    className="h-6 text-[11px] bg-gray-700 text-white hover:bg-gray-600 rounded-sm px-2"
+                                    onClick={() => setIsSupplierPopupOpen(true)}
+                                >
+                                    공급사 선택
+                                </Button>
+                            </div>
                         </div>
                     </RadioGroup>
                 </div>
@@ -428,7 +432,13 @@ export default function ProductExcelUploadPage() {
         <SupplierPopup 
             isOpen={isSupplierPopupOpen}
             onClose={() => setIsSupplierPopupOpen(false)}
-            onConfirm={(s) => setSelectedSupplier(s)}
+            onConfirm={(s) => {
+              if (Array.isArray(s)) {
+                setSelectedSupplier(s[0] || null);
+              } else {
+                setSelectedSupplier(s);
+              }
+            }}
         />
     </div>
   );

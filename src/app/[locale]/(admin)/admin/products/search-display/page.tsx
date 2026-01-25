@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
     Select,
@@ -15,6 +16,7 @@ import { Youtube, ChevronUp } from "lucide-react";
 import { getSearchDisplaySettingsAction, updateSearchDisplaySettingsAction } from "@/actions/search-display-actions";
 
 export default function SearchProductDisplayPage() {
+    const router = useRouter();
     const [sortBy, setSortBy] = useState("recent");
     const [searchConditions, setSearchConditions] = useState<string[]>([]);
     const [pcTheme, setPcTheme] = useState("default");
@@ -111,10 +113,20 @@ export default function SearchProductDisplayPage() {
                                  <SelectTrigger className="w-48 h-8 text-xs">
                                      <SelectValue placeholder="진열방법 선택" />
                                  </SelectTrigger>
-                                 <SelectContent>
-                                     <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
-                                     {/* Add more options if needed later */}
-                                 </SelectContent>
+                                    <SelectContent>
+                                        <SelectItem value="reg_desc">최근 등록 상품 위로</SelectItem>
+                                        <SelectItem value="reg_asc">최근 등록 상품 아래로</SelectItem>
+                                        <SelectItem value="mod_desc">최근 수정 상품 위로</SelectItem>
+                                        <SelectItem value="mod_asc">최근 수정 상품 아래로</SelectItem>
+                                        <SelectItem value="name_asc">상품명 가나다순</SelectItem>
+                                        <SelectItem value="name_desc">상품명 가나다역순</SelectItem>
+                                        <SelectItem value="price_desc">판매가 높은 상품 위로</SelectItem>
+                                        <SelectItem value="price_asc">판매가 높은 상품 아래로</SelectItem>
+                                        <SelectItem value="sales_desc">판매량 높은 상품 위로</SelectItem>
+                                        <SelectItem value="sales_asc">판매량 높은 상품 아래로</SelectItem>
+                                        <SelectItem value="views_desc">조회수 높은 상품 위로</SelectItem>
+                                        <SelectItem value="views_asc">조회수 높은 상품 아래로</SelectItem>
+                                    </SelectContent>
                              </Select>
                          </div>
                     </div>
@@ -149,7 +161,10 @@ export default function SearchProductDisplayPage() {
                                      <SelectItem value="default">검색페이지테마</SelectItem>
                                  </SelectContent>
                              </Select>
-                             <Button className="h-8 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-4">
+                             <Button 
+                                onClick={() => router.push('/admin/products/main-display/theme/register')}
+                                className="h-8 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-4"
+                            >
                                 테마 등록
                             </Button>
                          </div>
@@ -163,7 +178,10 @@ export default function SearchProductDisplayPage() {
                                      <SelectItem value="default">검색페이지테마</SelectItem>
                                  </SelectContent>
                              </Select>
-                             <Button className="h-8 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-4">
+                             <Button 
+                                onClick={() => router.push('/admin/products/main-display/theme/register')}
+                                className="h-8 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-4"
+                            >
                                 테마 등록
                             </Button>
                          </div>
@@ -187,7 +205,13 @@ export default function SearchProductDisplayPage() {
                             <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
                             <div className="flex-1 px-4 flex items-center gap-2">
                                 <span className="text-gray-600">검색페이지테마</span>
-                                <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">수정</Button>
+                                <Button 
+                                    variant="outline" 
+                                    className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300"
+                                    onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
+                                >
+                                    수정
+                                </Button>
                             </div>
                         </div>
                         <div className="flex border-b border-gray-200 h-12 items-center">
@@ -238,7 +262,13 @@ export default function SearchProductDisplayPage() {
                             <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
                             <div className="flex-1 px-4 flex items-center gap-2">
                                 <span className="text-gray-600">검색페이지테마</span>
-                                <Button variant="outline" className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300">수정</Button>
+                                <Button 
+                                    variant="outline" 
+                                    className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300"
+                                    onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
+                                >
+                                    수정
+                                </Button>
                             </div>
                         </div>
                         <div className="flex border-b border-gray-200 h-12 items-center">

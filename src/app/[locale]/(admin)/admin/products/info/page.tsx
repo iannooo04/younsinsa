@@ -26,6 +26,7 @@ import { Link } from "@/i18n/routing";
 import { getEssentialInfoTemplatesAction,    deleteEssentialInfoTemplatesAction,
     copyEssentialInfoTemplatesAction,
 } from "@/actions/product-essential-info-actions";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function ProductEssentialInfoPage() {
     const [isPending, startTransition] = useTransition();
@@ -43,6 +44,8 @@ export default function ProductEssentialInfoPage() {
     // Filters
     const [supplierType, setSupplierType] = useState("all");
     const [keyword, setKeyword] = useState("");
+    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+    const [selectedSuppliers, setSelectedSuppliers] = useState<{ id: string, name: string }[]>([]);
 
     useEffect(() => {
         fetchTemplates();
@@ -144,10 +147,23 @@ export default function ProductEssentialInfoPage() {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="supplier" id="supplier-supplier" />
-                                    <Label htmlFor="supplier-supplier">공급사</Label>
-                                    <Button variant="secondary" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm ml-2" disabled>
+                                    <Label htmlFor="supplier-supplier" onClick={() => {
+                                        setSupplierType("supplier");
+                                        setIsSupplierPopupOpen(true);
+                                    }}>공급사</Label>
+                                    <Button 
+                                        variant="secondary" 
+                                        className={`h-7 text-xs rounded-sm ml-2 ${supplierType === "supplier" ? "bg-gray-500 text-white hover:bg-gray-600" : "bg-gray-300 text-white cursor-not-allowed"}`}
+                                        disabled={supplierType !== "supplier"}
+                                        onClick={() => setIsSupplierPopupOpen(true)}
+                                    >
                                         공급사 선택
                                     </Button>
+                                    {supplierType === "supplier" && selectedSuppliers.length > 0 && (
+                                        <span className="text-blue-600 font-medium ml-1">
+                                            ({selectedSuppliers.map(s => s.name).join(", ")})
+                                        </span>
+                                    )}
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="none" id="supplier-none" />
@@ -367,6 +383,16 @@ export default function ProductEssentialInfoPage() {
                     </Button>
                 </div>
             </div>
+            <SupplierPopup 
+                isOpen={isSupplierPopupOpen}
+                onClose={() => setIsSupplierPopupOpen(false)}
+                onConfirm={(selected) => {
+                    if (Array.isArray(selected)) {
+                        setSelectedSuppliers(selected);
+                    }
+                }}
+                multiSelect={true}
+            />
         </div>
     );
 }

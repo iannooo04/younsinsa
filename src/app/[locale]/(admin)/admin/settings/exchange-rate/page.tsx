@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
-import { getExchangeRateSettingsAction, updateExchangeRateSettingsAction } from "@/actions/basic-policy-actions";
+import { getExchangeRateSettingsAction, updateExchangeRateSettingsAction, fetchLiveExchangeRateAction } from "@/actions/basic-policy-actions";
 import { Prisma } from "@/generated/prisma";
 
 interface RateInfo {
@@ -33,7 +33,27 @@ export default function ExchangeRateSettingsPage() {
         const fetchData = async () => {
             const result = await getExchangeRateSettingsAction();
             if (result.success && result.settings && result.settings.rates) {
-                setRates(result.settings.rates as unknown as Rates);
+                const loadedRates = result.settings.rates as unknown as Rates;
+                
+                // Fetch live rates for auto mode currencies in parallel
+                const updatedRates = { ...loadedRates };
+                let hasUpdates = false;
+
+                await Promise.all(Object.keys(loadedRates).map(async (currency) => {
+                     // Check if it's one of our supported currencies and mode is auto
+                     if (loadedRates[currency]?.mode === 'auto') {
+                         const liveResult = await fetchLiveExchangeRateAction(currency);
+                         if (liveResult.success && liveResult.rate) {
+                             updatedRates[currency] = {
+                                 ...updatedRates[currency],
+                                 rate: liveResult.rate
+                             };
+                             hasUpdates = true;
+                         }
+                     }
+                }));
+
+                setRates(hasUpdates ? updatedRates : loadedRates);
             }
         };
         fetchData();
@@ -50,14 +70,38 @@ export default function ExchangeRateSettingsPage() {
         });
     };
 
-    const handleRateChange = (currency: string, field: keyof RateInfo, value: string | number) => {
-        setRates(prev => ({
-            ...prev,
-            [currency]: {
-                ...prev[currency],
-                [field]: value
+    const handleRateChange = async (currency: string, field: keyof RateInfo, value: string | number) => {
+        if (field === "mode" && value === "auto") {
+             setRates(prev => ({
+                ...prev,
+                [currency]: {
+                    ...prev[currency],
+                    mode: "auto"
+                }
+            }));
+            
+            // Fetch live rate
+            const result = await fetchLiveExchangeRateAction(currency);
+             if (result.success && result.rate) {
+                setRates(prev => ({
+                    ...prev,
+                    [currency]: {
+                        ...prev[currency],
+                        rate: result.rate
+                    }
+                }));
+            } else {
+                alert("실시간 환율을 가져오는데 실패했습니다.");
             }
-        }));
+        } else {
+            setRates(prev => ({
+                ...prev,
+                [currency]: {
+                    ...prev[currency],
+                    [field]: value
+                }
+            }));
+        }
     };
 
     const currencies = [
@@ -106,10 +150,12 @@ export default function ExchangeRateSettingsPage() {
                                 <td className="py-3 px-4 border-r border-gray-200">1</td>
                                 <td className="py-3 px-4 border-r border-gray-200 text-left">KRW - Won ( ₩ )</td>
                                 <td className="py-3 px-4 border-r border-gray-200">-</td>
-                                <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
-                                    <span>1 KRW =</span>
-                                    <Input value="1" disabled className="w-24 h-7 bg-gray-100 text-right" />
-                                    <span>KRW</span>
+                                <td className="py-3 px-4 border-r border-gray-200">
+                                    <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                                        <span className="w-16 text-right">1 KRW =</span>
+                                        <Input value="1" disabled className="w-24 h-7 bg-gray-100 text-right" />
+                                        <span className="w-8 text-left">KRW</span>
+                                    </div>
                                 </td>
                                 <td className="py-3 px-4 border-r border-gray-200">-</td>
                                 <td className="py-3 px-4">1</td>
@@ -138,15 +184,17 @@ export default function ExchangeRateSettingsPage() {
                                                 </SelectContent>
                                             </Select>
                                         </td>
-                                        <td className="py-3 px-4 border-r border-gray-200 flex items-center justify-center gap-2">
-                                            <span>1 {curr.code} =</span>
-                                            <Input 
-                                                value={rateInfo.rate} 
-                                                onChange={(e) => handleRateChange(curr.code, "rate", e.target.value)}
-                                                className={`w-24 h-7 text-right ${rateInfo.mode === 'auto' ? 'bg-gray-100' : ''}`}
-                                                disabled={rateInfo.mode === 'auto'}
-                                            />
-                                            <span>KRW</span>
+                                        <td className="py-3 px-4 border-r border-gray-200">
+                                            <div className="flex items-center justify-center gap-2 whitespace-nowrap">
+                                                <span className="w-16 text-right">1 {curr.code} =</span>
+                                                <Input 
+                                                    value={rateInfo.rate} 
+                                                    onChange={(e) => handleRateChange(curr.code, "rate", e.target.value)}
+                                                    className={`w-24 h-7 text-right ${rateInfo.mode === 'auto' ? 'bg-gray-100' : ''}`}
+                                                    disabled={rateInfo.mode === 'auto'}
+                                                />
+                                                <span className="text-left w-8">KRW</span>
+                                            </div>
                                         </td>
                                         <td className="py-3 px-4 border-r border-gray-200">
                                             <Input 

@@ -175,15 +175,15 @@ export default function BrandProductDisplayPage() {
                 </div>
             </div>
 
+
             {/* Selected Brand Info Section */}
-            {currentBrandId && (
-                <div>
-                    <div className="flex items-center gap-1 mb-2 mt-4">
-                        <h2 className="text-sm font-bold text-gray-800">선택된 브랜드 정보 ({currentBrandId})</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
-                    </div>
-                    
-                    <div className="border-t border-gray-300 bg-white">
+            <div>
+                <div className="flex items-center gap-1 mb-2 mt-4">
+                    <h2 className="text-sm font-bold text-gray-800">선택된 브랜드 정보 ({currentBrandId || '-'})</h2>
+                    <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
+                </div>
+                
+                <div className="border-t border-gray-300 bg-white">
                         <div className="flex text-xs text-center border-b border-gray-200">
                              <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 flex items-center justify-center gap-1 border-r border-gray-200">
                                  진열타입 <span className="text-gray-400 border border-gray-400 rounded-full w-3.5 h-3.5 flex items-center justify-center text-[9px] font-normal cursor-help">?</span>
@@ -225,18 +225,17 @@ export default function BrandProductDisplayPage() {
                         </div>
                     </div>
                 </div>
-            )}
+
 
             {/* Display Product Settings Section */}
-            {currentBrandId && (
-                <div>
+            <div>
                      <div className="flex items-center gap-1 mb-2 mt-2">
                         <h2 className="text-sm font-bold text-gray-800">진열 상품 설정</h2>
                         <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
                     </div>
                     
                     <div className="border-t-2 border-gray-400 border-b border-gray-300">
-                        <div className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px] bg-[#f1f1f1] text-xs text-center font-bold text-gray-700 h-10 items-center border-b border-gray-300">
+                        <div className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px_140px_100px_100px] bg-[#f1f1f1] text-xs text-center font-bold text-gray-700 h-10 items-center border-b border-gray-300">
                             <div className="flex justify-center"><Checkbox className="w-4 h-4 rounded-[2px]" /></div>
                             <div>진열순서</div>
                             <div>이미지</div>
@@ -244,7 +243,10 @@ export default function BrandProductDisplayPage() {
                             <div>판매가</div>
                             <div>공급사</div>
                             <div>재고</div>
-                            <div>품절</div>
+                            <div>품절상태</div>
+                            <div>등록일/수정일</div>
+                            <div>PC쇼핑몰<br/>노출상태</div>
+                            <div>모바일쇼핑몰<br/>노출상태</div>
                         </div>
                         
                         {loading ? (
@@ -258,7 +260,7 @@ export default function BrandProductDisplayPage() {
                         ) : (
                             <div>
                                 {products.map((p, idx) => (
-                                    <div key={p.id} className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px] text-xs text-center h-16 items-center border-b border-gray-200 hover:bg-gray-50 bg-white">
+                                    <div key={p.id} className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px_140px_100px_100px] text-xs text-center h-16 items-center border-b border-gray-200 hover:bg-gray-50 bg-white">
                                         <div className="flex justify-center"><Checkbox className="w-4 h-4 rounded-[2px]" /></div>
                                         <div className="text-gray-500">{idx + 1}</div>
                                         <div className="flex justify-center">
@@ -268,14 +270,20 @@ export default function BrandProductDisplayPage() {
                                         <div className="text-right px-4 font-mono">{p.price?.toLocaleString()}</div>
                                         <div className="text-gray-500">{p.supplier?.name || "본사"}</div>
                                         <div>{p.stockQuantity}</div>
-                                        <div>{p.stockQuantity <= 0 ? "품절" : "-"}</div>
+                                        <div>{p.stockQuantity <= 0 ? "품절" : "정상"}</div>
+                                        <div className="text-gray-500 text-[11px]">
+                                            2024-01-01<br/>
+                                            <span className="text-gray-400">2024-01-01</span>
+                                        </div>
+                                        <div className="flex justify-center"><div className="w-4 h-4 rounded-full border border-gray-300" /></div>
+                                        <div className="flex justify-center"><div className="w-4 h-4 rounded-full border border-gray-300" /></div>
                                     </div>
                                 ))}
                             </div>
                         )}
                     </div>
                 </div>
-            )}
+
 
             {/* Floating Actions */}
             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">

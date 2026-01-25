@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -24,8 +25,10 @@ import {
 import { CalendarIcon, Youtube, ChevronUp, Book, Plus } from "lucide-react";
 import { getOptionTemplatesAction, deleteOptionTemplatesAction, copyOptionTemplatesAction } from "@/actions/option-template-actions";
 import { format } from "date-fns";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function CommonlyUsedOptionsPage() {
+    const router = useRouter();
     // Data State
     const [data, setData] = useState<{ id: string; manageName: string; type: string; name: string; supplierName?: string | null; createdAt: Date | string; updatedAt: Date | string; }[]>([]);
     const [totalCount, setTotalCount] = useState(0);
@@ -44,6 +47,14 @@ export default function CommonlyUsedOptionsPage() {
     const [dateType, setDateType] = useState('regDate');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    
+    // Date Picker Refs
+    const startDateRef = useRef<HTMLInputElement>(null);
+    const endDateRef = useRef<HTMLInputElement>(null);
+    
+    // Supplier Popup State
+    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+    const [selectedSupplierName, setSelectedSupplierName] = useState<string>("");
     
     // Applied Filter State (Triggers fetch)
     const [appliedFilters, setAppliedFilters] = useState({
@@ -176,7 +187,11 @@ export default function CommonlyUsedOptionsPage() {
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">자주쓰는 옵션 관리</h1>
                 {/* TODO: Implement registration functionality */}
-                <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 h-9 px-4 font-medium flex items-center gap-1">
+                <Button 
+                    variant="outline" 
+                    className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 h-9 px-4 font-medium flex items-center gap-1"
+                    onClick={() => router.push('/admin/options/create')}
+                >
                     <Plus size={14} /> 옵션 등록
                 </Button>
             </div>
@@ -193,7 +208,16 @@ export default function CommonlyUsedOptionsPage() {
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
                         <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup value={supplierType} onValueChange={setSupplierType} className="flex items-center gap-4">
+                            <RadioGroup 
+                                value={supplierType} 
+                                onValueChange={(val) => {
+                                    setSupplierType(val);
+                                    if (val === 'supplier') {
+                                        setIsSupplierPopupOpen(true);
+                                    }
+                                }} 
+                                className="flex items-center gap-4"
+                            >
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="supplier-all" />
                                     <Label htmlFor="supplier-all">전체</Label>
@@ -207,9 +231,18 @@ export default function CommonlyUsedOptionsPage() {
                                     <Label htmlFor="supplier-supplier">공급사</Label>
                                 </div>
                             </RadioGroup>
-                            <Button variant="secondary" className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm">
+                            <Button 
+                                variant="secondary" 
+                                className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm"
+                                onClick={() => setIsSupplierPopupOpen(true)}
+                            >
                                 공급사 선택
                             </Button>
+                            {selectedSupplierName && (
+                                <span className="text-xs text-gray-600 font-medium">
+                                    선택된 공급사: <span className="text-blue-600">{selectedSupplierName}</span>
+                                </span>
+                            )}
                         </div>
                     </div>
 
@@ -218,11 +251,12 @@ export default function CommonlyUsedOptionsPage() {
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
                         <div className="flex-1 p-3 flex items-center gap-2">
                             <Select value={searchType} onValueChange={setSearchType}>
-                                <SelectTrigger className="w-[120px] h-8 text-xs">
+                                <SelectTrigger className="w-[140px] h-8 text-xs">
                                     <SelectValue placeholder="=통합검색=" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="integrated">=통합검색=</SelectItem>
+                                    <SelectItem value="manageName">옵션 관리명</SelectItem>
                                     <SelectItem value="name">옵션명</SelectItem>
                                 </SelectContent>
                             </Select>
@@ -271,13 +305,22 @@ export default function CommonlyUsedOptionsPage() {
                             </Select>
                             <div className="relative">
                                 <Input 
-                                    type="text" // using text to allow placeholder. In real implementation consider using a date picker component
+                                    type="text" 
                                     className="w-32 h-8 pl-2 pr-8" 
                                     value={startDate}
                                     placeholder="YYYY-MM-DD"
                                     onChange={(e) => setStartDate(e.target.value)}
                                 />
-                                <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input 
+                                    type="date" 
+                                    ref={startDateRef}
+                                    className="absolute opacity-0 w-0 h-0"
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                />
+                                <CalendarIcon 
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600" 
+                                    onClick={() => startDateRef.current?.showPicker()}
+                                />
                             </div>
                             <span className="text-gray-500">~</span>
                             <div className="relative">
@@ -288,7 +331,16 @@ export default function CommonlyUsedOptionsPage() {
                                     placeholder="YYYY-MM-DD"
                                     onChange={(e) => setEndDate(e.target.value)}
                                 />
-                                <CalendarIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                <input 
+                                    type="date" 
+                                    ref={endDateRef}
+                                    className="absolute opacity-0 w-0 h-0"
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                />
+                                <CalendarIcon 
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600" 
+                                    onClick={() => endDateRef.current?.showPicker()}
+                                />
                             </div>
                              <div className="flex gap-0.5 ml-2">
                                 {["오늘", "7일", "15일", "1개월", "3개월", "전체"].map((period) => (
@@ -319,12 +371,18 @@ export default function CommonlyUsedOptionsPage() {
                     </div>
                     <div className="flex items-center gap-2">
                         <Select defaultValue="regDesc">
-                            <SelectTrigger className="w-32 h-8 text-xs">
+                            <SelectTrigger className="w-36 h-8 text-xs">
                                 <SelectValue placeholder="등록일 ↓" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="regDesc">등록일 ↓</SelectItem>
                                 <SelectItem value="regAsc">등록일 ↑</SelectItem>
+                                <SelectItem value="modDesc">수정일 ↓</SelectItem>
+                                <SelectItem value="modAsc">수정일 ↑</SelectItem>
+                                <SelectItem value="manageNameDesc">옵션 관리명 ↓</SelectItem>
+                                <SelectItem value="manageNameAsc">옵션 관리명 ↑</SelectItem>
+                                <SelectItem value="supplierDesc">공급사 ↓</SelectItem>
+                                <SelectItem value="supplierAsc">공급사 ↑</SelectItem>
                             </SelectContent>
                         </Select>
                         <Select value={pageSize.toString()} onValueChange={(val) => { setPageSize(Number(val)); setPage(1); }}>
@@ -332,9 +390,9 @@ export default function CommonlyUsedOptionsPage() {
                                 <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="10">10개 보기</SelectItem>
-                                <SelectItem value="20">20개 보기</SelectItem>
-                                <SelectItem value="50">50개 보기</SelectItem>
+                                {[10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 200, 300, 500].map(size => (
+                                    <SelectItem key={size} value={size.toString()}>{size}개 보기</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -390,7 +448,13 @@ export default function CommonlyUsedOptionsPage() {
                                         <TableCell>{item.createdAt ? format(new Date(item.createdAt), 'yyyy-MM-dd') : '-'}</TableCell>
                                         <TableCell>{item.updatedAt ? format(new Date(item.updatedAt), 'yyyy-MM-dd') : '-'}</TableCell>
                                         <TableCell>
-                                            <Button variant="outline" className="h-6 w-[50px] text-xs px-0 rounded-sm border-gray-300">수정</Button>
+                                            <Button 
+                                                variant="outline" 
+                                                className="h-6 w-[50px] text-xs px-0 rounded-sm border-gray-300"
+                                                onClick={() => router.push(`/admin/options/${item.id}`)}
+                                            >
+                                                수정
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 ))
@@ -498,6 +562,24 @@ export default function CommonlyUsedOptionsPage() {
                     </Button>
                 </div>
             </div>
+
+            <SupplierPopup 
+                isOpen={isSupplierPopupOpen}
+                onClose={() => setIsSupplierPopupOpen(false)}
+                onConfirm={(supplier) => {
+                    if (supplier) {
+                        setSupplierType('supplier');
+                        if (Array.isArray(supplier)) {
+                            if (supplier.length > 0) {
+                                setSelectedSupplierName(supplier[0].name);
+                            }
+                        } else {
+                            setSelectedSupplierName(supplier.name);
+                        }
+                    }
+                    setIsSupplierPopupOpen(false);
+                }}
+            />
         </div>
     );
 }

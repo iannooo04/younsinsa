@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { HelpCircle, Youtube, ArrowUp, ArrowDown, Plus } from "lucide-react";
+import { HelpCircle, Youtube, ArrowUp, ArrowDown, Plus, Minus } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
+import Link from "next/link";
 import { getOrderStatusSettingsAction, updateOrderStatusSettingsAction } from "@/actions/basic-policy-actions";
 
 // Define types locally or import (ensure BenefitSettings matches backend default)
@@ -92,6 +93,27 @@ export default function OrderStatusSettingsPage() {
             [field]: value
         }));
     };
+    
+    const handleAddStatus = (group: string) => {
+        const id = Date.now().toString();
+        const key = `custom_${group}_${id}`;
+        setStatusSettings(prev => ({
+            ...prev,
+            [key]: {
+                adminName: '',
+                mallName: '',
+                use: false
+            }
+        }));
+    };
+
+    const handleRemoveStatus = (key: string) => {
+        setStatusSettings(prev => {
+            const next = { ...prev };
+            delete next[key];
+            return next;
+        });
+    };
 
     const getVal = (key: string, field: keyof StatusConfig, defaultVal: string | boolean) => {
         return statusSettings[key]?.[field] ?? defaultVal;
@@ -117,29 +139,13 @@ export default function OrderStatusSettingsPage() {
         // Logic for showing dots/checks in last 3 columns
         const showMileageGrant = benefitSettings.mileageGrant === key;
         const showCouponGrant = benefitSettings.couponGrant === key;
-        
-        // Logic for stock deduct
-        // 'stock' -> deposit_wait
-        // 'stock-pay' -> payment_complete
-        // 'stock-del' -> delivering?
         const showStockDeduct = benefitSettings.stockDeduct === key;
 
-        // Logic for Restore (simplified for Cancel/Return sections)
-        // If key is in Cancel group, show dots if restore flags are true
         const isCancelGroup = ["auto_cancel", "soldout_cancel", "admin_cancel", "customer_cancel_request"].includes(key);
         const showMileageRestore = isCancelGroup && benefitSettings.mileageRestoreCancel;
         const showCouponRestore = isCancelGroup && benefitSettings.couponRestoreCancel;
         const showStockRestore = isCancelGroup && benefitSettings.stockRestoreCancel;
 
-        // Need to render based on column structure which differs by section (Restore vs Grant)
-        // However, renderRow is generic.
-        // We can pass a 'type' to renderRow or infer from key?
-        // Or simply render all possibilities and let the parent grid hide them?
-        // Parent grid is fixed: 
-        // Col 6: Benefit Grant/Restore (Mileage)
-        // Col 7: Benefit Grant/Restore (Coupon)
-        // Col 8: Stock Deduct/Restore
-        
         return (
             <div key={key} className="border-b border-gray-200 grid grid-cols-[120px_1fr_120px_120px_60px_160px_160px_90px] text-center text-xs text-gray-600 items-center hover:bg-gray-50">
                 <div className="py-3 font-bold text-gray-800">{title}</div>
@@ -184,6 +190,68 @@ export default function OrderStatusSettingsPage() {
         );
     };
 
+    const renderCustomRow = (key: string) => {
+        const title = "추가";
+        const desc = "추가된 주문 상태입니다.";
+        const adminName = getVal(key, 'adminName', '') as string;
+        const mallName = getVal(key, 'mallName', '') as string;
+        const use = getVal(key, 'use', false) as boolean;
+        
+        return (
+            <div key={key} className="border-b border-gray-200 grid grid-cols-[120px_1fr_120px_120px_60px_160px_160px_90px] text-center text-xs text-gray-600 items-center hover:bg-gray-50">
+                <div className="py-3 px-2 font-bold text-gray-800 flex items-center justify-between">
+                    <span>{title}</span>
+                    <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600" onClick={() => handleRemoveStatus(key)}>
+                        <Minus size={10} className="mr-1"/>삭제
+                    </Button>
+                </div>
+                <div className="py-3 px-4 text-left flex items-start gap-1">
+                    <span className="w-4 h-4 flex-none bg-gray-600 text-white rounded-sm text-[10px] flex items-center justify-center font-bold">!</span>
+                    {desc}
+                </div>
+                 <div className="py-3 px-2">
+                    <Input 
+                        className="h-7 text-xs" 
+                        value={adminName} 
+                        onChange={(e) => handleConfigChange(key, 'adminName', e.target.value)} 
+                    />
+                </div>
+                <div className="py-3 px-2">
+                    <Input 
+                        className="h-7 text-xs" 
+                        value={mallName} 
+                        onChange={(e) => handleConfigChange(key, 'mallName', e.target.value)} 
+                    />
+                </div>
+                 <div className="py-3 flex justify-center">
+                    <Checkbox 
+                        className="w-4 h-4 border-gray-300"
+                        checked={use}
+                        onCheckedChange={(c) => handleConfigChange(key, 'use', c === true)}
+                    />
+                </div>
+                
+                 {/* Benefits for custom row */}
+                <div className="py-3 bg-gray-50 border-l border-r border-gray-200 h-full flex items-center justify-center">
+                    {/* Grant - Empty for order group */}
+                </div>
+                <div className="py-3 bg-gray-50 border-r border-gray-200 h-full grid grid-cols-2 items-center">
+                     {/* Deduct - Checkboxes */}
+                     <div className="flex justify-center border-r border-gray-200 h-full items-center">
+                        <Checkbox className="w-4 h-4 bg-white border-gray-300" />
+                     </div>
+                     <div className="flex justify-center h-full items-center">
+                         <Checkbox className="w-4 h-4 bg-white border-gray-300" />
+                     </div>
+                </div>
+                <div className="py-3 bg-gray-50 h-full flex items-center justify-center">
+                    {/* Stock - Radio */}
+                     {renderCustomRadio(benefitSettings.stockDeduct, key, () => handleBenefitChange('stockDeduct', key), "border-[#FF424D]", "bg-[#FF424D]")}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="p-6 space-y-8 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
@@ -193,9 +261,11 @@ export default function OrderStatusSettingsPage() {
                     <span className="text-gray-500 text-sm">주문 상태에 대한 처리 방법을 변경하거나 상태명을 변경하거나 추가를 하실 수 있습니다.</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" className="border-[#FF424D] text-[#FF424D] hover:bg-red-50 rounded-sm h-9 px-4 text-xs font-bold bg-white">
-                        <Plus size={12} className="mr-1" /> 해외몰 주문상태 관리
-                    </Button>
+                    <Link href="/admin/settings/order-status/global">
+                        <Button variant="outline" className="border-[#FF424D] text-[#FF424D] hover:bg-red-50 rounded-sm h-9 px-4 text-xs font-bold bg-white">
+                            <Plus size={12} className="mr-1" /> 해외몰 주문상태 관리
+                        </Button>
+                    </Link>
                     <Button 
                         className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-sm h-9 px-8 text-sm font-medium"
                         onClick={handleSave}
@@ -245,7 +315,7 @@ export default function OrderStatusSettingsPage() {
                     <div className="bg-blue-50/50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
                          <div className="flex items-center gap-2">
                             <span className="text-blue-500 font-bold text-xs">주문 상태 설정</span>
-                            <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600"><Plus size={10} className="mr-1"/>추가</Button>
+                            <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600" onClick={() => handleAddStatus('order')}><Plus size={10} className="mr-1"/>추가</Button>
                         </div>
                         <div className="flex">
                              {/* Grant (160px) - Empty */}
@@ -264,6 +334,10 @@ export default function OrderStatusSettingsPage() {
 
                     {/* Row: 입금대기 */}
                     {renderRow("deposit_wait", "입금대기", "주문 후 입금 전 상태로 무통장, 가상계좌, 기타가 해당됩니다.", true, 'gray', true)}
+
+                    {/* Custom Rows */}
+                    {Object.keys(statusSettings).filter(k => k.startsWith('custom_order_')).map(key => renderCustomRow(key))}
+
 
                      {/* Group 2: Payment Status */}
                     <div className="bg-gray-50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">

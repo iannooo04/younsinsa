@@ -6,10 +6,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import { HelpCircle, Youtube, ArrowUp, ArrowDown, Plus } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { getProductUsageGuideSettingsAction, updateProductUsageGuideSettingsAction } from "@/actions/basic-policy-actions";
 import { Prisma } from "@/generated/prisma";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 interface Guide {
     id: string;
@@ -32,11 +34,41 @@ export default function ProductUsageGuidePage() {
     const [keyword, setKeyword] = useState("");
     const [guideType, setGuideType] = useState("none");
 
+    const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
+    const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
+
+    useEffect(() => {
+        if (providerType !== "supplier") {
+            setSelectedSupplier(null);
+        }
+    }, [providerType]);
+
     useEffect(() => {
         const fetchData = async () => {
              const result = await getProductUsageGuideSettingsAction();
-             if (result.success && result.settings && result.settings.guides) {
+             if (result.success && result.settings && result.settings.guides && Array.isArray(result.settings.guides) && result.settings.guides.length > 0) {
                  setGuides(result.settings.guides as unknown as Guide[]);
+             } else {
+                 setGuides([
+                    {
+                        id: 'dummy-1',
+                        code: '100001',
+                        type: 'delivery',
+                        title: '기본 배송/교환/반품 안내',
+                        isDefault: true,
+                        supplier: 'hq',
+                        regDate: '2026-01-21'
+                    },
+                    {
+                        id: 'dummy-2',
+                        code: '100002',
+                        type: 'refund',
+                        title: '반품/환불 안내 (공급사)',
+                        isDefault: false,
+                        supplier: '니아인터내셔널',
+                        regDate: '2026-01-20'
+                    }
+                 ]);
              }
         };
         fetchData();
@@ -69,7 +101,7 @@ export default function ProductUsageGuidePage() {
         const newGuides = guides.filter(g => !selectedIds.includes(g.id));
         
         startTransition(async () => {
-             const result = await updateProductUsageGuideSettingsAction(newGuides as unknown as Prisma.InputJsonValue);
+             const result = await updateProductUsageGuideSettingsAction({ guides: newGuides as unknown as Prisma.InputJsonValue });
              if (result.success) {
                  setGuides(newGuides);
                  setSelectedIds([]);
@@ -84,7 +116,10 @@ export default function ProductUsageGuidePage() {
     const filteredGuides = guides.filter(guide => {
         // Provider
         if (providerType === "hq" && guide.supplier !== "hq") return false;
-        if (providerType === "supplier" && guide.supplier === "hq") return false;
+        if (providerType === "supplier") {
+            if (guide.supplier === "hq") return false;
+            if (selectedSupplier && guide.supplier !== selectedSupplier.id) return false;
+        }
 
         // Guide Type
         if (guideType !== "none" && guide.type !== guideType) return false;
@@ -121,12 +156,16 @@ export default function ProductUsageGuidePage() {
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">상품 상세 이용안내 관리</h1>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" className="border-[#FF424D] text-[#FF424D] hover:bg-red-50 rounded-sm h-9 px-4 text-xs font-bold">
-                        <Plus size={12} className="mr-1" /> 이용안내 등록 (해외몰 적용)
-                    </Button>
-                    <Button variant="outline" className="border-[#FF424D] text-[#FF424D] hover:bg-red-50 rounded-sm h-9 px-4 text-xs font-bold">
-                        <Plus size={12} className="mr-1" /> 이용안내 등록
-                    </Button>
+                    <Link href="/admin/settings/product-usage-guide/register-global">
+                        <Button variant="outline" className="border-[#FF424D] text-[#FF424D] hover:bg-red-50 rounded-sm h-9 px-4 text-xs font-bold">
+                            <Plus size={12} className="mr-1" /> 이용안내 등록 (해외몰 적용)
+                        </Button>
+                    </Link>
+                    <Link href="/admin/settings/product-usage-guide/register">
+                        <Button variant="outline" className="border-[#FF424D] text-[#FF424D] hover:bg-red-50 rounded-sm h-9 px-4 text-xs font-bold">
+                            <Plus size={12} className="mr-1" /> 이용안내 등록
+                        </Button>
+                    </Link>
                 </div>
             </div>
 
@@ -142,7 +181,14 @@ export default function ProductUsageGuidePage() {
                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
                         <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">공급사 구분</div>
                         <div className="p-3 flex items-center gap-6">
-                            <RadioGroup value={providerType} onValueChange={setProviderType} className="flex items-center gap-4">
+                            <RadioGroup 
+                                value={providerType} 
+                                onValueChange={(val) => {
+                                    setProviderType(val);
+                                    if (val === "supplier") setIsSupplierDialogOpen(true);
+                                }} 
+                                className="flex items-center gap-4"
+                            >
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="all" id="provider-all" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
                                     <Label htmlFor="provider-all" className="font-normal cursor-pointer">전체</Label>
@@ -156,8 +202,17 @@ export default function ProductUsageGuidePage() {
                                     <Label htmlFor="provider-supplier" className="font-normal cursor-pointer">공급사</Label>
                                 </div>
                             </RadioGroup>
-                            <Button disabled variant="outline" size="sm" className="h-7 text-xs bg-gray-100 text-gray-400 border-gray-300 font-normal">
-                                공급사 선택
+                            <Button 
+                                type="button"
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-7 text-xs border border-gray-300 font-normal !bg-gray-100 text-gray-600 hover:bg-gray-200"
+                                onClick={() => {
+                                    setProviderType("supplier");
+                                    setIsSupplierDialogOpen(true);
+                                }}
+                            >
+                                {selectedSupplier ? selectedSupplier.name : "공급사 선택"}
                             </Button>
                         </div>
                     </div>
@@ -168,12 +223,11 @@ export default function ProductUsageGuidePage() {
                         <div className="p-3 flex items-center gap-2">
                             <Select value={searchType} onValueChange={setSearchType}>
                                 <SelectTrigger className="w-32 h-8 rounded-sm bg-white border-gray-300">
-                                    <SelectValue />
+                                    <SelectValue placeholder="=통합검색=" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="total">=통합검색=</SelectItem>
-                                    <SelectItem value="title">제목</SelectItem>
-                                    <SelectItem value="code">코드</SelectItem>
+                                    <SelectItem value="title">이용안내 제목</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Input 
@@ -227,20 +281,33 @@ export default function ProductUsageGuidePage() {
                     <div className="flex items-center gap-2">
                         <Select defaultValue="reg_date_desc">
                             <SelectTrigger className="w-32 h-8 rounded-sm border-gray-300">
-                                <SelectValue />
+                                <SelectValue placeholder="등록일 ↑" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="reg_date_desc">등록일 ↑</SelectItem>
                                 <SelectItem value="reg_date_asc">등록일 ↓</SelectItem>
+                                <SelectItem value="title_desc">이용안내 제목 ↑</SelectItem>
+                                <SelectItem value="title_asc">이용안내 제목 ↓</SelectItem>
                             </SelectContent>
                         </Select>
                          <Select defaultValue="10">
                             <SelectTrigger className="w-32 h-8 rounded-sm border-gray-300">
-                                <SelectValue />
+                                <SelectValue placeholder="10개 보기" />
                             </SelectTrigger>
-                            <SelectContent>
+                            <SelectContent className="max-h-[300px]">
                                 <SelectItem value="10">10개 보기</SelectItem>
                                 <SelectItem value="20">20개 보기</SelectItem>
+                                <SelectItem value="30">30개 보기</SelectItem>
+                                <SelectItem value="40">40개 보기</SelectItem>
+                                <SelectItem value="50">50개 보기</SelectItem>
+                                <SelectItem value="60">60개 보기</SelectItem>
+                                <SelectItem value="70">70개 보기</SelectItem>
+                                <SelectItem value="80">80개 보기</SelectItem>
+                                <SelectItem value="90">90개 보기</SelectItem>
+                                <SelectItem value="100">100개 보기</SelectItem>
+                                <SelectItem value="200">200개 보기</SelectItem>
+                                <SelectItem value="300">300개 보기</SelectItem>
+                                <SelectItem value="500">500개 보기</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -295,9 +362,11 @@ export default function ProductUsageGuidePage() {
                                         <td className="py-3 px-4 border-r border-gray-200">{getSupplierName(guide.supplier)}</td>
                                         <td className="py-3 px-4 border-r border-gray-200">{guide.regDate}</td>
                                         <td className="py-3 px-4">
-                                             <Button size="sm" className="h-7 text-xs px-3 bg-[#A3A3A3] hover:bg-[#999999] text-white rounded-sm font-normal">
-                                                수정
-                                            </Button>
+                                            <Link href={`/admin/settings/product-usage-guide/${guide.id}`}>
+                                                <Button size="sm" className="h-7 text-xs px-3 bg-[#A3A3A3] hover:bg-[#999999] text-white rounded-sm font-normal">
+                                                    수정
+                                                </Button>
+                                            </Link>
                                         </td>
                                     </tr>
                                 ))
@@ -347,6 +416,18 @@ export default function ProductUsageGuidePage() {
                     <ArrowDown size={20} />
                 </Button>
             </div>
+            
+            <SupplierPopup 
+                isOpen={isSupplierDialogOpen} 
+                onClose={() => setIsSupplierDialogOpen(false)} 
+                onConfirm={(supplier) => {
+                    if (Array.isArray(supplier)) {
+                        setSelectedSupplier(supplier[0] || null);
+                    } else {
+                        setSelectedSupplier(supplier);
+                    }
+                }} 
+            />
         </div>
     );
 }

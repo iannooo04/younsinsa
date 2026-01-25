@@ -88,11 +88,34 @@ export default function ProductTable({ initialProducts }: Props) {
                         <option>등록일 ↓</option>
                         <option>등록일 ↑</option>
                         <option>상품명 ↓</option>
+                        <option>상품명 ↑</option>
+                        <option>판매가 ↓</option>
+                        <option>판매가 ↑</option>
+                        <option>공급사 ↓</option>
+                        <option>공급사 ↑</option>
+                        <option>제조사 ↓</option>
+                        <option>제조사 ↑</option>
+                        <option>결제 ↑</option>
+                        <option>조회 ↑</option>
+                        <option>구매율 ↑</option>
+                        <option>담기 ↑</option>
+                        <option>관심 ↑</option>
+                        <option>후기 ↑</option>
                     </select>
                     <select className="select select-bordered select-xs rounded-sm">
                         <option>10개 보기</option>
                         <option>20개 보기</option>
+                        <option>30개 보기</option>
+                        <option>40개 보기</option>
                         <option>50개 보기</option>
+                        <option>60개 보기</option>
+                        <option>70개 보기</option>
+                        <option>80개 보기</option>
+                        <option>90개 보기</option>
+                        <option>100개 보기</option>
+                        <option>200개 보기</option>
+                        <option>300개 보기</option>
+                        <option>500개 보기</option>
                     </select>
                 </div>
             </div>
