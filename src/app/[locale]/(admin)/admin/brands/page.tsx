@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
 import RecommendProductSelectPopup from "@/components/admin/RecommendProductSelectPopup";
+import DecorationEditor from "@/components/admin/DecorationEditor";
 
 interface BrandWithChildren extends Brand {
   children?: BrandWithChildren[];
@@ -1371,43 +1372,16 @@ export default function BrandManagementPage() {
                    </div>
                </div>
 
-                {/* Fake Editor */}
-                <div className="border border-gray-300">
-                    <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
-                        <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
-                        <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
-                        <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                        <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                        <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                        <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                        <File className="w-4 h-4 text-gray-600" />
-                        <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
-                            <span className="text-[10px]">사진</span>
-                        </div>
-                    </div>
-                    <div className="h-64 bg-white relative">
-                         <textarea 
-                           className="w-full h-full p-4 resize-none focus:outline-none text-xs"
-                           value={activeDecorTabs.navTop === 'pc' ? formData.htmlContents.navTopPC : formData.htmlContents.navTopMobile}
-                           onChange={(e) => {
-                               const newContents = {...formData.htmlContents};
-                               if (activeDecorTabs.navTop === 'pc') newContents.navTopPC = e.target.value;
-                               else newContents.navTopMobile = e.target.value;
-                               setFormData({...formData, htmlContents: newContents});
-                           }}
-                           placeholder="HTML 내용을 입력하세요..."
-                         />
-                         <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500 pointer-events-none">
-                            아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer pointer-events-auto">X</span>
-                         </div>
-                    </div>
-                     <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
-                        <span>Editor</span>
-                        <span className="border-l border-gray-300 pl-1 font-bold text-black underline">HTML</span>
-                        <span className="border-l border-gray-300 pl-1">TEXT</span>
-                    </div>
-                </div>
+                {/* Editor */}
+                <DecorationEditor 
+                    value={activeDecorTabs.navTop === 'pc' ? formData.htmlContents.navTopPC : formData.htmlContents.navTopMobile}
+                    onChange={(val) => {
+                        const newContents = {...formData.htmlContents};
+                        if (activeDecorTabs.navTop === 'pc') newContents.navTopPC = val;
+                        else newContents.navTopMobile = val;
+                        setFormData({...formData, htmlContents: newContents});
+                    }}
+                />
             </div>
 
              {/* Section 9: Brand Recommended Products Top Decoration */}
@@ -1437,43 +1411,17 @@ export default function BrandManagementPage() {
                     </div>
                 </div>
  
-                 {/* Fake Editor */}
-                 <div className="border border-gray-300">
-                     <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
-                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
-                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
-                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                         <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                          <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                         <File className="w-4 h-4 text-gray-600" />
-                         <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
-                             <span className="text-[10px]">사진</span>
-                         </div>
-                     </div>
-                     <div className="h-64 bg-white relative">
-                          <textarea 
-                            className="w-full h-full p-4 resize-none focus:outline-none text-xs"
-                            value={activeDecorTabs.recTop === 'pc' ? formData.htmlContents.recTopPC : formData.htmlContents.recTopMobile}
-                            onChange={(e) => {
-                                const newContents = {...formData.htmlContents};
-                                if (activeDecorTabs.recTop === 'pc') newContents.recTopPC = e.target.value;
-                                else newContents.recTopMobile = e.target.value;
-                                setFormData({...formData, htmlContents: newContents});
-                            }}
-                            placeholder="HTML 내용을 입력하세요..."
-                          />
-                          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500 pointer-events-none">
-                             아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer pointer-events-auto">X</span>
-                          </div>
-                     </div>
-                      <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
-                         <span>Editor</span>
-                         <span className="border-l border-gray-300 pl-1 font-bold text-black underline">HTML</span>
-                         <span className="border-l border-gray-300 pl-1">TEXT</span>
-                     </div>
-                 </div>
+                 {/* Editor */}
+                 <DecorationEditor 
+                    simpleToolbar
+                    value={activeDecorTabs.recTop === 'pc' ? formData.htmlContents.recTopPC : formData.htmlContents.recTopMobile}
+                    onChange={(val) => {
+                        const newContents = {...formData.htmlContents};
+                        if (activeDecorTabs.recTop === 'pc') newContents.recTopPC = val;
+                        else newContents.recTopMobile = val;
+                        setFormData({...formData, htmlContents: newContents});
+                    }}
+                 />
              </div>
 
               {/* Section 10: Brand List Top Decoration */}
@@ -1503,43 +1451,17 @@ export default function BrandManagementPage() {
                     </div>
                 </div>
  
-                 {/* Fake Editor */}
-                 <div className="border border-gray-300">
-                     <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-2 items-center text-xs overflow-x-auto">
-                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>글꼴</option></select>
-                         <select className="border border-gray-300 h-6 px-1 rounded-sm"><option>9pt</option></select>
-                         <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                         <span className="font-bold border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <span className="italic border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                         <span className="underline border border-gray-300 px-1.5 h-6 flex items-center bg-white">가</span>
-                          <div className="w-[1px] h-4 bg-gray-300 mx-1"></div>
-                         <File className="w-4 h-4 text-gray-600" />
-                         <div className="ml-auto flex items-center gap-1 border border-gray-300 px-2 h-6 bg-white cursor-pointer">
-                             <span className="text-[10px]">사진</span>
-                         </div>
-                     </div>
-                     <div className="h-64 bg-white relative">
-                          <textarea 
-                            className="w-full h-full p-4 resize-none focus:outline-none text-xs"
-                            value={activeDecorTabs.listTop === 'pc' ? formData.htmlContents.listTopPC : formData.htmlContents.listTopMobile}
-                            onChange={(e) => {
-                                const newContents = {...formData.htmlContents};
-                                if (activeDecorTabs.listTop === 'pc') newContents.listTopPC = e.target.value;
-                                else newContents.listTopMobile = e.target.value;
-                                setFormData({...formData, htmlContents: newContents});
-                            }}
-                            placeholder="HTML 내용을 입력하세요..."
-                          />
-                          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-200 flex items-center justify-center text-[10px] text-gray-500 pointer-events-none">
-                             아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <span className="ml-auto mr-2 cursor-pointer pointer-events-auto">X</span>
-                          </div>
-                     </div>
-                      <div className="flex items-center justify-end bg-gray-50 border-t border-gray-300 px-2 py-1 gap-1 text-[10px] text-gray-600">
-                         <span>Editor</span>
-                         <span className="border-l border-gray-300 pl-1 font-bold text-black underline">HTML</span>
-                         <span className="border-l border-gray-300 pl-1">TEXT</span>
-                     </div>
-                 </div>
+                 {/* Editor */}
+                 <DecorationEditor 
+                    simpleToolbar
+                    value={activeDecorTabs.listTop === 'pc' ? formData.htmlContents.listTopPC : formData.htmlContents.listTopMobile}
+                    onChange={(val) => {
+                        const newContents = {...formData.htmlContents};
+                        if (activeDecorTabs.listTop === 'pc') newContents.listTopPC = val;
+                        else newContents.listTopMobile = val;
+                        setFormData({...formData, htmlContents: newContents});
+                    }}
+                 />
              </div>
 
             {/* Section 11: SEO Settings */}

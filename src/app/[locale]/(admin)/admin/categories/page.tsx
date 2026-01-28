@@ -11,8 +11,7 @@ import {
   Play,
   File,
   ChevronDown,
-  Lock,
-  X // Import X
+  Lock
 } from "lucide-react";
 import React, { useEffect, useState, useTransition, useRef, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -26,6 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
 import RecommendProductSelectPopup from "@/components/admin/RecommendProductSelectPopup";
+import DecorationEditor from "@/components/admin/DecorationEditor";
 
 interface CategoryWithChildren extends Category {
     children?: CategoryWithChildren[];
@@ -1188,38 +1188,7 @@ export default function CategoryManagementPage() {
                           </label>
                       </div>
                       <div className="p-2">
-                          {/* Mock HTML Editor Toolbar */}
-                          <div className="border border-gray-300 bg-gray-50 p-1 flex items-center gap-1 flex-wrap mb-2">
-                              <select className="h-6 text-xs border border-gray-300 rounded-sm"><option>굴림</option></select>
-                              <select className="h-6 text-xs border border-gray-300 rounded-sm"><option>9pt</option></select>
-                              <div className="h-4 w-[1px] bg-gray-300 mx-1"></div>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 font-bold">B</Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 italic">I</Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 underline">U</Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 line-through">S</Button>
-                              <div className="h-4 w-[1px] bg-gray-300 mx-1"></div>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-xs">Left</Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-xs">Center</Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-xs">Right</Button>
-                              <div className="h-4 w-[1px] bg-gray-300 mx-1"></div>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-xs">Link</Button>
-                              <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-xs">Img</Button>
-                              <Button variant="ghost" size="sm" className="h-6 px-1 ml-auto text-xs bg-white border border-gray-300 flex items-center gap-1"><span className="w-3 h-3 bg-gray-400 rounded-full"></span> 사진</Button>
-                          </div>
-                          {/* Editor Area */}
-                          <div className="border border-gray-300 min-h-[300px] relative bg-white">
-                              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-300 flex items-center justify-center text-[10px] text-gray-500 cursor-ns-resize">
-                                  아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <X className="w-3 h-3 ml-auto mr-2 cursor-pointer" />
-                              </div>
-                              <div className="absolute bottom-[-24px] right-0 flex border border-gray-300 bg-white">
-                                  <div className="px-2 py-0.5 text-[10px] border-r border-gray-300 bg-gray-50">Editor</div>
-                                  <div className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</div>
-                                  <div className="px-2 py-0.5 text-[10px]">TEXT</div>
-                              </div>
-                          </div>
-                          <div className="mt-8 text-center text-[10px] text-gray-400 border-t border-gray-200 cursor-ns-resize">
-                              ▴ 입력창 크기 조절
-                          </div>
+                           <DecorationEditor />
                       </div>
                   </div>
               )}
@@ -1251,27 +1220,7 @@ export default function CategoryManagementPage() {
                           </label>
                       </div>
                       <div className="p-2">
-                          {/* Mock HTML Editor Toolbar - Simplified */}
-                          <div className="border border-gray-300 bg-gray-50 p-1 flex items-center gap-1 flex-wrap mb-2">
-                              <select className="h-6 text-xs border border-gray-300 rounded-sm"><option>굴림</option></select>
-                              <select className="h-6 text-xs border border-gray-300 rounded-sm"><option>9pt</option></select>
-                               {/* ... (Repeat layout) */}
-                               <div className="flex-1"></div>
-                               <Button variant="ghost" size="sm" className="h-6 px-1 text-xs bg-white border border-gray-300 flex items-center gap-1"><span className="w-3 h-3 bg-gray-400 rounded-full"></span> 사진</Button>
-                          </div>
-                           <div className="border border-gray-300 min-h-[300px] relative bg-white">
-                              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-300 flex items-center justify-center text-[10px] text-gray-500 cursor-ns-resize">
-                                  아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <X className="w-3 h-3 ml-auto mr-2 cursor-pointer" />
-                              </div>
-                               <div className="absolute bottom-[-24px] right-0 flex border border-gray-300 bg-white">
-                                  <div className="px-2 py-0.5 text-[10px] border-r border-gray-300 bg-gray-50">Editor</div>
-                                  <div className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</div>
-                                  <div className="px-2 py-0.5 text-[10px]">TEXT</div>
-                              </div>
-                          </div>
-                          <div className="mt-8 text-center text-[10px] text-gray-400 border-t border-gray-200 cursor-ns-resize">
-                              ▴ 입력창 크기 조절
-                          </div>
+                           <DecorationEditor simpleToolbar />
                       </div>
                   </div>
               )}
@@ -1303,25 +1252,7 @@ export default function CategoryManagementPage() {
                           </label>
                       </div>
                       <div className="p-2">
-                           <div className="border border-gray-300 bg-gray-50 p-1 flex items-center gap-1 flex-wrap mb-2">
-                              <select className="h-6 text-xs border border-gray-300 rounded-sm"><option>굴림</option></select>
-                              <select className="h-6 text-xs border border-gray-300 rounded-sm"><option>9pt</option></select>
-                              <div className="flex-1"></div>
-                              <Button variant="ghost" size="sm" className="h-6 px-1 text-xs bg-white border border-gray-300 flex items-center gap-1"><span className="w-3 h-3 bg-gray-400 rounded-full"></span> 사진</Button>
-                          </div>
-                           <div className="border border-gray-300 min-h-[300px] relative bg-white">
-                              <div className="absolute bottom-0 left-0 right-0 h-6 bg-gray-100 border-t border-gray-300 flex items-center justify-center text-[10px] text-gray-500 cursor-ns-resize">
-                                  아래 영역을 드래그하여 입력창 크기를 조절할 수 있습니다. <X className="w-3 h-3 ml-auto mr-2 cursor-pointer" />
-                              </div>
-                               <div className="absolute bottom-[-24px] right-0 flex border border-gray-300 bg-white">
-                                  <div className="px-2 py-0.5 text-[10px] border-r border-gray-300 bg-gray-50">Editor</div>
-                                  <div className="px-2 py-0.5 text-[10px] border-r border-gray-300">HTML</div>
-                                  <div className="px-2 py-0.5 text-[10px]">TEXT</div>
-                              </div>
-                          </div>
-                          <div className="mt-8 text-center text-[10px] text-gray-400 border-t border-gray-200 cursor-ns-resize">
-                              ▴ 입력창 크기 조절
-                          </div>
+                           <DecorationEditor simpleToolbar />
                       </div>
                   </div>
               )}

@@ -40,7 +40,6 @@ export async function updateMemberGradeSettingsAction(data: Partial<MemberGradeS
      if (!policy) return { success: false, error: "기본 정책이 없습니다." };
 
      // Exclude id and basicPolicyId from data if present to avoid update errors
-     // eslint-disable-next-line @typescript-eslint/no-unused-vars
      const { id: _id, basicPolicyId: _basicPolicyId, ...updateData } = data;
 
      await prisma.memberGradeSettings.upsert({
@@ -175,7 +174,6 @@ export async function updateGradeEvaluationAction(data: {
 
         // 1. Update Settings
         // Exclude id and basicPolicyId from settings update to be safe
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { id: _settingsId, basicPolicyId: _basicPolicyId, ...settingsUpdate } = settings;
         
         await prisma.memberGradeSettings.update({

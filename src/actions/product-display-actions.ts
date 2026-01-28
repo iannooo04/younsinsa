@@ -8,9 +8,7 @@ export type MainPageDisplayGroupWithProducts = Prisma.MainPageDisplayGroupGetPay
 
 // --- Fetch Main Page Display Groups ---
 export async function getMainPageDisplayGroupsAction(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _page: number = 1,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _pageSize: number = 10,
     searchParams?: {
         mallType?: string; // 'PC' | 'MOBILE' | 'ALL'

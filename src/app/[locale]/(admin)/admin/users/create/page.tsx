@@ -89,7 +89,52 @@ export default function MemberCreatePage() {
             });
         }
     });
+
+    // Load Daum Postcode script
+    const script = document.createElement("script");
+    script.src = "//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js";
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      if (document.body.contains(script)) {
+        document.body.removeChild(script);
+      }
+    };
   }, []);
+
+  const handleAddressSearch = () => {
+    if (!(window as any).daum || !(window as any).daum.Postcode) {
+      alert("주소 서비스가 준비 중입니다. 잠시 후 다시 시도해주세요.");
+      return;
+    }
+    
+    new (window as any).daum.Postcode({
+      oncomplete: function(data: any) {
+        let fullAddress = data.address;
+        let extraAddress = "";
+
+        if (data.addressType === "R") {
+          if (data.bname !== "") {
+            extraAddress += data.bname;
+          }
+          if (data.buildingName !== "") {
+            extraAddress += extraAddress !== "" ? `, ${data.buildingName}` : data.buildingName;
+          }
+          fullAddress += extraAddress !== "" ? ` (${extraAddress})` : "";
+        }
+
+        setFormData(prev => ({
+          ...prev,
+          zipcode: data.zonecode,
+          address: fullAddress
+        }));
+        
+        // Focus on detail address
+        const detailInput = document.getElementById("address-detail") as HTMLInputElement;
+        if (detailInput) detailInput.focus();
+      },
+    }).open();
+  };
 
   const handleChange = (key: string, value: any) => {
       setFormData(prev => ({ ...prev, [key]: value }));
@@ -211,21 +256,21 @@ export default function MemberCreatePage() {
 
         <div className="border-t border-gray-400 border-b border-gray-200">
              {/* Member Type */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     회원구분 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
-                <div className="flex-1 p-3 flex items-center gap-6">
+                <div className="p-3 flex items-center gap-6">
                     <RadioGroup 
                         value={formData.memberType} 
                         onValueChange={(v) => handleChange('memberType', v)}
                         className="flex items-center gap-6"
                     >
-                         <div className="flex items-center gap-1.5">
+                         <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="PERSONAL" id="type-personal" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="type-personal" className="text-gray-700 font-normal cursor-pointer text-xs">개인회원</Label>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="BUSINESS" id="type-business" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="type-business" className="text-gray-700 font-normal cursor-pointer text-xs">사업자회원</Label>
                         </div>
@@ -234,36 +279,38 @@ export default function MemberCreatePage() {
             </div>
 
              {/* Grade / Approval */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr_160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     등급 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
-                <div className="flex-1 p-3 border-r border-gray-200">
+                <div className="p-3 border-r border-gray-200">
                     <Select value={formData.gradeId} onValueChange={(v) => handleChange('gradeId', v)}>
                         <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300 bg-white">
-                            <SelectValue placeholder="등급 선택" />
+                            <SelectValue placeholder="등급선택" />
                         </SelectTrigger>
                         <SelectContent>
-                            {grades.map(g => (
+                            <SelectItem value="select">등급선택</SelectItem>
+                            <SelectItem value="general">일반회원</SelectItem>
+                            {grades.filter(g => g.name !== '일반회원').map(g => (
                                 <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
                 </div>
-                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+                 <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     승인
                 </div>
-                <div className="flex-1 p-3 flex items-center gap-6">
+                <div className="p-3 flex items-center gap-6">
                      <RadioGroup 
                         value={formData.isApproved} 
                         onValueChange={(v) => handleChange('isApproved', v)}
                         className="flex items-center gap-6"
                      >
-                         <div className="flex items-center gap-1.5">
+                         <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="approved" id="status-approved" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="status-approved" className="text-gray-700 font-normal cursor-pointer text-xs">승인</Label>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="pending" id="status-pending" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="status-pending" className="text-gray-700 font-normal cursor-pointer text-xs">미승인</Label>
                         </div>
@@ -272,59 +319,59 @@ export default function MemberCreatePage() {
             </div>
 
              {/* ID / Nickname */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr_160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     <span className="text-red-500 mr-1">*</span> 아이디
                 </div>
-                <div className="flex-1 p-3 border-r border-gray-200 flex items-center gap-1">
+                <div className="p-3 border-r border-gray-200 flex items-center gap-2">
                     <Input 
                         value={formData.username}
                         onChange={(e) => handleChange('username', e.target.value)}
-                        className="w-48 h-7 border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10 text-xs" 
+                        className="w-32 h-7 border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10 text-xs" 
                     />
                     <Button 
                         onClick={() => checkDuplicate('username')}
                         variant="secondary" 
-                        className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]"
+                        className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
                     >
                         중복확인
                     </Button>
                 </div>
-                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+                 <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     닉네임
                 </div>
-                <div className="flex-1 p-3 flex items-center gap-1">
+                <div className="p-3 flex items-center gap-2">
                      <Input 
                         value={formData.nickname}
                         onChange={(e) => handleChange('nickname', e.target.value)}
-                        className="w-48 h-7 border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10 text-xs" 
+                        className="w-32 h-7 border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10 text-xs" 
                      />
                     <Button 
                         onClick={() => checkDuplicate('nickname')}
                         variant="secondary" 
-                        className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]"
+                        className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
                     >
                         중복확인
                     </Button>
                 </div>
             </div>
 
-            {/* Name / Password */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             {/* Name / Password */}
+             <div className="grid grid-cols-[160px_1fr_160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     <span className="text-red-500 mr-1">*</span> 이름
                 </div>
-                <div className="flex-1 p-3 border-r border-gray-200">
+                <div className="p-3 border-r border-gray-200">
                     <Input 
                         value={formData.name}
                         onChange={(e) => handleChange('name', e.target.value)}
                         className="w-48 h-7 border-gray-300 text-xs" 
                     />
                 </div>
-                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+                 <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     <span className="text-red-500 mr-1">*</span> 비밀번호
                 </div>
-                <div className="flex-1 p-3">
+                <div className="p-3">
                      <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-1">
                             <Input 
@@ -351,7 +398,7 @@ export default function MemberCreatePage() {
                                 비밀번호가 일치하지 않습니다.
                             </p>
                         )}
-                        <p className="text-[11px] text-red-500 mt-1">
+                        <p className="text-[11px] text-red-500 mt-1 leading-tight">
                             <span className="inline-block bg-red-500 text-white w-3 h-3 text-[9px] text-center leading-3 rounded-[2px] mr-1">!</span>
                             영문대문자/영문소문자/숫자/특수문자 중 2개 이상 포함, 10~16자리 이하
                         </p>
@@ -359,23 +406,23 @@ export default function MemberCreatePage() {
                 </div>
             </div>
 
-            {/* Email */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             {/* Email */}
+             <div className="grid grid-cols-[160px_1fr_160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     이메일
                 </div>
-                <div className="flex-[2] p-3 border-r border-gray-200">
+                <div className="p-3 border-r border-gray-200">
                     <div className="flex items-center gap-1 mb-2">
                         <Input 
                             value={formData.emailId}
                             onChange={(e) => handleChange('emailId', e.target.value)}
-                            className="w-32 h-7 border-gray-300 text-xs" 
+                            className="w-24 h-7 border-gray-300 text-xs" 
                         />
                         <span className="text-gray-500">@</span>
                          <Input 
                             value={formData.emailDomain}
                             onChange={(e) => handleChange('emailDomain', e.target.value)}
-                            className="w-32 h-7 border-red-300 bg-red-50/10 text-xs" 
+                            className="w-24 h-7 border-red-300 bg-red-50/10 text-xs" 
                          />
                          <Select 
                             value={formData.emailDomainSelect} 
@@ -386,15 +433,18 @@ export default function MemberCreatePage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="direct">직접입력</SelectItem>
-                                <SelectItem value="naver.com">naver.com</SelectItem>
-                                <SelectItem value="gmail.com">gmail.com</SelectItem>
+                                <SelectItem value="hanmail.net">hanmail.net</SelectItem>
                                 <SelectItem value="daum.net">daum.net</SelectItem>
+                                <SelectItem value="nate.com">nate.com</SelectItem>
+                                <SelectItem value="hotmail.com">hotmail.com</SelectItem>
+                                <SelectItem value="gmail.com">gmail.com</SelectItem>
+                                <SelectItem value="icloud.com">icloud.com</SelectItem>
                             </SelectContent>
                         </Select>
                         <Button 
                             onClick={() => checkDuplicate('email')}
                             variant="secondary" 
-                            className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]"
+                            className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
                         >
                             중복확인
                         </Button>
@@ -413,26 +463,26 @@ export default function MemberCreatePage() {
                          수신동의설정 안내메일의 자동발송여부에 따라 회원정보의 수신동의설정 변경 시 해당 회원에게 안내메일이 자동 발송됩니다.
                     </p>
                 </div>
-                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+                 <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     이메일<br/>수신동의/거부일
                 </div>
-                <div className="flex-1 p-3 flex items-center text-gray-600">
+                <div className="p-3 flex items-center text-gray-600">
                     거부 : -
                 </div>
             </div>
 
              {/* Mobile - Added Input */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr_160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     휴대폰번호
                 </div>
-                <div className="flex-[2] p-3 border-r border-gray-200">
+                <div className="p-3 border-r border-gray-200">
                      <div className="mb-2 h-7 flex gap-1 items-center">
                          <Select 
                             value={formData.mobile1}
                             onValueChange={(v) => handleChange('mobile1', v)}
                          >
-                            <SelectTrigger className="w-16 h-7 text-xs border-gray-300">
+                            <SelectTrigger className="w-16 h-7 text-xs border-gray-300 bg-white">
                                 <SelectValue placeholder="010"/>
                             </SelectTrigger>
                             <SelectContent>
@@ -470,30 +520,36 @@ export default function MemberCreatePage() {
                          수신동의설정 안내메일의 자동발송여부에 따라 회원정보의 수신동의설정 변경 시 해당 회원에게 SMS가 자동 발송됩니다.
                     </p>
                 </div>
-                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+                 <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     SMS<br/>수신동의/거부일
                 </div>
-                <div className="flex-1 p-3 flex items-center text-gray-600">
+                <div className="p-3 flex items-center text-gray-600">
                     거부 : -
                 </div>
             </div>
 
-            {/* Address */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             {/* Address */}
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     주소
                 </div>
-                <div className="flex-1 p-3">
+                <div className="p-3">
                      <div className="flex items-center gap-1 mb-2">
                         <Input 
                             value={formData.zipcode}
                             onChange={(e) => handleChange('zipcode', e.target.value)}
-                            className="w-24 h-7 border-gray-300 text-xs" 
+                            className="w-20 h-7 border-gray-300 text-xs" 
                             placeholder="우편번호"
                         />
-                        <Button variant="secondary" className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]">우편번호찾기</Button>
+                        <Button 
+                            onClick={handleAddressSearch}
+                            variant="secondary" 
+                            className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
+                        >
+                            우편번호찾기
+                        </Button>
                      </div>
-                     <div className="flex items-center gap-1">
+                     <div className="flex items-center gap-1 flex-wrap">
                         <Input 
                             value={formData.address}
                             onChange={(e) => handleChange('address', e.target.value)}
@@ -501,6 +557,7 @@ export default function MemberCreatePage() {
                             placeholder="기본주소"
                         />
                         <Input 
+                            id="address-detail"
                             value={formData.addressDetail}
                             onChange={(e) => handleChange('addressDetail', e.target.value)}
                             className="w-[300px] h-7 border-gray-300 text-xs" 
@@ -650,40 +707,40 @@ export default function MemberCreatePage() {
             </div>
 
              {/* Recommender */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr_160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     추천인아이디 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
-                <div className="flex-1 p-3 border-r border-gray-200 flex items-center gap-1">
+                <div className="p-3 border-r border-gray-200 flex items-center gap-2">
                      <Input 
                         value={formData.recommenderId}
                         onChange={(e) => handleChange('recommenderId', e.target.value)}
-                        className="w-48 h-7 border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10 text-xs" 
+                        className="w-32 h-7 border-red-300 focus:border-red-500 focus:ring-red-200 bg-red-50/10 text-xs" 
                      />
                      <Button 
                         onClick={checkRecommender}
                         variant="secondary" 
-                        className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]"
+                        className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
                     >
                         확인
                     </Button>
                 </div>
-                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+                 <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     추천받은횟수
                 </div>
-                <div className="flex-1 p-3 text-gray-600">
+                <div className="p-3 text-gray-600">
                      0회
                 </div>
             </div>
 
-            {/* Interests */}
-            <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             {/* Interests */}
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     관심분야 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
-                <div className="flex-1 p-3 grid grid-cols-5 gap-y-2">
+                <div className="p-3 grid grid-cols-5 gap-y-2">
                      {["화장품/향수/미용품", "컴퓨터/SW", "의류/패션잡화", "생활/주방용품", "보석/시계/악세사리", "가전/카메라", "서적/음반/비디오"].map((item, idx) => (
-                        <div key={idx} className="flex items-center gap-1.5">
+                        <div key={idx} className="flex items-center gap-1.5 shrink-0">
                             <Checkbox 
                                 id={`interest-${idx}`} 
                                 checked={formData.interests.includes(item)}
@@ -697,29 +754,29 @@ export default function MemberCreatePage() {
             </div>
 
              {/* Retention Period */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     개인정보유효기간 <br /> <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
-                <div className="flex-1 p-3 flex items-center gap-6">
+                <div className="p-3 flex items-center gap-6">
                     <RadioGroup 
                         value={formData.retentionPeriod}
                         onValueChange={(v) => handleChange('retentionPeriod', v)}
                         className="flex items-center gap-6"
                     >
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="1y" id="retain-1" className="border-red-500 text-red-500 focus:ring-red-500" />
                             <Label htmlFor="retain-1" className="text-gray-700 font-normal cursor-pointer text-xs">1년</Label>
                         </div>
-                         <div className="flex items-center gap-1.5">
+                         <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="3y" id="retain-3" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="retain-3" className="text-gray-700 font-normal cursor-pointer text-xs">3년</Label>
                         </div>
-                         <div className="flex items-center gap-1.5">
+                         <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="5y" id="retain-5" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="retain-5" className="text-gray-700 font-normal cursor-pointer text-xs">5년</Label>
                         </div>
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center gap-1.5 shrink-0">
                             <RadioGroupItem value="withdrawal" id="retain-until" className="border-gray-300 text-gray-600" />
                             <Label htmlFor="retain-until" className="text-gray-700 font-normal cursor-pointer text-xs">탈퇴 시</Label>
                         </div>
@@ -728,15 +785,15 @@ export default function MemberCreatePage() {
             </div>
 
              {/* Memo */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     남기는 말씀
                 </div>
-                <div className="flex-1 p-3">
+                <div className="p-3">
                      <Textarea 
                         value={formData.userMemo}
                         onChange={(e) => handleChange('userMemo', e.target.value)}
-                        className="w-full h-32 resize-none border-gray-300 text-xs" 
+                        className="w-full h-32 resize-none border-gray-300 text-xs shadow-none focus:ring-1 focus:ring-gray-200" 
                      />
                 </div>
             </div>
@@ -751,27 +808,27 @@ export default function MemberCreatePage() {
         </div>
 
         <div className="border-t border-gray-400 border-b border-gray-200">
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     개인정보<br/>수집·이용
                 </div>
-                <div className="flex-1 p-3 text-gray-600">
+                <div className="p-3 text-gray-600">
                     사용안함
                 </div>
             </div>
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     개인정보 취급위탁
                 </div>
-                <div className="flex-1 p-3 text-gray-600">
+                <div className="p-3 text-gray-600">
                     사용안함
                 </div>
             </div>
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center">
+             <div className="grid grid-cols-[160px_1fr] border-b border-gray-200">
+                <div className="bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center shrink-0 border-r border-gray-200">
                     개인정보<br/>제3자 제공
                 </div>
-                <div className="flex-1 p-3 text-gray-600">
+                <div className="p-3 text-gray-600">
                     사용안함
                 </div>
             </div>

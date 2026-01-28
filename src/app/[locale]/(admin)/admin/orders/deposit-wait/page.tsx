@@ -304,7 +304,7 @@ export default function DepositWaitListPage() {
       <div className="flex justify-between items-center bg-[#F9F9F9] p-2 border border-gray-300 border-b-0">
           <div className="flex items-center gap-1 text-xs">
               <Check className="w-3 h-3 text-red-500 mr-1" strokeWidth={4} />
-              <span className="font-bold text-gray-600 mr-1">선택한 주문을</span>
+              <span className="font-bold text-gray-600 mr-1 whitespace-nowrap flex-shrink-0 w-max">선택한 주문을</span>
               <Select defaultValue="status">
                   <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300 bg-white">
                       <SelectValue placeholder="=주문상태=" />
@@ -417,7 +417,7 @@ export default function DepositWaitListPage() {
       <div className="flex justify-between items-center bg-[#F9F9F9] p-2 border border-gray-300 mb-4">
           <div className="flex items-center gap-1 text-xs">
               <Check className="w-3 h-3 text-red-500 mr-1" strokeWidth={4} />
-              <span className="font-bold text-gray-600 mr-1">선택한 주문을</span>
+              <span className="font-bold text-gray-600 mr-1 whitespace-nowrap flex-shrink-0 w-max">선택한 주문을</span>
               {/* ... Same as top ... */}
               <Select defaultValue="status">
                   <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300 bg-white">

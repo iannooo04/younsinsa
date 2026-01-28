@@ -16,6 +16,7 @@ import {
     executeOrderDeleteAction 
 } from "@/actions/order-actions";
 import { format } from "date-fns";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 interface OrderDeleteRequest {
     id: string;
@@ -31,6 +32,7 @@ export default function OrderDeleteHistoryPage() {
   const [requests, setRequests] = useState<OrderDeleteRequest[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [page] = useState(1);
   const [limit] = useState(20);
@@ -147,7 +149,11 @@ export default function OrderDeleteHistoryPage() {
                     예외 공급사 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
                 </div>
                 <div className="flex-1 pl-4 flex items-center h-full">
-                        <Button variant="secondary" className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2">
+                        <Button 
+                            variant="secondary" 
+                            className="h-6 text-[11px] !bg-gray-600 !text-white hover:!bg-gray-700 rounded-sm px-2"
+                            onClick={() => setIsSupplierPopupOpen(true)}
+                        >
                             공급사 선택
                         </Button>
                 </div>
@@ -308,6 +314,15 @@ export default function OrderDeleteHistoryPage() {
             </div>
         </div>
 
+
+      <SupplierPopup
+        isOpen={isSupplierPopupOpen}
+        onClose={() => setIsSupplierPopupOpen(false)}
+        onConfirm={(selected) => {
+            console.log("Selected supplier:", selected);
+            // Handle selection logic in the future
+        }}
+      />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useTransition, useCallback } from "react";
+import React, { useState, useEffect, useTransition, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,11 +15,16 @@ import {
   Youtube,
   ChevronUp,
   BookOpen,
-  AlertCircle
+  AlertCircle,
+  Calendar
 } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import * as XLSX from "xlsx";
 import { uploadInvoiceExcelAction, getInvoiceUploadHistoryAction } from "@/actions/order-actions";
 import { format } from "date-fns";
+
+import DeliveryCompanyCodePopup from "@/components/admin/DeliveryCompanyCodePopup";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 interface InvoiceRow {
     orderNo: string;
@@ -42,6 +47,14 @@ interface UploadHistoryItem {
 
 export default function InvoiceBulkPage() {
   const [file, setFile] = useState<File | null>(null);
+
+  const [startDate, setStartDate] = useState<Date>(new Date("2026-01-22"));
+  const [endDate, setEndDate] = useState<Date>(new Date("2026-01-28"));
+  const startDateInputRef = useRef<HTMLInputElement>(null);
+  const endDateInputRef = useRef<HTMLInputElement>(null);
+
+  const [isDeliveryCompanyPopupOpen, setIsDeliveryCompanyPopupOpen] = useState(false);
+  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [isUploading, startTransition] = useTransition();
   const [, setUploadResult] = useState<{
     success: boolean;
@@ -143,7 +156,7 @@ export default function InvoiceBulkPage() {
               <div className="flex items-center gap-2 mb-2">
                  <div className="flex items-center">
                     <span className="w-32 font-bold text-gray-700">송장 엑셀파일 등록</span>
-                    <Button variant="secondary" size="sm" className="h-7 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2 mr-4">
+                    <Button size="sm" className="h-7 text-[11px] !bg-gray-600 !text-white hover:!bg-gray-700 rounded-sm px-3 mr-4">
                         샘플파일보기
                     </Button>
                  </div>
@@ -187,7 +200,11 @@ export default function InvoiceBulkPage() {
            <div className="border border-gray-300 p-4 bg-white">
                 <div className="flex items-center gap-2 mb-3">
                     <span className="font-bold text-gray-700">송장일괄등록 방법</span>
-                     <Button variant="secondary" size="sm" className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2">
+                     <Button 
+                        size="sm" 
+                        className="h-7 text-[11px] !bg-gray-600 !text-white hover:!bg-gray-700 rounded-sm px-3"
+                        onClick={() => setIsDeliveryCompanyPopupOpen(true)}
+                     >
                         배송업체번호 보기
                     </Button>
                 </div>
@@ -201,7 +218,7 @@ export default function InvoiceBulkPage() {
       </div>
 
       {/* History Search Section */}
-      <div className="border-t-2 border-gray-500 border-b border-gray-200 mb-8 border-l border-r">
+        <div className="border-t-2 border-gray-500 border-b border-gray-200 mb-8 border-l border-r border-[#CDCDCD]">
         {/* Search Header */}
         <div className="flex items-center justify-between p-3 border-b border-gray-200 bg-[#FBFBFB]">
            <div className="flex items-center gap-2">
@@ -211,16 +228,159 @@ export default function InvoiceBulkPage() {
         </div>
 
         <div className="p-0">
-             {/* Registration Date Search */}
-             <div className="flex items-center text-xs">
-                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    최근 등록 내역
+             {/* Supplier Type */}
+             <div className="flex text-xs border-b border-gray-200 min-h-[44px]">
+                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 whitespace-nowrap">
+                    공급사 구분
+                </div>
+                <div className="flex-1 p-3 flex items-center gap-4">
+                     <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="all" id="supplier-all" />
+                            <label htmlFor="supplier-all" className="cursor-pointer">전체</label>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="main" id="supplier-main" />
+                            <label htmlFor="supplier-main" className="cursor-pointer">본사</label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="supplier" id="supplier-specific" />
+                            <label htmlFor="supplier-specific" className="cursor-pointer">공급사</label>
+                        </div>
+                    </RadioGroup>
+                    <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="h-6 text-[11px] !bg-gray-600 !text-white hover:!bg-gray-700 rounded-none px-2"
+                        onClick={() => setIsSupplierPopupOpen(true)}
+                    >
+                         공급사 선택
+                    </Button>
+                </div>
+            </div>
+
+            {/* Keyword & Status */}
+            <div className="flex text-xs border-b border-gray-200 min-h-[44px]">
+                 <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 whitespace-nowrap">
+                    검색어
+                </div>
+                 <div className="flex flex-1">
+                    <div className="p-2 flex items-center gap-1 border-r border-gray-200 flex-grow max-w-[50%]">
+                        <Select defaultValue="all">
+                            <SelectTrigger className="w-28 h-7 text-[11px]">
+                                <SelectValue placeholder="=통합검색=" />
+                            </SelectTrigger>
+                             <SelectContent>
+                                <SelectItem value="all">=통합검색=</SelectItem>
+                                <SelectItem value="registrant_name">등록자명</SelectItem>
+                                <SelectItem value="registrant_id">등록자아이디</SelectItem>
+                            </SelectContent>
+                        </Select>
+                         <Select defaultValue="exact">
+                            <SelectTrigger className="w-28 h-7 text-[11px]">
+                                <SelectValue placeholder="검색어 전체일치" />
+                            </SelectTrigger>
+                             <SelectContent>
+                                <SelectItem value="exact">검색어 전체일치</SelectItem>
+                                <SelectItem value="partial">검색어 부분포함</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input className="h-7 w-64 text-[11px]" placeholder="검색어 전체를 정확히 입력하세요." />
+                    </div>
+                     <div className="flex items-center flex-grow">
+                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 whitespace-nowrap h-full">
+                            등록상태
+                        </div>
+                        <div className="p-3 pl-4">
+                            <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="all" id="status-all" />
+                                    <label htmlFor="status-all" className="cursor-pointer">전체</label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="success" id="status-success" />
+                                    <label htmlFor="status-success" className="cursor-pointer">성공</label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="fail" id="status-fail" />
+                                    <label htmlFor="status-fail" className="cursor-pointer">실패</label>
+                                </div>
+                                 <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="status_fail" id="status-status-fail" />
+                                    <label htmlFor="status-status-fail" className="cursor-pointer">주문상태변경실패</label>
+                                </div>
+                            </RadioGroup>
+                        </div>
+                     </div>
+                 </div>
+            </div>
+
+             {/* Registration Date */}
+             <div className="flex text-xs min-h-[44px]">
+                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 whitespace-nowrap">
+                    등록일 검색
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-2">
-                    <span className="text-gray-500">최근에 등록한 송장 등록 내역입니다.</span>
+                    <div className="flex items-center gap-1">
+                        <div className="relative">
+                            <Input 
+                                className="w-32 h-7 text-[11px] pl-2 pr-8 cursor-pointer" 
+                                value={format(startDate, "yyyy. MM. dd.")}
+                                readOnly
+                                onClick={() => startDateInputRef.current?.showPicker()}
+                            />
+                            <Calendar 
+                                className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer pointer-events-none" 
+                            />
+                            <input 
+                                type="date" 
+                                ref={startDateInputRef}
+                                className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                value={format(startDate, "yyyy-MM-dd")}
+                                onChange={(e) => {
+                                    if(e.target.value) setStartDate(new Date(e.target.value));
+                                }}
+                            />
+                        </div>
+                        <span className="text-gray-400">~</span>
+                        <div className="relative">
+                            <Input 
+                                className="w-32 h-7 text-[11px] pl-2 pr-8 cursor-pointer" 
+                                value={format(endDate, "yyyy. MM. dd.")}
+                                readOnly
+                                onClick={() => endDateInputRef.current?.showPicker()}
+                            />
+                            <Calendar 
+                                className="w-3 h-3 text-gray-400 absolute right-2 top-1/2 -translate-y-1/2 cursor-pointer pointer-events-none" 
+                            />
+                            <input 
+                                type="date" 
+                                ref={endDateInputRef}
+                                className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                                value={format(endDate, "yyyy-MM-dd")}
+                                onChange={(e) => {
+                                    if(e.target.value) setEndDate(new Date(e.target.value));
+                                }}
+                            />
+                        </div>
+                    </div>
+                    <div className="flex items-center border border-gray-300 rounded-sm overflow-hidden ml-2">
+                        <button className="px-3 py-1 h-7 bg-white hover:bg-gray-50 text-[11px] border-r border-gray-300 transition-colors">오늘</button>
+                        <button className="px-3 py-1 h-7 bg-white hover:bg-gray-50 text-[11px] border-r border-gray-300 transition-colors">7일</button>
+                        <button className="px-3 py-1 h-7 bg-white hover:bg-gray-50 text-[11px] border-r border-gray-300 transition-colors">15일</button>
+                        <button className="px-3 py-1 h-7 bg-white hover:bg-gray-50 text-[11px] border-r border-gray-300 transition-colors">1개월</button>
+                        <button className="px-3 py-1 h-7 bg-white hover:bg-gray-50 text-[11px] border-r border-gray-300 transition-colors">3개월</button>
+                        <button className="px-3 py-1 h-7 bg-white hover:bg-gray-50 text-[11px] transition-colors">1년</button>
+                    </div>
                 </div>
             </div>
         </div>
+      </div>
+      
+      <div className="flex justify-center mb-10">
+          <Button className="w-24 h-10 bg-[#555555] hover:bg-[#444444] text-white font-bold rounded-sm">
+              검색
+          </Button>
       </div>
 
        {/* List Header */}
@@ -240,7 +400,19 @@ export default function InvoiceBulkPage() {
                         <SelectValue placeholder="20개 보기" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="10">10개 보기</SelectItem>
                         <SelectItem value="20">20개 보기</SelectItem>
+                        <SelectItem value="30">30개 보기</SelectItem>
+                        <SelectItem value="40">40개 보기</SelectItem>
+                        <SelectItem value="50">50개 보기</SelectItem>
+                        <SelectItem value="60">60개 보기</SelectItem>
+                        <SelectItem value="70">70개 보기</SelectItem>
+                        <SelectItem value="80">80개 보기</SelectItem>
+                        <SelectItem value="90">90개 보기</SelectItem>
+                        <SelectItem value="100">100개 보기</SelectItem>
+                        <SelectItem value="200">200개 보기</SelectItem>
+                        <SelectItem value="300">300개 보기</SelectItem>
+                        <SelectItem value="500">500개 보기</SelectItem>
                     </SelectContent>
                 </Select>
           </div>
@@ -354,6 +526,18 @@ export default function InvoiceBulkPage() {
             </div>
         </div>
 
+      <DeliveryCompanyCodePopup 
+        isOpen={isDeliveryCompanyPopupOpen} 
+        onClose={() => setIsDeliveryCompanyPopupOpen(false)} 
+      />
+      <SupplierPopup
+        isOpen={isSupplierPopupOpen}
+        onClose={() => setIsSupplierPopupOpen(false)}
+        onConfirm={(selected) => {
+            console.log("Selected supplier:", selected);
+            // Handle selection logic here if needed in the future
+        }}
+      />
     </div>
   );
 }

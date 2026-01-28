@@ -21,11 +21,11 @@ export default function SearchSettingSavePopup({ isOpen, onClose, onConfirm }: P
                 <div className="text-sm text-gray-700 space-y-4 mb-8">
                     <p>
                         현재 설정된 검색조건을 저장하시겠습니까? 저장 후 기본 검색설정으로 사용됩니다.<br/>
-                        <span className="text-gray-500">(직접 입력한 검색어와 조회기간은 저장되지 않습니다.)</span>
+                        기간검색의 “기간검색 기준“과 “날짜범위“는 저장되나, 직접 입력한 검색어와 조회기간은 저장되지 않습니다.
                     </p>
                     <p>
-                        검색결과의 &quot;정렬조건&quot;과 &quot;페이지당 출력수 설정&quot;(20개 보기 권장)도 같이 저장되며,<br/>
-                        <span className="text-red-600">출력수가 많을 경우 리스트 접근 시, 부하문제로 페이지로딩이 오래 걸릴 수 있습니다.</span>
+                        검색결과의 “정렬조건”과 “페이지당 출력수 설정”(20개 보기 권장)도 같이 저장되며,<br/>
+                        <span className="text-red-500">출력수가 많을 경우 리스트 접근 시, 부하문제로 페이지로딩이 오래 걸릴 수 있습니다.</span>
                     </p>
                 </div>
 

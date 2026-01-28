@@ -210,7 +210,6 @@ export async function copyProductsAction(ids: string[], targetCategoryId?: strin
             
             // Exclude ID and unique fields
             // Exclude ID and unique fields
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { id: _id, code: _code, createdAt: _createdAt, updatedAt: _updatedAt, ...productData } = p;
 
             // Handle JSON fields and ensure correct types for creation

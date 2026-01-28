@@ -47,7 +47,7 @@ export default function MemberGradeSelectPopup({ isOpen, onClose, onConfirm }: P
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
             <div className="bg-white rounded-sm w-[600px] shadow-lg max-h-[90vh] flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-900">

@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/ui-table";
 import { CalendarIcon, ChevronUp, ChevronDown, ChevronsUp, ChevronsDown } from "lucide-react";
+import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function ProductSelectionPage() {
     const router = useRouter();
@@ -23,7 +24,9 @@ export default function ProductSelectionPage() {
     const [endDate, setEndDate] = useState('');
     const startDateRef = useRef<HTMLInputElement>(null);
     const endDateRef = useRef<HTMLInputElement>(null);
+
     const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
+    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
 
     // Detailed Search State
     const [isCategoryUnspecified, setIsCategoryUnspecified] = useState(false);
@@ -85,7 +88,7 @@ export default function ProductSelectionPage() {
                                         <Label htmlFor="supp-supplier">공급사</Label>
                                     </div>
                                 </RadioGroup>
-                                <Button variant="outline" className="h-6 text-xs bg-gray-300 text-white border-0 hover:bg-gray-400">공급사 선택</Button>
+                                <Button size="sm" className="h-6 text-xs bg-[#A4A4A4] text-white hover:bg-[#888888] border-0 rounded-sm" onClick={() => setIsSupplierPopupOpen(true)}>공급사 선택</Button>
                              </div>
                         </div>
 
@@ -555,6 +558,15 @@ export default function ProductSelectionPage() {
                 <Button variant="outline" className="w-24 border-gray-300 text-gray-700 bg-white" onClick={() => window.close()}>취소</Button>
                 <Button className="w-24 bg-[#555] hover:bg-[#444] text-white font-bold">선택완료</Button>
             </div>
+            
+            <SupplierPopup
+                isOpen={isSupplierPopupOpen}
+                onClose={() => setIsSupplierPopupOpen(false)}
+                onConfirm={(selected) => {
+                    console.log("Selected supplier:", selected);
+                    setIsSupplierPopupOpen(false);
+                }}
+            />
         </div>
     );
 }

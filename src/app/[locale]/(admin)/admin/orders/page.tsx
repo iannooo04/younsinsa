@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { getOrdersAction } from "@/actions/order-actions";
 import type { OrderStatus } from "@/generated/prisma";
 import { format } from "date-fns";
@@ -18,7 +19,6 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Calendar,
   Youtube,
   ChevronUp,
   FileSpreadsheet,
@@ -26,6 +26,12 @@ import {
   RefreshCcw,
   Printer
 } from "lucide-react";
+import SupplierPopup from "@/components/admin/SupplierPopup";
+import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
+import BrandPopup from "@/components/admin/BrandPopup";
+import SearchConditionChangePopup from "@/components/admin/SearchConditionChangePopup";
+import SearchConfigPopup from "@/components/admin/SearchConfigPopup";
+import SearchSettingSavePopup from "@/components/admin/SearchSettingSavePopup";
 
 interface OrderItem {
     id: string;
@@ -51,9 +57,22 @@ interface OrderListItem {
 export default function OrderIntegratedListPage() {
   const [isDetailSearchOpen, setIsDetailSearchOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("주문통합리스트");
+  const [viewType, setViewType] = useState<"order" | "product_order">("order");
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+  const [isMemberGradePopupOpen, setIsMemberGradePopupOpen] = useState(false);
+  const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
+  const [isSearchConditionPopupOpen, setIsSearchConditionPopupOpen] = useState(false);
+  const [isSearchConfigPopupOpen, setIsSearchConfigPopupOpen] = useState(false);
+  const [isSearchSettingSavePopupOpen, setIsSearchSettingSavePopupOpen] = useState(false);
+  const [isMultiSearchMode, setIsMultiSearchMode] = useState(false);
+  const [multiSearchItems, setMultiSearchItems] = useState([{ id: 0, type: "order_no", value: "" }]);
+  const [supplierType, setSupplierType] = useState("all");
+  
+  const startDateRef = useRef<HTMLInputElement>(null);
+  const endDateRef = useRef<HTMLInputElement>(null);
 
   // Filter States
   const [page, setPage] = useState(1);
@@ -151,12 +170,14 @@ export default function OrderIntegratedListPage() {
             <h1 className="text-2xl font-bold text-gray-900">{activeTab}</h1>
             <span className="text-gray-500 text-xs mb-1">{getDescription(activeTab)}</span>
         </div>
-        <Button
-          variant="outline"
-          className="text-red-500 border-red-500 hover:bg-red-50 font-bold h-9 px-4 rounded-sm"
-        >
-          + 수기주문 등록
-        </Button>
+        <Link href="/admin/orders/manual">
+          <Button
+            variant="outline"
+            className="text-red-500 border-red-500 hover:bg-red-50 font-bold h-9 px-4 rounded-sm"
+          >
+            + 수기주문 등록
+          </Button>
+        </Link>
       </div>
 
       {/* Search Section */}
@@ -168,11 +189,21 @@ export default function OrderIntegratedListPage() {
                <HelpCircle className="w-4 h-4 text-gray-400" />
            </div>
            <div className="flex gap-1">
-                <Button variant="outline" size="sm" className="h-7 text-[11px] bg-white border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center gap-1 rounded-sm">
+                <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="h-7 text-[11px] bg-white border-gray-300 text-gray-700 hover:bg-gray-50 flex items-center gap-1 rounded-sm"
+                    onClick={() => setIsSearchConditionPopupOpen(true)}
+                >
                     <RefreshCcw className="w-3 h-3" />
                     검색조건 변환
                 </Button>
-                <Button variant="default" size="sm" className="h-7 text-[11px] bg-[#555555] text-white hover:bg-[#444444] rounded-sm">
+                <Button
+                    variant="default" 
+                    size="sm" 
+                    className="h-7 text-[11px] bg-[#555555] text-white hover:bg-[#444444] rounded-sm"
+                    onClick={() => setIsSearchSettingSavePopupOpen(true)}
+                >
                     검색설정저장
                 </Button>
            </div>
@@ -214,7 +245,16 @@ export default function OrderIntegratedListPage() {
                     공급사 구분
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup defaultValue="all" className="flex gap-4">
+                     <RadioGroup 
+                        value={supplierType} 
+                        onValueChange={(value) => {
+                            setSupplierType(value);
+                            if (value === "provider") {
+                                setIsSupplierPopupOpen(true);
+                            }
+                        }}
+                        className="flex gap-4"
+                     >
                             <div className="flex items-center gap-1.5">
                                 <RadioGroupItem value="all" id="supplier-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                                 <Label htmlFor="supplier-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
@@ -228,7 +268,10 @@ export default function OrderIntegratedListPage() {
                                 <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
                             </div>
                         </RadioGroup>
-                        <Button variant="secondary" className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2">
+                        <Button 
+                            onClick={() => setIsSupplierPopupOpen(true)}
+                            className="h-7 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2"
+                        >
                             공급사 선택
                         </Button>
                 </div>
@@ -240,25 +283,114 @@ export default function OrderIntegratedListPage() {
                     검색어
                 </div>
                 <div className="flex-1 p-3 flex gap-2">
-                    <Select value={searchType} onValueChange={setSearchType}>
-                        <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300">
-                            <SelectValue placeholder="주문번호" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="order_no">주문번호</SelectItem>
-                            <SelectItem value="orderer_name">주문자명</SelectItem>
-                            <SelectItem value="orderer_mobile">주문자휴대폰</SelectItem>
-                            <SelectItem value="recipient_name">수령자명</SelectItem>
-                            <SelectItem value="product_name">상품명</SelectItem>
-                        </SelectContent>
-                    </Select>
-                     <Input 
-                        className="w-[400px] h-7 border-gray-300" 
-                        placeholder="검색어 전체를 정확히 입력하세요." 
-                        value={keyword}
-                        onChange={(e) => setKeyword(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                    />
+                    {isMultiSearchMode ? (
+                        <div className="flex gap-2 w-full">
+                            {multiSearchItems.map((item, index) => (
+                                <div key={item.id} className="flex flex-col gap-2 flex-1 min-w-0">
+                                    <div className="flex items-center gap-1">
+                                        <Select 
+                                            value={item.type} 
+                                            onValueChange={(val) => {
+                                                const newItems = [...multiSearchItems];
+                                                newItems[index].type = val;
+                                                setMultiSearchItems(newItems);
+                                            }}
+                                        >
+                                            <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300">
+                                                <SelectValue placeholder="주문번호" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="order_no">주문번호</SelectItem>
+                                                <SelectItem value="invoice_no">송장번호</SelectItem>
+                                                <SelectItem value="depositor_name">입금자명</SelectItem>
+                                                <SelectItem value="member_id">아이디</SelectItem>
+                                                <SelectItem value="member_nickname">닉네임</SelectItem>
+                                                <SelectItem value="sep1" disabled>==========</SelectItem>
+                                                <SelectItem value="orderer_name">주문자명</SelectItem>
+                                                <SelectItem value="orderer_phone">주문자 전화번호</SelectItem>
+                                                <SelectItem value="orderer_mobile">주문자 휴대전화</SelectItem>
+                                                <SelectItem value="orderer_email">주문자 이메일</SelectItem>
+                                                <SelectItem value="recipient_name">수령자명</SelectItem>
+                                                <SelectItem value="recipient_phone">수령자 전화번호</SelectItem>
+                                                <SelectItem value="recipient_mobile">수령자 휴대전화</SelectItem>
+                                                <SelectItem value="sep2" disabled>==========</SelectItem>
+                                                <SelectItem value="supplier_name">공급사명</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        {index === 0 ? (
+                                             <Button 
+                                                size="sm" 
+                                                className="h-7 text-[11px] bg-[#3d4bb5] text-white hover:bg-[#2e3a94] rounded-sm px-2 border border-[#2e3a94] shadow-sm"
+                                                onClick={() => setMultiSearchItems([...multiSearchItems, { id: Date.now(), type: "order_no", value: "" }])}
+                                            >
+                                                추가
+                                            </Button>
+                                        ) : (
+                                            <Button 
+                                                size="sm" 
+                                                variant="outline"
+                                                className="h-7 text-[11px] bg-white text-gray-600 hover:bg-gray-50 rounded-sm px-2 border-gray-300"
+                                                onClick={() => {
+                                                    const newItems = multiSearchItems.filter((_, i) => i !== index);
+                                                    setMultiSearchItems(newItems);
+                                                }}
+                                            >
+                                                삭제
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <textarea 
+                                        className="w-full h-20 border border-gray-300 p-2 text-xs focus:outline-none focus:border-gray-500 resize-none rounded-sm"
+                                        placeholder="Enter 또는 ','로 구분하여 최대 10개까지 복수 검색이 가능합니다."
+                                        value={item.value}
+                                        onChange={(e) => {
+                                             const newItems = [...multiSearchItems];
+                                             newItems[index].value = e.target.value;
+                                             setMultiSearchItems(newItems);
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <>
+                        <Select value={searchType} onValueChange={setSearchType}>
+                            <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300">
+                                <SelectValue placeholder="주문번호" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="order_no">주문번호</SelectItem>
+                                <SelectItem value="invoice_no">송장번호</SelectItem>
+                                <SelectItem value="product_name">상품명</SelectItem>
+                                <SelectItem value="product_code">상품코드</SelectItem>
+                                <SelectItem value="own_product_code">자체 상품코드</SelectItem>
+                                <SelectItem value="model_name">상품모델명</SelectItem>
+                                <SelectItem value="manufacturer">제조사</SelectItem>
+                                <SelectItem value="sep1" disabled>==========</SelectItem>
+                                <SelectItem value="orderer_name">주문자명</SelectItem>
+                                <SelectItem value="orderer_phone">주문자 전화번호</SelectItem>
+                                <SelectItem value="orderer_mobile">주문자 휴대전화</SelectItem>
+                                <SelectItem value="orderer_email">주문자 이메일</SelectItem>
+                                <SelectItem value="recipient_name">수령자명</SelectItem>
+                                <SelectItem value="recipient_phone">수령자 전화번호</SelectItem>
+                                <SelectItem value="recipient_mobile">수령자 휴대전화</SelectItem>
+                                <SelectItem value="depositor_name">입금자명</SelectItem>
+                                <SelectItem value="sep2" disabled>==========</SelectItem>
+                                <SelectItem value="member_id">아이디</SelectItem>
+                                <SelectItem value="member_nickname">닉네임</SelectItem>
+                                <SelectItem value="sep3" disabled>==========</SelectItem>
+                                <SelectItem value="supplier_name">공급사명</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Input 
+                            className="w-[400px] h-7 border-gray-300" 
+                            placeholder="검색어 전체를 정확히 입력하세요." 
+                            value={keyword}
+                            onChange={(e) => setKeyword(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                        />
+                        </>
+                    )}
                 </div>
             </div>
 
@@ -274,24 +406,41 @@ export default function OrderIntegratedListPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="order_date">주문일</SelectItem>
+                            <SelectItem value="payment_confirm_date">결제확인일</SelectItem>
+                            <SelectItem value="invoice_input_date">송장입력일</SelectItem>
+                            <SelectItem value="shipping_date">배송일</SelectItem>
+                            <SelectItem value="delivery_complete_date">배송완료일</SelectItem>
+                            <SelectItem value="purchase_confirm_date">구매확정일</SelectItem>
+                            <SelectItem value="cancel_complete_date">취소완료일</SelectItem>
+                            <SelectItem value="return_request_date">반품접수일</SelectItem>
+                            <SelectItem value="return_complete_date">반품완료일</SelectItem>
+                            <SelectItem value="exchange_request_date">교환접수일</SelectItem>
+                            <SelectItem value="exchange_complete_date">교환완료일</SelectItem>
+                            <SelectItem value="refund_request_date">환불접수일</SelectItem>
+                            <SelectItem value="refund_complete_date">환불완료일</SelectItem>
+                            <SelectItem value="bundle_shipping">묶음배송</SelectItem>
                         </SelectContent>
                     </Select>
                      <div className="flex items-center gap-1">
                         <Input 
+                            type="date"
+                            ref={startDateRef}
                             className="w-28 h-7 text-center border-gray-300" 
                             value={startDate}
                             onChange={(e) => setStartDate(e.target.value)}
                         />
-                        <Calendar className="w-4 h-4 text-gray-500" />
+
                     </div>
                     <span>~</span>
                     <div className="flex items-center gap-1">
                         <Input 
+                            type="date"
+                            ref={endDateRef}
                             className="w-28 h-7 text-center border-gray-300" 
                             value={endDate}
                             onChange={(e) => setEndDate(e.target.value)}
                         />
-                        <Calendar className="w-4 h-4 text-gray-500" />
+
                     </div>
                     <div className="flex items-center gap-0.5 ml-1">
                         <Button variant="outline" size="sm" onClick={() => {
@@ -322,13 +471,422 @@ export default function OrderIntegratedListPage() {
                 </div>
             </div>
 
-            {/* Expand Detailed Search */}
+            {isDetailSearchOpen && (
+                <div className="border-t border-gray-200">
+                    {/* Order Type & Channel */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                            주문유형 <HelpCircle className="w-3 h-3 text-gray-400 ml-1" />
+                        </div>
+                        <div className="flex-1 p-3 flex items-center gap-12 text-xs">
+                            <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="order-type-all" className="rounded-[2px] border-red-500 text-red-500" defaultChecked />
+                                    <Label htmlFor="order-type-all" className="font-normal cursor-pointer">전체</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="order-type-pc" className="rounded-[2px] border-gray-300" />
+                                    <Label htmlFor="order-type-pc" className="font-normal cursor-pointer">PC쇼핑몰</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="order-type-mobile" className="rounded-[2px] border-gray-300" />
+                                    <Label htmlFor="order-type-mobile" className="font-normal cursor-pointer">모바일쇼핑몰</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5 text-gray-500">
+                                    ( <Checkbox id="order-type-web" className="rounded-[2px] border-gray-300" /> <Label htmlFor="order-type-web" className="font-normal cursor-pointer">WEB</Label>
+                                      <Checkbox id="order-type-app" className="rounded-[2px] border-gray-300 ml-2" /> <Label htmlFor="order-type-app" className="font-normal cursor-pointer">APP</Label> )
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="order-type-manual" className="rounded-[2px] border-gray-300" />
+                                    <Label htmlFor="order-type-manual" className="font-normal cursor-pointer">수기주문</Label>
+                                </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-4 border-l border-gray-200 pl-8">
+                                <div className="font-bold w-24">주문채널구분</div>
+                                <div className="flex items-center gap-4">
+                                     <div className="flex items-center gap-1.5">
+                                        <Checkbox id="channel-all" className="rounded-[2px] border-red-500 text-red-500" defaultChecked />
+                                        <Label htmlFor="channel-all" className="font-normal cursor-pointer">전체</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Checkbox id="channel-mall" className="rounded-[2px] border-gray-300" />
+                                        <Label htmlFor="channel-mall" className="font-normal cursor-pointer">쇼핑몰</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Checkbox id="channel-payco" className="rounded-[2px] border-gray-300 bg-red-500 text-white border-none" checked />
+                                        <Label htmlFor="channel-payco" className="font-normal cursor-pointer">페이코</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Checkbox id="channel-naver" className="rounded-[2px] border-gray-300 bg-green-500 text-white border-none" checked />
+                                        <Label htmlFor="channel-naver" className="font-normal cursor-pointer">네이버페이</Label>
+                                    </div>
+                                     <div className="flex items-center gap-1.5">
+                                        <Checkbox id="channel-etc" className="rounded-[2px] border-gray-300 bg-gray-400 text-white border-none" checked />
+                                        <Label htmlFor="channel-etc" className="font-normal cursor-pointer">기타</Label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Payment Method */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                            결제수단
+                        </div>
+                        <div className="flex-1 p-3 flex flex-col gap-2 text-xs">
+                             <div className="flex items-center gap-1.5 mb-1">
+                                <Checkbox id="pay-all" className="rounded-[2px] border-red-500 text-red-500" defaultChecked />
+                                <Label htmlFor="pay-all" className="font-normal cursor-pointer">전체</Label>
+                             </div>
+                             <div className="grid grid-cols-4 gap-y-2 gap-x-8">
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-card" className="rounded-[2px] border-gray-300 border-none bg-pink-100 text-pink-600" />
+                                    <span className="w-4 h-4 rounded-[2px] bg-red-100 text-red-500 flex items-center justify-center text-[9px] font-bold">신</span>
+                                    <Label htmlFor="pay-card" className="font-normal cursor-pointer">신용카드</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-bank" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-yellow-100 text-yellow-600 flex items-center justify-center text-[9px] font-bold">무</span>
+                                    <Label htmlFor="pay-bank" className="font-normal cursor-pointer">무통장 입금</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-discount" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-red-500 text-white flex items-center justify-center text-[9px] font-bold">전</span>
+                                    <Label htmlFor="pay-discount" className="font-normal cursor-pointer">전액할인</Label>
+                                </div>
+                                 <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-mileage" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-blue-500 text-white flex items-center justify-center text-[9px] font-bold">마</span>
+                                    <Label htmlFor="pay-mileage" className="font-normal cursor-pointer">마일리지</Label>
+                                </div>
+                                 <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-deposit" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-green-500 text-white flex items-center justify-center text-[9px] font-bold">예</span>
+                                    <Label htmlFor="pay-deposit" className="font-normal cursor-pointer">예치금</Label>
+                                </div>
+                                
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-escrow" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-purple-500 text-white flex items-center justify-center text-[9px] font-bold">계</span>
+                                    <Label htmlFor="pay-escrow" className="font-normal cursor-pointer">계좌이체 (에스크로)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-virtual-escrow" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">계</span>
+                                    <Label htmlFor="pay-virtual-escrow" className="font-normal cursor-pointer">계좌이체</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-virtual" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-yellow-500 text-white flex items-center justify-center text-[9px] font-bold">가</span>
+                                    <Label htmlFor="pay-virtual" className="font-normal cursor-pointer">가상계좌</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-phone" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-orange-500 text-white flex items-center justify-center text-[9px] font-bold">휴</span>
+                                    <Label htmlFor="pay-phone" className="font-normal cursor-pointer">휴대폰결제</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-card-escrow" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-purple-100 text-purple-600 flex items-center justify-center text-[9px] font-bold">신</span>
+                                    <Label htmlFor="pay-card-escrow" className="font-normal cursor-pointer">신용카드 (에스크로)</Label>
+                                </div>
+
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-phone-simple" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">휴</span>
+                                    <Label htmlFor="pay-phone-simple" className="font-normal cursor-pointer">휴대폰 (간편결제)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-virtual-simple" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-purple-500 text-white flex items-center justify-center text-[9px] font-bold">가</span>
+                                    <Label htmlFor="pay-virtual-simple" className="font-normal cursor-pointer">가상계좌 (에스크로)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-card-simple" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">신</span>
+                                    <Label htmlFor="pay-card-simple" className="font-normal cursor-pointer">신용카드 (간편결제)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-transfer-simple" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">계</span>
+                                    <Label htmlFor="pay-transfer-simple" className="font-normal cursor-pointer">계좌이체 (간편결제)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-virtual-simple2" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">가</span>
+                                    <Label htmlFor="pay-virtual-simple2" className="font-normal cursor-pointer">가상계좌 (간편결제)</Label>
+                                </div>
+                                 <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-naver" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-green-500 text-white flex items-center justify-center text-[9px] font-bold">네</span>
+                                    <Label htmlFor="pay-naver" className="font-normal cursor-pointer">네이버페이 (간편결제)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-point" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">포</span>
+                                    <Label htmlFor="pay-point" className="font-normal cursor-pointer">포인트 (간편결제)</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="pay-etc" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-gray-400 text-white flex items-center justify-center text-[9px] font-bold">기</span>
+                                    <Label htmlFor="pay-etc" className="font-normal cursor-pointer">기타</Label>
+                                </div>
+                             </div>
+                        </div>
+                    </div>
+
+                     {/* Invoice No */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                            송장번호
+                        </div>
+                         <div className="flex-1 p-3 flex items-center gap-4 text-xs">
+                             <Select>
+                                <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300 bg-white">
+                                    <SelectValue placeholder="=배송 업체=" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default">=배송 업체=</SelectItem>
+                                    <SelectItem value="post">우체국택배</SelectItem>
+                                    <SelectItem value="ems">우체국EMS</SelectItem>
+                                    <SelectItem value="dhl">DHL</SelectItem>
+                                    <SelectItem value="fedex">FEDEX</SelectItem>
+                                    <SelectItem value="ups">UPS</SelectItem>
+                                    <SelectItem value="other_parcel">기타 택배</SelectItem>
+                                    <SelectItem value="registered">등기, 소포</SelectItem>
+                                    <SelectItem value="freight">화물배송</SelectItem>
+                                    <SelectItem value="pickup">방문수령</SelectItem>
+                                    <SelectItem value="quick">퀵배송</SelectItem>
+                                    <SelectItem value="other">기타</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                                <div className="flex items-center gap-1.5">
+                                    <RadioGroupItem value="all" id="invoice-all" className="border-red-500 text-red-500" />
+                                    <Label htmlFor="invoice-all" className="font-normal cursor-pointer">전체</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <RadioGroupItem value="registered" id="invoice-registered" className="border-gray-300" />
+                                    <Label htmlFor="invoice-registered" className="font-normal cursor-pointer">송장번호 등록</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <RadioGroupItem value="unregistered" id="invoice-unregistered" className="border-gray-300" />
+                                    <Label htmlFor="invoice-unregistered" className="font-normal cursor-pointer">송장번호 미등록</Label>
+                                </div>
+                            </RadioGroup>
+                         </div>
+                    </div>
+
+                    {/* Member Info & Delivery Info */}
+                    <div className="flex border-b border-gray-200">
+                         <div className="w-1/2 flex border-r border-gray-200">
+                            <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                회원정보
+                            </div>
+                             <div className="flex-1 p-3 flex items-center gap-4 text-xs">
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="member-first" className="rounded-[2px] border-gray-300" />
+                                    <Label htmlFor="member-first" className="font-normal cursor-pointer">첫주문</Label>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Checkbox id="member-withdrawn" className="rounded-[2px] border-red-500 text-red-500" checked />
+                                    <Label htmlFor="member-withdrawn" className="font-normal cursor-pointer">탈퇴회원 주문</Label>
+                                </div>
+                             </div>
+                         </div>
+                         <div className="w-1/2 flex">
+                            <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                배송정보
+                            </div>
+                             <div className="flex-1 p-3 flex flex-col gap-2 text-xs">
+                                 <div className="flex items-center gap-4">
+                                      <div className="flex items-center gap-1.5">
+                                        <Checkbox id="delivery-gift" className="rounded-[2px] border-gray-300" />
+                                        <Label htmlFor="delivery-gift" className="font-normal cursor-pointer">사은품 포함</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Checkbox id="delivery-msg" className="rounded-[2px] border-gray-300" />
+                                        <Label htmlFor="delivery-msg" className="font-normal cursor-pointer">배송메세지 입력</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <Checkbox id="delivery-memo" className="rounded-[2px] border-gray-300" />
+                                        <Label htmlFor="delivery-memo" className="font-normal cursor-pointer">관리자메모 입력</Label>
+                                    </div>
+                                 </div>
+                                 <Select>
+                                    <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300 bg-white">
+                                        <SelectValue placeholder="=메모 구분=" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="default">=메모 구분=</SelectItem>
+                                        <SelectItem value="receipt">접수</SelectItem>
+                                        <SelectItem value="complete">완료</SelectItem>
+                                        <SelectItem value="deposit">입금</SelectItem>
+                                        <SelectItem value="delivery">배송</SelectItem>
+                                        <SelectItem value="soldout">품절</SelectItem>
+                                        <SelectItem value="exchange">교환</SelectItem>
+                                        <SelectItem value="return">반품</SelectItem>
+                                        <SelectItem value="refund">환불</SelectItem>
+                                        <SelectItem value="as">A/S</SelectItem>
+                                        <SelectItem value="other">기타</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                             </div>
+                         </div>
+                    </div>
+
+                    {/* Member Search & Payment Amount */}
+                     <div className="flex border-b border-gray-200">
+                         <div className="w-1/2 flex border-r border-gray-200">
+                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                회원검색
+                            </div>
+                             <div className="flex-1 p-3 flex items-center gap-4 text-xs">
+                                 <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                                     <div className="flex items-center gap-1.5">
+                                        <RadioGroupItem value="all" id="mem-search-all" className="border-red-500 text-red-500" />
+                                        <Label htmlFor="mem-search-all" className="font-normal cursor-pointer">전체</Label>
+                                    </div>
+                                     <div className="flex items-center gap-1.5">
+                                        <RadioGroupItem value="non-member" id="mem-search-non" className="border-gray-300" />
+                                        <Label htmlFor="mem-search-non" className="font-normal cursor-pointer">비회원</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <RadioGroupItem value="member" id="mem-search-mem" className="border-gray-300" />
+                                        <Label htmlFor="mem-search-mem" className="font-normal cursor-pointer">회원</Label>
+                                    </div>
+                                    <Button 
+                                        size="sm" 
+                                        className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2"
+                                        onClick={() => setIsMemberGradePopupOpen(true)}
+                                    >
+                                        회원등급 선택
+                                    </Button>
+                                 </RadioGroup>
+                             </div>
+                         </div>
+                          <div className="w-1/2 flex">
+                            <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                결제금액
+                            </div>
+                             <div className="flex-1 p-3 flex items-center gap-2 text-xs">
+                                <Input className="w-32 h-7 border-gray-300" />
+                                <span>원 ~</span>
+                                <Input className="w-32 h-7 border-gray-300" />
+                                <span>원</span>
+                             </div>
+                         </div>
+                     </div>
+
+                    {/* Receipt Request */}
+                    <div className="flex border-b border-gray-200">
+                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                            영수증 신청
+                        </div>
+                         <div className="flex-1 p-3 flex items-center gap-4 text-xs">
+                              <RadioGroup defaultValue="all" className="flex items-center gap-4">
+                                     <div className="flex items-center gap-1.5">
+                                        <RadioGroupItem value="all" id="receipt-all" className="border-red-500 text-red-500" />
+                                        <Label htmlFor="receipt-all" className="font-normal cursor-pointer">전체</Label>
+                                    </div>
+                                     <div className="flex items-center gap-1.5">
+                                        <RadioGroupItem value="cash" id="receipt-cash" className="border-gray-300" />
+                                         <span className="w-4 h-4 rounded-[2px] bg-green-500 text-white flex items-center justify-center text-[9px] font-bold">현</span>
+                                        <Label htmlFor="receipt-cash" className="font-normal cursor-pointer">현금영수증</Label>
+                                    </div>
+                                    <div className="flex items-center gap-1.5">
+                                        <RadioGroupItem value="tax" id="receipt-tax" className="border-gray-300" />
+                                        <span className="w-4 h-4 rounded-[2px] bg-gray-400 text-white flex items-center justify-center text-[9px] font-bold">세</span>
+                                        <Label htmlFor="receipt-tax" className="font-normal cursor-pointer">세금계산서</Label>
+                                    </div>
+                                 </RadioGroup>
+                         </div>
+                    </div>
+
+                    {/* Overdue & Delayed */}
+                    <div className="flex border-b border-gray-200">
+                         <div className="w-1/2 flex border-r border-gray-200">
+                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                입금경과일
+                            </div>
+                             <div className="flex-1 p-3 flex items-center gap-2 text-xs">
+                                <Input className="w-20 h-7 border-gray-300" />
+                                <span>일 이상 경과</span>
+                             </div>
+                         </div>
+                          <div className="w-1/2 flex">
+                            <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs h-[50px]">
+                                배송지연일
+                            </div>
+                             <div className="flex-1 p-3 flex flex-col gap-1 text-xs justify-center">
+                                <div className="flex items-center gap-2">
+                                     <Input className="w-20 h-7 border-gray-300" />
+                                    <span>일 이상 지연</span>
+                                </div>
+                                <div className="flex items-center gap-1 text-gray-400 text-[11px]">
+                                    <span className="bg-gray-600 text-white w-3 h-3 flex items-center justify-center text-[9px] rounded-[1px]">!</span>
+                                    입력 시 배송 전 주문상태만 검색 가능합니다.
+                                </div>
+                             </div>
+                         </div>
+                     </div>
+
+                     {/* Promotion & Manual Payment */}
+                     <div className="flex border-b border-gray-200">
+                         <div className="w-1/2 flex border-r border-gray-200">
+                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                프로모션 정보
+                            </div>
+                             <div className="flex-1 p-3 flex items-center gap-2 text-xs">
+                                <Button size="sm" className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2">
+                                    쿠폰선택
+                                </Button>
+                                <Checkbox id="promo-coupon" className="rounded-[2px] border-gray-300 ml-2" />
+                                <Label htmlFor="promo-coupon" className="font-normal cursor-pointer">쿠폰사용 주문 전체 검색</Label>
+                             </div>
+                         </div>
+                          <div className="w-1/2 flex">
+                            <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                                수동 결제완료 처리
+                            </div>
+                             <div className="flex-1 p-3 flex items-center gap-2 text-xs">
+                                <Checkbox id="manual-pay" className="rounded-[2px] border-gray-300" />
+                                <Label htmlFor="manual-pay" className="font-normal cursor-pointer">수동 결제완료 처리 주문만 보기</Label>
+                             </div>
+                         </div>
+                     </div>
+
+                      {/* Brand */}
+                     <div className="flex">
+                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
+                            브랜드
+                        </div>
+                         <div className="flex-1 p-3 flex items-center gap-4 text-xs">
+                            <Button 
+                                size="sm" 
+                                className="h-6 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2"
+                                onClick={() => setIsBrandPopupOpen(true)}
+                            >
+                                브랜드선택
+                            </Button>
+                            <div className="flex items-center gap-1.5">
+                                <Checkbox id="brand-unspecified" className="rounded-[2px] border-gray-300" />
+                                <Label htmlFor="brand-unspecified" className="font-normal cursor-pointer">브랜드 미지정 상품</Label>
+                            </div>
+                         </div>
+                     </div>
+
+                </div>
+            )}
+
             <div className="p-3 bg-white border-t border-gray-200">
                 <button 
                   className="flex items-center text-blue-500 font-bold text-xs hover:underline"
                   onClick={() => setIsDetailSearchOpen(!isDetailSearchOpen)}
                 >
-                    상세검색 펼침 
+                    {isDetailSearchOpen ? '상세검색 닫힘' : '상세검색 펼침'}
                     <ChevronUp className={`w-3 h-3 ml-1 transform transition-transform ${isDetailSearchOpen ? '' : 'rotate-180'}`} />
                 </button>
             </div>
@@ -342,10 +900,16 @@ export default function OrderIntegratedListPage() {
       
       {/* Tabs */}
       <div className="flex mb-4">
-          <div className="px-4 py-2 bg-white border border-gray-300 border-b-white text-gray-900 font-bold text-xs cursor-pointer relative top-[1px] z-10">
+          <div 
+            onClick={() => setViewType("order")}
+            className={`px-4 py-2 border border-gray-300 border-b-white text-xs cursor-pointer relative top-[1px] z-10 ${viewType === "order" ? "bg-white text-gray-900 font-bold" : "bg-[#F5F5F5] text-gray-500 border-l-0"}`}
+          >
               주문번호별
           </div>
-          <div className="px-4 py-2 bg-[#F5F5F5] border border-gray-300 border-l-0 text-gray-500 text-xs cursor-pointer">
+          <div 
+            onClick={() => setViewType("product_order")}
+            className={`px-4 py-2 border border-gray-300 border-l-0 text-xs cursor-pointer relative top-[1px] z-10 ${viewType === "product_order" ? "bg-white text-gray-900 font-bold border-b-white" : "bg-[#F5F5F5] text-gray-500 border-b-gray-300"}`}
+          >
               상품주문번호별
           </div>
           <div className="flex-1 border-b border-gray-300"></div>
@@ -363,6 +927,19 @@ export default function OrderIntegratedListPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="order_date_desc">주문일 ↓</SelectItem>
+                        <SelectItem value="order_date_asc">주문일 ↑</SelectItem>
+                        <SelectItem value="order_no_desc">주문번호 ↓</SelectItem>
+                        <SelectItem value="order_no_asc">주문번호 ↑</SelectItem>
+                        <SelectItem value="product_name_desc">상품명 ↓</SelectItem>
+                        <SelectItem value="product_name_asc">상품명 ↑</SelectItem>
+                        <SelectItem value="orderer_desc">주문자 ↓</SelectItem>
+                        <SelectItem value="orderer_asc">주문자 ↑</SelectItem>
+                        <SelectItem value="total_price_desc">총 결제금액 ↓</SelectItem>
+                        <SelectItem value="total_price_asc">총 결제금액 ↑</SelectItem>
+                        <SelectItem value="recipient_desc">수령자 ↓</SelectItem>
+                        <SelectItem value="recipient_asc">수령자 ↑</SelectItem>
+                        <SelectItem value="supplier_desc">공급사 ↓</SelectItem>
+                        <SelectItem value="supplier_asc">공급사 ↑</SelectItem>
                     </SelectContent>
                 </Select>
                  <Select defaultValue="20">
@@ -370,23 +947,68 @@ export default function OrderIntegratedListPage() {
                         <SelectValue placeholder="20개 보기" />
                     </SelectTrigger>
                     <SelectContent>
+                        <SelectItem value="10">10개 보기</SelectItem>
                         <SelectItem value="20">20개 보기</SelectItem>
+                        <SelectItem value="30">30개 보기</SelectItem>
+                        <SelectItem value="40">40개 보기</SelectItem>
+                        <SelectItem value="50">50개 보기</SelectItem>
+                        <SelectItem value="60">60개 보기</SelectItem>
+                        <SelectItem value="70">70개 보기</SelectItem>
+                        <SelectItem value="80">80개 보기</SelectItem>
+                        <SelectItem value="90">90개 보기</SelectItem>
+                        <SelectItem value="100">100개 보기</SelectItem>
+                        <SelectItem value="200">200개 보기</SelectItem>
+                        <SelectItem value="300">300개 보기</SelectItem>
+                        <SelectItem value="500">500개 보기</SelectItem>
                     </SelectContent>
                 </Select>
-                 <Button variant="default" size="sm" className="h-7 text-[11px] bg-[#555555] text-white hover:bg-[#444444] rounded-sm ml-1">
+                 <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="h-7 text-[11px] bg-[#555555] text-white hover:bg-[#444444] rounded-sm ml-1"
+                    onClick={() => setIsSearchConfigPopupOpen(true)}
+                 >
                     조회항목설정
                 </Button>
           </div>
       </div>
       
       {/* Action Toolbar */}
-      {activeTab === "입금대기 리스트" || activeTab === "결제완료 리스트" || activeTab === "상품준비중 리스트" || activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트" ? (
+      {viewType === "product_order" ? (
+         <div className="flex justify-between items-center bg-[#F9F9F9] p-2 border border-gray-300 border-b-0">
+             <div className="flex items-center gap-1 text-xs">
+                 <div className="flex items-center gap-1 text-xs font-bold text-gray-700 mr-2 whitespace-nowrap">
+                     <span className="text-red-500">✔</span>
+                     <span>선택한 주문을</span>
+                 </div>
+                 <Select defaultValue="status">
+                     <SelectTrigger className="w-32 h-8 text-xs border-gray-300 bg-white">
+                         <SelectValue placeholder="=주문상태=" />
+                     </SelectTrigger>
+                     <SelectContent>
+                         <SelectItem value="status">=주문상태=</SelectItem>
+                          <SelectItem value="payment_waiting">입금대기</SelectItem>
+                          <SelectItem value="payment_completed">결제완료</SelectItem>
+                     </SelectContent>
+                 </Select>
+                 <Button variant="outline" size="sm" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm">
+                     일괄처리
+                 </Button>
+                 <Button variant="outline" size="sm" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm">
+                     취소처리
+                 </Button>
+             </div>
+             <div>
+                <Button variant="outline" size="sm" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm">
+                    입금요청 SMS발송
+                </Button>
+             </div>
+         </div>
+      ) : activeTab === "입금대기 리스트" || activeTab === "결제완료 리스트" || activeTab === "상품준비중 리스트" || activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트" ? (
         <div className="flex justify-between items-center bg-white p-2 border border-gray-300 border-b-0">
             <div className="flex items-center gap-2 text-xs">
-                <span className="font-bold text-red-500 flex flex-col leading-none border-r border-gray-300 pr-3 mr-1">
-                    <span className="text-gray-600">선택</span>
-                    <span className="text-gray-900">한 주</span>
-                    <span className="text-gray-900">문을</span>
+                <span className="font-bold text-red-500 mr-2 border-r border-gray-300 pr-3 whitespace-nowrap flex-shrink-0 w-max">
+                    <span className="text-gray-600">선택한 주문을</span>
                 </span>
                 <Select defaultValue="status">
                     <SelectTrigger className="w-32 h-8 text-xs border-gray-300">
@@ -433,6 +1055,11 @@ export default function OrderIntegratedListPage() {
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="print_select">=인쇄 선택=</SelectItem>
+                            <SelectItem value="order_statement">주문내역서</SelectItem>
+                            <SelectItem value="order_statement_customer">주문내역서 (고객용)</SelectItem>
+                            <SelectItem value="receipt_simple">간이영수증</SelectItem>
+                            <SelectItem value="transaction_statement">거래명세서</SelectItem>
+                            <SelectItem value="tax_invoice">세금계산서</SelectItem>
                         </SelectContent>
                     </Select>
                     <Button variant="outline" size="sm" className="h-8 text-[11px] bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm px-2 font-normal flex items-center gap-1">
@@ -466,6 +1093,11 @@ export default function OrderIntegratedListPage() {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="print_select">=인쇄 선택=</SelectItem>
+                        <SelectItem value="order_statement">주문내역서</SelectItem>
+                        <SelectItem value="order_statement_customer">주문내역서 (고객용)</SelectItem>
+                        <SelectItem value="receipt_simple">간이영수증</SelectItem>
+                        <SelectItem value="transaction_statement">거래명세서</SelectItem>
+                        <SelectItem value="tax_invoice">세금계산서</SelectItem>
                     </SelectContent>
                 </Select>
                 <Button variant="outline" size="sm" className="h-7 text-[11px] bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm px-2 font-normal flex items-center gap-1">
@@ -478,7 +1110,61 @@ export default function OrderIntegratedListPage() {
 
       {/* Table */}
       <div className="border border-gray-300 mb-4 overflow-x-auto">
-        {activeTab === "입금대기 리스트" ? (
+        {viewType === "product_order" ? (
+             <table className="w-full text-xs text-center border-collapse table-fixed min-w-[1800px]">
+                <colgroup>
+                    <col className="w-10" />
+                    <col className="w-12" />
+                    <col className="w-20" />
+                    <col className="w-24" />
+                    <col className="w-20" />
+                    <col className="w-20" />
+                    <col className="w-32" />
+                    <col className="" />
+                    <col className="w-12" />
+                    <col className="w-20" />
+                    <col className="w-20" />
+                    <col className="w-20" />
+                    <col className="w-20" />
+                    <col className="w-24" />
+                    <col className="w-20" />
+                    <col className="w-20" />
+                    <col className="w-20" />
+                </colgroup>
+                <thead className="bg-[#A3A3A3] text-white font-normal h-10">
+                    <tr>
+                        <th className="border-r border-[#CDCDCD]">
+                            <div className="flex justify-center">
+                                <Checkbox className="bg-white border-gray-300 rounded-[2px] w-4 h-4"/>
+                            </div>
+                        </th>
+                        <th className="border-r border-[#CDCDCD]">번호</th>
+                        <th className="border-r border-[#CDCDCD]">상점구분</th>
+                        <th className="border-r border-[#CDCDCD]">주문일시</th>
+                        <th className="border-r border-[#CDCDCD]">경과일자</th>
+                        <th className="border-r border-[#CDCDCD]">주문자</th>
+                        <th className="border-r border-[#CDCDCD]">상품주문번호</th>
+                        <th className="border-r border-[#CDCDCD]">주문상품</th>
+                        <th className="border-r border-[#CDCDCD]">수량</th>
+                        <th className="border-r border-[#CDCDCD]">상품금액</th>
+                        <th className="border-r border-[#CDCDCD]">총상품금액</th>
+                        <th className="border-r border-[#CDCDCD]">배송비</th>
+                        <th className="border-r border-[#CDCDCD]">총 배송비</th>
+                        <th className="border-r border-[#CDCDCD]">총 주문금액</th>
+                        <th className="border-r border-[#CDCDCD]">결제방법</th>
+                        <th className="border-r border-[#CDCDCD]">처리상태</th>
+                        <th className="border-r border-[#CDCDCD]">입금자</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                     <tr>
+                        <td colSpan={17} className="py-10 text-center text-gray-500">
+                             검색된 주문이 없습니다.
+                        </td>
+                     </tr>
+                </tbody>
+             </table>
+        ) : activeTab === "입금대기 리스트" ? (
           <table className="w-full text-xs text-center border-collapse table-fixed min-w-[1200px]">
                <colgroup>
                   <col className="w-10" />
@@ -658,6 +1344,8 @@ export default function OrderIntegratedListPage() {
                   <col className="w-12" />
                   <col className="w-12" />
                   <col className="w-12" />
+                  <col className="w-24" />
+                  <col className="w-24" />
               </colgroup>
               <thead className="bg-[#BDBDBD] text-white font-normal">
                   <tr>
@@ -681,19 +1369,21 @@ export default function OrderIntegratedListPage() {
                       <th className="py-2.5 border-r border-[#CDCDCD]">취소</th>
                       <th className="py-2.5 border-r border-[#CDCDCD]">교환</th>
                       <th className="py-2.5 border-r border-[#CDCDCD]">반품</th>
-                      <th className="py-2.5">환불</th>
+                      <th className="py-2.5 border-r border-[#CDCDCD]">환불</th>
+                      <th className="py-2.5 border-r border-[#CDCDCD]">관리자메모</th>
+                      <th className="py-2.5">주문유형</th>
                   </tr>
               </thead>
               <tbody className="text-gray-600 bg-white">
                   {loading ? (
                        <tr>
-                           <td colSpan={19} className="py-10 border-b border-gray-200 text-center text-sm">
+                           <td colSpan={21} className="py-10 border-b border-gray-200 text-center text-sm">
                                로딩중...
                            </td>
                        </tr>
                   ) : orders.length === 0 ? (
                       <tr>
-                          <td colSpan={19} className="py-10 border-b border-gray-200 text-center text-sm">
+                          <td colSpan={21} className="py-10 border-b border-gray-200 text-center text-sm">
                               검색된 주문이 없습니다.
                           </td>
                       </tr>
@@ -738,10 +1428,8 @@ export default function OrderIntegratedListPage() {
       {activeTab === "입금대기 리스트" || activeTab === "결제완료 리스트" || activeTab === "상품준비중 리스트" || activeTab === "배송중 리스트" || activeTab === "배송완료 리스트" || activeTab === "구매확정 리스트" ? (
          <div className="flex justify-between items-center bg-white p-2 border border-gray-300 mb-10">
             <div className="flex items-center gap-2 text-xs">
-                <span className="font-bold text-red-500 flex flex-col leading-none border-r border-gray-300 pr-3 mr-1">
-                    <span className="text-gray-600">선택</span>
-                    <span className="text-gray-900">한 주</span>
-                    <span className="text-gray-900">문을</span>
+                <span className="font-bold text-red-500 mr-2 border-r border-gray-300 pr-3 whitespace-nowrap flex-shrink-0 w-max">
+                    <span className="text-gray-600">선택한 주문을</span>
                 </span>
                 <Select defaultValue="status">
                     <SelectTrigger className="w-32 h-8 text-xs border-gray-300">
@@ -799,14 +1487,43 @@ export default function OrderIntegratedListPage() {
             </Button>
         </div>
       ) : (
-          <div className="flex justify-end mb-10">
+      <div className="flex justify-between items-center mb-10 bg-[#F9F9F9] p-2 border border-gray-300 border-t-0">
+          {viewType === "product_order" ? (
+             <div className="flex items-center gap-1 text-xs">
+                 <div className="flex items-center gap-1 text-xs font-bold text-gray-700 mr-2 whitespace-nowrap">
+                     <span className="text-red-500">✔</span>
+                     <span>선택한 주문을</span>
+                 </div>
+                 <Select defaultValue="status">
+                     <SelectTrigger className="w-32 h-8 text-xs border-gray-300 bg-white">
+                         <SelectValue placeholder="=주문상태=" />
+                     </SelectTrigger>
+                     <SelectContent>
+                         <SelectItem value="status">=주문상태=</SelectItem>
+                          <SelectItem value="payment_waiting">입금대기</SelectItem>
+                          <SelectItem value="payment_completed">결제완료</SelectItem>
+                     </SelectContent>
+                 </Select>
+                 <Button variant="outline" size="sm" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm">
+                     일괄처리
+                 </Button>
+                 <Button variant="outline" size="sm" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm">
+                     취소처리
+                 </Button>
+             </div>
+          ) : (
+             <div></div>
+          )}
+          
+           <div className="flex justify-end">
                <Button variant="outline" size="sm" className="h-8 text-xs bg-white border-gray-300 hover:bg-gray-50 text-green-600 font-bold flex items-center gap-1.5 px-3 rounded-sm shadow-sm">
                     <div className="bg-green-600 text-white p-0.5 rounded-[2px]">
                         <FileSpreadsheet className="w-3 h-3 text-white fill-current" />
                     </div>
                     엑셀다운로드
                </Button>
-          </div>
+           </div>
+      </div>
       )}
       
       <div className="border-t border-gray-300 mb-8"></div>
@@ -1090,6 +1807,57 @@ export default function OrderIntegratedListPage() {
                 </Button>
             </div>
         </div>
+
+        <SupplierPopup
+            isOpen={isSupplierPopupOpen}
+            onClose={() => setIsSupplierPopupOpen(false)}
+            onConfirm={(selected) => {
+                console.log("Selected supplier:", selected);
+            }}
+        />
+
+        <MemberGradeSelectPopup
+            isOpen={isMemberGradePopupOpen}
+            onClose={() => setIsMemberGradePopupOpen(false)}
+            onConfirm={(selected) => {
+                console.log("Selected grades:", selected);
+            }}
+        />
+        <BrandPopup
+            isOpen={isBrandPopupOpen}
+            onClose={() => setIsBrandPopupOpen(false)}
+            onConfirm={(brand) => {
+                console.log("Selected brand:", brand);
+            }}
+        />
+
+        <SearchConditionChangePopup
+            isOpen={isSearchConditionPopupOpen}
+            onClose={() => setIsSearchConditionPopupOpen(false)}
+            onConfirm={() => {
+                setIsMultiSearchMode(!isMultiSearchMode);
+                setIsSearchConditionPopupOpen(false);
+            }}
+            mode={isMultiSearchMode ? 'toSingle' : 'toMulti'}
+        />
+
+        <SearchConfigPopup
+            isOpen={isSearchConfigPopupOpen}
+            onClose={() => setIsSearchConfigPopupOpen(false)}
+            onConfirm={(items) => {
+                console.log("Selected items:", items);
+                setIsSearchConfigPopupOpen(false);
+            }}
+        />
+
+        <SearchSettingSavePopup
+            isOpen={isSearchSettingSavePopupOpen}
+            onClose={() => setIsSearchSettingSavePopupOpen(false)}
+            onConfirm={() => {
+                console.log("Search settings saved");
+                setIsSearchSettingSavePopupOpen(false);
+            }}
+        />
 
     </div>
   );
