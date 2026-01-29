@@ -7,10 +7,13 @@ import { Input } from "@/components/ui/input";
 import { HelpCircle, Youtube, ChevronUp } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Link } from "@/i18n/routing";
 import { getMemberJoinItemSettingsAction, updateMemberJoinItemSettingsAction } from "@/actions/member-policy-actions";
+import BusinessCertConfigPopup from "@/components/admin/BusinessCertConfigPopup";
 
 export default function MemberJoinItemsPage() {
     const [loading, setLoading] = useState(true);
+    const [businessCertPopupOpen, setBusinessCertPopupOpen] = useState(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const [settings, setSettings] = useState<any>({
         memberType: { personal: true, business: false },
@@ -579,7 +582,13 @@ export default function MemberJoinItemsPage() {
                                         />
                                         <Label htmlFor="biz-cert-req" className="text-gray-600 font-normal cursor-pointer text-xs">필수 )</Label>
                                     </div>
-                                    <Button variant="secondary" className="h-6 px-2 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888] ml-2">설정</Button>
+                                    <Button 
+                                        type="button" 
+                                        onClick={() => setBusinessCertPopupOpen(true)}
+                                        className="h-6 px-2 text-[11px] bg-[#333333] text-white rounded-[2px] hover:bg-[#222222] ml-2"
+                                    >
+                                        설정
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -815,7 +824,9 @@ export default function MemberJoinItemsPage() {
                                 <Label htmlFor="job-req" className="text-gray-600 font-normal cursor-pointer text-xs">필수</Label>
                             </div>
                             <div className="flex items-center gap-2 ml-4">
-                                <Button variant="secondary" className="h-6 px-2 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]">설정</Button>
+                                <Link href="/admin/users/code-mgmt">
+                                    <Button type="button" className="h-6 px-2 text-[11px] bg-[#333333] text-white rounded-[2px] hover:bg-[#222222]">설정</Button>
+                                </Link>
                                 <span className="text-gray-600">직업 14개</span>
                             </div>
                         </div>
@@ -846,7 +857,9 @@ export default function MemberJoinItemsPage() {
                                 <Label htmlFor="interest-req" className="text-gray-600 font-normal cursor-pointer text-xs">필수</Label>
                             </div>
                             <div className="flex items-center gap-2 ml-4">
-                                <Button variant="secondary" className="h-6 px-2 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]">설정</Button>
+                                <Link href="/admin/users/code-mgmt?group=interest">
+                                    <Button type="button" className="h-6 px-2 text-[11px] bg-[#333333] text-white rounded-[2px] hover:bg-[#222222]">설정</Button>
+                                </Link>
                                 <span className="text-gray-600">관심분야 7개</span>
                             </div>
                         </div>
@@ -963,6 +976,16 @@ export default function MemberJoinItemsPage() {
                     </Button>
                 </div>
             </div>
+
+            <BusinessCertConfigPopup 
+                isOpen={businessCertPopupOpen}
+                onClose={() => setBusinessCertPopupOpen(false)}
+                onConfirm={(maxSize) => {
+                    updateItem('businessImage', 'maxSize', maxSize);
+                    setBusinessCertPopupOpen(false);
+                }}
+                initialMaxSize={settings.items.businessImage?.maxSize || 2}
+            />
 
         </div>
     );

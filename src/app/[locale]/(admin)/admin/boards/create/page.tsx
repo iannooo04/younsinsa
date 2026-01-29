@@ -14,11 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  HelpCircle,
+  CircleHelp as HelpCircle,
   Youtube,
   ChevronUp,
   Info,
+  Trash2,
 } from "lucide-react";
+import { MemberGradeSelector } from "@/components/admin/boards/MemberGradeSelector";
+import { TemplateRegistrationModal } from "@/components/admin/boards/TemplateRegistrationModal";
 import { Link } from "@/i18n/routing";
 import { createBoardAction, checkBoardIdAction } from "@/actions/board-create-action";
 import { toast } from "sonner";
@@ -28,6 +31,7 @@ import { useState } from "react";
 export default function BoardCreatePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [formData, setFormData] = useState({
       usePcMall: "use",
       useMobileMall: "use",
@@ -54,11 +58,49 @@ export default function BoardCreatePage() {
       seoTitle: "",
       seoAuthor: "",
       seoDescription: "",
-      seoKeywords: ""
+      seoKeywords: "",
+      usePrefix: "no",
+      prefixTitle: "",
+      prefixInput: "",
+      allowedDomains: [{ id: 0, domain1: "", domain2: "" }],
+      useRepresentativeImage: "no",
+      representativeImageType: "upload",
+      listImageWidth: "178",
+      listImageHeight: "227",
+      noticeImagePc: false,
+      noticeImageMobile: false,
+      useSearchAnswer: "no",
+      searchAnswerMall: false,
+
+      searchAnswerAdmin: false,
+      useAttachedImage: "use"
+
   });
 
   const handleChange = (key: string, value: string | boolean) => {
       setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleAddDomain = () => {
+    setFormData(prev => ({
+        ...prev,
+        allowedDomains: [...prev.allowedDomains, { id: prev.allowedDomains.length, domain1: "", domain2: "" }]
+    }));
+  };
+
+  const handleRemoveDomain = (index: number) => {
+    setFormData(prev => ({
+        ...prev,
+        allowedDomains: prev.allowedDomains.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleDomainChange = (index: number, field: 'domain1' | 'domain2', value: string) => {
+      setFormData(prev => {
+          const newDomains = [...prev.allowedDomains];
+          newDomains[index] = { ...newDomains[index], [field]: value };
+          return { ...prev, allowedDomains: newDomains };
+      });
   };
 
   const checkId = async () => {
@@ -265,7 +307,10 @@ export default function BoardCreatePage() {
                          <td className="bg-white p-2">
                             <Select defaultValue="placeholder">
                                <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white"><SelectValue/></SelectTrigger>
-                               <SelectContent><SelectItem value="placeholder">선택해주세요</SelectItem></SelectContent>
+                               <SelectContent>
+                                   <SelectItem value="placeholder">선택해주세요</SelectItem>
+                                   <SelectItem value="default">일반형(기본) (default)</SelectItem>
+                               </SelectContent>
                             </Select>
                          </td>
                       </tr>
@@ -278,8 +323,11 @@ export default function BoardCreatePage() {
                          <td className="bg-white p-2 border-t border-gray-200">
                            <Select defaultValue="placeholder">
                                <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white"><SelectValue/></SelectTrigger>
-                               <SelectContent><SelectItem value="placeholder">선택해주세요</SelectItem></SelectContent>
-                            </Select>
+                               <SelectContent>
+                                   <SelectItem value="placeholder">선택해주세요</SelectItem>
+                                   <SelectItem value="default">일반형(기본) (default)</SelectItem>
+                               </SelectContent>
+                           </Select>
                          </td>
                       </tr>
                       <tr className="h-12 border-t-2 border-gray-200">
@@ -318,7 +366,9 @@ export default function BoardCreatePage() {
                    <span>쇼핑몰 디자인 사용스킨 변경 시 이전에 생성한 게시판 스킨은 사용할 수 없습니다.<br/>사용 스킨 변경 시 게시판 스킨을 다시한번 확인하시기 바랍니다.</span>
                 </div>
                 <div className="flex justify-end pr-2 md:pr-0">
-                    <Button variant="outline" className="h-7 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white text-gray-700 font-normal">게시판 스킨등록</Button>
+                   <Link href="/admin/boards/skins/create">
+                       <Button variant="outline" className="h-7 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white text-gray-700 font-normal">게시판 스킨등록</Button>
+                   </Link>
                 </div>
              </div>
           </FormRow>
@@ -331,7 +381,7 @@ export default function BoardCreatePage() {
                 <OptionItem value="member" label="회원전용(비회원제외)" />
                 <div className="flex items-center gap-2">
                     <OptionItem value="grade" label="특정회원등급" />
-                    <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 bg-[#999999] text-white rounded-[2px]">회원등급 선택</Button>
+                    <MemberGradeSelector disabled={formData.listAccess !== 'grade'} className="w-60" />
                 </div>
              </RadioGroup>
           </FormRow>
@@ -344,7 +394,7 @@ export default function BoardCreatePage() {
                 <OptionItem value="member" label="회원전용(비회원제외)" />
                 <div className="flex items-center gap-2">
                     <OptionItem value="grade" label="특정회원등급" />
-                    <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 bg-[#999999] text-white rounded-[2px]">회원등급 선택</Button>
+                    <MemberGradeSelector disabled={formData.readAccess !== 'grade'} className="w-60" />
                 </div>
              </RadioGroup>
           </FormRow>
@@ -357,7 +407,7 @@ export default function BoardCreatePage() {
                 <OptionItem value="member" label="회원전용(비회원제외)" />
                 <div className="flex items-center gap-2">
                     <OptionItem value="grade" label="특정회원등급" />
-                    <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 bg-[#999999] text-white rounded-[2px]">회원등급 선택</Button>
+                    <MemberGradeSelector disabled={formData.writeAccess !== 'grade'} className="w-60" />
                 </div>
              </RadioGroup>
           </FormRow>
@@ -394,7 +444,7 @@ export default function BoardCreatePage() {
                 <OptionItem value="member" label="회원전용(비회원제외)" />
                 <div className="flex items-center gap-2">
                     <OptionItem value="grade" label="특정회원등급" />
-                    <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 bg-[#999999] text-white rounded-[2px]">회원등급 선택</Button>
+                    <MemberGradeSelector disabled={formData.writeAccess !== 'grade'} className="w-60" />
                 </div>
              </RadioGroup>
           </FormRow>
@@ -415,7 +465,7 @@ export default function BoardCreatePage() {
                 <OptionItem value="member" label="회원전용(비회원제외)" />
                 <div className="flex items-center gap-2">
                     <OptionItem value="grade" label="특정회원등급" />
-                    <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 bg-[#999999] text-white rounded-[2px]">회원등급 선택</Button>
+                    <MemberGradeSelector disabled={formData.commentAccess !== 'grade'} className="w-60" />
                 </div>
              </RadioGroup>
           </FormRow>
@@ -433,7 +483,11 @@ export default function BoardCreatePage() {
           <FormRow label="작성자 노출제한">
              <Select defaultValue="all">
                 <SelectTrigger className="w-48 h-8 text-xs border-gray-300 bg-white"><SelectValue/></SelectTrigger>
-                <SelectContent><SelectItem value="all">전체노출</SelectItem></SelectContent>
+                <SelectContent>
+                    <SelectItem value="all">전체노출</SelectItem>
+                    <SelectItem value="1">1글자 노출</SelectItem>
+                    <SelectItem value="2">2글자 노출</SelectItem>
+                </SelectContent>
              </Select>
           </FormRow>
 
@@ -569,7 +623,12 @@ export default function BoardCreatePage() {
                        <SelectTrigger className="w-64 h-8 text-xs border-gray-300 bg-white"><SelectValue placeholder="=선택없음="/></SelectTrigger>
                        <SelectContent><SelectItem value="none">=선택없음=</SelectItem></SelectContent>
                     </Select>
-                    <Button className="h-8 px-3 text-xs bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] border-0">게시글 양식 등록</Button>
+                    <Button 
+                        className="h-8 px-3 text-xs bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] border-0"
+                        onClick={() => setShowTemplateModal(true)}
+                    >
+                        게시글 양식 등록
+                    </Button>
                  </div>
                  <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px]">!</span>
@@ -578,20 +637,65 @@ export default function BoardCreatePage() {
                </div>
             </FormRow>
 
+            <TemplateRegistrationModal open={showTemplateModal} onOpenChange={setShowTemplateModal} />
+
             {/* Prefix Function */}
             <FormRow label="말머리 기능" help>
-               <div className="flex flex-col gap-2">
-                 <div className="flex items-center gap-1.5">
-                    <Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" />
-                    <span className="text-gray-700">말머리 사용</span>
-                    <Link href="#" className="text-blue-500 underline ml-1">글작성시 제목앞에 특정단어를 넣는 기능입니다</Link>
+               <div className="flex flex-col gap-2 w-full">
+                 <RadioGroup value={formData.usePrefix} onValueChange={(v) => handleChange('usePrefix', v)} className="flex items-center gap-6">
+                    <OptionItem value="use" label="사용" />
+                    <OptionItem value="no" label="사용안함" />
+                 </RadioGroup>
+                 <div className="flex items-center gap-1 text-[11px] text-gray-800 font-bold mt-1">
+                    <span>* 글작성시 제목앞에 특정단어를 넣는 기능입니다</span>
                  </div>
-                 <div className="flex items-start gap-1 text-[11px] text-gray-400">
-                    <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
-                    <span>말머리 게시글 양식 설정: 말머리 선택에 따른 게시글 양식을 설정할 수 있습니다. 기본 게시글 양식과 중복 사용이 가능하되, 말머리에 설정한 게시글 양식이 있는 경우 말머리 게시글 양식이 우선적으로 노출됩니다.</span>
-                 </div>
+
+                 {formData.usePrefix === 'use' && (
+                    <div className="mt-2 border-t border-gray-200 border-l border-r border-b">
+                        {/* Prefix Title */}
+                        <div className="flex border-b border-gray-200">
+                           <div className="w-[120px] bg-[#FBFBFB] p-3 pl-4 flex items-center border-r border-gray-200">
+                               <span className="text-xs font-bold text-gray-700">말머리 타이틀</span>
+                           </div>
+                           <div className="flex-1 p-2 px-3 flex items-center bg-white">
+                               <Input 
+                                   className="h-8 text-xs border-gray-300 w-full rounded-[2px]" 
+                                   placeholder="말머리 타이틀을 입력하세요." 
+                                   value={formData.prefixTitle}
+                                   onChange={(e) => handleChange('prefixTitle', e.target.value)}
+                               />
+                           </div>
+                        </div>
+                        {/* Prefix Input */}
+                        <div className="flex">
+                           <div className="w-[120px] bg-[#FBFBFB] p-3 pl-4 flex items-center border-r border-gray-200">
+                               <span className="text-xs font-bold text-gray-700">말머리 입력</span>
+                           </div>
+                           <div className="flex-1 p-2 px-3 flex flex-col gap-2 bg-white">
+                               <div className="flex items-center gap-2 w-full">
+                                    <Input 
+                                        className="h-8 text-xs border-gray-300 w-full flex-1 rounded-[2px]" 
+                                        placeholder="말머리를 입력하세요." 
+                                        value={formData.prefixInput}
+                                        onChange={(e) => handleChange('prefixInput', e.target.value)}
+                                    />
+                                    <Select defaultValue="none">
+                                        <SelectTrigger className="w-48 h-8 text-xs border-gray-300 bg-white rounded-[2px]"><SelectValue placeholder="=선택없음="/></SelectTrigger>
+                                        <SelectContent><SelectItem value="none">=선택없음=</SelectItem></SelectContent>
+                                    </Select>
+                               </div>
+                               <div>
+                                    <Button variant="outline" className="h-8 px-3 text-xs border-gray-300 rounded-[2px] font-bold text-gray-700 bg-white hover:bg-gray-50 flex items-center gap-1">
+                                        <span>+ 추가</span>
+                                    </Button>
+                               </div>
+                           </div>
+                        </div>
+                    </div>
+                 )}
                </div>
             </FormRow>
+
 
             {/* View Count Setting */}
             <FormRow label="조회수 표시 설정">
@@ -716,17 +820,38 @@ export default function BoardCreatePage() {
             </FormRow>
 
             {/* Allowed Domains */}
-            <FormRow label="허용 도메인">
+            <FormRow label="허용 도메인" help>
                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-1 flex-wrap">
-                      <Input className="w-64 h-7 text-xs border-gray-300 rounded-[2px]" />
-                      <Input className="w-64 h-7 text-xs border-gray-300 rounded-[2px]" />
-                      <Button variant="outline" className="h-7 px-3 text-[11px] border-gray-300 rounded-[2px] bg-white text-gray-700 font-normal">+ 추가</Button>
+                  {formData.allowedDomains.map((item, index) => (
+                      <div key={item.id} className="flex items-center gap-2">
+                          <Input 
+                            className="w-64 h-8 text-xs border-gray-300 rounded-[2px]" 
+                            placeholder="youtube.com" 
+                            value={item.domain1}
+                            onChange={(e) => handleDomainChange(index, 'domain1', e.target.value)}
+                          />
+                          <Input 
+                            className="w-64 h-8 text-xs border-gray-300 rounded-[2px]" 
+                            placeholder="naver.com" 
+                            value={item.domain2}
+                            onChange={(e) => handleDomainChange(index, 'domain2', e.target.value)}
+                          />
+                          {index > 0 && (
+                             <button onClick={() => handleRemoveDomain(index)} type="button">
+                                <Trash2 className="w-4 h-4 text-gray-500 hover:text-red-500" />
+                             </button>
+                          )}
+                      </div>
+                  ))}
+                  <div>
+                      <Button 
+                        onClick={handleAddDomain}
+                        variant="outline" 
+                        className="h-7 px-3 text-xs border-gray-300 rounded-[2px] font-normal text-gray-700 bg-white"
+                      >
+                        키워드 추가
+                      </Button>
                   </div>
-                   <div className="flex items-start gap-1 text-[11px] text-gray-400">
-                    <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
-                    <span>허용된 도메인의 컨텐츠에 대해 허용태그 사용이 가능합니다. 예) youtube.com</span>
-                 </div>
                </div>
             </FormRow>
 
@@ -836,28 +961,105 @@ export default function BoardCreatePage() {
 
               {/* Representative Image Exposure */}
               <FormRow label="대표 이미지 노출 여부">
-                 <div className="flex flex-col gap-3">
-                    <RadioGroup defaultValue="no" className="flex items-center gap-6">
-                        <OptionItem value="use" label="사용" />
+                 <div className="flex flex-col gap-3 w-full">
+                    <RadioGroup value={formData.useRepresentativeImage} onValueChange={(v) => handleChange('useRepresentativeImage', v)} className="flex items-center gap-6">
+                        <OptionItem value="use" label="사용함" />
                         <OptionItem value="no" label="사용안함" />
                     </RadioGroup>
-                    <div className="flex items-center gap-6 bg-[#FBFBFB] border border-gray-200 p-2 pl-4">
-                       <span className="font-bold text-gray-600 w-24">대표 이미지 설정</span>
-                       <RadioGroup defaultValue="upload" className="flex items-center gap-6">
-                           <OptionItem value="upload" label="업로드 이미지" />
-                           <OptionItem value="editor" label="에디터 이미지" />
-                       </RadioGroup>
-                    </div>
+                    
+                    {formData.useRepresentativeImage === 'use' && (
+                        <div className="w-full">
+                            <div className="flex items-center gap-6 p-4 py-3 bg-white border-b border-gray-100">
+                               <span className="text-gray-600 text-xs w-28">대표 이미지 설정 :</span>
+                               <RadioGroup value={formData.representativeImageType} onValueChange={(v) => handleChange('representativeImageType', v)} className="flex items-center gap-6">
+                                   <OptionItem value="upload" label="업로드 이미지" />
+                                   <OptionItem value="editor" label="에디터 이미지" />
+                               </RadioGroup>
+                            </div>
+                            <div className="flex items-center gap-6 p-4 py-3 bg-white border-b border-gray-100">
+                               <div className="flex items-center gap-1.5 w-28 text-xs">
+                                   <span className="text-red-500">*</span>
+                                   <span className="text-gray-600">리스트 이미지 크기</span>
+                                   <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
+                               </div>
+                               <div className="flex items-center gap-2">
+                                   <Input 
+                                      className="w-24 h-8 text-xs border-gray-300 rounded-[2px]" 
+                                      value={formData.listImageWidth}
+                                      onChange={(e) => handleChange('listImageWidth', e.target.value)}
+                                   />
+                                   <span className="text-gray-500 text-xs">*</span>
+                                   <Input 
+                                      className="w-24 h-8 text-xs border-gray-300 rounded-[2px]" 
+                                      value={formData.listImageHeight}
+                                      onChange={(e) => handleChange('listImageHeight', e.target.value)}
+                                   />
+                               </div>
+                            </div>
+                            <div className="flex items-center gap-6 p-4 py-3 bg-white">
+                               <div className="flex items-center gap-1.5 w-28 text-xs">
+                                   <span className="text-gray-600">공지글 이미지 노출 여부</span>
+                                   <HelpCircle className="w-3.5 h-3.5 text-gray-400" />
+                               </div>
+                               <div className="flex items-center gap-6">
+                                   <div className="flex items-center gap-1.5">
+                                      <Checkbox 
+                                        id="notice-pc" 
+                                        className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                        checked={formData.noticeImagePc}
+                                        onCheckedChange={(c) => handleChange('noticeImagePc', c === true)}
+                                      />
+                                      <Label htmlFor="notice-pc" className="text-gray-700 cursor-pointer font-normal text-xs">PC 쇼핑몰</Label>
+                                   </div>
+                                    <div className="flex items-center gap-1.5">
+                                      <Checkbox 
+                                        id="notice-mobile" 
+                                        className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                        checked={formData.noticeImageMobile}
+                                        onCheckedChange={(c) => handleChange('noticeImageMobile', c === true)}
+                                      />
+                                      <Label htmlFor="notice-mobile" className="text-gray-700 cursor-pointer font-normal text-xs">모바일 쇼핑몰</Label>
+                                   </div>
+                               </div>
+                            </div>
+                        </div>
+                    )}
                  </div>
               </FormRow>
 
               {/* In Search Answer Exposure */}
               <FormRow label="검색 시 답변글 노출여부">
-                 <div className="flex flex-col gap-2">
-                    <RadioGroup defaultValue="no" className="flex items-center gap-6">
-                        <OptionItem value="use" label="사용함" />
-                        <OptionItem value="no" label="사용안함" />
-                    </RadioGroup>
+                 <div className="flex flex-col gap-2 w-full">
+                    <div className="flex items-center gap-1">
+                        <RadioGroup value={formData.useSearchAnswer} onValueChange={(v) => handleChange('useSearchAnswer', v)} className="flex items-center gap-6">
+                            <OptionItem value="use" label="사용" />
+                            <OptionItem value="no" label="사용안함" />
+                        </RadioGroup>
+                    </div>
+
+                    {formData.useSearchAnswer === 'use' && (
+                        <div className="mt-2 flex items-center gap-6">
+                           <div className="flex items-center gap-1.5">
+                              <Checkbox 
+                                id="search-mall" 
+                                className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                checked={formData.searchAnswerMall}
+                                onCheckedChange={(c) => handleChange('searchAnswerMall', c === true)}
+                              />
+                              <Label htmlFor="search-mall" className="text-gray-700 cursor-pointer font-normal text-xs">쇼핑몰 화면 적용</Label>
+                           </div>
+                           <div className="flex items-center gap-1.5">
+                              <Checkbox 
+                                id="search-admin" 
+                                className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
+                                checked={formData.searchAnswerAdmin}
+                                onCheckedChange={(c) => handleChange('searchAnswerAdmin', c === true)}
+                              />
+                              <Label htmlFor="search-admin" className="text-gray-700 cursor-pointer font-normal text-xs">관리자 화면 적용</Label>
+                           </div>
+                        </div>
+                    )}
+
                     <div className="space-y-1 mt-1 text-gray-400 text-[11px]">
                        <div className="flex items-start gap-1">
                           <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
@@ -943,47 +1145,52 @@ export default function BoardCreatePage() {
         </div>
 
         <div className="border-t border-gray-400 border-b border-gray-200">
-             {/* Attached Image Display */}
-             <FormRow label="첨부파일 이미지 표시">
-                <div className="flex flex-col gap-2">
-                    <RadioGroup defaultValue="use" className="flex items-center gap-6">
-                        <OptionItem value="use" label="사용함" />
-                        <OptionItem value="no" label="사용안함" />
-                    </RadioGroup>
-                    <div className="flex items-start gap-1 text-[11px] text-gray-400">
-                        <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
-                        <span>첨부파일로 등록된 이미지를 게시글 본문 상단에 노출할 수 있습니다.</span>
-                    </div>
-                </div>
-             </FormRow>
+              {/* Attached Image Display */}
+              <FormRow label="첨부파일 이미지 표시">
+                 <div className="flex flex-col gap-2">
+                     <RadioGroup value={formData.useAttachedImage} onValueChange={(v) => handleChange('useAttachedImage', v)} className="flex items-center gap-6">
+                         <OptionItem value="use" label="사용함" />
+                         <OptionItem value="no" label="사용안함" />
+                     </RadioGroup>
+                     <div className="flex items-start gap-1 text-[11px] text-gray-400">
+                         <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
+                         <span>첨부파일로 등록된 이미지를 게시글 본문 상단에 노출할 수 있습니다.</span>
+                     </div>
+                 </div>
+              </FormRow>
 
-             {/* Image Resize */}
-             <FormRow label="이미지 리사이즈">
-                <div className="flex flex-col gap-2 text-gray-700">
-                    <div className="flex items-center gap-1.5">
-                        <Input className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" defaultValue="700" />
-                        <span>px</span>
-                    </div>
-                    <div className="space-y-1 text-gray-400 text-[11px]">
-                       <div className="flex items-start gap-1">
-                          <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
-                          <span>첨부파일 이미지 업로드 시 제한된 값보다 이미지 넓이가 클 경우 설정된 값으로 리사이즈하여 노출합니다.</span>
-                       </div>
-                       <div className="flex items-start gap-1">
-                          <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
-                          <span>모바일은 디바이스 해상도보다 클 경우 모바일 해상도로 리사이즈하여 노출됩니다.</span>
-                       </div>
-                    </div>
-                </div>
-             </FormRow>
+              {/* Image Resize & Exposure Location - Conditional Display */}
+              {formData.useAttachedImage === 'use' && (
+                  <>
+                      {/* Image Resize */}
+                      <FormRow label="이미지 리사이즈">
+                         <div className="flex flex-col gap-2 text-gray-700">
+                             <div className="flex items-center gap-1.5">
+                                 <Input className="w-16 h-7 text-xs border-gray-300 rounded-[2px]" defaultValue="700" />
+                                 <span>px</span>
+                             </div>
+                             <div className="space-y-1 text-gray-400 text-[11px]">
+                                <div className="flex items-start gap-1">
+                                   <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
+                                   <span>첨부파일 이미지 업로드 시 제한된 값보다 이미지 넓이가 클 경우 설정된 값으로 리사이즈하여 노출합니다.</span>
+                                </div>
+                                <div className="flex items-start gap-1">
+                                   <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5">!</span>
+                                   <span>모바일은 디바이스 해상도보다 클 경우 모바일 해상도로 리사이즈하여 노출됩니다.</span>
+                                </div>
+                             </div>
+                         </div>
+                      </FormRow>
 
-             {/* Exposure Location */}
-             <FormRow label="노출 위치">
-                <RadioGroup defaultValue="top" className="flex items-center gap-6">
-                   <OptionItem value="top" label="본문상단" />
-                   <OptionItem value="bottom" label="본문하단" />
-                </RadioGroup>
-             </FormRow>
+                      {/* Exposure Location */}
+                      <FormRow label="노출 위치">
+                         <RadioGroup defaultValue="top" className="flex items-center gap-6">
+                            <OptionItem value="top" label="본문상단" />
+                            <OptionItem value="bottom" label="본문하단" />
+                         </RadioGroup>
+                      </FormRow>
+                  </>
+              )}
 
              {/* Exposure on List Page */}
              <FormRow label="리스트화면 노출">
@@ -1189,7 +1396,8 @@ function FormRow({ label, required = false, help = false, children }: { label: s
 }
 
 function OptionItem({ value, label, id }: { value: string, label: string, id?: string }) {
-   const finalId = id || `radio-${Math.random().toString(36).substr(2, 9)}`;
+   const generatedId = React.useId();
+   const finalId = id || generatedId;
    return (
     <div className="flex items-center gap-2">
       <RadioGroupItem value={value} id={finalId} className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 focus:ring-red-500 w-4 h-4" />

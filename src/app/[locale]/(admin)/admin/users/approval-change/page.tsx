@@ -33,6 +33,7 @@ export default function JoinApprovalChangePage() {
   const [users, setUsers] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [grades, setGrades] = useState<any[]>([]);
+  const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false);
   
   // Search State
   const [searchParams, setSearchParams] = useState<GetUsersParams>({
@@ -47,6 +48,31 @@ export default function JoinApprovalChangePage() {
       approved: 'all',
       startDate: format(new Date(new Date().setMonth(new Date().getMonth() - 1)), "yyyy-MM-dd"), // 1 month ago
       endDate: format(new Date(), "yyyy-MM-dd"),
+      
+      // Detailed fields
+      visitCountMin: undefined,
+      visitCountMax: undefined,
+      mileageMin: undefined,
+      mileageMax: undefined,
+      depositMin: undefined,
+      depositMax: undefined,
+      orderCountMin: undefined,
+      orderCountMax: undefined,
+      orderAmountMin: undefined,
+      orderAmountMax: undefined,
+      smsConsent: 'all',
+      emailConsent: 'all',
+      gender: 'all',
+      maritalStatus: 'all', 
+      // Dates
+      lastLoginStart: '',
+      lastLoginEnd: '',
+      birthdayStart: '',
+      birthdayEnd: '',
+      anniversaryStart: '',
+      anniversaryEnd: '',
+      linkedProvider: 'all',
+      joinPath: 'all',
   });
 
   // Selection State
@@ -82,7 +108,8 @@ export default function JoinApprovalChangePage() {
   useEffect(() => {
       loadGrades();
       handleSearch();
-  }, [loadGrades, handleSearch]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleProcess = async () => {
       if (targetType === 'selected' && selectedIds.length === 0) {
@@ -236,12 +263,20 @@ export default function JoinApprovalChangePage() {
                         <SelectTrigger className="w-24 h-7 text-xs border-gray-300 bg-white">
                             <SelectValue placeholder="아이디" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="max-h-[300px]">
                             <SelectItem value="id">아이디</SelectItem>
                             <SelectItem value="name">이름</SelectItem>
-                            <SelectItem value="email">이메일</SelectItem>
                             <SelectItem value="nickname">닉네임</SelectItem>
-                            <SelectItem value="mobile">휴대폰</SelectItem>
+                            <SelectItem value="email">이메일</SelectItem>
+                            <SelectItem value="mobile">휴대폰번호</SelectItem>
+                            <SelectItem value="phone">전화번호</SelectItem>
+                            <SelectItem value="sep1" disabled className="justify-center opactiy-50">===========</SelectItem>
+                            <SelectItem value="companyName">회사명</SelectItem>
+                            <SelectItem value="businessNumber">사업자등록번호</SelectItem>
+                            <SelectItem value="ceoName">대표자명</SelectItem>
+                            <SelectItem value="sep2" disabled className="justify-center opactiy-50">===========</SelectItem>
+                            <SelectItem value="recommenderId">추천인아이디</SelectItem>
+                            <SelectItem value="fax">팩스번호</SelectItem>
                         </SelectContent>
                     </Select>
                      <Select 
@@ -280,7 +315,7 @@ export default function JoinApprovalChangePage() {
                             <SelectValue placeholder="등급" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="grade">전체 등급</SelectItem>
+                            <SelectItem value="grade">등급</SelectItem>
                             {grades.map(g => (
                                 <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                             ))}
@@ -372,11 +407,202 @@ export default function JoinApprovalChangePage() {
                      </div>
                 </div>
             </div>
+            
+            {/* Detailed Search Rows */}
+            {isDetailedSearchOpen && (
+                <>
+                    {/* Row 1: Visit Count / Last Login */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">방문횟수</div>
+                        <div className="flex-1 p-3 border-r border-gray-200 flex items-center gap-2">
+                            <Input className="w-24 h-7 text-xs" value={searchParams.visitCountMin || ''} onChange={(e) => handleParamChange('visitCountMin', Number(e.target.value))} placeholder="" />
+                            <span>회 ~</span>
+                            <Input className="w-24 h-7 text-xs" value={searchParams.visitCountMax || ''} onChange={(e) => handleParamChange('visitCountMax', Number(e.target.value))} placeholder="" />
+                            <span>회</span>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">최종로그인일</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                             <Input type="date" className="w-32 h-7 text-xs" value={searchParams.lastLoginStart || ''} onChange={(e) => handleParamChange('lastLoginStart', e.target.value)} />
+                             <span>~</span>
+                             <Input type="date" className="w-32 h-7 text-xs" value={searchParams.lastLoginEnd || ''} onChange={(e) => handleParamChange('lastLoginEnd', e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Row 2: Mileage / Deposit */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">마일리지</div>
+                        <div className="flex-1 p-3 border-r border-gray-200 flex items-center gap-2">
+                            <Input className="w-24 h-7 text-xs" value={searchParams.mileageMin || ''} onChange={(e) => handleParamChange('mileageMin', Number(e.target.value))} />
+                            <span>원 ~</span>
+                            <Input className="w-24 h-7 text-xs" value={searchParams.mileageMax || ''} onChange={(e) => handleParamChange('mileageMax', Number(e.target.value))} />
+                            <span>원</span>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">예치금</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                            <Input className="w-24 h-7 text-xs" value={searchParams.depositMin || ''} onChange={(e) => handleParamChange('depositMin', Number(e.target.value))} />
+                            <span>원 ~</span>
+                            <Input className="w-24 h-7 text-xs" value={searchParams.depositMax || ''} onChange={(e) => handleParamChange('depositMax', Number(e.target.value))} />
+                            <span>원</span>
+                        </div>
+                    </div>
+
+                    {/* Row 3: Order Count / Amount */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">상품주문건수</div>
+                        <div className="flex-1 p-3 border-r border-gray-200 flex items-center gap-2">
+                            <Input className="w-24 h-7 text-xs" value={searchParams.orderCountMin || ''} onChange={(e) => handleParamChange('orderCountMin', Number(e.target.value))} />
+                            <span>건 ~</span>
+                            <Input className="w-24 h-7 text-xs" value={searchParams.orderCountMax || ''} onChange={(e) => handleParamChange('orderCountMax', Number(e.target.value))} />
+                            <span>건</span>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">주문금액</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                            <Input className="w-24 h-7 text-xs" value={searchParams.orderAmountMin || ''} onChange={(e) => handleParamChange('orderAmountMin', Number(e.target.value))} />
+                            <span>원 ~</span>
+                            <Input className="w-24 h-7 text-xs" value={searchParams.orderAmountMax || ''} onChange={(e) => handleParamChange('orderAmountMax', Number(e.target.value))} />
+                            <span>원</span>
+                        </div>
+                    </div>
+
+                    {/* Row 4: SMS / Email Consent */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">SMS수신동의</div>
+                        <div className="flex-1 p-3 border-r border-gray-200">
+                            <RadioGroup value={searchParams.smsConsent} onValueChange={(v) => handleParamChange('smsConsent', v)} className="flex gap-6">
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="sms-all"/><Label htmlFor="sms-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="true" id="sms-true"/><Label htmlFor="sms-true">수신</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="false" id="sms-false"/><Label htmlFor="sms-false">수신거부</Label></div>
+                            </RadioGroup>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">메일수신동의</div>
+                        <div className="flex-1 p-3">
+                             <RadioGroup value={searchParams.emailConsent} onValueChange={(v) => handleParamChange('emailConsent', v)} className="flex gap-6">
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="email-all"/><Label htmlFor="email-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="true" id="email-true"/><Label htmlFor="email-true">수신</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="false" id="email-false"/><Label htmlFor="email-false">수신거부</Label></div>
+                            </RadioGroup>
+                        </div>
+                    </div>
+
+                    {/* Row 5: Join Path / Long Term Idle */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">가입경로</div>
+                        <div className="flex-1 p-3 border-r border-gray-200">
+                            <RadioGroup value={searchParams.joinPath} onValueChange={(v) => handleParamChange('joinPath', v)} className="flex gap-6">
+                                {/* Mocking Join Path as it's not in schema yet */}
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="path-all"/><Label htmlFor="path-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="pc" id="path-pc"/><Label htmlFor="path-pc">PC</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="mobile" id="path-mobile"/><Label htmlFor="path-mobile">모바일</Label></div>
+                            </RadioGroup>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">장기 미로그인</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                             <Input className="w-24 h-7 text-xs" placeholder="" />
+                             <span>일 이상 로그인하지 않은 회원</span>
+                        </div>
+                    </div>
+
+                    {/* Row 6: Gender / Birthday */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">성별</div>
+                        <div className="flex-1 p-3 border-r border-gray-200">
+                            <RadioGroup value={searchParams.gender} onValueChange={(v) => handleParamChange('gender', v)} className="flex gap-6">
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="gender-all"/><Label htmlFor="gender-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="MALE" id="gender-m"/><Label htmlFor="gender-m">남자</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="FEMALE" id="gender-f"/><Label htmlFor="gender-f">여자</Label></div>
+                            </RadioGroup>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">생일</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                             <Checkbox id="birth-specific" />
+                             <Label htmlFor="birth-specific" className="whitespace-nowrap">특정일 검색</Label>
+                             <Select defaultValue="all">
+                                <SelectTrigger className="w-20 h-7"><SelectValue placeholder="전체" /></SelectTrigger>
+                                <SelectContent><SelectItem value="all">전체</SelectItem></SelectContent>
+                             </Select>
+                             <Input type="date" className="w-32 h-7 text-xs" value={searchParams.birthdayStart || ''} onChange={(e) => handleParamChange('birthdayStart', e.target.value)} />
+                             <span>~</span>
+                             <Input type="date" className="w-32 h-7 text-xs" value={searchParams.birthdayEnd || ''} onChange={(e) => handleParamChange('birthdayEnd', e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Row 7: Marital / Anniversary */}
+                    <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">결혼여부</div>
+                        <div className="flex-1 p-3 border-r border-gray-200">
+                            <RadioGroup value={searchParams.maritalStatus} onValueChange={(v) => handleParamChange('maritalStatus', v)} className="flex gap-6">
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="marry-all"/><Label htmlFor="marry-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="SINGLE" id="marry-single"/><Label htmlFor="marry-single">미혼</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="MARRIED" id="marry-married"/><Label htmlFor="marry-married">기혼</Label></div>
+                            </RadioGroup>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">결혼기념일</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                             <Input type="date" className="w-32 h-7 text-xs" value={searchParams.anniversaryStart || ''} onChange={(e) => handleParamChange('anniversaryStart', e.target.value)} />
+                             <span>~</span>
+                             <Input type="date" className="w-32 h-7 text-xs" value={searchParams.anniversaryEnd || ''} onChange={(e) => handleParamChange('anniversaryEnd', e.target.value)} />
+                        </div>
+                    </div>
+
+                    {/* Row 8: Info Validity / Dormant */}
+                     <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">개인정보유효기간</div>
+                        <div className="flex-1 p-3 border-r border-gray-200">
+                             <RadioGroup defaultValue="all" className="flex gap-6">
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="valid-all"/><Label htmlFor="valid-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="1" id="valid-1"/><Label htmlFor="valid-1">1년</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="3" id="valid-3"/><Label htmlFor="valid-3">3년</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="5" id="valid-5"/><Label htmlFor="valid-5">5년</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="out" id="valid-out"/><Label htmlFor="valid-out">탈퇴 시</Label></div>
+                            </RadioGroup>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">휴면 전환 예정 회원</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                             <Checkbox id="dormant-check" />
+                             <Label htmlFor="dormant-check">휴면 전환</Label>
+                             <Select defaultValue="7">
+                                <SelectTrigger className="w-20 h-7"><SelectValue placeholder="7" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="7">7</SelectItem>
+                                    <SelectItem value="30">30</SelectItem>
+                                </SelectContent>
+                             </Select>
+                             <span>일 전 회원</span>
+                        </div>
+                    </div>
+
+                    {/* Row 9: Linked Accounts / Dormant Release */}
+                     <div className="flex border-b border-gray-200">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">연결계정</div>
+                        <div className="flex-1 p-3 border-r border-gray-200">
+                             <RadioGroup value={searchParams.linkedProvider} onValueChange={(v) => handleParamChange('linkedProvider', v)} className="flex flex-wrap gap-4">
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="link-all"/><Label htmlFor="link-all">전체</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="payco" id="link-payco"/><Label htmlFor="link-payco">페이코</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="facebook" id="link-fb"/><Label htmlFor="link-fb">페이스북</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="naver" id="link-naver"/><Label htmlFor="link-naver">네이버</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="kakao" id="link-kakao"/><Label htmlFor="link-kakao">카카오</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="apple" id="link-apple"/><Label htmlFor="link-apple">애플</Label></div>
+                                <div className="flex items-center gap-1.5"><RadioGroupItem value="google" id="link-google"/><Label htmlFor="link-google">구글</Label></div>
+                            </RadioGroup>
+                        </div>
+                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">휴면해제일</div>
+                        <div className="flex-1 p-3 flex items-center gap-2">
+                             <Input type="date" className="w-32 h-7 text-xs" />
+                             <span>~</span>
+                             <Input type="date" className="w-32 h-7 text-xs" />
+                        </div>
+                    </div>
+                </>
+            )}
         </div>
         
          <div className="flex justify-between mt-4">
-             <div className="text-blue-500 text-xs flex items-center gap-1 cursor-pointer">
-                 상세검색 펼침 <ChevronDown className="w-3 h-3" />
+             <div 
+                className="text-blue-500 text-xs flex items-center gap-1 cursor-pointer select-none"
+                onClick={() => setIsDetailedSearchOpen(!isDetailedSearchOpen)}
+             >
+                 {isDetailedSearchOpen ? '상세검색 닫힘' : '상세검색 펼침'} 
+                 {isDetailedSearchOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
              </div>
              <div></div> 
          </div>
@@ -407,7 +633,17 @@ export default function JoinApprovalChangePage() {
                     <SelectContent>
                         <SelectItem value="10">10개 보기</SelectItem>
                         <SelectItem value="20">20개 보기</SelectItem>
+                        <SelectItem value="30">30개 보기</SelectItem>
+                        <SelectItem value="40">40개 보기</SelectItem>
                         <SelectItem value="50">50개 보기</SelectItem>
+                        <SelectItem value="60">60개 보기</SelectItem>
+                        <SelectItem value="70">70개 보기</SelectItem>
+                        <SelectItem value="80">80개 보기</SelectItem>
+                        <SelectItem value="90">90개 보기</SelectItem>
+                        <SelectItem value="100">100개 보기</SelectItem>
+                        <SelectItem value="200">200개 보기</SelectItem>
+                        <SelectItem value="300">300개 보기</SelectItem>
+                        <SelectItem value="500">500개 보기</SelectItem>
                     </SelectContent>
                 </Select>
            </div>

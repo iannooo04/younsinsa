@@ -60,7 +60,7 @@ export default function WithdrawalMemberManagementPage() {
           // but based on include in action it should be compatible.
           setUsers(res.items as WithdrawnUser[] || []);
           setTotal(res.total || 0);
-          setSearchParams(curr => ({ ...curr, page }));
+          // setSearchParams(curr => ({ ...curr, page }));
           setSelectedIds([]);
       } else {
           toast.error(res.error || "검색에 실패했습니다.");
@@ -70,7 +70,8 @@ export default function WithdrawalMemberManagementPage() {
 
   useEffect(() => {
       handleSearch();
-  }, [handleSearch]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDelete = async () => {
       if (selectedIds.length === 0) {
@@ -278,6 +279,8 @@ export default function WithdrawalMemberManagementPage() {
                         <SelectContent>
                             <SelectItem value="date_desc">탈퇴일 ↓</SelectItem>
                             <SelectItem value="date_asc">탈퇴일 ↑</SelectItem>
+                            <SelectItem value="id_desc">아이디 ↓</SelectItem>
+                            <SelectItem value="id_asc">아이디 ↑</SelectItem>
                         </SelectContent>
                     </Select>
                    <Select 
@@ -293,7 +296,17 @@ export default function WithdrawalMemberManagementPage() {
                         <SelectContent>
                             <SelectItem value="10">10개 보기</SelectItem>
                             <SelectItem value="20">20개 보기</SelectItem>
+                            <SelectItem value="30">30개 보기</SelectItem>
+                            <SelectItem value="40">40개 보기</SelectItem>
                             <SelectItem value="50">50개 보기</SelectItem>
+                            <SelectItem value="60">60개 보기</SelectItem>
+                            <SelectItem value="70">70개 보기</SelectItem>
+                            <SelectItem value="80">80개 보기</SelectItem>
+                            <SelectItem value="90">90개 보기</SelectItem>
+                            <SelectItem value="100">100개 보기</SelectItem>
+                            <SelectItem value="200">200개 보기</SelectItem>
+                            <SelectItem value="300">300개 보기</SelectItem>
+                            <SelectItem value="500">500개 보기</SelectItem>
                         </SelectContent>
                     </Select>
                </div>

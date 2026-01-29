@@ -331,8 +331,8 @@ export default function MemberCreatePage() {
                     />
                     <Button 
                         onClick={() => checkDuplicate('username')}
-                        variant="secondary" 
-                        className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
+                        type="button"
+                        className="h-7 px-3 text-[11px] bg-[#333333] text-white rounded-[2px] font-bold shrink-0 hover:bg-[#222222]"
                     >
                         중복확인
                     </Button>
@@ -348,8 +348,8 @@ export default function MemberCreatePage() {
                      />
                     <Button 
                         onClick={() => checkDuplicate('nickname')}
-                        variant="secondary" 
-                        className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
+                        type="button"
+                        className="h-7 px-3 text-[11px] bg-[#333333] text-white rounded-[2px] font-bold shrink-0 hover:bg-[#222222]"
                     >
                         중복확인
                     </Button>
@@ -443,8 +443,8 @@ export default function MemberCreatePage() {
                         </Select>
                         <Button 
                             onClick={() => checkDuplicate('email')}
-                            variant="secondary" 
-                            className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
+                            type="button"
+                            className="h-7 px-3 text-[11px] bg-[#333333] text-white rounded-[2px] font-bold shrink-0 hover:bg-[#222222]"
                         >
                             중복확인
                         </Button>
@@ -543,8 +543,8 @@ export default function MemberCreatePage() {
                         />
                         <Button 
                             onClick={handleAddressSearch}
-                            variant="secondary" 
-                            className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
+                            type="button"
+                            className="h-7 px-3 text-[11px] bg-[#333333] text-white rounded-[2px] font-bold shrink-0 hover:bg-[#222222]"
                         >
                             우편번호찾기
                         </Button>
@@ -719,8 +719,8 @@ export default function MemberCreatePage() {
                      />
                      <Button 
                         onClick={checkRecommender}
-                        variant="secondary" 
-                        className="h-7 px-3 text-[11px] bg-black text-white rounded-[2px] font-bold shrink-0 hover:bg-black/90"
+                        type="button"
+                        className="h-7 px-3 text-[11px] bg-[#333333] text-white rounded-[2px] font-bold shrink-0 hover:bg-[#222222]"
                     >
                         확인
                     </Button>

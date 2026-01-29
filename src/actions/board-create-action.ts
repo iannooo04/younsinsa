@@ -49,6 +49,10 @@ export type CreateBoardParams = {
     footerHtml?: string;
 };
 
+export type UpdateBoardParams = CreateBoardParams & {
+    id: string; // Internal ID
+};
+
 export async function createBoardAction(params: CreateBoardParams) {
     try {
         // Validate ID uniqueness
@@ -116,10 +120,86 @@ export async function createBoardAction(params: CreateBoardParams) {
     }
 }
 
+
 export async function checkBoardIdAction(boardId: string) {
     if (!boardId) return { success: false };
     const existing = await prisma.board.findUnique({
         where: { boardId }
     });
     return { success: true, available: !existing };
+}
+
+export async function getBoardAction(id: string) {
+    try {
+        const board = await prisma.board.findUnique({
+            where: { id }
+        });
+
+        if (!board) {
+            return { success: false, error: "게시판을 찾을 수 없습니다." };
+        }
+
+        return { success: true, board };
+    } catch (error) {
+        console.error("Error fetching board:", error);
+        return { success: false, error: "게시판 정보를 불러오는데 실패했습니다." };
+    }
+}
+
+export async function updateBoardAction(params: UpdateBoardParams) {
+    try {
+        // Map UI string permissions to Prisma Enums
+        const mapAccess = (val?: string): 'ALL' | 'ADMIN' | 'MEMBER' | 'GRADE' => {
+           switch(val) {
+               case 'all': return 'ALL';
+               case 'admin': return 'ADMIN';
+               case 'member': return 'MEMBER';
+               case 'grade': return 'GRADE';
+               default: return 'ALL';
+           } 
+        };
+
+        const board = await prisma.board.update({
+            where: { id: params.id },
+            data: {
+                boardId: params.boardId,
+                name: params.name,
+                type: params.type,
+                usePcMall: params.usePcMall,
+                useMobileMall: params.useMobileMall,
+                
+                listAccess: mapAccess(params.listAccess),
+                readAccess: mapAccess(params.readAccess),
+                writeAccess: mapAccess(params.writeAccess),
+                commentAccess: mapAccess(params.commentAccess),
+                
+                useReply: params.useReply ?? (params.type === 'INQUIRY'),
+                useComment: params.useComment ?? true,
+                useProductLink: params.useProductLink ?? false,
+                useOrderLink: params.useOrderLink ?? false,
+                maxFileSize: params.maxFileSize ?? 10,
+                
+                authorDisplay: params.authorDisplay ?? 'NICKNAME',
+
+                itemsPerPage: params.itemsPerPage ?? 15,
+                subjectLimit: params.subjectLimit ?? 30,
+                showNotice: params.showNotice ?? true,
+                useEditor: params.useEditor ?? true,
+                
+                headerHtml: params.headerHtml,
+                footerHtml: params.footerHtml,
+                
+                seoTitle: params.seoTitle,
+                seoAuthor: params.seoAuthor,
+                seoDescription: params.seoDescription,
+                seoKeywords: params.seoKeywords,
+            }
+        });
+
+        return { success: true, board };
+
+    } catch (error) {
+        console.error("Error updating board:", error);
+        return { success: false, error: "게시판 수정에 실패했습니다." };
+    }
 }

@@ -55,6 +55,48 @@ export async function createProductAction(prevState: unknown, formData: FormData
     }
 }
 
+export async function updateProductAction(prevState: unknown, formData: FormData) {
+    const rawFormData = Object.fromEntries(formData.entries());
+    const id = rawFormData.id as string;
+    
+    if (!id) return { success: false, message: "상품 ID가 없습니다." };
+
+    // 1. Basic Data parsing
+    const name = rawFormData.name as string;
+    const price = parseInt(rawFormData.price as string) || 0;
+    const supplyPrice = parseInt(rawFormData.supplyPrice as string) || 0;
+    const consumerPrice = parseInt(rawFormData.consumerPrice as string) || 0;
+    const stockQuantity = parseInt(rawFormData.stockQuantity as string) || 0;
+    const categoryId = rawFormData.categoryId as string;
+    
+    // Status mapping
+    const displayStatusPC = rawFormData.pc_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+    const displayStatusMobile = rawFormData.mobile_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+
+    try {
+        await prisma.product.update({
+            where: { id },
+            data: {
+                name,
+                price,
+                supplyPrice,
+                consumerPrice,
+                stockQuantity,
+                categoryId,
+                displayStatusPC,
+                displayStatusMobile,
+            }
+        });
+
+        revalidatePath('/admin/products');
+        revalidatePath(`/admin/products/edit/${id}`);
+        return { success: true, message: "상품이 수정되었습니다." };
+    } catch (e) {
+        console.error(e);
+        return { success: false, message: "상품 수정에 실패했습니다." };
+    }
+}
+
 
 // --- Fetch Products ---
 export async function getProductsAction(

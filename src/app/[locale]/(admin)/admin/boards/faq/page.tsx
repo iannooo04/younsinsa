@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { getFaqsAction, deleteFaqsAction } from "@/actions/board-faq-actions";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, subDays, subMonths, subYears } from "date-fns";
 import { Link } from "@/i18n/routing";
 
 export default function FAQManagementPage() {
@@ -34,6 +34,9 @@ export default function FAQManagementPage() {
   const [mallId, setMallId] = useState("KR");
   const [category, setCategory] = useState("all");
   const [type, setType] = useState("all"); // 'all', 'normal', 'best'
+  const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [searchType, setSearchType] = useState("integrated");
   const [keyword, setKeyword] = useState("");
   
   const [page, setPage] = useState(1);
@@ -41,6 +44,23 @@ export default function FAQManagementPage() {
   
   // Selection
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const setDateRange = (range: 'today' | '7d' | '15d' | '1m' | '3m' | '1y') => {
+      const end = new Date();
+      let start = new Date();
+
+      switch(range) {
+          case 'today': start = end; break;
+          case '7d': start = subDays(end, 7); break;
+          case '15d': start = subDays(end, 15); break;
+          case '1m': start = subMonths(end, 1); break;
+          case '3m': start = subMonths(end, 3); break;
+          case '1y': start = subYears(end, 1); break;
+      }
+      
+      setStartDate(format(start, "yyyy-MM-dd"));
+      setEndDate(format(end, "yyyy-MM-dd"));
+  };
 
   const fetchFaqs = React.useCallback(async () => {
     setLoading(true);
@@ -50,7 +70,10 @@ export default function FAQManagementPage() {
         isBest: type === 'best',
         keyword,
         page,
-        pageSize
+        pageSize,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        searchType
     });
 
     if (res.success) {
@@ -60,7 +83,7 @@ export default function FAQManagementPage() {
         toast.error("데이터를 불러오는데 실패했습니다.");
     }
     setLoading(false);
-  }, [mallId, category, type, keyword, page, pageSize]);
+  }, [mallId, category, type, keyword, page, pageSize, startDate, endDate, searchType]);
 
   useEffect(() => {
     fetchFaqs();
@@ -139,24 +162,30 @@ export default function FAQManagementPage() {
             </div>
           </div>
 
-          {/* Category & Type */}
+          {/* Category */}
           <div className="flex border-b border-gray-200 min-h-[48px]">
             <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
               카테고리
             </div>
-            <div className="w-80 p-2 flex items-center px-4 border-r border-gray-200">
+            <div className="flex-1 p-2 flex items-center px-4">
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white rounded-[2px]">
+                <SelectTrigger className="w-48 h-8 text-xs border-gray-300 bg-white rounded-[2px]">
                   <SelectValue placeholder="=전체=" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">=전체=</SelectItem>
-                  <SelectItem value="delivery">배송</SelectItem>
-                  <SelectItem value="return">반품/교환</SelectItem>
-                  <SelectItem value="member">회원불편</SelectItem>
+                  <SelectItem value="register_info">회원가입/정보</SelectItem>
+                  <SelectItem value="payment_delivery">결제/배송</SelectItem>
+                  <SelectItem value="exchange_return">교환/반품/환불</SelectItem>
+                  <SelectItem value="mileage">마일리지 적립</SelectItem>
+                  <SelectItem value="etc">기타</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          {/* Type */}
+          <div className="flex border-b border-gray-200 min-h-[48px]">
             <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
               유형
             </div>
@@ -178,25 +207,71 @@ export default function FAQManagementPage() {
             </div>
           </div>
 
+          {/* Registration Date */}
+          <div className="flex border-b border-gray-200 min-h-[48px]">
+            <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
+              등록일
+            </div>
+            <div className="flex-1 p-2 flex items-center gap-4 px-4">
+               <div className="flex items-center">
+                  {['오늘', '7일', '15일', '1개월', '3개월', '1년'].map((label, idx) => {
+                      const ranges = ['today', '7d', '15d', '1m', '3m', '1y'] as const;
+                      return (
+                        <Button 
+                            key={label}
+                            variant="outline"
+                            onClick={() => setDateRange(ranges[idx])}
+                            className="h-8 px-3 text-xs border-gray-300 rounded-none first:rounded-l-[2px] last:rounded-r-[2px] -ml-[1px] first:ml-0 bg-[#F9F9F9] hover:bg-white text-gray-600 font-normal"
+                        >
+                            {label}
+                        </Button>
+                      );
+                  })}
+              </div>
+              <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <Input 
+                      type="date"
+                      className="w-32 h-8 text-xs border-gray-300 rounded-[2px] pr-2" 
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+                  <span className="text-gray-400">~</span>
+                  <div className="relative">
+                   <Input 
+                      type="date"
+                      className="w-32 h-8 text-xs border-gray-300 rounded-[2px] pr-2" 
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+              </div>
+            </div>
+          </div>
+
           {/* Search */}
           <div className="flex min-h-[48px]">
             <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
               검색
             </div>
             <div className="flex-1 p-2 flex items-center gap-1 px-4">
-              <Select defaultValue="integrated">
+              <Select value={searchType} onValueChange={setSearchType}>
                 <SelectTrigger className="w-32 h-8 text-xs border-gray-300 bg-white rounded-[2px]">
                   <SelectValue placeholder="=통합검색=" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="integrated">=통합검색=</SelectItem>
+                  <SelectItem value="subject">제목</SelectItem>
+                  <SelectItem value="content">내용</SelectItem>
+                  <SelectItem value="answer">답변</SelectItem>
                 </SelectContent>
               </Select>
               <Input 
                 value={keyword}
                 onChange={(e) => setKeyword(e.target.value)}
-                className="w-48 h-8 text-xs border-gray-300 rounded-[2px]" 
-                placeholder="검색어 입력"
+                className="w-full max-w-sm h-8 text-xs border-gray-300 rounded-[2px]" 
+                placeholder="검색어를 입력해주세요."
               />
             </div>
           </div>

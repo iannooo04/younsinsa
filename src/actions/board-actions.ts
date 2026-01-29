@@ -6,20 +6,29 @@ import { Prisma } from '@/generated/prisma';
 export type GetBoardsParams = {
   keyword?: string;
   searchType?: 'id' | 'name';
+  matchType?: 'exact' | 'partial';
   type?: string[]; // 'BASIC', 'GALLERY', 'EVENT', 'INQUIRY'
 };
 
 export async function getBoardsAction(params: GetBoardsParams) {
   try {
-    const { keyword, searchType = 'id', type } = params;
+    const { keyword, searchType = 'id', matchType = 'partial', type } = params;
 
     const where: Prisma.BoardWhereInput = {};
 
     if (keyword) {
       if (searchType === 'id') {
-        where.boardId = { contains: keyword, mode: 'insensitive' };
+        if (matchType === 'exact') {
+             where.boardId = { equals: keyword, mode: 'insensitive' };
+        } else {
+             where.boardId = { contains: keyword, mode: 'insensitive' };
+        }
       } else {
-        where.name = { contains: keyword, mode: 'insensitive' };
+        if (matchType === 'exact') {
+             where.name = { equals: keyword, mode: 'insensitive' };
+        } else {
+             where.name = { contains: keyword, mode: 'insensitive' };
+        }
       }
     }
 

@@ -4,7 +4,7 @@ import { useState, useActionState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { HelpCircle, ChevronUp, ChevronDown, Calendar } from "lucide-react";
-import { createProductAction } from "@/actions/product-actions";
+import { createProductAction, updateProductAction } from "@/actions/product-actions";
 
 import { Brand, Category } from "@/generated/prisma";
 import SupplierPopup from "./SupplierPopup";
@@ -22,6 +22,8 @@ import GuidePopup from "./GuidePopup";
 interface Props {
     brands: Brand[];
     categories: Category[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    initialProduct?: any;
 }
 
 const initialState = {
@@ -29,9 +31,9 @@ const initialState = {
     success: false,
 };
 
-export default function ProductForm({ categories }: Props) {
+export default function ProductForm({ categories, initialProduct }: Props) {
     const router = useRouter();
-    const [state, formAction] = useActionState(createProductAction, initialState);
+    const [state, formAction] = useActionState(initialProduct ? updateProductAction : createProductAction, initialState);
     
     const formRef = useRef<HTMLFormElement>(null);
     
@@ -61,11 +63,13 @@ export default function ProductForm({ categories }: Props) {
         admin_memo: true,
     });
 
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
-    const [selectedCategoriesList, setSelectedCategoriesList] = useState<Category[]>([]);
+    const [selectedCategoryId, setSelectedCategoryId] = useState<string>(initialProduct?.categoryId || "");
+    const [selectedCategoriesList, setSelectedCategoriesList] = useState<Category[]>(
+        initialProduct?.category ? [initialProduct.category] : []
+    );
     
     // Editor State
-    const [descContent, setDescContent] = useState("");
+    const [descContent, setDescContent] = useState(initialProduct?.descriptionPC || "");
     const [activeEditorMode, setActiveEditorMode] = useState<'editor' | 'html' | 'text'>('editor');
     const [productNameType, setProductNameType] = useState('basic');
     const [isPhotoPopupOpen, setIsPhotoPopupOpen] = useState(false);
@@ -98,15 +102,15 @@ export default function ProductForm({ categories }: Props) {
         }).join('<br/>');
 
         if (photoTarget === 'desc') {
-             setDescContent(prev => prev + '<br/>' + imagesHtml);
+             setDescContent((prev: string) => prev + '<br/>' + imagesHtml);
         } else if (photoTarget === 'shipping') {
-            setShippingGuideContent(prev => prev + '\n' + imagesHtml);
+            setShippingGuideContent((prev: string) => prev + '\n' + imagesHtml);
         } else if (photoTarget === 'as') {
-            setAsGuideContent(prev => prev + '\n' + imagesHtml);
+            setAsGuideContent((prev: string) => prev + '\n' + imagesHtml);
         } else if (photoTarget === 'refund') {
-            setRefundGuideContent(prev => prev + '\n' + imagesHtml);
+            setRefundGuideContent((prev: string) => prev + '\n' + imagesHtml);
         } else if (photoTarget === 'exchange') {
-            setExchangeGuideContent(prev => prev + '\n' + imagesHtml);
+            setExchangeGuideContent((prev: string) => prev + '\n' + imagesHtml);
         }
     };
     
@@ -124,7 +128,7 @@ export default function ProductForm({ categories }: Props) {
 
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
-    const [selectedBrandName, setSelectedBrandName] = useState<string>("");
+    const [selectedBrandName, setSelectedBrandName] = useState<string>(initialProduct?.brand?.name || "");
 
     // HSCode Popup State
     interface HSCodeRow {
@@ -386,7 +390,7 @@ export default function ProductForm({ categories }: Props) {
         <div className="pb-20">
             {/* Top Header Actions */}
             <div className="flex justify-between items-center mb-6 bg-white p-4 border-b">
-                <h2 className="text-xl font-bold text-gray-800">상품 등록</h2>
+                <h2 className="text-xl font-bold text-gray-800">{initialProduct ? "상품 수정" : "상품 등록"}</h2>
                 <div className="flex gap-2">
 
                     <button 
@@ -403,12 +407,13 @@ export default function ProductForm({ categories }: Props) {
                         onClick={() => formRef.current?.requestSubmit()}
                         className="px-6 py-2 bg-[#ff4d4f] text-white text-sm font-bold hover:bg-[#ff3032]"
                     >
-                        저장
+                        {initialProduct ? "수정" : "저장"}
                     </button>
                 </div>
             </div>
 
             <form ref={formRef} action={formAction} className="space-y-8 px-4">
+                {initialProduct && <input type="hidden" name="id" value={initialProduct.id} />}
                 <input type="hidden" name="categoryId" value={selectedCategoryId} />
                 
                 {state.message && (
@@ -534,13 +539,13 @@ export default function ProductForm({ categories }: Props) {
                 {/* 3. 노출 및 판매상태 설정 */}
                 <Section title="노출 및 판매상태 설정" isOpen={sections.display} onToggle={() => toggleSection('display')}>
                     <Row label="PC쇼핑몰 노출상태" help>
-                        <RadioGroup name="pc_display" options={['노출함', '노출안함']} />
+                        <RadioGroup name="pc_display" options={['노출함', '노출안함']} defaultValue={initialProduct?.displayStatusPC === 'DISPLAY' ? '노출함' : '노출안함'} />
                     </Row>
                     <Row label="PC쇼핑몰 판매상태" help>
                         <RadioGroup name="pc_sale" options={['판매함', '판매안함']} />
                     </Row>
                     <Row label="모바일쇼핑몰 노출상태">
-                        <RadioGroup name="mobile_display" options={['노출함', '노출안함']} />
+                        <RadioGroup name="mobile_display" options={['노출함', '노출안함']} defaultValue={initialProduct?.displayStatusMobile === 'DISPLAY' ? '노출함' : '노출안함'} />
                     </Row>
                     <Row label="모바일쇼핑몰 판매상태">
                          <RadioGroup name="mobile_sale" options={['판매함', '판매안함']} />
@@ -622,7 +627,7 @@ export default function ProductForm({ categories }: Props) {
                                 <div className="grid grid-cols-[100px_1fr] items-center gap-4">
                                     <span className="text-sm font-bold text-gray-700">기본</span>
                                      <div className="flex items-center gap-2 w-full">
-                                        <input type="text" name="name" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" required />
+                                        <input type="text" name="name" defaultValue={initialProduct?.name} className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" required />
                                         <span className="text-xs text-gray-400">0 / 250</span>
                                      </div>
                                 </div>

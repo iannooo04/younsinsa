@@ -7,12 +7,13 @@ export type GetPostsParams = {
     page?: number;
     pageSize?: number;
     boardId?: string;
+    dateType?: 'createdAt' | 'updatedAt';
     startDate?: Date;
     endDate?: Date;
     answerStatus?: string; // 'all', 'waiting', 'complete' etc
-    searchType?: 'subject' | 'content' | 'writer';
+    searchType?: 'subject' | 'content' | 'writer' | 'nickname' | 'name' | 'id' | 'subject_content' | 'product_name' | 'product_code' | 'own_product_code';
     keyword?: string;
-    sortBy?: 'num_desc' | 'num_asc'; // or 'date_desc'
+    sortBy?: 'num_desc' | 'num_asc' | 'date_desc' | 'date_asc';
 };
 
 export async function getPostsAction(params: GetPostsParams) {
@@ -21,12 +22,13 @@ export async function getPostsAction(params: GetPostsParams) {
             page = 1, 
             pageSize = 10, 
             boardId,
+            dateType = 'createdAt',
             startDate,
             endDate,
             answerStatus,
             searchType,
-            keyword
-            // sortBy - unused
+            keyword,
+            sortBy
         } = params;
 
         const where: Prisma.PostWhereInput = {};
@@ -38,36 +40,70 @@ export async function getPostsAction(params: GetPostsParams) {
 
         // Date Filter
         if (startDate || endDate) {
-            where.createdAt = {};
-            if (startDate) where.createdAt.gte = startDate;
-            if (endDate) where.createdAt.lte = endDate;
+            // Effectively where['createdAt'] or where['updatedAt']
+            const dateField = dateType === 'updatedAt' ? 'updatedAt' : 'createdAt';
+            
+            // However, TypeScript might complain about indexing with string on PostWhereInput if not cast or handled carefully.
+            // But Prisma input types often have optional keys. Accessing them dynamically requires 'as keyof ...' or similar.
+            // Simpler approach:
+            
+            where[dateField] = {};
+            if (startDate) where[dateField]!.gte = startDate;
+            if (endDate) where[dateField]!.lte = endDate;
         }
 
         // Answer Status Filter
         if (answerStatus && answerStatus !== 'all') {
-             // Assuming answerStatus is stored as string in DB
-             // Or map to specific values if you use Enum later
-             where.answerStatus = answerStatus; 
+             let status = answerStatus;
+             if (answerStatus === 'waiting') status = 'WAITING';
+             else if (answerStatus === 'complete') status = 'COMPLETE';
+             else if (answerStatus === 'receipt') status = 'RECEIPT';
+             
+             where.answerStatus = status; 
         }
 
         // Keyword Search
         if (keyword) {
+            const mode = 'insensitive';
             if (searchType === 'subject') {
-                where.subject = { contains: keyword, mode: 'insensitive' };
+                where.subject = { contains: keyword, mode };
             } else if (searchType === 'content') {
-                where.content = { contains: keyword, mode: 'insensitive' };
+                where.content = { contains: keyword, mode };
+            } else if (searchType === 'subject_content') {
+                where.OR = [
+                    { subject: { contains: keyword, mode } },
+                    { content: { contains: keyword, mode } }
+                ];
             } else if (searchType === 'writer') {
                 where.OR = [
-                    { authorName: { contains: keyword, mode: 'insensitive' } },
-                    { author: { user: { name: { contains: keyword, mode: 'insensitive' } } } },
-                    { author: { user: { nickname: { contains: keyword, mode: 'insensitive' } } } }
+                     { authorName: { contains: keyword, mode } },
+                     { author: { user: { name: { contains: keyword, mode } } } },
+                     { author: { user: { nickname: { contains: keyword, mode } } } }
                 ];
+            } else if (searchType === 'name') {
+                 where.OR = [
+                     { authorName: { contains: keyword, mode } },
+                     { author: { user: { name: { contains: keyword, mode } } } }
+                 ];
+            } else if (searchType === 'nickname') {
+                 where.OR = [
+                     { authorName: { contains: keyword, mode } },
+                     { author: { user: { nickname: { contains: keyword, mode } } } }
+                 ];
+            } else if (searchType === 'id') {
+                 where.author = { user: { username: { contains: keyword, mode } } };
+            } else if (searchType === 'product_name') {
+                 where.product = { name: { contains: keyword, mode } };
+            } else if (searchType === 'product_code') {
+                 where.product = { code: { contains: keyword, mode } };
+            } else if (searchType === 'own_product_code') {
+                 where.product = { customCode: { contains: keyword, mode } };
             } else {
                 // Default search all
                  where.OR = [
-                    { subject: { contains: keyword, mode: 'insensitive' } },
-                    { content: { contains: keyword, mode: 'insensitive' } },
-                    { authorName: { contains: keyword, mode: 'insensitive' } }
+                    { subject: { contains: keyword, mode } },
+                    { content: { contains: keyword, mode } },
+                    { authorName: { contains: keyword, mode } }
                 ];
             }
         }
@@ -79,7 +115,7 @@ export async function getPostsAction(params: GetPostsParams) {
                 where,
                 skip,
                 take: pageSize,
-                orderBy: { createdAt: 'desc' }, // default sort
+                orderBy: (sortBy === 'num_asc' || sortBy === 'date_asc') ? { createdAt: 'asc' } : { createdAt: 'desc' },
                 include: {
                     board: { select: { name: true, boardId: true } },
                     author: { select: { user: { select: { name: true, nickname: true } } } },

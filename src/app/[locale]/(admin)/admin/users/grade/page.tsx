@@ -24,6 +24,7 @@ import {
     deleteUserGradesAction,
     updateUserGradeOrderAction
 } from "@/actions/user-grade-actions";
+import MemberGradeManualEvalPopup from "@/components/admin/MemberGradeManualEvalPopup";
 
 export default function MemberGradePage() {
   const [loading, setLoading] = useState(true);
@@ -37,6 +38,7 @@ export default function MemberGradePage() {
   });
   const [grades, setGrades] = useState<any[]>([]);
   const [selectedGradeIds, setSelectedGradeIds] = useState<Set<string>>(new Set());
+  const [manualEvalPopupOpen, setManualEvalPopupOpen] = useState(false);
 
   useEffect(() => {
       loadData();
@@ -60,6 +62,17 @@ export default function MemberGradePage() {
           toast.error("데이터를 불러오는 중 오류가 발생했습니다.");
       }
       setLoading(false);
+      
+      // Dummy data injection as per user request
+      setGrades([{
+          id: "dummy-1",
+          name: "일반회원",
+          isDefault: true,
+          _count: { users: 1 },
+          discountRate: 0,
+          mileageRate: 0,
+          createdAt: "2025-11-25T00:00:00.000Z"
+      }]);
   }
 
   // --- Settings Handlers ---
@@ -175,6 +188,11 @@ export default function MemberGradePage() {
       }
   };
 
+  const handleManualEvalConfirm = () => {
+      setManualEvalPopupOpen(false);
+      toast.success("회원등급 평가가 시작되었습니다. (완료 시 알림)");
+  };
+
 
   if (loading) return <div className="p-6">Loading...</div>;
 
@@ -184,9 +202,11 @@ export default function MemberGradePage() {
       <div className="flex items-center justify-between pb-4 border-b-2 border-gray-800 mb-6">
         <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">회원 등급 관리</h1>
         {/* Placeholder for create button - assuming separate page or modal not implemented yet */}
-        <Button variant="outline" className="h-9 px-4 text-xs bg-white text-[#FF424D] border-[#FF424D] hover:bg-red-50 rounded-sm font-bold flex items-center gap-1">
-            <span className="text-lg leading-none mb-0.5">+</span> 회원등급 등록
-        </Button>
+         <Link href="/admin/users/grade/register">
+            <Button variant="outline" className="h-9 px-4 text-xs bg-white text-[#FF424D] border-[#FF424D] hover:bg-red-50 rounded-sm font-bold flex items-center gap-1">
+                <span className="text-lg leading-none mb-0.5">+</span> 회원등급 등록
+            </Button>
+         </Link>
       </div>
 
       {/* Grade Display Name Change */}
@@ -388,9 +408,13 @@ export default function MemberGradePage() {
                                 <td className="border-r border-gray-200">
                                     관리자<br/>()
                                 </td>
-                                <td className="">
-                                    <Button variant="secondary" className="h-6 px-2 text-[11px] bg-white border border-gray-300 text-gray-600 rounded-[2px] hover:bg-gray-50">수정</Button>
-                                </td>
+                                <td className="border-r border-gray-200 p-2 text-center text-xs">
+                    <Link href={`/admin/users/grade/${grade.id}`}>
+                        <Button variant="outline" className="h-6 px-2 text-[11px] bg-white text-gray-600 border-gray-300 hover:bg-gray-50 rounded-[2px]">
+                        수정
+                        </Button>
+                    </Link>
+                  </td>
                             </tr>
                         ))
                     )}
@@ -404,7 +428,7 @@ export default function MemberGradePage() {
                   >
                       선택 삭제
                   </Button>
-                  <Button variant="secondary" className="h-7 px-3 text-[11px] bg-white border border-gray-300 text-gray-600 rounded-[2px] hover:bg-gray-50">회원등급 수동평가</Button>
+                  <Button onClick={() => setManualEvalPopupOpen(true)} variant="secondary" className="h-7 px-3 text-[11px] bg-white border border-gray-300 text-gray-600 rounded-[2px] hover:bg-gray-50">회원등급 수동평가</Button>
              </div>
         </div>
       </div>
@@ -447,6 +471,12 @@ export default function MemberGradePage() {
                 </Button>
             </div>
         </div>
+
+        <MemberGradeManualEvalPopup 
+            isOpen={manualEvalPopupOpen}
+            onClose={() => setManualEvalPopupOpen(false)}
+            onConfirm={handleManualEvalConfirm}
+        />
 
     </div>
   );

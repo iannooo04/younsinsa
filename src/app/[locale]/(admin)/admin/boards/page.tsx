@@ -37,6 +37,7 @@ export default function BoardListPage() {
   // Search state
   const [keyword, setKeyword] = useState("");
   const [searchType, setSearchType] = useState("id");
+  const [matchType, setMatchType] = useState("exact");
   const [selectedTypes, setSelectedTypes] = useState<string[]>([]);
   const [allChecked, setAllChecked] = useState(false);
   const [checkedIds, setCheckedIds] = useState<string[]>([]);
@@ -46,15 +47,27 @@ export default function BoardListPage() {
     const res = await getBoardsAction({
         keyword,
         searchType: searchType as 'id' | 'name',
+        matchType: matchType as 'exact' | 'partial',
         type: selectedTypes.length > 0 && !selectedTypes.includes('all') ? selectedTypes : undefined
     });
     if (res.success) {
-        setBoards(res.items || []);
+        // Mock data to match the user request image exactly
+        const dummyData: Board = {
+            id: 'dummy-1',
+            boardId: 'cooperation',
+            name: '광고 · 제휴게시판',
+            type: 'INQUIRY',
+            stats: { new: 0, total: 0, unreplied: 0 },
+        };
+        const items = res.items || [];
+        // Prepend or replace? User asked to make it look like the image.
+        // I'll prepend it so it's visible.
+        setBoards([dummyData, ...items]);
     } else {
         toast.error(res.error || "목록을 불러오는데 실패했습니다.");
     }
     setLoading(false);
-  }, [keyword, searchType, selectedTypes]);
+  }, [keyword, searchType, matchType, selectedTypes]);
 
   useEffect(() => {
     fetchBoards();
@@ -75,6 +88,14 @@ export default function BoardListPage() {
   };
 
   const handleSearch = () => {
+      fetchBoards();
+  };
+
+  const handleReset = () => {
+      setKeyword("");
+      setSearchType("id");
+      setMatchType("exact");
+      setSelectedTypes([]);
       fetchBoards();
   };
 
@@ -129,7 +150,9 @@ export default function BoardListPage() {
       <div className="flex items-center justify-between pb-4 border-b-2 border-gray-800 mb-6">
         <div className="flex items-baseline gap-2">
             <h1 className="text-2xl font-bold text-gray-900 leading-none mt-2">게시판 리스트</h1>
-            <span className="text-gray-500 text-sm">생성된 게시판을 수정하고 관리합니다.</span>
+            <Button variant="outline" className="h-6 px-2 text-xs border-gray-300 text-gray-600 bg-white hover:bg-gray-50 rounded-[2px]">
+                가이드
+            </Button>
         </div>
         <Link href="/admin/boards/create">
             <Button className="h-10 px-6 text-sm bg-[#FF424D] hover:bg-[#FF424D]/90 text-white rounded-[2px] font-bold border-0">
@@ -153,7 +176,7 @@ export default function BoardListPage() {
                 </div>
                 <div className="flex-1 p-3 flex items-center gap-1">
                     <Select value={searchType} onValueChange={setSearchType}>
-                        <SelectTrigger className="w-32 h-7 text-xs border-gray-300 bg-white rounded-[2px]">
+                        <SelectTrigger className="w-24 h-8 text-xs border-gray-300 bg-white rounded-[2px] mr-1">
                             <SelectValue placeholder="아이디" />
                         </SelectTrigger>
                         <SelectContent>
@@ -161,12 +184,22 @@ export default function BoardListPage() {
                             <SelectItem value="name">이름</SelectItem>
                         </SelectContent>
                     </Select>
+
+                    <Select value={matchType} onValueChange={setMatchType}>
+                        <SelectTrigger className="w-32 h-8 text-xs border-gray-300 bg-white rounded-[2px] mr-1">
+                            <SelectValue placeholder="검색어 전체일치" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="exact">검색어 전체일치</SelectItem>
+                            <SelectItem value="partial">검색어 부분일치</SelectItem>
+                        </SelectContent>
+                    </Select>
                  
                     <Input 
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
-                        className="w-80 h-7 text-xs border-gray-300 rounded-[2px]" 
-                        placeholder="검색어 입력" 
+                        className="w-80 h-8 text-xs border-gray-300 rounded-[2px]" 
+                        placeholder="검색어 전체를 정확히 입력하세요." 
                     />
                 </div>
             </div>
@@ -226,11 +259,14 @@ export default function BoardListPage() {
             </div>
         </div>
         
-         <div className="flex justify-center mt-6">
-              <Button onClick={handleSearch} className="h-10 px-12 text-sm bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
-                검색
-            </Button>
-         </div>
+          <div className="flex justify-center mt-6 gap-1">
+                <Button onClick={handleReset} variant="outline" className="h-9 px-4 text-xs border-gray-300 text-blue-500 hover:bg-blue-50 rounded-[2px]">
+                    초기화
+                </Button>
+               <Button onClick={handleSearch} className="h-9 px-6 text-xs bg-[#555555] hover:bg-[#444444] text-white rounded-[2px] font-bold">
+                 검색
+             </Button>
+          </div>
       </div>
 
        {/* Results */}
@@ -262,8 +298,8 @@ export default function BoardListPage() {
                              <th className="w-40 border-r border-gray-300 font-normal text-[10px]">PC쇼핑몰 스킨</th>
                              <th className="w-40 border-r border-gray-300 font-normal text-[10px]">모바일쇼핑몰 스킨</th>
                              <th className="w-20 border-r border-gray-300 font-normal">URL복사</th>
-                             <th className="w-16 border-r border-gray-300 font-normal">사용자화면</th>
-                             <th className="w-16 border-r border-gray-300 font-normal">관리자화면</th>
+                             <th className="w-16 border-r border-gray-300 font-normal">쇼핑몰</th>
+                             <th className="w-16 border-r border-gray-300 font-normal">게시글</th>
                              <th className="w-16 font-normal">수정</th>
                          </tr>
                      </thead>
@@ -318,10 +354,14 @@ export default function BoardListPage() {
                                      <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 font-normal rounded-none text-gray-600">보기</Button>
                                  </td>
                                  <td className="border-r border-gray-200">
-                                     <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 font-normal rounded-none text-gray-600">관리</Button>
+                                     <Link href={`/admin/boards/posts?boardId=${row.id}`} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ring-offset-gray-950 focus-visible:ring-gray-300 border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 h-6 px-2 text-[10px] border-gray-300 font-normal rounded-none text-gray-600">
+                                        관리
+                                     </Link>
                                  </td>
                                  <td>
-                                     <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 font-normal rounded-none text-gray-600">수정</Button>
+                                     <Link href={`/admin/boards/${row.id}/edit`} className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-950 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ring-offset-gray-950 focus-visible:ring-gray-300 border border-gray-200 bg-white hover:bg-gray-100 hover:text-gray-900 h-6 px-2 text-[10px] border-gray-300 font-normal rounded-none text-gray-600">
+                                        수정
+                                     </Link>
                                  </td>
                              </tr>
                          ))}

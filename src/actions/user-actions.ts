@@ -14,442 +14,67 @@ export type GetUsersParams = {
   memberGrade?: string;
   memberType?: string; // all, personal, business
   approved?: string; // all, approved, pending
-  startDate?: string;
-  endDate?: string;
-  dateSearchType?: string; // join_date
+  
+  // Date Ranges
+  startDate?: string; // Join Date Start
+  endDate?: string;   // Join Date End
+  lastLoginStart?: string;
+  lastLoginEnd?: string;
+  birthdayStart?: string;
+  birthdayEnd?: string;
+  anniversaryStart?: string;
+  anniversaryEnd?: string;
+  // dormantReleaseStart?: string; // Not typically stored directly, skipping for now unless 'withdrawalDate' is used? UI says 'Dormant Release Date'.
+
+  // Numeric Ranges
+  visitCountMin?: number;
+  visitCountMax?: number;
+  mileageMin?: number;
+  mileageMax?: number;
+  depositMin?: number;
+  depositMax?: number;
+  orderCountMin?: number;
+  orderCountMax?: number;
+  orderAmountMin?: number;
+  orderAmountMax?: number;
+
+  // Enums / Booleans
+  smsConsent?: string; // 'all', 'true', 'false'
+  emailConsent?: string; // 'all', 'true', 'false'
+  gender?: string; // 'all', 'MALE', 'FEMALE'
+  maritalStatus?: string; // 'all', 'SINGLE', 'MARRIED'
+  
+  // Others
+  joinPath?: string; // Not in schema yet, but used in UI
+  linkedProvider?: string;
 };
 
 export async function getUsersAction(params: GetUsersParams) {
   try {
-    const {
-      page = 1,
-      limit = 20
-    } = params;
-
-    const where = buildUserWhereClause(params);
+    const { page = 1, limit = 10 } = params;
     const skip = (page - 1) * limit;
+    const where = buildUserWhereClause(params);
 
-    const [total, users] = await prisma.$transaction([
+    const [total, items] = await prisma.$transaction([
       prisma.user.count({ where }),
       prisma.user.findMany({
         where,
-        skip,
         take: limit,
+        skip,
         orderBy: { createdAt: 'desc' },
         include: {
-          info: {
-            include: {
-              grade: true,
-              orders: {
-                  where: { status: 'PURCHASE_CONFIRM' },
-                  select: {
-                      totalPayAmount: true
-                  }
-              }
-            }
-          }
-        }
-      })
+          info: true,
+          recommender: { select: { username: true } },
+          businessInfo: true,
+          accounts: true,
+        },
+      }),
     ]);
 
-    // Calculate aggregates for display
-    const usersWithStats = users.map(user => {
-        const orders = user.info?.orders || [];
-        const orderCount = orders.length;
-        const totalOrderAmount = orders.reduce((acc, order) => acc + (order.totalPayAmount || 0), 0);
-        return {
-            ...user,
-            orderCount,
-            totalOrderAmount
-        };
-    });
-
-    return {
-      success: true,
-      items: usersWithStats,
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit)
-    };
-
+    return { success: true, items, total };
   } catch (error) {
-    console.error("Error fetching users:", error);
-    return { success: false, error: "Failed to fetch users" };
-  }
-}
-
-// Actions for Withdrawal Management
-
-export type GetWithdrawnUsersParams = {
-    page?: number;
-    limit?: number;
-    mallId?: string;
-    keyword?: string; // id only in UI, but keep generic
-    withdrawalType?: string; // all, admin, user
-    canRejoin?: string; // all, possible, impossible
-    startDate?: string;
-    endDate?: string;
-    targetId?: string; // Search by ID
-};
-
-export async function getWithdrawnUsersAction(params: GetWithdrawnUsersParams) {
-    try {
-        const {
-            page = 1,
-            limit = 20,
-            mallId,
-            keyword,
-            withdrawalType,
-            canRejoin,
-            startDate,
-            endDate,
-            targetId
-        } = params;
-
-        const where: Prisma.UserWhereInput = {};
-        const infoWhere: Prisma.UserInfoWhereInput = { isWithdrawn: true };
-
-        // Mall
-        if (mallId && mallId !== 'all') {
-            if (mallId === 'base') where.mallId = 'KR';
-            else if (mallId === 'chinese') where.mallId = 'CN';
-            else where.mallId = mallId;
-        }
-
-        // Search by ID/Keyword
-        if (targetId) {
-             where.username = targetId;
-        } else if (keyword) {
-             where.username = { contains: keyword, mode: 'insensitive' };
-        }
-
-        // Withdrawal Type
-        if (withdrawalType && withdrawalType !== 'all') {
-             if (withdrawalType === 'admin') infoWhere.withdrawalType = 'admin';
-             else if (withdrawalType === 'user') infoWhere.withdrawalType = 'user';
-        }
-
-        // Rejoin
-        if (canRejoin && canRejoin !== 'all') {
-             infoWhere.canRejoin = (canRejoin === 'possible');
-        }
-
-        // Date (Withdrawal Date)
-        if (startDate && endDate) {
-            infoWhere.withdrawalDate = {
-                gte: new Date(startDate),
-                lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
-            };
-        }
-
-        where.info = infoWhere;
-
-        const skip = (page - 1) * limit;
-
-        const [total, users] = await prisma.$transaction([
-            prisma.user.count({ where }),
-            prisma.user.findMany({
-                where,
-                skip,
-                take: limit,
-                orderBy: { info: { withdrawalDate: 'desc' } }, // Sort by withdrawal date
-                include: {
-                    info: {
-                        include: {
-                             grade: true
-                        }
-                    }
-                }
-            })
-        ]);
-
-        return {
-            success: true,
-            items: users,
-            total,
-            page,
-            limit,
-            totalPages: Math.ceil(total / limit)
-        };
-
-    } catch (error) {
-        console.error("Error fetching withdrawn users:", error);
-         return { success: false, error: "탈퇴 회원을 불러오는데 실패했습니다." };
-    }
-}
-
-export async function deleteWithdrawnUsersAction(ids: string[]) {
-    try {
-        if (!ids || ids.length === 0) return { success: false, error: "선택된 회원이 없습니다." };
-        
-        await prisma.user.deleteMany({
-            where: { id: { in: ids } }
-        });
-
-        revalidatePath("/admin/users/withdrawal-management");
-        return { success: true };
-    } catch (error) {
-         console.error("Error deleting users:", error);
-         return { success: false, error: "회원 삭제에 실패했습니다." };
-    }
-}
-
-export async function restoreWithdrawnUsersAction(ids: string[]) {
-    try {
-        if (!ids || ids.length === 0) return { success: false, error: "선택된 회원이 없습니다." };
-
-        await prisma.userInfo.updateMany({
-            where: { userId: { in: ids } },
-            data: {
-                isWithdrawn: false,
-                withdrawalDate: null,
-                withdrawalType: null,
-                withdrawalReason: null,
-                withdrawalIp: null,
-                processor: null
-            }
-        });
-
-        revalidatePath("/admin/users/withdrawal-management");
-        return { success: true };
-    } catch (error) {
-        console.error("Error restoring users:", error);
-        return { success: false, error: "회원 복구에 실패했습니다." };
-    }
-}
-
-
-export async function checkDuplicateAction(field: 'username' | 'email' | 'nickname', value: string) {
-  try {
-    const where: Prisma.UserWhereInput = {};
-    if (field === 'username') where.username = value;
-    else if (field === 'email') where.email = value;
-    else if (field === 'nickname') where.nickname = value;
-
-    const count = await prisma.user.count({ where });
-    return { success: true, isDuplicate: count > 0 };
-  } catch (error) {
-    console.error(`Error checking duplicate ${field}:`, error);
-    return { success: false, error: "Failed to check duplicate" };
-  }
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function createUserAction(data: Record<string, any>) {
-  try {
-    // 1. Validate Recommender if provided
-    let recommenderId = null;
-    if (data.recommenderId) {
-       const recommender = await prisma.user.findUnique({
-           where: { username: data.recommenderId }
-       });
-       if (!recommender) {
-           return { success: false, error: "존재하지 않는 추천인 아이디입니다." };
-       }
-       recommenderId = recommender.id;
-    }
-
-    // 2. Hash Password
-    const hashedPassword = await bcrypt.hash(data.password, 10);
-
-    // 3. Create User
-    const newUser = await prisma.user.create({
-      data: {
-        username: data.username,
-        passwordHash: hashedPassword,
-        name: data.name,
-        email: data.email,
-        mobile: data.mobile,
-        phone: data.phone,
-        fax: data.fax,
-        nickname: data.nickname,
-        mallId: 'KR', // Default
-        
-        recommenderId: recommenderId,
-
-        info: {
-            create: {
-                type: data.memberType as MemberType || MemberType.PERSONAL,
-                gradeId: data.gradeId,
-                isApproved: data.isApproved,
-                
-                zipcode: data.zipcode,
-                address: data.address,
-                addressDetail: data.addressDetail,
-                
-                emailConsent: data.emailConsent,
-                emailConsentDate: data.emailConsent ? new Date() : null,
-                smsConsent: data.smsConsent,
-                smsConsentDate: data.smsConsent ? new Date() : null,
-                
-                job: data.job,
-                interests: data.interests || [],
-                
-                gender: data.gender as Gender || Gender.NONE,
-                birthday: data.birthday ? new Date(data.birthday) : null,
-                birthdayType: data.birthdayType as DateType || DateType.SOLAR,
-                
-                maritalStatus: data.maritalStatus as MaritalStatus || MaritalStatus.SINGLE,
-                anniversary: data.anniversary ? new Date(data.anniversary) : null,
-                
-                retentionPeriod: data.retentionPeriod || 'UNLIMITED',
-                userMemo: data.userMemo,
-            }
-        },
-        
-        // Handle Business Info if type is BUSINESS
-        ...(data.memberType === 'BUSINESS' && {
-            businessInfo: {
-                create: {
-                    companyName: data.companyName,
-                    ceoName: data.ceoName,
-                    businessNumber: data.businessNumber,
-                    category: data.businessCategory,
-                    item: data.businessItem,
-                    companyZipcode: data.companyZipcode,
-                    companyAddress: data.companyAddress
-                }
-            }
-        })
-      }
-    });
-
-    return { success: true, userId: newUser.id };
-
-  } catch (error) {
-    console.error("Error creating user:", error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === 'P2002') {
-             return { success: false, error: "이미 존재하는 회원정보(아이디, 이메일 등)입니다." };
-        }
-    }
-    return { success: false, error: "회원 등록에 실패했습니다." };
-  }
-}
-
-export type UploadUsersResult = 
-  | { success: true; count: number; failCount: number; errors: string[] }
-  | { success: false; error: string };
-
-export async function uploadUsersExcelAction(data: Record<string, string | number | boolean | null>[]): Promise<UploadUsersResult> {
-  try {
-    let successCount = 0;
-    let failCount = 0;
-    const errors: string[] = [];
-
-    for (const row of data) {
-        try {
-            // Validation / Mapping
-            const usernameRaw = row['mem_id'];
-            if (!usernameRaw) {
-                failCount++;
-                errors.push(`Row missing username (mem_id)`);
-                continue;
-            }
-            const username = String(usernameRaw);
-
-            // Check if user exists
-            const existing = await prisma.user.findUnique({ where: { username } });
-            if (existing) {
-                failCount++;
-                errors.push(`User ${username} already exists`);
-                continue;
-            }
-
-            // Password
-            const passwordRaw = row['mem_password'] || '1234'; // Default if missing
-            const hashedPassword = await bcrypt.hash(String(passwordRaw), 10);
-
-            // Mapping Fields
-            const name = String(row['mem_name'] || 'Unknown');
-            const email = String(row['email'] || `${username}@example.com`);
-            const mobile = String(row['cell_phone'] || row['mobile'] || '');
-            const phone = String(row['phone'] || '');
-            const fax = String(row['fax'] || '');
-            const nickname = String(row['nick_name'] || username);
-            
-            // Approvals
-            const isApproved = row['app_fl'] === 'y';
-            const emailConsent = row['mailling_fl'] === 'y';
-            const smsConsent = row['sms_fl'] === 'y';
-
-            // Gender
-            let gender: Gender = Gender.NONE;
-            if (row['sex_fl'] === 'm') gender = Gender.MALE;
-            else if (row['sex_fl'] === 'w') gender = Gender.FEMALE;
-
-            // Birthday
-            const birthday = (row['birth_dt'] && typeof row['birth_dt'] !== 'boolean') ? new Date(row['birth_dt']) : null;
-            const birthdayType = row['calendar_fl'] === 'l' ? DateType.LUNAR : DateType.SOLAR;
-
-            // Marital
-            const maritalStatus = row['marri_fl'] === 'y' ? MaritalStatus.MARRIED : MaritalStatus.SINGLE;
-            const anniversary = (row['marri_date'] && typeof row['marri_date'] !== 'boolean') ? new Date(row['marri_date']) : null;
-
-            await prisma.user.create({
-                data: {
-                    username,
-                    passwordHash: hashedPassword,
-                    name,
-                    email,
-                    mobile,
-                    phone,
-                    fax,
-                    nickname,
-                    mallId: 'KR',
-                    info: {
-                        create: {
-                            type: MemberType.PERSONAL,
-                            isApproved,
-                            gender,
-                            birthday,
-                            birthdayType,
-                            emailConsent,
-                            smsConsent,
-                            maritalStatus,
-                            anniversary,
-                            zipcode: row['zonecode'] ? String(row['zonecode']) : null,
-                            address: row['address'] ? String(row['address']) : null,
-                            addressDetail: row['address_sub'] ? String(row['address_sub']) : null,
-                            userMemo: row['memo'] ? String(row['memo']) : null,
-                        }
-                    },
-                    ...(row['business_no'] && {
-                        businessInfo: {
-                            create: {
-                                companyName: String(row['company'] || ''),
-                                ceoName: String(row['ceo_name'] || ''),
-                                businessNumber: String(row['business_no']),
-                                item: row['item'] ? String(row['item']) : null,
-                                category: row['service'] ? String(row['service']) : null,
-                                companyZipcode: row['com_zonecode'] ? String(row['com_zonecode']) : null,
-                                companyAddress: row['com_address'] ? String(row['com_address']) : null
-                            }
-                        }
-                    })
-                }
-            });
-            successCount++;
-
-        } catch (e: unknown) {
-            const error = e as Error;
-            console.error(`Error importing row ${row['mem_id']}:`, error);
-            failCount++;
-            errors.push(`Error importing ${row['mem_id']}: ${error.message}`);
-        }
-    }
-
-    return { 
-        success: true, 
-        count: successCount, 
-        failCount, 
-        errors: errors.slice(0, 10) 
-    };
-
-  } catch (error) {
-    console.error("Critical error in uploadUsersExcelAction:", error);
-    return { success: false, error: "System error during upload" };
+    console.error('Error fetching users:', error);
+    return { success: false, items: [], total: 0, error: '회원 목록을 불러오는데 실패했습니다.' };
   }
 }
 
@@ -464,7 +89,31 @@ function buildUserWhereClause(params: GetUsersParams): Prisma.UserWhereInput {
       memberType,
       approved,
       startDate,
-      endDate
+      endDate,
+      
+      // New Params
+      lastLoginStart,
+      lastLoginEnd,
+      birthdayStart,
+      birthdayEnd,
+      anniversaryStart,
+      anniversaryEnd,
+      
+      visitCountMin,
+      visitCountMax,
+      mileageMin,
+      mileageMax,
+      depositMin,
+      depositMax,
+      
+      orderCountMin,
+      orderCountMax,
+
+      smsConsent,
+      emailConsent,
+      gender,
+      maritalStatus,
+      linkedProvider
     } = params;
 
     const where: Prisma.UserWhereInput = {};
@@ -484,28 +133,55 @@ function buildUserWhereClause(params: GetUsersParams): Prisma.UserWhereInput {
           else if (searchType === 'email') where.email = keyword;
           else if (searchType === 'nickname') where.nickname = keyword;
           else if (searchType === 'mobile') where.mobile = keyword;
+          
+          // New Fields
+          else if (searchType === 'phone') where.phone = keyword;
+          else if (searchType === 'fax') where.fax = keyword;
+          else if (searchType === 'recommenderId') where.recommender = { username: keyword };
+          
+          // Business Info Fields
+          else if (searchType === 'companyName') where.businessInfo = { companyName: keyword };
+          else if (searchType === 'businessNumber') where.businessInfo = { businessNumber: keyword };
+          else if (searchType === 'ceoName') where.businessInfo = { ceoName: keyword };
+          
           else {
               where.OR = [
                   { username: keyword },
                   { name: keyword },
                   { email: keyword },
                   { nickname: keyword },
-                  { mobile: keyword }
+                  { mobile: keyword },
+                  { phone: keyword }
               ];
           }
       } else {
-         if (searchType === 'id') where.username = { contains: keyword, mode: 'insensitive' };
-          else if (searchType === 'name') where.name = { contains: keyword, mode: 'insensitive' };
-          else if (searchType === 'email') where.email = { contains: keyword, mode: 'insensitive' };
-          else if (searchType === 'nickname') where.nickname = { contains: keyword, mode: 'insensitive' };
-          else if (searchType === 'mobile') where.mobile = { contains: keyword, mode: 'insensitive' };
+          // Partial Match
+          const containsVal = { contains: keyword, mode: 'insensitive' as Prisma.QueryMode };
+          
+          if (searchType === 'id') where.username = containsVal;
+          else if (searchType === 'name') where.name = containsVal;
+          else if (searchType === 'email') where.email = containsVal;
+          else if (searchType === 'nickname') where.nickname = containsVal;
+          else if (searchType === 'mobile') where.mobile = containsVal;
+
+          // New Fields
+          else if (searchType === 'phone') where.phone = containsVal;
+          else if (searchType === 'fax') where.fax = containsVal;
+          else if (searchType === 'recommenderId') where.recommender = { username: containsVal };
+
+           // Business Info Fields
+          else if (searchType === 'companyName') where.businessInfo = { companyName: containsVal };
+          else if (searchType === 'businessNumber') where.businessInfo = { businessNumber: containsVal };
+          else if (searchType === 'ceoName') where.businessInfo = { ceoName: containsVal };
+
           else {
               where.OR = [
-                  { username: { contains: keyword, mode: 'insensitive' } },
-                  { name: { contains: keyword, mode: 'insensitive' } },
-                  { email: { contains: keyword, mode: 'insensitive' } },
-                  { nickname: { contains: keyword, mode: 'insensitive' } },
-                  { mobile: { contains: keyword, mode: 'insensitive' } }
+                  { username: containsVal },
+                  { name: containsVal },
+                  { email: containsVal },
+                  { nickname: containsVal },
+                  { mobile: containsVal },
+                  { phone: containsVal }
               ];
           }
       }
@@ -534,6 +210,96 @@ function buildUserWhereClause(params: GetUsersParams): Prisma.UserWhereInput {
         hasInfoFilter = true;
     }
 
+    // --- New Filters ---
+    
+    // 1. Visit Count (loginCount)
+    if (visitCountMin !== undefined || visitCountMax !== undefined) {
+        infoWhere.loginCount = {};
+        if (visitCountMin !== undefined) infoWhere.loginCount.gte = visitCountMin;
+        if (visitCountMax !== undefined) infoWhere.loginCount.lte = visitCountMax;
+        hasInfoFilter = true;
+    }
+
+    // 2. Mileage
+    if (mileageMin !== undefined || mileageMax !== undefined) {
+        infoWhere.mileage = {};
+        if (mileageMin !== undefined) infoWhere.mileage.gte = mileageMin;
+        if (mileageMax !== undefined) infoWhere.mileage.lte = mileageMax;
+        hasInfoFilter = true;
+    }
+
+    // 3. Deposit
+    if (depositMin !== undefined || depositMax !== undefined) {
+        infoWhere.deposit = {};
+        if (depositMin !== undefined) infoWhere.deposit.gte = depositMin;
+        if (depositMax !== undefined) infoWhere.deposit.lte = depositMax;
+        hasInfoFilter = true;
+    }
+
+    // 4. Consents
+    if (smsConsent && smsConsent !== 'all') {
+        infoWhere.smsConsent = (smsConsent === 'true');
+        hasInfoFilter = true;
+    }
+    if (emailConsent && emailConsent !== 'all') {
+        infoWhere.emailConsent = (emailConsent === 'true');
+        hasInfoFilter = true;
+    }
+
+    // 5. Gender
+    if (gender && gender !== 'all') {
+        if (gender === 'MALE') infoWhere.gender = Gender.MALE;
+        else if (gender === 'FEMALE') infoWhere.gender = Gender.FEMALE;
+        hasInfoFilter = true;
+    }
+
+    // 6. Marital Status
+    if (maritalStatus && maritalStatus !== 'all') {
+        if (maritalStatus === 'SINGLE') infoWhere.maritalStatus = MaritalStatus.SINGLE;
+        else if (maritalStatus === 'MARRIED') infoWhere.maritalStatus = MaritalStatus.MARRIED;
+        hasInfoFilter = true;
+    }
+
+    // 7. Dates
+    if (lastLoginStart || lastLoginEnd) {
+        infoWhere.lastLoginAt = {};
+        if (lastLoginStart) infoWhere.lastLoginAt.gte = new Date(lastLoginStart);
+        if (lastLoginEnd) infoWhere.lastLoginAt.lte = new Date(new Date(lastLoginEnd).setHours(23, 59, 59, 999));
+        hasInfoFilter = true;
+    }
+
+    if (birthdayStart || birthdayEnd) {
+        infoWhere.birthday = {};
+        if (birthdayStart) infoWhere.birthday.gte = new Date(birthdayStart);
+        if (birthdayEnd) infoWhere.birthday.lte = new Date(new Date(birthdayEnd).setHours(23, 59, 59, 999));
+        hasInfoFilter = true;
+    }
+
+    if (anniversaryStart || anniversaryEnd) {
+        infoWhere.anniversary = {};
+        if (anniversaryStart) infoWhere.anniversary.gte = new Date(anniversaryStart);
+        if (anniversaryEnd) infoWhere.anniversary.lte = new Date(new Date(anniversaryEnd).setHours(23, 59, 59, 999));
+        hasInfoFilter = true;
+    }
+
+    // 8. Order Count
+    if (orderCountMin !== undefined || orderCountMax !== undefined) {
+        // Using Type Assertion for Prisma relation count filter
+        const countFilter: Record<string, number> = {};
+        if (orderCountMin !== undefined) countFilter.gte = orderCountMin;
+        if (orderCountMax !== undefined) countFilter.lte = orderCountMax;
+        
+        if (Object.keys(countFilter).length > 0) {
+            // Prisma.UserWhereInput does not always expose _count in types depending on version/config
+            // We cast strictly to avoid 'any' lint warning
+            (where as unknown as { orders: { _count: Record<string, number> } }).orders = {
+                _count: countFilter
+            };
+        }
+    }
+
+
+
     if (hasInfoFilter) {
         // Default to active users only for regular getUsersAction
         if (infoWhere.isWithdrawn === undefined) {
@@ -545,6 +311,16 @@ function buildUserWhereClause(params: GetUsersParams): Prisma.UserWhereInput {
         where.info = { isWithdrawn: false };
     }
 
+    // Linked Providers
+    if (linkedProvider && linkedProvider !== 'all') {
+        where.accounts = {
+            some: {
+                provider: linkedProvider
+            }
+        };
+    }
+
+    // Join Date (createdAt)
     if (startDate && endDate) {
         where.createdAt = {
             gte: new Date(startDate),
@@ -617,4 +393,361 @@ export async function processUserBatchAction(params: BatchProcessParams) {
         console.error("Error processing batch users:", error);
         return { success: false, error: "일괄 처리에 실패했습니다." };
     }
+}
+
+export async function checkDuplicateAction(field: 'username' | 'email' | 'nickname', value: string) {
+  try {
+    const where: Prisma.UserWhereInput = {};
+    if (field === 'username') where.username = value;
+    else if (field === 'email') where.email = value;
+    else if (field === 'nickname') where.nickname = value;
+
+    const count = await prisma.user.count({ where });
+    return { success: true, isDuplicate: count > 0 };
+  } catch (error) {
+    console.error('Error checking duplicate:', error);
+    return { success: false, error: '중복 확인 실패' };
+  }
+}
+
+export interface CreateUserParams {
+  username: string;
+  password?: string;
+  name: string;
+  nickname?: string;
+  email?: string;
+  mobile?: string;
+  isApproved?: boolean;
+  gradeId?: string | number;
+  birthday?: string | Date;
+  anniversary?: string | Date;
+  memberType?: string;
+  smsConsent?: boolean;
+  emailConsent?: boolean;
+  zipcode?: string;
+  address?: string;
+  addressDetail?: string;
+  phone?: string;
+  fax?: string;
+  job?: string;
+  gender?: string;
+  birthdayType?: string;
+  maritalStatus?: string;
+  recommenderId?: string;
+  interests?: string | string[];
+  userMemo?: string;
+}
+
+export async function createUserAction(data: CreateUserParams) {
+  try {
+    const {
+      username,
+      password,
+      name,
+      nickname,
+      email,
+      mobile,
+      isApproved,
+      gradeId,
+      birthday,
+      anniversary,
+      memberType,
+      smsConsent,
+      emailConsent,
+      zipcode,
+      address,
+      addressDetail,
+      phone,
+      fax,
+      job,
+      gender,
+      birthdayType,
+      maritalStatus,
+      recommenderId,
+      interests,
+      userMemo
+    } = data;
+
+    // Check username again to be safe
+    const existing = await prisma.user.findUnique({ where: { username } });
+    if (existing) {
+      return { success: false, error: '이미 존재하는 아이디입니다.' };
+    }
+
+    if (!password) {
+      return { success: false, error: '비밀번호를 입력해주세요.' };
+    }
+
+    if (!email) {
+      return { success: false, error: '이메일을 입력해주세요.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Create User
+      const user = await tx.user.create({
+        data: {
+          username,
+          passwordHash: hashedPassword,
+          name,
+          nickname,
+          email,
+          mobile,
+          phone,
+          fax,
+          mallId: 'KR', // Default to Base Mall
+        }
+      });
+
+      // 2. Handle Recommender
+      if (recommenderId) {
+        const recommender = await tx.user.findUnique({ where: { username: recommenderId } });
+        if (recommender) {
+          await tx.user.update({
+            where: { id: user.id },
+            data: { recommenderId: recommender.id }
+          });
+        }
+      }
+
+      // 3. Create UserInfo
+      await tx.userInfo.create({
+        data: {
+          userId: user.id,
+          type: memberType === 'BUSINESS' ? MemberType.BUSINESS : MemberType.PERSONAL,
+          isApproved,
+          gradeId: (gradeId === 'select' || gradeId === undefined) ? undefined : String(gradeId),
+          smsConsent,
+          emailConsent,
+          zipcode,
+          address,
+          addressDetail,
+          job: job === 'select' ? undefined : job,
+          gender: gender === 'MALE' ? Gender.MALE : gender === 'FEMALE' ? Gender.FEMALE : Gender.NONE,
+          birthday: birthday ? new Date(birthday) : null,
+          birthdayType: birthdayType === 'LUNAR' ? DateType.LUNAR : DateType.SOLAR, 
+          maritalStatus: maritalStatus === 'MARRIED' ? MaritalStatus.MARRIED : MaritalStatus.SINGLE,
+          anniversary: anniversary ? new Date(anniversary) : null,
+          interests: typeof interests === 'string' ? interests.split(',') : interests,
+          userMemo: userMemo,
+          // retentionPeriod not mapped to DB yet? Assuming it might not be in schema or is default.
+        }
+      });
+      
+      // 4. Create BusinessInfo if needed
+      // Currently formData doesn't show business specific fields other than memberType
+    });
+
+    revalidatePath('/admin/users');
+    return { success: true };
+  } catch (error) {
+    console.error('Error creating user:', error);
+    return { success: false, error: '회원 등록 실패' };
+  }
+}
+
+export type GetWithdrawnUsersParams = {
+  page?: number;
+  limit?: number;
+  mallId?: string;
+  keyword?: string;
+  withdrawalType?: string; // 'all', 'admin', 'user'
+  canRejoin?: string; // 'all', 'possible', 'impossible'
+  startDate?: string;
+  endDate?: string;
+};
+
+export async function getWithdrawnUsersAction(params: GetWithdrawnUsersParams) {
+  try {
+    const { page = 1, limit = 10, mallId, keyword, withdrawalType, canRejoin, startDate, endDate } = params;
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.UserWhereInput = {
+      info: {
+        isWithdrawn: true
+      }
+    };
+
+    // Mall ID
+    if (mallId && mallId !== 'all') {
+       if (mallId === 'base') where.mallId = 'KR';
+       else if (mallId === 'chinese') where.mallId = 'CN';
+       else where.mallId = mallId;
+    }
+
+    // Keyword (ID Search mainly as per UI)
+    if (keyword) {
+        where.username = { contains: keyword, mode: 'insensitive' };
+    }
+
+    // Info Filters
+    const infoWhere: Prisma.UserInfoWhereInput = { isWithdrawn: true };
+
+    if (withdrawalType && withdrawalType !== 'all') {
+        infoWhere.withdrawalType = withdrawalType;
+    }
+
+    if (canRejoin && canRejoin !== 'all') {
+        infoWhere.canRejoin = (canRejoin === 'possible');
+    }
+
+    if (startDate && endDate) {
+        infoWhere.withdrawalDate = {
+            gte: new Date(startDate),
+            lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
+        };
+    }
+    
+    where.info = infoWhere;
+
+    const [total, items] = await prisma.$transaction([
+      prisma.user.count({ where }),
+      prisma.user.findMany({
+        where,
+        take: limit,
+        skip,
+        orderBy: { 
+             info: {
+                 withdrawalDate: 'desc'
+             }
+        },
+        include: {
+          info: true,
+          businessInfo: true,
+        },
+      }),
+    ]);
+
+    return { success: true, items, total };
+  } catch (error) {
+    console.error('Error fetching withdrawn users:', error);
+    return { success: false, items: [], total: 0, error: '탈퇴 회원 목록을 불러오는데 실패했습니다.' };
+  }
+}
+
+export async function deleteWithdrawnUsersAction(ids: string[]) {
+    try {
+        if (!ids || ids.length === 0) return { success: false, error: '삭제할 회원이 없습니다.' };
+
+        await prisma.user.deleteMany({
+            where: {
+                id: { in: ids },
+                info: { isWithdrawn: true } // Safety
+            }
+        });
+
+        revalidatePath('/admin/users/withdrawal-management');
+        return { success: true };
+    } catch (error) {
+        console.error('Error deleting withdrawn users:', error);
+        return { success: false, error: '영구 삭제에 실패했습니다.' };
+    }
+}
+
+export async function restoreWithdrawnUsersAction(ids: string[]) {
+    try {
+        if (!ids || ids.length === 0) return { success: false, error: '복구할 회원이 없습니다.' };
+
+        await prisma.userInfo.updateMany({
+            where: { userId: { in: ids } },
+            data: {
+                isWithdrawn: false,
+                withdrawalDate: null,
+                withdrawalType: null,
+                withdrawalReason: null,
+                canRejoin: true 
+            }
+        });
+        
+        revalidatePath('/admin/users/withdrawal-management');
+        return { success: true };
+    } catch (error) {
+        console.error('Error restoring withdrawn users:', error);
+        return { success: false, error: '회원 복구에 실패했습니다.' };
+    }
+}
+
+interface ExcelUserRow {
+  mem_id?: string | number | boolean | null;
+  mem_name?: string | number | boolean | null;
+  mem_password?: string | number | boolean | null;
+  nick_name?: string | number | boolean | null;
+  email?: string | number | boolean | null;
+  cell_phone?: string | number | boolean | null;
+  phone?: string | number | boolean | null;
+  fax?: string | number | boolean | null;
+  sex_fl?: string | number | boolean | null;
+  birth_dt?: string | number | boolean | null;
+  calendar_fl?: string | number | boolean | null;
+  marri_fl?: string | number | boolean | null;
+  marri_date?: string | number | boolean | null;
+  recomm_id?: string | number | boolean | null;
+  interest?: string | number | boolean | null;
+  zonecode?: string | number | boolean | null;
+  address?: string | number | boolean | null;
+  address_sub?: string | number | boolean | null;
+  group_sno?: string | number | boolean | null;
+  app_fl?: string | number | boolean | null;
+  sms_fl?: string | number | boolean | null;
+  mailling_fl?: string | number | boolean | null;
+  admin_memo?: string | number | boolean | null;
+  company?: string | number | boolean | null;
+  business_no?: string | number | boolean | null;
+}
+
+export async function uploadUsersExcelAction(data: ExcelUserRow[]) {
+  try {
+    let count = 0;
+    let failCount = 0;
+    const errors: string[] = [];
+
+    for (const item of data) {
+      try {
+        const params: CreateUserParams = {
+            username: String(item.mem_id),
+            name: String(item.mem_name),
+            password: item.mem_password ? String(item.mem_password) : '1234',
+            nickname: item.nick_name ? String(item.nick_name) : undefined,
+            email: item.email ? String(item.email) : undefined,
+            mobile: item.cell_phone ? String(item.cell_phone) : undefined,
+            phone: item.phone ? String(item.phone) : undefined,
+            fax: item.fax ? String(item.fax) : undefined,
+            gender: item.sex_fl === 'w' ? 'FEMALE' : (item.sex_fl === 'm' ? 'MALE' : 'NONE'),
+            birthday: item.birth_dt ? new Date(String(item.birth_dt)) : undefined,
+            birthdayType: item.calendar_fl === 'l' ? 'LUNAR' : 'SOLAR',
+            maritalStatus: item.marri_fl === 'y' ? 'MARRIED' : 'SINGLE',
+            anniversary: item.marri_date ? new Date(String(item.marri_date)) : undefined,
+            recommenderId: item.recomm_id ? String(item.recomm_id) : undefined,
+            interests: item.interest ? String(item.interest).split('|') : undefined,
+            zipcode: item.zonecode ? String(item.zonecode) : undefined,
+            address: item.address ? String(item.address) : undefined,
+            addressDetail: item.address_sub ? String(item.address_sub) : undefined,
+            gradeId: item.group_sno as string | number | undefined,
+            isApproved: item.app_fl === 'y',
+            smsConsent: item.sms_fl === 'y',
+            emailConsent: item.mailling_fl === 'y',
+            userMemo: item.admin_memo ? String(item.admin_memo) : undefined,
+            memberType: (item.company || item.business_no) ? 'BUSINESS' : 'PERSONAL'
+        };
+
+        const res = await createUserAction(params);
+        if (res.success) {
+            count++;
+        } else {
+            failCount++;
+            errors.push(`${item.mem_id}: ${res.error}`);
+        }
+      } catch (e) {
+        failCount++;
+        errors.push(`${item.mem_id}: ${(e as Error).message}`);
+      }
+    }
+
+    revalidatePath('/admin/users');
+    return { success: true, count, failCount, errors };
+  } catch (error) {
+      console.error('Error uploading excel:', error);
+      return { success: false, error: '업로드 중 오류가 발생했습니다.', count: 0, failCount: 0, errors: [] };
+  }
 }

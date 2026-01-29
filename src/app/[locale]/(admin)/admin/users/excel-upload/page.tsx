@@ -225,8 +225,8 @@ export default function MemberExcelUploadPage() {
                      <div className="flex items-center gap-1 mb-3">
                          <div className="relative flex items-center">
                             <Button 
-                                variant="secondary" 
-                                className="h-7 px-3 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888] absolute left-0 z-10 pointer-events-none"
+                                type="button"
+                                className="h-7 px-3 text-[11px] bg-[#333333] text-white rounded-[2px] hover:bg-[#222222] absolute left-0 z-10 pointer-events-none"
                             >
                                 찾아보기
                             </Button>

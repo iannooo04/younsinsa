@@ -187,7 +187,7 @@ export default function MemberJoinPolicyPage() {
                                     <Label htmlFor="underage-ban" className="text-gray-700 font-normal cursor-pointer text-xs">가입불가</Label>
                                 </div>
                              </RadioGroup>
-                             <Button variant="secondary" className="h-6 px-2 text-[11px] bg-[#999999] text-white rounded-[2px] hover:bg-[#888888]">법정대리인 동의서 샘플 다운로드</Button>
+                             <Button type="button" className="h-6 px-2 text-[11px] bg-[#333333] text-white rounded-[2px] hover:bg-[#222222]">법정대리인 동의서 샘플 다운로드</Button>
                         </div>
                     </div>
                 </div>
