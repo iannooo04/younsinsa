@@ -1,16 +1,9 @@
-// src/components/layout/CategoryPopup.tsx
-"use client";
-
 import { useMemo, useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
+import { createPortal } from "react-dom";
 
-// 1) [삭제] 하드코딩된 카테고리 목록 제거
-// const CATEGORY_ITEMS = ... (삭제됨)
-
-// 2) [삭제] 하드코딩된 서브 아이템 및 맵 제거
-// const SUB_ITEMS_MAP = ... (삭제됨)
 // 🧑‍💻 [유틸] 한글 초성 추출 함수
 function getInitialConsonant(text: string) {
   // 7=꾼, 9=뚱 처럼 된 index 보정 필요없음 (일반적인 초성 범위만)
@@ -42,8 +35,8 @@ type BrandData = {
   parentId?: string | null;
   name: string;
   enName?: string;
-  slug: string;
-  category: string; // 필터링용 카테고리
+  slug?: string | null;
+  category?: string | null;
   tag?: string;     // 뱃지 (단독 등)
   initial?: string; // 초성 (자동 계산 가능하지만 편의상)
   logoUrl?: string;
@@ -54,15 +47,17 @@ type BrandData = {
 interface CategoryPopupProps {
   onClose: () => void;
   initialTab?: "category" | "brand" | "service";
+  categories?: Category[];
+  brands?: BrandData[];
 }
 
 interface Category {
     id: string;
     parentId?: string | null;
     name: string;
-    slug?: string;
-    imageUrl?: string;
-    code?: string;
+    slug?: string | null;
+    imageUrl?: string | null;
+    code?: string | null;
 }
 
 function buildCategoryHref(
@@ -81,11 +76,11 @@ function buildCategoryHref(
     : `/category/${safeCategoryId}`;
 }
 
-function buildBrandHref(brandSlug: string, gf: string): string {
+function buildBrandHref(brandSlug: string | null | undefined, gf: string): string {
   const qs = new URLSearchParams();
   qs.set("gf", gf);
 
-  const safeBrandSlug = encodeURIComponent(brandSlug);
+  const safeBrandSlug = encodeURIComponent(brandSlug || "");
   const query = qs.toString();
   return query.length > 0
     ? `/brand/${safeBrandSlug}?${query}`
@@ -95,8 +90,11 @@ function buildBrandHref(brandSlug: string, gf: string): string {
 export default function CategoryPopup({
   onClose,
   initialTab = "category",
+  categories = [],
+  brands = []
 }: CategoryPopupProps) {
   const t = useTranslations("popup");
+  const [mounted, setMounted] = useState(false);
 
   const [selectedTab, setSelectedTab] = useState<
     "category" | "brand" | "service"
@@ -113,51 +111,40 @@ export default function CategoryPopup({
   // 🔹 [Gender Filter State]
   const [selectedGender, setSelectedGender] = useState<"all" | "men" | "women">("all");
 
-  // 🔹 [Admin Data State]
-  const [adminCategories, setAdminCategories] = useState<Category[]>([]);
+  // 🔹 [Admin Data State] - Now using props
+  const [adminCategories, setAdminCategories] = useState<Category[]>(categories);
   const [brandsData, setBrandsData] = useState<BrandData[]>([]);
 
-  // 📡 [Data Fetching]
-  // 📡 [Data Fetching]
+  // 📡 [Data Fetching] - Initialize from props
   useEffect(() => {
-    fetch("/api/popup/categories")
-      .then((res) => res.json())
-      .then((data: Category[]) => {
-        if (Array.isArray(data)) {
-          setAdminCategories(data);
-          
-          // Set default active category to the first root category
-          const rootCats = data.filter((c: Category) => !c.parentId);
-          if (rootCats.length > 0) {
-            setActiveCategory(rootCats[0].id);
-          }
-        }
-      })
-      .catch((err) => console.error("Failed to fetch admin categories:", err));
+    if (categories.length > 0) {
+      setAdminCategories(categories);
+      const rootCats = categories.filter((c) => !c.parentId);
+      if (rootCats.length > 0 && !activeCategory) {
+        setActiveCategory(rootCats[0].id);
+      }
+    }
+  }, [categories, activeCategory]);
 
-      // Fetch Brands
-      fetch("/api/popup/brands")
-        .then((res) => res.json())
-        .then((data: BrandData[]) => {
-             if (Array.isArray(data)) {
-                 const mapped = data.map((b) => ({
-                    id: b.id,
-                    parentId: b.parentId,
-                    name: b.name,
-                    enName: b.enName, 
-                    slug: b.slug || b.id,
-                    category: b.category || "기타",
-                    logoUrl: b.logoUrl,
-                    description: b.description
-                 }));
-                 setBrandsData(mapped);
-             }
-        })
-        .catch((err) => console.error("Failed to fetch brands:", err));
-  }, []);
+  useEffect(() => {
+    if (brands.length > 0) {
+      const mapped = brands.map((b: BrandData) => ({
+        id: b.id,
+        parentId: b.parentId,
+        name: b.name,
+        enName: b.enName, 
+        slug: b.slug || b.id,
+        category: b.category || "기타",
+        logoUrl: b.logoUrl,
+        description: b.description
+      }));
+      setBrandsData(mapped);
+    }
+  }, [brands]);
 
   //  [스크롤 잠금] 팝업이 열릴 때 백그라운드 스크롤 방지
   useEffect(() => {
+    setMounted(true);
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = "unset";
@@ -298,10 +285,12 @@ export default function CategoryPopup({
   }, [brandsData, selectedBrandCategory, searchQuery, selectedConsonant, topLevelBrands]);
 
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     // 🛠️ [수정] 배경 오버레이 클릭 시 onClose 실행
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
       onClick={onClose}
     >
       {/* 팝업 본문 */}
@@ -677,7 +666,7 @@ export default function CategoryPopup({
                                 </div>
                               ) : (
                                 <div className="text-xs text-gray-400 mt-0.5 uppercase">
-                                  {brand.slug.replace("-", " ")}
+                                  {brand.slug?.replace("-", " ") || brand.id}
                                 </div>
                               )}
                             </div>
@@ -716,6 +705,7 @@ export default function CategoryPopup({
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

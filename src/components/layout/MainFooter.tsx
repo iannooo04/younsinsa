@@ -6,7 +6,13 @@ import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { usePathname, useSearchParams } from "next/navigation"; // 경로 확인 훅
 
-export default function MainFooter() {
+import { BasicInfoSettings } from "@/generated/prisma";
+
+export default function MainFooter({ 
+  basicInfo 
+}: { 
+  basicInfo?: BasicInfoSettings | null 
+}) {
   const t = useTranslations("footer");
   const pathname = usePathname(); // 현재 경로 가져오기
   const searchParams = useSearchParams();
@@ -225,19 +231,26 @@ export default function MainFooter() {
                 {t("sitemap.support.title")}
               </h5>
               <ul className="space-y-2 text-gray-500">
-                {[0, 1, 2].map((idx) => (
-                  <li
-                    key={idx}
-                    className="hover:text-black cursor-pointer font-bold"
-                  >
-                    {t(`sitemap.support.items.${idx}`)}
-                  </li>
-                ))}
+                {[0, 1, 2].map((idx) => {
+                  const content = t(`sitemap.support.items.${idx}`);
+                  if (idx === 1) { // FAQ
+                    return (
+                      <li key={idx} className="hover:text-black font-bold">
+                        <Link href="/faq">{content}</Link>
+                      </li>
+                    );
+                  }
+                  return (
+                    <li key={idx} className="hover:text-black cursor-pointer font-bold">
+                      {content}
+                    </li>
+                  );
+                })}
               </ul>
               <div className="mt-4 text-gray-500 leading-relaxed">
-                <p>{t("sitemap.support.phone")}</p>
-                <p>{t("sitemap.support.time")}</p>
-                <p>{t("sitemap.support.email")}</p>
+                <p>{basicInfo?.csPhone || t("sitemap.support.phone")}</p>
+                <p>{basicInfo?.operatingHours || t("sitemap.support.time")}</p>
+                <p>{basicInfo?.csEmail || basicInfo?.repEmail || t("sitemap.support.email")}</p>
               </div>
             </div>
           </div>
@@ -247,12 +260,18 @@ export default function MainFooter() {
             <div className="flex flex-col gap-6">
               <div className="text-xs text-gray-400 leading-relaxed w-full">
                 <p className="mb-2 font-bold text-gray-500">
-                  {t("legal.copyright")}
+                  {basicInfo?.shopName || "NKBUS"} | {t("legal.copyright")}
                 </p>
                 <p>
-                  {t("legal.companyInfo")}
+                  {basicInfo 
+                    ? `${t("legal.companyLabel")}: ${basicInfo.companyName} | ${t("legal.ceoLabel")}: ${basicInfo.ceoName} | ${t("legal.addressLabel")}: ${basicInfo.address} ${basicInfo.addressDetail}`
+                    : t("legal.companyInfo")
+                  }
                   <br />
-                  {t("legal.bizInfo")}
+                  {basicInfo
+                    ? `${t("legal.bizNumLabel")}: ${basicInfo.bizLicenseNum} | ${t("legal.onlineSalesLabel")}: ${basicInfo.onlineSalesLicense}`
+                    : t("legal.bizInfo")
+                  }
                 </p>
                 <p className="mt-2">
                   {t("legal.guarantee")}

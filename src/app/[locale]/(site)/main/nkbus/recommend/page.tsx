@@ -1,127 +1,47 @@
 // src/app/[locale]/(site)/main/recommend/page.tsx
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
-// 더미 데이터: 상품 목록 (10개로 증가)
-const products = [
-  {
-    id: 1,
-    brand: "넌블랭크",
-    name: "세미 와이드 핏 슬랙스_DARK BROWN",
-    price: "53,100원",
-    discount: "10%",
-    img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 2,
-    brand: "어반드레스",
-    name: "125CM 슈퍼 롱 오버핏 더블 코트",
-    price: "79,900원",
-    discount: "58%",
-    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 3,
-    brand: "조셉트",
-    name: "PAUL BLACK",
-    price: "99,000원",
-    discount: "",
-    img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 4,
-    brand: "마인드브릿지",
-    name: "[루즈핏 선택]투구_테이퍼드 밴딩 슬랙스 - 5color",
-    price: "39,900원",
-    discount: "50%",
-    img: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 5,
-    brand: "데꼬로소",
-    name: "시에르 피크드 더블 오버핏 자켓 [브라운]",
-    price: "141,550원",
-    discount: "29%",
-    img: "https://images.unsplash.com/photo-1507679799987-c73779587ccf?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 6,
-    brand: "넌블랭크",
-    name: "[SET UP] 세미 오버핏 자켓 COAL GREY",
-    price: "178,200원",
-    discount: "10%",
-    img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 7,
-    brand: "인사일런스",
-    name: "솔리스트 오버사이즈 캐시미어 코트 BLACK",
-    price: "289,000원",
-    discount: "15%",
-    img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 8,
-    brand: "닥터마틴",
-    name: "1461 모노 3홀 블랙",
-    price: "210,000원",
-    discount: "",
-    img: "https://images.unsplash.com/photo-1605034313761-73ea4a0cfbf3?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 9,
-    brand: "드로우핏",
-    name: "오버사이즈 울 트렌치 코트 [BEIGE]",
-    price: "228,000원",
-    discount: "10%",
-    img: "https://images.unsplash.com/photo-1591195853828-11db59a44f6b?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  {
-    id: 10,
-    brand: "토피",
-    name: "와이드 데님 팬츠 (LIGHT BLUE)",
-    price: "49,000원",
-    discount: "12%",
-    img: "https://images.unsplash.com/photo-1541099649105-f69ad21f3246?auto=format&fit=crop&w=600&q=80",
-    gender: "M",
-  },
-  // 여성 상품 추가 (필터링 테스트용)
-  {
-    id: 11,
-    brand: "닉앤니콜",
-    name: "에센셜 부클 가디건_WHITE",
-    price: "45,000원",
-    discount: "20%",
-    img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80",
-    gender: "W",
-  },
-  {
-    id: 12,
-    brand: "시티브리즈",
-    name: "링클 프리 셔츠_SKY BLUE",
-    price: "39,000원",
-    discount: "15%",
-    img: "https://images.unsplash.com/photo-1589310243389-96a5483213a8?auto=format&fit=crop&w=600&q=80",
-    gender: "W",
-  },
-];
+import { getPublicProductsAction } from "@/actions/product-actions";
+
+interface ProductItem {
+  id: string;
+  img: string;
+  brand: string;
+  name: string;
+  price: string;
+  discount: string | null;
+  gender: string;
+}
 
 export default function HomePage() {
   const t = useTranslations("home");
+  const [products, setProducts] = useState<ProductItem[]>([]);
+
+  useEffect(() => {
+    async function fetchProducts() {
+        // Fetch public products (Newest first)
+        const res = await getPublicProductsAction(1, 20, 'newest');
+        if (res.success) {
+            const mapped = res.items.map((item) => ({
+                id: item.id,
+                img: item.image,
+                brand: item.brandName || "Brand",
+                name: item.name,
+                price: item.price.toLocaleString() + "원",
+                discount: item.discountRate > 0 ? item.discountRate + "%" : null,
+                gender: "A" // Keep for filtering compatibility
+            }));
+            setProducts(mapped);
+        }
+    }
+    fetchProducts();
+  }, []);
 
   // 1. 배너 슬라이드 데이터
   const bannerSlides = [
@@ -265,7 +185,7 @@ export default function HomePage() {
   const filteredProducts = useMemo(() => {
     if (gf === "A") return products;
     return products.filter((p) => p.gender === gf);
-  }, [gf]);
+  }, [gf, products]);
 
   return (
     <div className="bg-white min-h-screen text-black">

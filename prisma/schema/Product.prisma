@@ -483,6 +483,8 @@ model ProductOptionValue {
   optionId String
   option   ProductOption @relation(fields: [optionId], references: [id], onDelete: Cascade)
   name     String // e.g., "Red", "XL"
+  
+  variants ProductVariant[]
 }
 
 // ----------------------------------------------------------------------
@@ -499,7 +501,8 @@ model ProductVariant {
   stock Int  @default(0)
 
   // 옵션 조합 (e.g. Red + XL)
-  optionValueIds String[] // Array of ProductOptionValue IDs
+  // optionValueIds String[] // Array of ProductOptionValue IDs
+  optionValues ProductOptionValue[]
 
   cartItems  CartItem[]
   orderItems OrderItem[]

@@ -93,6 +93,11 @@
   },
   "legal": {
     "copyright": "© NKBUS ALL RIGHTS RESERVED",
+    "companyLabel": "Company",
+    "ceoLabel": "CEO",
+    "addressLabel": "Address",
+    "bizNumLabel": "Business Registration No.",
+    "onlineSalesLabel": "E-commerce Permit",
     "companyInfo": "Yimili Co., Ltd. | CEO: Man-ho Cho, Jun-mo Park | Address: 1F, 13 Achasan-ro 13-gil, Seongdong-gu, Seoul (Seongsu-dong 2-ga, Yimili Campus N1)",
     "bizInfo": "Business Registration: 211-88-79575 | E-commerce Permit: 2022-Seoul Seongdong-01952 | Hosting: Yimili Co., Ltd.",
     "guarantee": "We guarantee safe transactions through a debt payment guarantee contract with Woori Bank for cash payments.",

@@ -1207,7 +1207,9 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
                                <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
                                <td className="border-r border-[#CDCDCD] text-red-500 font-bold">{Math.floor((new Date().getTime() - new Date(order.createdAt).getTime()) / (1000 * 3600 * 24))}일</td>
-                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">
+    <Link href={`/admin/orders/${order.id}`}>{order.orderNo}</Link>
+</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
@@ -1258,7 +1260,9 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
                                <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
                                <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
-                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">
+    <Link href={`/admin/orders/${order.id}`}>{order.orderNo}</Link>
+</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className={`border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]`} title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}
@@ -1311,7 +1315,9 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
                                <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
                                <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
-                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">
+    <Link href={`/admin/orders/${order.id}`}>{order.orderNo}</Link>
+</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className="border-r border-[#CDCDCD] text-center">-</td>
                                <td className="text-left px-2 truncate max-w-[200px]" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
@@ -1398,7 +1404,9 @@ export default function OrderIntegratedListPage() {
                                <td className="border-r border-[#CDCDCD]">{total - ((page - 1) * limit) - idx}</td>
                                <td className="border-r border-[#CDCDCD]">{order.mallId === 'KR' ? '🇰🇷' : '🇨🇳'}</td>
                                <td className="border-r border-[#CDCDCD]">{format(new Date(order.createdAt), "yyyy-MM-dd HH:mm")}</td>
-                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">{order.orderNo}</td>
+                               <td className="border-r border-[#CDCDCD] text-blue-500 font-bold cursor-pointer hover:underline">
+    <Link href={`/admin/orders/${order.id}`}>{order.orderNo}</Link>
+</td>
                                <td className="border-r border-[#CDCDCD]">{order.ordererName}</td>
                                <td className="border-r border-[#CDCDCD] text-left px-2 truncate max-w-[200px]" title={order.items.map((i: OrderItem) => i.productName).join(', ')}>
                                   {order.items.length > 0 ? `${order.items[0].productName} ${order.items.length > 1 ? `외 ${order.items.length - 1}건` : ''}` : '-'}

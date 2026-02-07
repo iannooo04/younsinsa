@@ -1,15 +1,79 @@
-// src/components/layout/SearchPopup.tsx
-"use client";
-
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "@/i18n/routing";
+import { createPortal } from "react-dom";
 
 interface SearchPopupProps {
   onClose: () => void;
 }
 
 export default function SearchPopup({ onClose }: SearchPopupProps) {
+  const router = useRouter();
+  const [keyword, setKeyword] = useState("");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Prevent scrolling when popup is open
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, []);
+
+  const handleSearch = () => {
+    if (!keyword.trim()) return;
+    addRecentSearch(keyword.trim());
+    router.push(`/search?keyword=${encodeURIComponent(keyword.trim())}`);
+    onClose();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   // 1. 최근 검색어 데이터
-  const recentSearches = ["패딩", "나시", "난시"];
+// ... (rest of the data remains same)
+  // 1. 최근 검색어 데이터 (LocalStorage 연동)
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem("recentSearches");
+    if (saved) {
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch (e) {
+        console.error("Failed to parse recent searches", e);
+      }
+    } else {
+      // 초기값 (없을 경우)
+      setRecentSearches(["패딩", "나시", "난시"]);
+    }
+    setIsLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      localStorage.setItem("recentSearches", JSON.stringify(recentSearches));
+    }
+  }, [recentSearches, isLoaded]);
+
+  const handleRemoveRecent = (termToRemove: string) => {
+    setRecentSearches((prev) => prev.filter((term) => term !== termToRemove));
+  };
+
+  const handleClearRecent = () => {
+    setRecentSearches([]);
+  };
+
+  const addRecentSearch = (term: string) => {
+    setRecentSearches((prev) => {
+      const newHistory = [term, ...prev.filter((t) => t !== term)];
+      return newHistory.slice(0, 10); // 최대 10개 유지
+    });
+  };
 
   // 2. 인기 검색어 데이터 (1~10위)
   const popularSearches = [
@@ -48,9 +112,11 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
     return <span className="text-gray-300 text-[10px]">-</span>;
   };
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     // 전체 화면을 덮는 오버레이 (z-50)
-    <div className="fixed inset-0 z-50 bg-black/30 flex justify-center items-start">
+    <div className="fixed inset-0 z-[100] bg-black/30 flex justify-center items-start">
       {/* 🛠️ [수정] 검색창 컨테이너
           - bg-white -> bg-[#F9F9F9] (연한 회색 배경으로 변경)
           - top-0 absolute: 화면 최상단에 고정
@@ -64,6 +130,9 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
             placeholder="검색어를 입력하세요"
             className="flex-1 text-lg font-bold placeholder-gray-400 outline-none h-10 bg-transparent"
             autoFocus
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            onKeyDown={handleKeyDown}
           />
           {/* 검색 아이콘 (장식용) */}
           <button className="text-gray-400 hover:text-black">
@@ -108,40 +177,61 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
         {/* 컨텐츠 영역 (가운데 정렬을 위해 max-w-7xl mx-auto 추가) */}
         <div className="max-w-7xl mx-auto w-full px-8 py-6 flex flex-col gap-10 h-[600px] overflow-y-auto scrollbar-hide">
           {/* 1. 최근 검색어 */}
-          <div>
-            <div className="flex justify-between items-center mb-3">
-              <h3 className="text-sm font-bold text-black">최근 검색어</h3>
-              <button className="text-xs text-gray-400 underline hover:text-black">
-                모두삭제
-              </button>
-            </div>
-            <div className="flex gap-2">
-              {recentSearches.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer shadow-sm"
+          {recentSearches.length > 0 && (
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-bold text-black">최근 검색어</h3>
+                <button 
+                  onClick={handleClearRecent}
+                  className="text-xs text-gray-400 underline hover:text-black"
                 >
-                  <span className="text-sm text-gray-600">{item}</span>
-                  <button className="text-gray-300 hover:text-black ml-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={2}
-                      stroke="currentColor"
-                      className="w-3 h-3"
+                  모두삭제
+                </button>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                {recentSearches.map((item, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-md bg-white hover:bg-gray-50 cursor-pointer shadow-sm group"
+                  >
+                    <span 
+                      onClick={() => {
+                        setKeyword(item);
+                        addRecentSearch(item);
+                        router.push(`/search?keyword=${encodeURIComponent(item)}`);
+                        onClose();
+                      }}
+                      className="text-sm text-gray-600"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18 18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                      {item}
+                    </span>
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveRecent(item);
+                      }}
+                      className="text-gray-300 hover:text-black ml-1 p-0.5 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                        className="w-3 h-3"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M6 18 18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* 2. 인기 검색어 */}
           <div>
@@ -238,6 +328,7 @@ export default function SearchPopup({ onClose }: SearchPopupProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

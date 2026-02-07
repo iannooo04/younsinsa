@@ -751,3 +751,363 @@ export async function uploadUsersExcelAction(data: ExcelUserRow[]) {
       return { success: false, error: '업로드 중 오류가 발생했습니다.', count: 0, failCount: 0, errors: [] };
   }
 }
+
+export async function getMyPageDataAction(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        nickname: true,
+        image: true,
+        email: true,
+        mobile: true,
+        info: {
+          select: {
+            grade: {
+              select: {
+                name: true,
+                discountRate: true,
+                mileageRate: true,
+              }
+            },
+            mileage: true, // Points
+            deposit: true, // Deposit
+            birthday: true,
+          }
+        }
+      }
+    });
+
+    if (!user) {
+      return { success: false, error: "회원 정보를 찾을 수 없습니다." };
+    }
+
+    return { success: true, user };
+  } catch (error) {
+    console.error("Error fetching my page data:", error);
+    return { success: false, error: "마이페이지 정보를 불러오는데 실패했습니다." };
+  }
+}
+
+// --- Profile Image Upload ---
+
+import { join } from "path";
+import { writeFile, mkdir } from "fs/promises";
+
+async function saveImage(file: File): Promise<string | null> {
+    if (!file || file.size === 0) return null;
+
+    try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        // Simple unique filename: profile-timestamp-random.ext
+        const ext = file.name.split('.').pop() || 'jpg';
+        const filename = `profile-${Date.now()}-${Math.round(Math.random() * 10000)}.${ext}`;
+        
+        // Ensure directory exists
+        const uploadDir = join(process.cwd(), "public/uploads");
+        try {
+            await mkdir(uploadDir, { recursive: true });
+        } catch (_err) {
+            // Include error code check if needed, but recursive: true usually handles existence
+        }
+
+        const filepath = join(uploadDir, filename);
+
+        await writeFile(filepath, buffer);
+        return `/uploads/${filename}`;
+    } catch (error) {
+        console.error("Error saving image:", error);
+        return null;
+    }
+}
+
+export async function verifyPasswordAction(userId: string, password: string) {
+    try {
+        if (!userId || !password) return { success: false, error: "잘못된 요청입니다." };
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { passwordHash: true }
+        });
+
+        if (!user || !user.passwordHash) {
+             return { success: false, error: "사용자를 찾을 수 없습니다." };
+        }
+
+        const isValid = await bcrypt.compare(password, user.passwordHash);
+
+        if (isValid) {
+            return { success: true };
+        } else {
+            return { success: false, error: "비밀번호가 일치하지 않습니다." };
+        }
+
+    } catch (error) {
+        console.error("verifyPasswordAction Error:", error);
+        return { success: false, error: "비밀번호 확인 중 오류가 발생했습니다." };
+    }
+}
+
+export async function updateProfileImageAction(formData: FormData) {
+    try {
+        const userId = formData.get("userId") as string;
+        const file = formData.get("file") as File;
+
+        if (!userId) return { success: false, error: "사용자 ID가 없습니다." };
+        if (!file) return { success: false, error: "이미지 파일이 없습니다." };
+
+        const imageUrl = await saveImage(file);
+        
+        if (!imageUrl) {
+            return { success: false, error: "이미지 저장에 실패했습니다." };
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { image: imageUrl }
+        });
+
+        revalidatePath('/settings');
+        revalidatePath('/mypage'); // If mypage shows the image
+        
+        return { success: true, imageUrl };
+    } catch (error) {
+        console.error("Error updating profile image:", error);
+        return { success: false, error: "프로필 이미지 변경 중 오류가 발생했습니다." };
+    }
+}
+
+// --- Nickname Change ---
+
+export async function updateNicknameAction(userId: string, newNickname: string) {
+    try {
+        if (!userId) return { success: false, error: "사용자 ID가 없습니다." };
+        if (!newNickname) return { success: false, error: "닉네임을 입력해주세요." };
+        
+        if (newNickname.length > 8) {
+             return { success: false, error: "닉네임은 최대 8자까지 가능합니다." };
+        }
+
+        // Check duplicate
+        const existing = await prisma.user.findFirst({
+            where: { 
+                nickname: newNickname,
+                NOT: { id: userId } // Exclude self
+            }
+        });
+
+        if (existing) {
+            return { success: false, error: "이미 사용 중인 닉네임입니다." };
+        }
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { nickname: newNickname }
+        });
+
+        revalidatePath('/settings');
+        revalidatePath('/settings/nickname');
+        revalidatePath('/mypage');
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating nickname:", error);
+        return { success: false, error: "닉네임 변경 중 오류가 발생했습니다." };
+    }
+}
+
+export async function getNicknameSuggestionAction() {
+    // Simple random nickname generator
+    const adjectives = ["행복한", "즐거운", "멋진", "빠른", "똑똑한", "용감한", "조용한", "화려한"];
+    const nouns = ["사자", "호랑이", "토끼", "거북이", "독수리", "고양이", "강아지", "팬더"];
+    
+    // Attempt to find a unique one (simple retry logic)
+    for (let i = 0; i < 5; i++) {
+        const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+        const noun = nouns[Math.floor(Math.random() * nouns.length)];
+        const randomNum = Math.floor(Math.random() * 1000);
+        const suggestion = `${adj}${noun}${randomNum}`;
+
+        // Check uniqueness
+        const count = await prisma.user.count({ where: { nickname: suggestion } });
+        if (count === 0) {
+            return { success: true, nickname: suggestion };
+        }
+    }
+
+    // Fallback
+    return { success: true, nickname: `닉네임${Date.now().toString().slice(-4)}` };
+}
+
+// --- Password Change ---
+
+export async function updatePasswordAction(userId: string, currentPassword: string, newPassword: string) {
+    try {
+        if (!userId || !currentPassword || !newPassword) {
+            return { success: false, error: "모든 필드를 입력해주세요." };
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { passwordHash: true }
+        });
+
+        if (!user || !user.passwordHash) {
+            return { success: false, error: "사용자를 찾을 수 없습니다." };
+        }
+
+        const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+        if (!isValid) {
+            return { success: false, error: "현재 비밀번호가 일치하지 않습니다." };
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await prisma.user.update({
+            where: { id: userId },
+            data: { passwordHash: hashedPassword }
+        });
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating password:", error);
+        return { success: false, error: "비밀번호 변경 중 오류가 발생했습니다." };
+    }
+}
+
+// --- Customized Info (My Personalized Info) ---
+
+export interface CustomInfoData {
+    height?: number;
+    weight?: number;
+    skinType?: string;
+    skinTone?: string;
+    fashionStyles?: string[];
+    interests?: string[];
+    sports?: string[];
+    sizeBody?: {
+        totalLength?: number;
+        shoulderWidth?: number;
+        chestWidth?: number;
+        sleeveLength?: number;
+    };
+}
+
+export async function updateCustomInfoAction(userId: string, data: CustomInfoData) {
+    try {
+        if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
+        // Ensure UserInfo exists
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            include: { info: true }
+        });
+
+        if (!user) return { success: false, error: "사용자를 찾을 수 없습니다." };
+
+        if (!user.info) {
+             // Create UserInfo if not exists (though usually it should exist)
+             await prisma.userInfo.create({
+                 data: {
+                     userId: userId,
+                     customData: data as unknown as Prisma.InputJsonValue
+                 }
+             });
+        } else {
+            await prisma.userInfo.update({
+                where: { userId: userId },
+                data: {
+                    customData: data as unknown as Prisma.InputJsonValue
+                }
+            });
+        }
+        
+        revalidatePath('/settings/custom-info');
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating custom info:", error);
+        return { success: false, error: "저장 중 오류가 발생했습니다." };
+    }
+}
+
+export async function getCustomInfoAction(userId: string) {
+    try {
+        if (!userId) return { success: false, error: "로그인이 필요합니다." };
+
+        const userInfo = await prisma.userInfo.findUnique({
+            where: { userId: userId },
+            select: { customData: true }
+        });
+
+        if (!userInfo || !userInfo.customData) {
+            return { success: true, data: null };
+        }
+
+        return { success: true, data: userInfo.customData as CustomInfoData };
+    } catch (error) {
+         console.error("Error fetching custom info:", error);
+         return { success: false, error: "정보를 불러오는데 실패했습니다." };
+    }
+}
+
+export async function getUserDetailAction(userId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        info: {
+          include: {
+            grade: true,
+            _count: {
+              select: {
+                orders: true
+              }
+            }
+          }
+        },
+        businessInfo: true,
+        accounts: true,
+        recommender: {
+          select: {
+            id: true,
+            username: true,
+            name: true,
+            nickname: true
+          }
+        },
+
+      }
+    });
+
+    if (!user) {
+      return { success: false, message: "회원 정보를 찾을 수 없습니다." };
+    }
+    
+    // Calculate total order amount separately
+    const orderAgg = await prisma.order.aggregate({
+        where: { 
+            userId: userId,
+            status: { in: ['PAYMENT_COMPLETE', 'PREPARING', 'SHIPPING', 'DELIVERED', 'PURCHASE_CONFIRM'] }
+        },
+        _sum: {
+            totalPayAmount: true
+        }
+    });
+
+    return { 
+        success: true, 
+        user: {
+            ...user,
+            totalOrderAmount: orderAgg._sum.totalPayAmount || 0
+        }
+    };
+
+  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    console.error("Error fetching user detail:", error);
+    return { success: false, message: error.message || "회원 상세 정보를 불러오는 중 오류가 발생했습니다." };
+  }
+}

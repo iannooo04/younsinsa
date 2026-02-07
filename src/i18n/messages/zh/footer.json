@@ -96,6 +96,11 @@
   },
   "legal": {
     "copyright": "© NKBUS ALL RIGHTS RESERVED",
+    "companyLabel": "公司名称",
+    "ceoLabel": "代表人",
+    "addressLabel": "地址",
+    "bizNumLabel": "商业登记号",
+    "onlineSalesLabel": "通信销售业",
     "companyInfo": "(株) Yimili | 代表人 : 赵万浩, 朴俊模 | 地址 : 首尔特别市城东区阿且山路13街11, 1层 (圣水洞2街, Yimili Campus N1)",
     "bizInfo": "商业登记号 : 211-88-79575 | 通信销售业 : 2022-首尔城东-01952 | 托管服务商 : (株)Yimili",
     "guarantee": "本公司已与友利银行签订债务支付担保合同，保障客户现金支付金额的安全交易。",

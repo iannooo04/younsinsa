@@ -42,7 +42,7 @@ export default function ProductMoveCopyDeletePage() {
     const [products, setProducts] = useState<{
         id: string;
         productCode: string;
-        image: null;
+        image: string | null;
         name: string;
         supplier: string;
         brand: string;

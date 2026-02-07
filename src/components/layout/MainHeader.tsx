@@ -9,12 +9,24 @@ import { useLocale, useTranslations } from "next-intl";
 import CategoryPopup from "./CategoryPopup";
 import SearchPopup from "./SearchPopup";
 
+import { BasicInfoSettings } from "@/generated/prisma";
+import { CategoryWithChildren } from "@/actions/category-actions";
+
 type MainHeaderProps = {
   authed: boolean;
   userLevel?: number;
+  categories?: CategoryWithChildren[];
+  brands?: { id: string, name: string }[];
+  basicInfo?: BasicInfoSettings | null;
 };
 
-export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
+export default function MainHeader({ 
+  authed, 
+  userLevel = 0,
+  categories = [],
+  brands = [],
+  basicInfo
+}: MainHeaderProps) {
   const t = useTranslations("header");
   const locale = useLocale();
   const router = useRouter();
@@ -79,7 +91,9 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
     pathname.includes("/mypage") ||
     pathname.includes("/orders/cart") ||
     pathname.includes("/offline") ||
-    pathname.includes("/like");
+    pathname.includes("/like") ||
+    pathname.includes("/alerts") ||
+    pathname.includes("/settings");
 
   return (
     // 배경: 검정, 텍스트: 흰색
@@ -99,7 +113,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
             >
               <Image 
                 src="/images/nkbus_logo_white.png" 
-                alt="NKBUS" 
+                alt={basicInfo?.shopName || "NKBUS"} 
                 fill
                 className="object-contain" // 이미지는 크게 (부모 영역 무시하려면 absolute 필요하지만 fill은 absolute임)
                 priority
@@ -387,7 +401,7 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
             >
               <Image 
                 src="/images/nkbus_logo_white.png" 
-                alt="NKBUS" 
+                alt={basicInfo?.shopName || "NKBUS"} 
                 fill
                 className="object-contain object-left scale-[2.0] origin-left"
                 priority
@@ -445,31 +459,20 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
                 Special Offer
               </Link>
 
-              <Link
-                href="/women"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.women")}
-              </Link>
-              <Link
-                href="/shoes"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.shoes")}
-              </Link>
+              {/* 🛠️ 동적 카테고리 렌더링 */}
+              {categories
+                .filter(cat => !cat.parentId && cat.displayStatusPC === 'DISPLAY')
+                .map(cat => (
+                  <Link
+                    key={cat.id}
+                    href={`/category/${cat.id}?gf=${currentGf}`} // Assuming /category/[id] route
+                    className="hover:text-gray-300 transition-colors cursor-pointer"
+                  >
+                    {cat.name}
+                  </Link>
+                ))
+              }
 
-              <Link
-                href="/accessories"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.accessories")}
-              </Link>
-              <Link
-                href="/bag"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.pants")}
-              </Link>
               <Link
                 href="/features/immediate"
                 className="hover:text-gray-300 transition-colors cursor-pointer"
@@ -552,6 +555,8 @@ export default function MainHeader({ authed, userLevel = 0 }: MainHeaderProps) {
         <CategoryPopup
           onClose={() => setIsMenuOpen(false)}
           initialTab={initialTab}
+          categories={categories}
+          brands={brands}
         />
       )}
 

@@ -133,6 +133,9 @@ model UserInfo {
   job           String?
   interests     String[]   // 관심분야 Array
   
+  // -- 맞춤 정보 (JSON) --
+  customData    Json?
+  
   gender        Gender     @default(NONE)
   birthday      DateTime?
   birthdayType  DateType   @default(SOLAR)

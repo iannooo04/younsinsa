@@ -15,11 +15,11 @@ import bcrypt from "bcryptjs";
 
 export async function POST(req: Request) {
     try {
-        const { email, password, username, name } = await req.json();
+        const { email, password, username, name, nickname } = await req.json();
 
-        if (!email || !password || !username || !name) {
+        if (!email || !password || !username || !name || !nickname) {
             return NextResponse.json(
-                { ok: false, message: "Missing required fields" },
+                { ok: false, message: "필수 정보가 누락되었습니다." },
                 { status: 400 }
             );
         }
@@ -27,20 +27,20 @@ export async function POST(req: Request) {
         // Check if user already exists
         const existingUser = await prisma.user.findFirst({
             where: {
-                OR: [{ email }, { username }],
+                OR: [{ email }, { username }, { nickname }],
             },
         });
 
         if (existingUser) {
             return NextResponse.json(
-                { ok: false, message: "User already exists with this email or username" },
+                { ok: false, message: "이미 사용 중인 이메일 또는 닉네임입니다." },
                 { status: 409 }
             );
         }
 
         const passwordHash = await bcrypt.hash(password, 12);
 
-        console.log("Creating user with:", { email, username, name });
+        console.log("Creating user with:", { email, username, name, nickname });
 
         const newUser = await prisma.$transaction(async (tx) => {
             const user = await tx.user.create({
@@ -48,6 +48,7 @@ export async function POST(req: Request) {
                     email,
                     username,
                     name,
+                    nickname,
                     passwordHash,
                 },
             });

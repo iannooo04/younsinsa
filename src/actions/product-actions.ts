@@ -2,8 +2,30 @@
 
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
-import { DisplayStatus, Prisma } from "@/generated/prisma";
+import { DisplayStatus, ProductImageType, Prisma } from "@/generated/prisma";
 import * as XLSX from "xlsx";
+import { join } from "path";
+import { writeFile } from "fs/promises";
+
+// Helper: Save Image
+async function saveImage(file: File): Promise<string | null> {
+    if (!file || file.size === 0) return null;
+
+    try {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        // Simple unique filename: timestamp-random.ext
+        const ext = file.name.split('.').pop() || 'jpg';
+        const filename = `${Date.now()}-${Math.round(Math.random() * 10000)}.${ext}`;
+        const uploadDir = join(process.cwd(), "public/uploads");
+        const filepath = join(uploadDir, filename);
+
+        await writeFile(filepath, buffer);
+        return `/uploads/${filename}`;
+    } catch (error) {
+        console.error("Error saving image:", error);
+        return null;
+    }
+}
 
 // --- Create Product (Existing) ---
 export async function createProductAction(prevState: unknown, formData: FormData) {
@@ -25,7 +47,21 @@ export async function createProductAction(prevState: unknown, formData: FormData
     const code = "P" + Date.now().toString().slice(-8);
 
     try {
-        await prisma.product.create({
+        // Handle Images
+        const imageFiles = formData.getAll('images') as File[];
+        const uploadedImages: string[] = [];
+        
+        // Handle Main Image (thumbnail) using 'images' input for now or separate 'mainImage'
+        // Assuming current form might use 'images' for multiple files
+        // We need to clarify how the form sends images.
+        // If ProductForm uses <input type="file" name="images" multiple />
+        
+        for (const file of imageFiles) {
+            const path = await saveImage(file);
+            if (path) uploadedImages.push(path);
+        }
+
+        const product = await prisma.product.create({
             data: {
                 name,
                 price,
@@ -46,6 +82,18 @@ export async function createProductAction(prevState: unknown, formData: FormData
                 exchangeFee: 6000,
             }
         });
+
+        // Save Images to ProductImage table
+        if (uploadedImages.length > 0) {
+            await prisma.productImage.createMany({
+                data: uploadedImages.map((url, index) => ({
+                    productId: product.id,
+                    url: url,
+                    type: index === 0 ? ProductImageType.MAIN : ProductImageType.ADDITIONAL,
+                    order: index
+                }))
+            });
+        }
 
         revalidatePath('/admin/products');
         return { success: true, message: "상품이 등록되었습니다." };
@@ -74,6 +122,8 @@ export async function updateProductAction(prevState: unknown, formData: FormData
     const displayStatusMobile = rawFormData.mobile_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
 
     try {
+        const imageFiles = formData.getAll('images') as File[];
+        
         await prisma.product.update({
             where: { id },
             data: {
@@ -87,6 +137,35 @@ export async function updateProductAction(prevState: unknown, formData: FormData
                 displayStatusMobile,
             }
         });
+
+        // If new images are uploaded, add them
+        // Note: Real logic might need to handle deletions or reordering. 
+        // For now, we append new images.
+        if (imageFiles.length > 0) {
+             const uploadedImages: string[] = [];
+             for (const file of imageFiles) {
+                const path = await saveImage(file);
+                if (path) uploadedImages.push(path);
+            }
+            
+            if (uploadedImages.length > 0) {
+                // Get current max order
+                const maxOrderObj = await prisma.productImage.findFirst({
+                    where: { productId: id },
+                    orderBy: { order: 'desc' }
+                });
+                const nextOrder = (maxOrderObj?.order ?? -1) + 1;
+
+                await prisma.productImage.createMany({
+                    data: uploadedImages.map((url, index) => ({
+                        productId: id,
+                        url: url,
+                        type: ProductImageType.ADDITIONAL, // Appended images are additional by default
+                        order: nextOrder + index
+                    }))
+                });
+            }
+        }
 
         revalidatePath('/admin/products');
         revalidatePath(`/admin/products/edit/${id}`);
@@ -110,12 +189,21 @@ export async function getProductsAction(
         endDate?: string;
         dateType?: string; // 'regDate' | 'delDate'
         isDeleted?: boolean;
+        categoryId?: string; // Added categoryId
     }
 ) {
     try {
         const where: Prisma.ProductWhereInput = {
             deletedAt: searchParams?.isDeleted ? { not: null } : null
         };
+
+        // Category filter
+        if (searchParams?.categoryId) {
+            // Include children categories if needed, but for now exact match or startsWith for hierarchical code
+            // Assuming categoryId is the ID. If it's a code, we might need logic.
+            // Let's assume exact match on categoryId for now.
+            where.categoryId = searchParams.categoryId;
+        }
 
         // Keyword filter
         if (searchParams?.keyword) {
@@ -151,32 +239,221 @@ export async function getProductsAction(
                 category: true,
                 brand: true,
                 supplier: true,
-                shippingPolicy: true, // Add relation
+                shippingPolicy: true,
+                images: true, // Include images
             }
         });
 
         // Format for frontend
-        const products = items.map(item => ({
-            id: item.id,
-            productCode: item.code || '-',
-            image: null, // Image handling to be implemented
-            name: item.name,
-            supplier: item.supplier?.name || '본사',
-            brand: item.brand?.name || '-',
-            displayStatus: item.displayStatusPC === DisplayStatus.DISPLAY ? '노출함' : '노출안함',
-            saleStatus: item.saleStatusPC === 'ON_SALE' ? '판매함' : '판매안함',
-            stockStatus: item.stockQuantity > 0 ? '정상' : '품절',
-            stock: item.stockType === 'LIMITLESS' ? '∞' : item.stockQuantity.toString(),
-            price: item.price, // Added price
-            shippingFee: item.shippingPolicy ? item.shippingPolicy.name : (item.shippingFee > 0 ? `${item.shippingFee.toLocaleString()}원` : '무료/미설정'),
-            createdAt: item.createdAt,
-            deletedAt: item.deletedAt,
-        }));
+        const products = items.map(item => {
+            const mainImage = item.images.find(img => img.type === ProductImageType.MAIN) || item.images[0];
+            return {
+                id: item.id,
+                productCode: item.code || '-',
+                image: mainImage ? mainImage.url : null, // Use actual image URL
+                name: item.name,
+                supplier: item.supplier?.name || '본사',
+                brand: item.brand?.name || '-',
+                displayStatus: item.displayStatusPC === DisplayStatus.DISPLAY ? '노출함' : '노출안함',
+                saleStatus: item.saleStatusPC === 'ON_SALE' ? '판매함' : '판매안함',
+                stockStatus: item.stockQuantity > 0 ? '정상' : '품절',
+                stock: item.stockType === 'LIMITLESS' ? '∞' : item.stockQuantity.toString(),
+                price: item.price,
+                shippingFee: item.shippingPolicy ? item.shippingPolicy.name : (item.shippingFee > 0 ? `${item.shippingFee.toLocaleString()}원` : '무료/미설정'),
+                createdAt: item.createdAt,
+                deletedAt: item.deletedAt,
+            };
+        });
 
         return { success: true, items: products, totalCount };
     } catch (error) {
         console.error("Error fetching products:", error);
         return { success: false, items: [], totalCount: 0 };
+    }
+}
+
+// --- Fetch Public Products (Frontend) ---
+export async function getPublicProductsAction(
+    page: number = 1,
+    pageSize: number = 20,
+    sort: 'newest' | 'priceAsc' | 'priceDesc' | 'name' = 'newest',
+    filters?: {
+        categoryId?: string;
+        keyword?: string;
+        gender?: 'M' | 'W' | 'A';
+        isBest?: boolean;
+        isNew?: boolean;
+    }
+) {
+    try {
+        const where: Prisma.ProductWhereInput = {
+            deletedAt: null,
+            displayStatusPC: DisplayStatus.DISPLAY, // Only show displayed products
+            // displayStatusMobile: DisplayStatus.DISPLAY, // Generally we check one or logic depending on device, but for simplicity check PC or both.
+        };
+
+        if (filters?.categoryId) {
+            where.categoryId = filters.categoryId;
+        }
+
+        if (filters?.keyword) {
+             where.name = { contains: filters.keyword, mode: 'insensitive' };
+        }
+
+        if (filters?.gender && filters.gender !== 'A') {
+            const genderValue = filters.gender === 'M' ? 'MEN' : 'WOMEN';
+            where.gender = { in: [genderValue as "MEN" | "WOMEN" | "UNISEX", 'UNISEX'] };
+        }
+
+        // Sorting
+        let orderBy: Prisma.ProductOrderByWithRelationInput = { createdAt: 'desc' };
+        if (sort === 'priceAsc') orderBy = { price: 'asc' };
+        else if (sort === 'priceDesc') orderBy = { price: 'desc' };
+        else if (sort === 'name') orderBy = { name: 'asc' };
+
+        const totalCount = await prisma.product.count({ where });
+        const items = await prisma.product.findMany({
+            where,
+            skip: (page - 1) * pageSize,
+            take: pageSize,
+            orderBy,
+            include: {
+                category: true,
+                brand: true,
+                images: {
+                    orderBy: { order: 'asc' },
+                    take: 1 // Optimize: only need main image usually
+                },
+            }
+        });
+
+        // Format
+        const products = items.map(item => {
+            const mainImage = item.images[0];
+            return {
+                id: item.id,
+                name: item.name,
+                image: mainImage ? mainImage.url : '/placeholder.png',
+                price: item.price,
+                consumerPrice: item.consumerPrice,
+                discountRate: item.consumerPrice > item.price 
+                    ? Math.round(((item.consumerPrice - item.price) / item.consumerPrice) * 100) 
+                    : 0,
+                isSoldOut: item.stockQuantity <= 0,
+                brandName: item.brand?.name,
+            };
+        });
+
+        return { success: true, items: products, totalCount };
+    } catch (error) {
+        console.error("Error fetching public products:", error);
+        return { success: false, items: [], totalCount: 0 };
+    }
+}
+
+export async function getPublicProductDetailAction(id: string) {
+    try {
+        const product = await prisma.product.findUnique({
+            where: { id },
+            include: {
+                category: true,
+                brand: true,
+                images: {
+                    orderBy: { order: 'asc' }
+                },
+                options: {
+                    include: { values: true }
+                },
+                variants: {
+                    include: {
+                        optionValues: true
+                    }
+                }
+            }
+        });
+
+        if (!product) return { success: false, product: null };
+
+        // Logic to check display status? 
+        // If strict public, we should check displayStatusPC === 'DISPLAY'
+        if (product.displayStatusPC !== DisplayStatus.DISPLAY) {
+             return { success: false, product: null, message: "판매 중인 상품이 아닙니다." };
+        }
+
+        // Format for frontend
+        const formatted = {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            consumerPrice: product.consumerPrice,
+            description: product.descriptionPC,
+            images: product.images.map(img => img.url),
+            brandName: product.brand?.name || '',
+            options: product.options.map(opt => ({
+                id: opt.id,
+                name: opt.name,
+                values: opt.values.map(val => ({
+                    id: val.id,
+                    name: val.name
+                }))
+            })),
+            variants: product.variants.map(v => ({
+                id: v.id,
+                price: v.price || product.price, // Override or default
+                stock: v.stock,
+                optionValues: v.optionValues.map(ov => ov.id) // Client needs to match this with selected values
+            }))
+        };
+
+        return { success: true, product: formatted };
+    } catch (error) {
+        console.error("Error fetching public product detail:", error);
+        return { success: false, product: null };
+    }
+}
+
+
+export async function getProductAction(id: string) {
+    try {
+        const product = await prisma.product.findUnique({
+            where: { id },
+            include: {
+                category: true,
+                brand: true,
+                supplier: true,
+                shippingPolicy: true,
+                images: {
+                    orderBy: { order: 'asc' }
+                }
+            }
+        });
+
+        if (!product) return { success: false, product: null };
+
+        // Format
+         const formatted = {
+            id: product.id,
+            productCode: product.code || '-',
+            images: product.images.map(img => img.url),
+            name: product.name,
+            supplier: product.supplier?.name || '본사',
+            brand: product.brand?.name || '-',
+            displayStatus: product.displayStatusPC === DisplayStatus.DISPLAY ? '노출함' : '노출안함',
+            saleStatus: product.saleStatusPC === 'ON_SALE' ? '판매함' : '판매안함',
+            stockStatus: product.stockQuantity > 0 ? '정상' : '품절',
+            stock: product.stockType === 'LIMITLESS' ? '∞' : product.stockQuantity.toString(),
+            price: product.price,
+            consumerPrice: product.consumerPrice,
+            shippingFee: product.shippingPolicy ? product.shippingPolicy.name : (product.shippingFee > 0 ? `${product.shippingFee.toLocaleString()}원` : '무료/미설정'),
+            description: product.descriptionPC,
+            createdAt: product.createdAt,
+            deletedAt: product.deletedAt,
+        };
+
+        return { success: true, product: formatted };
+    } catch (error) {
+        console.error("Error fetching product:", error);
+        return { success: false, product: null };
     }
 }
 

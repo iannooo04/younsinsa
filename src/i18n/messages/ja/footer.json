@@ -96,6 +96,11 @@
   },
   "legal": {
     "copyright": "© NKBUS ALL RIGHTS RESERVED",
+    "companyLabel": "商号",
+    "ceoLabel": "代表者",
+    "addressLabel": "住所",
+    "bizNumLabel": "事業者登録番号",
+    "onlineSalesLabel": "通信販売業",
     "companyInfo": "(株)ムシンサ | 代表者：チョ・マンホ、パク・ジュンモ | 住所：ソウル特別市城東区アチャサン路13ギル11、1階（聖水洞2街、ムシンサキャンパスN1）",
     "bizInfo": "事業者登録番号：211-88-79575 | 通信販売業：2022-ソウル城東-01952 | ホスティング事業者：(株)ムシンサ",
     "guarantee": "当社はお客様の現金決済金額について、ウリ銀行と債務支払保証契約を締結し、安全な取引を保証しています。",

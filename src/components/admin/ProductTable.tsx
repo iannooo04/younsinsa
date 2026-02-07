@@ -9,20 +9,19 @@ import { useRouter } from "next/navigation";
 
 interface Product {
     id: string;
-    code: string | null;
+    productCode: string;
     name: string;
     price: number;
-    supplier: { id: string; name: string } | null;
-    displayStatusPC: string;
-    displayStatusMobile: string;
-    saleStatusPC: string;
-    saleStatusMobile: string;
-    stockType: string;
-    stockQuantity: number;
-    soldOutStatus: string;
+    supplier: string;
+    brand: string;
+    displayStatus: string;
+    saleStatus: string;
+    stock: string;
+    stockStatus: string;
+    shippingFee: string;
     createdAt: string | Date;
-    updatedAt: string | Date;
-    images?: { url: string }[];
+    updatedAt?: string | Date;
+    image: string | null;
 }
 
 interface Props {
@@ -63,11 +62,9 @@ export default function ProductTable({ initialProducts }: Props) {
         setIsDeleting(false);
     };
 
-    const soldOutCount = products.filter((p) => 
-        (p.stockType === 'LIMITED' && p.stockQuantity <= 0) || p.soldOutStatus === 'SOLDOUT_MANUAL'
-    ).length;
-    const displayedPcCount = products.filter((p) => p.displayStatusPC === 'DISPLAY').length;
-    const displayedMobileCount = products.filter((p) => p.displayStatusMobile === 'DISPLAY').length;
+    const soldOutCount = products.filter((p) => p.stockStatus === '품절').length;
+    const displayedPcCount = products.filter((p) => p.displayStatus === '노출함').length;
+    const displayedMobileCount = products.filter((p) => p.displayStatus === '노출함').length;
 
     return (
         <div className="space-y-4">
@@ -177,13 +174,14 @@ export default function ProductTable({ initialProducts }: Props) {
                                     />
                                 </td>
                                 <td>{products.length - index}</td>
-                                <td className="font-mono text-gray-500">{product.code || product.id.substring(0,8)}</td>
+                                <td>{products.length - index}</td>
+                                <td className="font-mono text-gray-500">{product.productCode}</td>
                                 <td>
                                     <div className="flex justify-center">
                                         <div className="w-10 h-10 border bg-gray-100 flex items-center justify-center relative overflow-hidden">
-                                            {product.images?.[0] ? (
+                                            {product.image ? (
                                                 <Image 
-                                                    src={product.images[0].url} 
+                                                    src={product.image} 
                                                     alt="" 
                                                     fill
                                                     className="object-cover" 
@@ -204,33 +202,23 @@ export default function ProductTable({ initialProducts }: Props) {
                                     </div>
                                 </td>
                                 <td className="font-bold text-gray-800">{product.price?.toLocaleString()}원</td>
-                                <td className="text-gray-500">{product.supplier?.name || "-"}</td>
+                                <td className="text-gray-500">{product.supplier}</td>
                                 <td>
-                                    <div className="space-y-1">
-                                        <div>PC | <span className={product.displayStatusPC === 'DISPLAY' ? "text-blue-600" : "text-gray-400"}>
-                                            {product.displayStatusPC === 'DISPLAY' ? '노출함' : '노출안함'}
-                                        </span></div>
-                                        <div>모바일 | <span className={product.displayStatusMobile === 'DISPLAY' ? "text-blue-600" : "text-gray-400"}>
-                                            {product.displayStatusMobile === 'DISPLAY' ? '노출함' : '노출안함'}
-                                        </span></div>
-                                    </div>
+                                    <span className={product.displayStatus === '노출함' ? "text-blue-600" : "text-gray-400"}>
+                                        {product.displayStatus}
+                                    </span>
                                 </td>
                                 <td>
-                                    <div className="space-y-1">
-                                        <div>PC | <span className={product.saleStatusPC === 'ON_SALE' ? "text-blue-600" : "text-gray-400"}>
-                                            {product.saleStatusPC === 'ON_SALE' ? '판매함' : '판매안함'}
-                                        </span></div>
-                                        <div>모바일 | <span className={product.saleStatusMobile === 'ON_SALE' ? "text-blue-600" : "text-gray-400"}>
-                                            {product.saleStatusMobile === 'ON_SALE' ? '판매함' : '판매안함'}
-                                        </span></div>
-                                    </div>
+                                    <span className={product.saleStatus === '판매함' ? "text-blue-600" : "text-gray-400"}>
+                                        {product.saleStatus}
+                                    </span>
                                 </td>
                                 <td>
-                                    {product.stockType === 'LIMITLESS' ? '∞' : product.stockQuantity?.toLocaleString()}
+                                    {product.stock}
                                 </td>
                                 <td className="text-gray-500 text-[11px]">
                                     <div>{new Date(product.createdAt).toISOString().split('T')[0]}</div>
-                                    <div>{new Date(product.updatedAt).toISOString().split('T')[0]}</div>
+                                    {product.updatedAt && <div>{new Date(product.updatedAt).toISOString().split('T')[0]}</div>}
                                 </td>
                                 <td>
                                     <Link href={`/admin/products/edit/${product.id}`}>

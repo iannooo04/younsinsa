@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -853,10 +854,16 @@ export default function MemberListPage() {
                                <td className="border-r border-gray-200">{total - ((page - 1) * 10) - idx}</td>
                                <td className="border-r border-gray-200">{user.mallId === 'KR' ? '🇰🇷 기준몰' : '🇨🇳 중문몰'}</td>
                                <td className="border-r border-gray-200">
-                                   <div className="font-bold text-gray-800">{user.username}</div>
+                                   <Link href={`/admin/users/${user.id}`} className="font-bold text-blue-600 hover:underline">
+                                       {user.username}
+                                   </Link>
                                    <div className="text-gray-500 text-[11px]">{user.nickname || '-'}</div>
                                </td>
-                               <td className="border-r border-gray-200">{user.name}</td>
+                               <td className="border-r border-gray-200">
+                                   <Link href={`/admin/users/${user.id}`} className="hover:underline">
+                                       {user.name}
+                                   </Link>
+                               </td>
                                <td className="border-r border-gray-200">{user.info?.grade?.name || '일반회원'}</td>
                                <td className="border-r border-gray-200">{user.info?.mileage?.toLocaleString()}</td>
                                <td className="border-r border-gray-200">{user.info?.deposit?.toLocaleString()}</td>

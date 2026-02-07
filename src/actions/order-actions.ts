@@ -2,7 +2,7 @@
 // Force revalidation
 
 import prisma from "@/lib/prisma";
-import { OrderStatus, Prisma } from "@/generated/prisma";
+import { OrderStatus, Prisma, PaymentMethod } from "@/generated/prisma";
 import { revalidatePath } from "next/cache";
 
 export type GetOrdersParams = {
@@ -144,6 +144,263 @@ export async function getOrdersAction(params: GetOrdersParams) {
   }
 }
 
+/**
+ * Fetch orders for the currently logged-in user
+ */
+export async function getMyOrdersAction(userId: string, page: number = 1, limit: number = 20) {
+    try {
+        const skip = (page - 1) * limit;
+        const where: Prisma.OrderWhereInput = { userId };
+
+        const [total, items] = await prisma.$transaction([
+            prisma.order.count({ where }),
+            prisma.order.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    items: {
+                        include: {
+                            product: {
+                                include: {
+                                    images: {
+                                        take: 1
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+        ]);
+
+        return {
+            success: true,
+            items,
+            total,
+            page,
+            limit,
+            totalPages: Math.ceil(total / limit)
+        };
+    } catch (error) {
+        console.error("getMyOrdersAction error:", error);
+        return { success: false, message: "주문 내역을 불러오는데 실패했습니다." };
+    }
+}
+
+// --- Order Creation ---
+export type CreateOrderParams = {
+    userId: string | null; // Nullable for guest (though schema suggests optional User relation)
+    cartItemIds: string[]; // Items to order
+    shippingInfo: {
+        recipientName: string;
+        recipientPhone: string;
+        recipientMobile: string;
+        recipientZipcode: string;
+        recipientAddress: string;
+        recipientAddressDetail: string;
+        shippingMessage?: string;
+    };
+    paymentInfo: {
+        method: "BANK_TRANSFER" | "CARD"; // Expand as needed
+        depositorName?: string; // For bank transfer
+    };
+    ordererInfo: {
+        name: string;
+        email: string;
+        mobile: string;
+        phone?: string;
+    };
+};
+
+export async function createOrderAction(params: CreateOrderParams) {
+    try {
+        const { userId, cartItemIds, shippingInfo, paymentInfo, ordererInfo } = params;
+
+        // 1. Fetch Cart Items with Product/Variant details
+        const cartItems = await prisma.cartItem.findMany({
+            where: {
+                id: { in: cartItemIds },
+                // If userId is provided, ensure ownership? 
+                ...(userId ? { userId } : {})
+            },
+            include: {
+                product: true,
+                variant: {
+                    include: {
+                        optionValues: {
+                            include: {
+                                option: true
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (cartItems.length === 0) {
+            return { success: false, message: "구매할 상품이 없습니다." };
+        }
+
+        // 2. Validate Stock and Calculate Totals
+        let totalItemPrice = 0;
+        let shippingFee = 0; // Fixed or calculated? Assuming 0 or fixed for now.
+        // Simple logic: if total < 50000, fee 3000.
+        
+        for (const item of cartItems) {
+            const stock = item.variant ? item.variant.stock : item.product.stockQuantity;
+            if (stock < item.quantity) {
+                return { 
+                    success: false, 
+                    message: `상품 [${item.product.name}]의 재고가 부족합니다. (현재 재고: ${stock})` 
+                };
+            }
+
+            const price = item.variant?.price || item.product.price;
+            totalItemPrice += price * item.quantity;
+        }
+
+        // Policy: Free shipping over 50,000 KRW
+        if (totalItemPrice < 50000) {
+            shippingFee = 3000;
+        }
+
+        const totalPayAmount = totalItemPrice + shippingFee;
+
+        // 3. Generate Order No (YYYYMMDD-Random)
+        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        const randomStr = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+        const orderNo = `${dateStr}-${randomStr}`;
+
+        // 4. Transaction: Create Order, Items, Update Stock, Delete Cart Items
+        const order = await prisma.$transaction(async (tx) => {
+            // Create Order
+            const newOrder = await tx.order.create({
+                data: {
+                    orderNo,
+                    userId,
+                    isMember: !!userId,
+                    
+                    ordererName: ordererInfo.name,
+                    ordererEmail: ordererInfo.email,
+                    ordererMobile: ordererInfo.mobile,
+                    ordererPhone: ordererInfo.phone,
+
+                    recipientName: shippingInfo.recipientName,
+                    recipientMobile: shippingInfo.recipientMobile,
+                    recipientPhone: shippingInfo.recipientPhone,
+                    recipientZipcode: shippingInfo.recipientZipcode,
+                    recipientAddress: shippingInfo.recipientAddress,
+                    recipientAddressDetail: shippingInfo.recipientAddressDetail,
+                    shippingMessage: shippingInfo.shippingMessage,
+
+                    paymentMethod: paymentInfo.method === 'CARD' ? PaymentMethod.CREDIT_CARD : PaymentMethod.BANK_TRANSFER,
+                    depositorName: paymentInfo.depositorName,
+                    
+                    totalItemPrice,
+                    shippingFee,
+                    discountAmount: 0,
+                    totalPayAmount,
+
+                    status: OrderStatus.DEPOSIT_WAIT, // Default start status
+
+                    items: {
+                        create: await Promise.all(cartItems.map(async (item) => {
+                            // Re-fetch option name if needed, but for now simplify.
+                            // Ideally we store the snapshot of option name.
+                            // We need to fetch option values manually as before if we want full name string.
+                            // For MVP, if variant exists, just say "Option Included" or try to fetch.
+                            // Let's do a quick fetch for option names if variant exists.
+                            let optionNameSnapshot = null;
+                            if (item.variant && item.variant.optionValues && item.variant.optionValues.length > 0) {
+                                optionNameSnapshot = item.variant.optionValues
+                                    .map(ov => `${ov.option.name}: ${ov.name}`)
+                                    .join(" / ");
+                            }
+
+                            return {
+                                productId: item.productId,
+                                variantId: item.variantId,
+                                productName: item.product.name,
+                                optionName: optionNameSnapshot,
+                                price: item.variant?.price || item.product.price,
+                                quantity: item.quantity,
+                                totalPrice: (item.variant?.price || item.product.price) * item.quantity,
+                                status: OrderStatus.DEPOSIT_WAIT
+                            };
+                        }))
+                    }
+                }
+            });
+
+            // Update Stock
+            for (const item of cartItems) {
+                if (item.variantId) {
+                    await tx.productVariant.update({
+                        where: { id: item.variantId },
+                        data: { stock: { decrement: item.quantity } }
+                    });
+                } else {
+                    await tx.product.update({
+                        where: { id: item.productId },
+                        data: { stockQuantity: { decrement: item.quantity } }
+                    });
+                }
+            }
+
+            // Delete Cart Items
+            await tx.cartItem.deleteMany({
+                where: { id: { in: cartItemIds } }
+            });
+
+            return newOrder;
+        });
+
+        revalidatePath("/admin/orders");
+        // Revalidate user orders page if exists
+        
+        return { success: true, orderId: order.id, orderNo: order.orderNo };
+
+    } catch (error) {
+        console.error("createOrderAction error:", error);
+        return { success: false, message: "주문 생성에 실패했습니다." };
+    }
+}
+
+/**
+ * Update the status of an order. Primarily for admin or automated flows.
+ */
+export async function updateOrderStatusAction(orderId: string, newStatus: OrderStatus) {
+    try {
+        const order = await prisma.order.update({
+            where: { id: orderId },
+            data: { 
+                status: newStatus,
+                statusUpdatedAt: new Date(),
+                ...(newStatus === OrderStatus.PAYMENT_COMPLETE ? { paidAt: new Date() } : {}),
+                ...(newStatus === OrderStatus.SHIPPING ? { shippedAt: new Date() } : {}),
+                ...(newStatus === OrderStatus.DELIVERED ? { deliveredAt: new Date() } : {}),
+            }
+        });
+
+        // Also update all items to the same status if they don't have individual tracking
+        await prisma.orderItem.updateMany({
+            where: { orderId },
+            data: { status: newStatus }
+        });
+
+        revalidatePath("/admin/orders");
+        revalidatePath("/mypage/orders");
+        revalidatePath(`/mypage/orders/${orderId}`);
+
+        return { success: true, status: order.status };
+    } catch (error) {
+        console.error("updateOrderStatusAction error:", error);
+        return { success: false, message: "주문 상태 변경에 실패했습니다." };
+    }
+}
+
 // --- Invoice Bulk Upload Actions ---
 
 type InvoiceUploadItem = {
@@ -269,6 +526,50 @@ export async function getInvoiceUploadHistoryAction(params?: { page?: number; li
 }
 
 // --- Order Delete History Actions ---
+
+
+
+const orderDetailInclude = {
+    items: {
+        include: {
+            product: {
+                include: {
+                    images: {
+                        take: 1
+                    }
+                }
+            }
+        }
+    },
+    user: true
+};
+
+export type OrderDetail = Prisma.OrderGetPayload<{
+    include: typeof orderDetailInclude
+}>;
+
+export async function getOrderDetailAction(orderId: string, userId?: string) {
+    try {
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: orderDetailInclude
+        });
+
+        if (!order) {
+            return { success: false, message: "주문을 찾을 수 없습니다." };
+        }
+
+        // If userId is provided, ensure it matches the order's userId
+        if (userId && order.userId !== userId) {
+            return { success: false, message: "본인의 주문 정보만 확인할 수 있습니다." };
+        }
+
+        return { success: true, order };
+    } catch (error) {
+        console.error("getOrderDetailAction error:", error);
+        return { success: false, message: "주문 정보를 불러오는데 실패했습니다." };
+    }
+}
 
 export async function createOrderDeleteRequestAction(registrant: string = "Admin") {
     try {

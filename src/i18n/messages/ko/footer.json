@@ -93,6 +93,11 @@
   },
   "legal": {
     "copyright": "© NKBUS ALL RIGHTS RESERVED",
+    "companyLabel": "상호명",
+    "ceoLabel": "대표자",
+    "addressLabel": "주소",
+    "bizNumLabel": "사업자등록번호",
+    "onlineSalesLabel": "통신판매업",
     "companyInfo": "(주) NKBUS | 대표자 : 조만호, 박준모 | 주소 : 서울특별시 성동구 아차산로 13길 11, 1층 (성수동2가, NKBUS캠퍼스 엔1)",
     "bizInfo": "사업자등록번호 : 211-88-79575 | 통신판매업 : 2022-서울성동-01952 | 호스팅사업자 : (주)NKBUS",
     "guarantee": "당사는 고객님이 현금 결제한 금액에 대해 우리은행과 채무지급보증 계약을 체결하여 안전거래를 보장하고 있습니다.",

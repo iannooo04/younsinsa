@@ -17,7 +17,7 @@ export default function JoinPage() {
                 {/* Progress Bar */}
                 <div className="h-1.5 w-full bg-base-200">
                     <div
-                        className="h-full bg-primary transition-all duration-700 ease-out shadow-[0_0_10px_rgba(var(--p),0.5)]"
+                        className="h-full bg-black transition-all duration-700 ease-out shadow-[0_0_10px_rgba(0,0,0,0.5)]"
                         style={{ width: `${(step / 3) * 100}%` }}
                     />
                 </div>
