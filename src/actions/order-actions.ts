@@ -245,8 +245,7 @@ export async function createOrderAction(params: CreateOrderParams) {
 
         // 2. Validate Stock and Calculate Totals
         let totalItemPrice = 0;
-        let shippingFee = 0; // Fixed or calculated? Assuming 0 or fixed for now.
-        // Simple logic: if total < 50000, fee 3000.
+        let shippingFee = 0; 
         
         for (const item of cartItems) {
             const stock = item.variant ? item.variant.stock : item.product.stockQuantity;
@@ -261,12 +260,29 @@ export async function createOrderAction(params: CreateOrderParams) {
             totalItemPrice += price * item.quantity;
         }
 
-        // Policy: Free shipping over 50,000 KRW
+        // --- Calculate Member Benefits ---
+        let discountAmount = 0;
+        
+        if (userId) {
+            const userInfo = await prisma.userInfo.findUnique({
+                where: { userId },
+                include: { grade: true }
+            });
+            
+            if (userInfo?.grade) {
+                const discountRate = userInfo.grade.discountRate || 0;
+                if (discountRate > 0) {
+                    discountAmount = Math.floor(totalItemPrice * (discountRate / 100));
+                }
+            }
+        }
+
+        // Policy: Free shipping over 50,000 KRW (before discount usually, but can vary. Let's use before discount)
         if (totalItemPrice < 50000) {
             shippingFee = 3000;
         }
 
-        const totalPayAmount = totalItemPrice + shippingFee;
+        const totalPayAmount = totalItemPrice + shippingFee - discountAmount;
 
         // 3. Generate Order No (YYYYMMDD-Random)
         const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
@@ -300,7 +316,7 @@ export async function createOrderAction(params: CreateOrderParams) {
                     
                     totalItemPrice,
                     shippingFee,
-                    discountAmount: 0,
+                    discountAmount: discountAmount || 0,
                     totalPayAmount,
 
                     status: OrderStatus.DEPOSIT_WAIT, // Default start status

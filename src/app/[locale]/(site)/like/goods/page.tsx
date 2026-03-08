@@ -4,6 +4,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { Link } from "@/i18n/routing";
 
 
 // ----------------------------------------------------------------------
@@ -79,15 +80,24 @@ export default function LikeGoodsPage() {
           <button className="pb-3 border-b-2 border-black text-black font-bold text-[14px]">
             상품 <span className="ml-1">3</span>
           </button>
-          <button className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]">
+          <Link 
+            href="/like/brands"
+            className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]"
+          >
             브랜드 <span className="ml-1">13</span>
-          </button>
-          <button className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]">
+          </Link>
+          <Link 
+            href="/like/snaps"
+            className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]"
+          >
             스냅 <span className="ml-1">0</span>
-          </button>
-          <button className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]">
+          </Link>
+          <Link 
+            href="/like/folders"
+            className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]"
+          >
             내폴더 <span className="ml-1">0</span>
-          </button>
+          </Link>
         </div>
 
         {/* ================= 3. Sub Categories (Grey Box) ================= */}

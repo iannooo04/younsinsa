@@ -8,40 +8,65 @@ import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
 import { getPublicProductsAction } from "@/actions/product-actions";
+import { getPublicMainDisplayGroupsAction, getDisplayGroupProductsAction } from "@/actions/product-display-actions";
 
 interface ProductItem {
   id: string;
-  img: string;
-  brand: string;
+  image: string;
+  brandName: string;
   name: string;
-  price: string;
-  discount: string | null;
-  gender: string;
+  price: number;
+  consumerPrice: number;
+  discountRate: number;
+}
+
+interface DisplayGroup {
+    id: number;
+    name: string;
+    description: string | null;
+    products: ProductItem[];
 }
 
 export default function HomePage() {
   const t = useTranslations("home");
-  const [products, setProducts] = useState<ProductItem[]>([]);
+  const [displayGroups, setDisplayGroups] = useState<DisplayGroup[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchProducts() {
-        // Fetch public products (Newest first)
-        const res = await getPublicProductsAction(1, 20, 'newest');
-        if (res.success) {
-            const mapped = res.items.map((item) => ({
-                id: item.id,
-                img: item.image,
-                brand: item.brandName || "Brand",
-                name: item.name,
-                price: item.price.toLocaleString() + "원",
-                discount: item.discountRate > 0 ? item.discountRate + "%" : null,
-                gender: "A" // Keep for filtering compatibility
-            }));
-            setProducts(mapped);
+    async function fetchData() {
+        setLoading(true);
+        // 1. Fetch Display Groups
+        const groupsRes = await getPublicMainDisplayGroupsAction('PC');
+        
+        if (groupsRes.success && groupsRes.groups.length > 0) {
+            const groupsWithProducts = await Promise.all(
+                groupsRes.groups.map(async (group) => {
+                    const prodRes = await getDisplayGroupProductsAction(group.id);
+                    return {
+                        id: group.id,
+                        name: group.name,
+                        description: group.description,
+                        products: prodRes.success ? prodRes.products : []
+                    };
+                })
+            );
+            setDisplayGroups(groupsWithProducts);
+        } else {
+            // Fallback: If no groups defined, fetch newest products as a default group
+            const res = await getPublicProductsAction(1, 10, 'newest');
+            if (res.success) {
+                setDisplayGroups([{
+                    id: 0,
+                    name: t("rankingTitle"),
+                    description: null,
+                    products: res.items as ProductItem[]
+                }]);
+            }
         }
+        setLoading(false);
     }
-    fetchProducts();
-  }, []);
+    fetchData();
+  }, [t]);
 
   // 1. 배너 슬라이드 데이터
   const bannerSlides = [
@@ -182,10 +207,18 @@ export default function HomePage() {
   const searchParams = useSearchParams();
   const gf = searchParams.get("gf") || "A";
 
-  const filteredProducts = useMemo(() => {
-    if (gf === "A") return products;
-    return products.filter((p) => p.gender === gf);
-  }, [gf, products]);
+  const filteredGroups = useMemo(() => {
+    if (gf === "A") return displayGroups;
+    return displayGroups.map(group => ({
+        ...group,
+        products: group.products.filter(_p => {
+            // Since we don't have gender in ProductItem anymore, we might need to add it 
+            // OR just skip filtering for now. 
+            // For now, let's keep it simple and skip gender-specific filtering if data doesn't provide it.
+            return true;
+        })
+    }));
+  }, [gf, displayGroups]);
 
   return (
     <div className="bg-white min-h-screen text-black">
@@ -378,76 +411,78 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Product Grid (사진 디자인 적용) */}
-      <section className="container mx-auto px-4 py-12">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">{t("rankingTitle")}</h2>
-          <Link
-            href="#"
-            className="text-xs text-gray-500 hover:text-black underline decoration-gray-300"
-          >
-            {t("viewAll")}
-          </Link>
+      {/* 4. Product Display Groups */}
+      {loading ? (
+        <div className="container mx-auto px-4 py-20 text-center text-gray-400">
+           {t("loading") || "Loading..."}
         </div>
-
-        {/* 🛠️ [수정] 그리드 디자인: md:grid-cols-5로 변경하여 한 줄에 5개 표시 */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-10">
-          {filteredProducts.map((product) => (
-            <div
-              key={product.id}
-              className="group cursor-pointer flex flex-col"
-            >
-              {/* 이미지 영역 */}
-              <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden">
-                <div className="aspect-3/4">
-                  <Image
-                    src={product.img}
-                    alt={product.name}
-                    fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-
-                {/* 하트 아이콘 (우측 하단) */}
-                <button className="absolute right-2 bottom-2 text-white/70 hover:text-white transition-colors">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="w-6 h-6 fill-transparent hover:fill-white"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-                    />
-                  </svg>
-                </button>
+      ) : (
+        filteredGroups.map((group) => (
+          <section key={group.id} className="container mx-auto px-4 py-12">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold">{group.name}</h2>
+                {group.description && <p className="text-xs text-gray-400 mt-1">{group.description}</p>}
               </div>
-
-              {/* 정보 영역 */}
-              <div className="px-1">
-                <div className="text-[11px] font-bold text-black mb-1 truncate">
-                  {product.brand}
-                </div>
-                <div className="text-[13px] text-gray-700 leading-tight mb-2 line-clamp-2 h-[2.4em]">
-                  {product.name}
-                </div>
-                <div className="flex items-center gap-1.5 text-sm">
-                  {product.discount && (
-                    <span className="text-red-600 font-bold">
-                      {product.discount}
-                    </span>
-                  )}
-                  <span className="font-bold text-black">{product.price}</span>
-                </div>
-              </div>
+              <Link
+                href="#"
+                className="text-xs text-gray-500 hover:text-black underline decoration-gray-300"
+              >
+                {t("viewAll")}
+              </Link>
             </div>
-          ))}
-        </div>
-      </section>
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-x-2 gap-y-10">
+              {group.products.map((product) => (
+                <div key={product.id} className="group cursor-pointer flex flex-col">
+                  {/* 이미지 영역 */}
+                  <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden">
+                    <div className="aspect-3/4">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                    {/* 하트 아이콘 */}
+                    <button className="absolute right-2 bottom-2 text-white/70 hover:text-white transition-colors">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6 fill-transparent hover:fill-white"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  {/* 정보 영역 */}
+                  <div className="px-1">
+                    <div className="text-[11px] font-bold text-black mb-1 truncate">
+                      {product.brandName}
+                    </div>
+                    <div className="text-[13px] text-gray-700 leading-tight mb-2 line-clamp-2 h-[2.4em]">
+                      {product.name}
+                    </div>
+                    <div className="flex items-center gap-1.5 text-sm">
+                      {product.discountRate > 0 && (
+                        <span className="text-red-600 font-bold">
+                          {product.discountRate}%
+                        </span>
+                      )}
+                      <span className="font-bold text-black">{product.price.toLocaleString()}원</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        ))
+      )}
 
       {/* 5. Brand Focus Section */}
       <section className="bg-gray-50 py-16">

@@ -219,8 +219,12 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
 
         <div className="min-h-[400px]">
             {activeTab === "info" && (
-                <div className="prose max-w-none text-gray-600 whitespace-pre-wrap text-center">
-                    {product.description || "상품 상세 설명이 없습니다."}
+                <div className="prose max-w-none text-gray-600 whitespace-wrap text-center overflow-hidden">
+                    {product.description ? (
+                         <div dangerouslySetInnerHTML={{ __html: product.description }} />
+                    ) : (
+                         "상품 상세 설명이 없습니다."
+                    )}
                 </div>
             )}
             

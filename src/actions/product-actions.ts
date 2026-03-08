@@ -27,6 +27,21 @@ async function saveImage(file: File): Promise<string | null> {
     }
 }
 
+export async function uploadImageAction(formData: FormData): Promise<{ success: boolean; url?: string; message?: string }> {
+    try {
+        const file = formData.get("file") as File;
+        if (!file || file.size === 0) return { success: false, message: "No file provided" };
+        const url = await saveImage(file);
+        if (url) {
+            return { success: true, url };
+        }
+        return { success: false, message: "Save image failed" };
+    } catch (error) {
+        console.error("Error uploading image action:", error);
+        return { success: false, message: "Internal server error" };
+    }
+}
+
 // --- Create Product (Existing) ---
 export async function createProductAction(prevState: unknown, formData: FormData) {
     const rawFormData = Object.fromEntries(formData.entries());
@@ -42,6 +57,11 @@ export async function createProductAction(prevState: unknown, formData: FormData
     // Status mapping
     const displayStatusPC = rawFormData.pc_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
     const displayStatusMobile = rawFormData.mobile_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+    
+    // Description
+    const descriptionPC = rawFormData.description as string || "";
+    const descriptionMobile = rawFormData.description as string || "";
+
     
     // Simple mock code generation
     const code = "P" + Date.now().toString().slice(-8);
@@ -72,6 +92,8 @@ export async function createProductAction(prevState: unknown, formData: FormData
                 categoryId,
                 displayStatusPC,
                 displayStatusMobile,
+                descriptionPC,
+                descriptionMobile,
                 // Default values for required fields not yet in form
                 weight: 0,
                 volume: 0,
@@ -121,6 +143,10 @@ export async function updateProductAction(prevState: unknown, formData: FormData
     const displayStatusPC = rawFormData.pc_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
     const displayStatusMobile = rawFormData.mobile_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
 
+    // Description
+    const descriptionPC = rawFormData.description as string || "";
+    const descriptionMobile = rawFormData.description as string || "";
+
     try {
         const imageFiles = formData.getAll('images') as File[];
         
@@ -135,6 +161,8 @@ export async function updateProductAction(prevState: unknown, formData: FormData
                 categoryId,
                 displayStatusPC,
                 displayStatusMobile,
+                descriptionPC,
+                descriptionMobile,
             }
         });
 

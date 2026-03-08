@@ -221,3 +221,49 @@ export async function getMyInquiriesAction(userId: string | undefined) {
     return { success: false, message: "내 문의 내역을 불러오는데 실패했습니다." };
   }
 }
+
+// --- Action: Answer Inquiry (Admin) ---
+export async function answerInquiryAction(
+  parentId: string,
+  answerContent: string,
+  adminName: string = "관리자"
+) {
+  try {
+    const parentPost = await prisma.post.findUnique({
+      where: { id: parentId },
+    });
+
+    if (!parentPost) {
+      return { success: false, message: "원글을 찾을 수 없습니다." };
+    }
+
+    // Create Reply Post
+    await prisma.post.create({
+      data: {
+        boardId: parentPost.boardId,
+        parentId: parentId,
+        subject: `Re: ${parentPost.subject}`,
+        content: answerContent,
+        authorName: adminName,
+        depth: (parentPost.depth || 0) + 1,
+        answerStatus: "COMPLETE" // Replies from admin are considered answers
+      }
+    });
+
+    // Update Parent Post Status
+    await prisma.post.update({
+      where: { id: parentId },
+      data: { answerStatus: "COMPLETE" }
+    });
+
+    revalidatePath("/admin/qna");
+    if (parentPost.productId) {
+        revalidatePath(`/product/${parentPost.productId}`);
+    }
+
+    return { success: true, message: "답변이 등록되었습니다." };
+  } catch (error) {
+    console.error("Error answering inquiry:", error);
+    return { success: false, message: "답변 등록에 실패했습니다." };
+  }
+}

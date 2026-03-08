@@ -4,7 +4,7 @@ import { useState, useActionState, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 import { HelpCircle, ChevronUp, ChevronDown, Calendar } from "lucide-react";
-import { createProductAction, updateProductAction } from "@/actions/product-actions";
+import { createProductAction, updateProductAction, uploadImageAction } from "@/actions/product-actions";
 
 import { Brand, Category } from "@/generated/prisma";
 import SupplierPopup from "./SupplierPopup";
@@ -73,6 +73,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     const [activeEditorMode, setActiveEditorMode] = useState<'editor' | 'html' | 'text'>('editor');
     const [productNameType, setProductNameType] = useState('basic');
     const [isPhotoPopupOpen, setIsPhotoPopupOpen] = useState(false);
+    const [_isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     
     // Guide Content States
     const [shippingGuideContent, setShippingGuideContent] = useState(`- 배송비 : 기본배송료는 2,500원 입니다. (도서,산간,오지 일부지역은 배송비가 추가될 수 있습니다) 50,000원 이상 구매시 무료배송입니다.
@@ -91,26 +92,46 @@ export default function ProductForm({ categories, initialProduct }: Props) {
 
     const [photoTarget, setPhotoTarget] = useState<'desc' | 'shipping' | 'as' | 'refund' | 'exchange'>('desc');
 
-    const handlePhotoConfirm = (files: File[]) => {
+    const handlePhotoConfirm = async (files: File[]) => {
         setIsPhotoPopupOpen(false);
         if (files.length === 0) return;
+        setIsUploadingPhoto(true);
 
-        // Mock upload - create local object URLs
-        const imagesHtml = files.map(file => {
-            const url = URL.createObjectURL(file);
-            return `<img src="${url}" alt="${file.name}" style="max-width: 100%;" />`;
-        }).join('<br/>');
+        try {
+            const uploadedUrls: string[] = [];
+            for (const file of files) {
+                const formData = new FormData();
+                formData.append('file', file);
+                const res = await uploadImageAction(formData);
+                if (res.success && res.url) {
+                    uploadedUrls.push(res.url);
+                } else {
+                    alert(`사진 업로드 실패: ${file.name}`);
+                }
+            }
 
-        if (photoTarget === 'desc') {
-             setDescContent((prev: string) => prev + '<br/>' + imagesHtml);
-        } else if (photoTarget === 'shipping') {
-            setShippingGuideContent((prev: string) => prev + '\n' + imagesHtml);
-        } else if (photoTarget === 'as') {
-            setAsGuideContent((prev: string) => prev + '\n' + imagesHtml);
-        } else if (photoTarget === 'refund') {
-            setRefundGuideContent((prev: string) => prev + '\n' + imagesHtml);
-        } else if (photoTarget === 'exchange') {
-            setExchangeGuideContent((prev: string) => prev + '\n' + imagesHtml);
+            if (uploadedUrls.length === 0) return;
+
+            const imagesHtml = uploadedUrls.map(url => {
+                return `<img src="${url}" alt="image" style="max-width: 100%;" />`;
+            }).join('<br/>');
+
+            if (photoTarget === 'desc') {
+                 setDescContent((prev: string) => prev + '<br/>' + imagesHtml);
+            } else if (photoTarget === 'shipping') {
+                setShippingGuideContent((prev: string) => prev + '\n' + imagesHtml);
+            } else if (photoTarget === 'as') {
+                setAsGuideContent((prev: string) => prev + '\n' + imagesHtml);
+            } else if (photoTarget === 'refund') {
+                setRefundGuideContent((prev: string) => prev + '\n' + imagesHtml);
+            } else if (photoTarget === 'exchange') {
+                setExchangeGuideContent((prev: string) => prev + '\n' + imagesHtml);
+            }
+        } catch (error) {
+            console.error("Error uploading photos:", error);
+            alert("사진 업로드 중 오류가 발생했습니다.");
+        } finally {
+            setIsUploadingPhoto(false);
         }
     };
     
@@ -1543,6 +1564,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                                     <div key={img.id} className="flex gap-1">
                                         <input 
                                             type="file" 
+                                            name="images"
                                             id={`origin-file-${img.id}`}
                                             className="hidden" 
                                             accept="image/*"

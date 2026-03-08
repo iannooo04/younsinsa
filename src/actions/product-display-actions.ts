@@ -8,8 +8,8 @@ export type MainPageDisplayGroupWithProducts = Prisma.MainPageDisplayGroupGetPay
 
 // --- Fetch Main Page Display Groups ---
 export async function getMainPageDisplayGroupsAction(
-    _page: number = 1,
-    _pageSize: number = 10,
+    page: number = 1,
+    pageSize: number = 10,
     searchParams?: {
         mallType?: string; // 'PC' | 'MOBILE' | 'ALL'
         searchType?: string; // 'name' | 'desc'
@@ -86,58 +86,6 @@ export async function getMainPageDisplayGroupsAction(
                 break;
         }
 
-        // Mock Data for User Request
-        const mockItems = [
-            {
-                id: 4,
-                mallType: 'PC' as MallType,
-                name: 'New Arrivals',
-                description: '',
-                themeName: '상단 상품진열',
-                isExposed: true,
-                createdAt: new Date('2025-12-02'),
-                updatedAt: new Date('2026-01-20'),
-                replaceCode: "{=includeWidget('goods/_goods_display_main.html','sno','1')}"
-            },
-            {
-                id: 3,
-                mallType: 'PC' as MallType,
-                name: 'Best Sellers',
-                description: '',
-                themeName: '하단 상품진열',
-                isExposed: true,
-                createdAt: new Date('2025-12-02'),
-                updatedAt: new Date('2026-01-20'),
-                replaceCode: "{=includeWidget('goods/_goods_display_main.html','sno','2')}"
-            },
-            {
-                id: 2,
-                mallType: 'MOBILE' as MallType,
-                name: 'New Arrivals',
-                description: '',
-                themeName: '상단 상품진열',
-                isExposed: true,
-                createdAt: new Date('2025-12-02'),
-                updatedAt: new Date('2026-01-20'),
-                replaceCode: "{=includeWidget('goods/_goods_display_main.html','sno','3')}"
-            },
-            {
-                id: 1,
-                mallType: 'MOBILE' as MallType,
-                name: 'Best Sellers',
-                description: '',
-                themeName: '하단 상품진열',
-                isExposed: true,
-                createdAt: new Date('2025-12-02'),
-                updatedAt: new Date('2026-01-20'),
-                replaceCode: "{=includeWidget('goods/_goods_display_main.html','sno','4')}"
-            }
-        ];
-
-        return { success: true, items: mockItems, totalCount: 4 };
-
-        /* 
-        // Original Logic commented out for mock
         const totalCount = await prisma.mainPageDisplayGroup.count({ where });
         const items = await prisma.mainPageDisplayGroup.findMany({
             where,
@@ -147,7 +95,6 @@ export async function getMainPageDisplayGroupsAction(
         });
 
         return { success: true, items: items, totalCount };
-        */
     } catch (error) {
         console.error("Error fetching main page display groups:", error);
         return { success: false, items: [], totalCount: 0 };
@@ -165,5 +112,78 @@ export async function deleteMainPageDisplayGroupsAction(ids: number[]) {
     } catch (error) {
         console.error("Error deleting main page display groups:", error);
         return { success: false, message: "삭제 중 오류가 발생했습니다." };
+    }
+}
+
+// --- Fetch Exposed Main Page Display Groups (Frontend) ---
+export async function getPublicMainDisplayGroupsAction(mallType: MallType = 'PC') {
+    try {
+        const groups = await prisma.mainPageDisplayGroup.findMany({
+            where: {
+                mallType,
+                isExposed: true
+            },
+            orderBy: {
+                createdAt: 'asc' // Or another order if needed
+            }
+        });
+        return { success: true, groups };
+    } catch (error) {
+        console.error("Error fetching public main display groups:", error);
+        return { success: false, groups: [] };
+    }
+}
+
+// --- Fetch Products for a Display Group ---
+export async function getDisplayGroupProductsAction(groupId: number) {
+    try {
+        const group = await prisma.mainPageDisplayGroup.findUnique({
+            where: { id: groupId }
+        });
+
+        if (!group || !group.productIds) return { success: true, products: [] };
+
+        const productIds = group.productIds as string[];
+        if (productIds.length === 0) return { success: true, products: [] };
+
+        const items = await prisma.product.findMany({
+            where: {
+                id: { in: productIds },
+                displayStatusPC: 'DISPLAY',
+                deletedAt: null
+            },
+            include: {
+                brand: true,
+                images: {
+                    orderBy: { order: 'asc' },
+                    take: 1
+                }
+            }
+        });
+
+        // Sort items back to the order in productIds
+        const sortedItems = productIds.map(id => items.find(item => item.id === id)).filter(Boolean);
+
+        // Format for frontend
+        const products = sortedItems.map(item => {
+            if (!item) return null;
+            const mainImage = item.images[0];
+            return {
+                id: item.id,
+                name: item.name,
+                image: mainImage ? mainImage.url : '/placeholder.png',
+                price: item.price,
+                consumerPrice: item.consumerPrice,
+                discountRate: item.consumerPrice > item.price 
+                    ? Math.round(((item.consumerPrice - item.price) / item.consumerPrice) * 100) 
+                    : 0,
+                brandName: item.brand?.name || 'Brand',
+            };
+        }).filter((item): item is NonNullable<typeof item> => item !== null);
+
+        return { success: true, products };
+    } catch (error) {
+        console.error("Error fetching display group products:", error);
+        return { success: false, products: [] };
     }
 }
