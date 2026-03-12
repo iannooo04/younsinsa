@@ -11,12 +11,14 @@ import SearchPopup from "./SearchPopup";
 
 import { BasicInfoSettings } from "@/generated/prisma";
 import { CategoryWithChildren } from "@/actions/category-actions";
+import { ExhibitionWithProducts } from "@/actions/exhibition-actions";
 
 type MainHeaderProps = {
   authed: boolean;
   userLevel?: number;
   categories?: CategoryWithChildren[];
   brands?: { id: string, name: string }[];
+  exhibitions?: ExhibitionWithProducts[];
   basicInfo?: BasicInfoSettings | null;
 };
 
@@ -25,6 +27,7 @@ export default function MainHeader({
   userLevel = 0,
   categories = [],
   brands = [],
+  exhibitions = [],
   basicInfo
 }: MainHeaderProps) {
   const t = useTranslations("header");
@@ -443,21 +446,16 @@ export default function MainHeader({
           <div className="w-full px-4 flex items-center">
             {/* 네비게이션 항목 */}
             <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
-              {/* 🛠️ [수정] TOPSALE 버튼 경로 수정 */}
-              <Link
-                href={`/main/nkbus/recommend?gf=${currentGf}`}
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                TOPSALE
-              </Link>
-
-              {/* 🛠️ [추가] Special Offer 버튼 경로 수정: /main/nkbus/sale?gf=A */}
-              <Link
-                href={`/main/nkbus/sale?gf=${currentGf}`}
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                Special Offer
-              </Link>
+              {/* 🛠️ 동적 기획전(Exhibition) 렌더링 */}
+              {exhibitions.map((ex) => (
+                <Link
+                  key={ex.id}
+                  href={`/exhibition/${ex.id}?gf=${currentGf}`} // Assuming /exhibition/[id] route
+                  className="hover:text-gray-300 transition-colors cursor-pointer text-[#ff4d4f]"
+                >
+                  {ex.name}
+                </Link>
+              ))}
 
               {/* 🛠️ 동적 카테고리 렌더링 */}
               {categories

@@ -4,8 +4,6 @@ import { useState } from "react";
 import { FileSpreadsheet, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
-import { deleteProductsAction } from "@/actions/product-actions";
-import { useRouter } from "next/navigation";
 
 interface Product {
     id: string;
@@ -29,38 +27,7 @@ interface Props {
 }
 
 export default function ProductTable({ initialProducts }: Props) {
-    const router = useRouter();
-    const [products, setProducts] = useState<Product[]>(initialProducts);
-    const [selectedIds, setSelectedIds] = useState<string[]>([]);
-    const [isDeleting, setIsDeleting] = useState(false);
-
-    const toggleSelectAll = (checked: boolean) => {
-        if (checked) setSelectedIds(products.map((p) => p.id));
-        else setSelectedIds([]);
-    };
-
-    const toggleSelect = (id: string, checked: boolean) => {
-        if (checked) setSelectedIds([...selectedIds, id]);
-        else setSelectedIds(selectedIds.filter(sid => sid !== id));
-    };
-
-    const handleDeleteSelected = async () => {
-        if (selectedIds.length === 0) return alert("선택된 상품이 없습니다.");
-        if (!confirm(`${selectedIds.length}개 상품을 삭제하시겠습니까?`)) return;
-
-        setIsDeleting(true);
-        const res = await deleteProductsAction(selectedIds);
-        if (res.success) {
-            alert(res.message);
-            // Refresh list or optimistic update
-            setProducts(prev => prev.filter(p => !selectedIds.includes(p.id)));
-            setSelectedIds([]);
-            router.refresh();
-        } else {
-            alert(res.message);
-        }
-        setIsDeleting(false);
-    };
+    const [products] = useState<Product[]>(initialProducts);
 
     const soldOutCount = products.filter((p) => p.stockStatus === '품절').length;
     const displayedPcCount = products.filter((p) => p.displayStatus === '노출함').length;
@@ -118,25 +85,8 @@ export default function ProductTable({ initialProducts }: Props) {
             </div>
 
             {/* Action Toolbar */}
-            <div className="bg-gray-50 border p-2 flex justify-between items-center">
-                <div className="flex flex-col gap-2">
-                    <div className="flex gap-1">
-                        <button className="px-3 py-1.5 bg-gray-600 text-white text-xs font-bold rounded-sm">상품 노출/판매 수정</button>
-                        <button className="px-3 py-1.5 bg-gray-500 text-white text-xs font-bold rounded-sm">인기상품노출수정</button>
-                    </div>
-                    <div className="flex gap-1 flex-wrap">
-                        <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">메인상품진열</button>
-                        <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">분류관리</button>
-                        <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">수정일변경</button>
-                        <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">품절처리</button>
-                        <button className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">선택 복사</button>
-                        <button onClick={handleDeleteSelected} disabled={isDeleting} className="btn btn-xs bg-white border-gray-300 rounded-sm font-normal text-gray-700 h-8">
-                            {isDeleting ? "삭제중..." : "선택 삭제"}
-                        </button>
-                    </div>
-                </div>
+            <div className="bg-gray-50 border p-2 flex justify-end items-center">
                 <div className="flex items-center gap-1">
-                     <button className="btn btn-xs bg-gray-600 text-white border-none rounded-sm h-8">조회항목설정</button>
                      <button className="btn btn-xs bg-green-600 text-white border-none rounded-sm flex items-center gap-1 h-8">
                         <FileSpreadsheet size={12} /> 엑셀다운로드
                     </button>
@@ -148,7 +98,7 @@ export default function ProductTable({ initialProducts }: Props) {
                 <table className="table table-sm w-full text-center border-l border-r border-b">
                     <thead className="bg-gray-100 text-gray-700 border-b border-gray-300">
                         <tr>
-                            <th className="w-10"><input type="checkbox" className="checkbox checkbox-xs rounded-sm" onChange={(e) => toggleSelectAll(e.target.checked)} /></th>
+                            <th className="w-10"></th>
                             <th className="w-16">번호</th>
                             <th>상품코드</th>
                             <th>이미지</th>
@@ -165,14 +115,7 @@ export default function ProductTable({ initialProducts }: Props) {
                     <tbody className="text-xs">
                         {products.map((product, index: number) => (
                             <tr key={product.id} className="hover:bg-gray-50 border-b border-gray-200">
-                                <td>
-                                    <input 
-                                        type="checkbox" 
-                                        className="checkbox checkbox-xs rounded-sm" 
-                                        checked={selectedIds.includes(product.id)}
-                                        onChange={(e) => toggleSelect(product.id, e.target.checked)}
-                                    />
-                                </td>
+                                <td></td>
                                 <td>{products.length - index}</td>
                                 <td>{products.length - index}</td>
                                 <td className="font-mono text-gray-500">{product.productCode}</td>

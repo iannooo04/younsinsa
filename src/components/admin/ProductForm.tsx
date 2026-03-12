@@ -2,15 +2,12 @@
 
 import { useState, useActionState, useRef } from "react";
 import { useRouter } from "next/navigation";
-
-import { HelpCircle, ChevronUp, ChevronDown, Calendar } from "lucide-react";
+import { HelpCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { createProductAction, updateProductAction, uploadImageAction } from "@/actions/product-actions";
 
 import { Brand, Category } from "@/generated/prisma";
 import SupplierPopup from "./SupplierPopup";
 import BrandPopup from "./BrandPopup";
-import HSCodePopup from "./HSCodePopup";
-import MemberLevelPopup from "./MemberLevelPopup";
 import EssentialInfoPopup from "./EssentialInfoPopup";
 import KCExamplePopup from "./KCExamplePopup";
 import ShippingFeePopup from "./ShippingFeePopup";
@@ -40,27 +37,20 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     // UI States for collapsible sections
     const [sections, setSections] = useState({
         category: true,
-        display: true,
         basic: true,
-        image: true,
         payment: true,
         additional: true,
         essential: true,
         sales: true,
         mileage: true,
-        discount: true,
         price: true,
-        option: true,
-        text_option: true,
+
         product_image: true,
         detail: true,
         shipping: true,
-        related: true,
-        magnifier: true,
         video: true,
         guide: true,
         seo: true,
-        admin_memo: true,
     });
 
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>(initialProduct?.categoryId || "");
@@ -71,7 +61,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     // Editor State
     const [descContent, setDescContent] = useState(initialProduct?.descriptionPC || "");
     const [activeEditorMode, setActiveEditorMode] = useState<'editor' | 'html' | 'text'>('editor');
-    const [productNameType, setProductNameType] = useState('basic');
     const [isPhotoPopupOpen, setIsPhotoPopupOpen] = useState(false);
     const [_isUploadingPhoto, setIsUploadingPhoto] = useState(false);
     
@@ -151,108 +140,12 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
     const [selectedBrandName, setSelectedBrandName] = useState<string>(initialProduct?.brand?.name || "");
 
-    // HSCode Popup State
-    interface HSCodeRow {
-        id: number;
-        country: string;
-        code: string;
-    }
-    const [isHSCodePopupOpen, setIsHSCodePopupOpen] = useState(false);
-    const [selectedHSCode, setSelectedHSCode] = useState<string>(""); // Default Korea code
-    const [additionalHSCodes, setAdditionalHSCodes] = useState<HSCodeRow[]>([]);
-    const [activeHSCodeRowId, setActiveHSCodeRowId] = useState<number | null>(null); // null = default row
-
     // Essential Info Popup State
     const [isEssentialInfoPopupOpen, setIsEssentialInfoPopupOpen] = useState(false);
     const [isKCExamplePopupOpen, setIsKCExamplePopupOpen] = useState(false);
 
-    const handleAddHSCode = () => {
-        setAdditionalHSCodes(prev => [...prev, { id: Date.now(), country: '미국', code: '' }]);
-    };
-
-    const handleRemoveHSCode = (id: number) => {
-        setAdditionalHSCodes(prev => prev.filter(row => row.id !== id));
-    };
-
-    const handleHSCodeRowChange = (id: number, field: keyof HSCodeRow, value: string) => {
-        setAdditionalHSCodes(prev => prev.map(row => row.id === id ? { ...row, [field]: value } : row));
-    };
 
 
-
-    // Date Picker States & Refs for Additional Info
-    const manufactureDateRef = useRef<HTMLInputElement>(null);
-    const releaseDateRef = useRef<HTMLInputElement>(null);
-    const validStartDateRef = useRef<HTMLInputElement>(null);
-    const validEndDateRef = useRef<HTMLInputElement>(null);
-
-    const [manufactureDate, setManufactureDate] = useState("");
-    const [releaseDate, setReleaseDate] = useState("");
-    const [validStartDate, setValidStartDate] = useState("");
-    const [validEndDate, setValidEndDate] = useState("");
-
-
-
-    const handleAdditionalDateIconClick = (ref: React.RefObject<HTMLInputElement | null>) => {
-        try {
-            ref.current?.showPicker();
-        } catch {
-            ref.current?.focus();
-        }
-    };
-
-    // Member Level Popup State
-    interface MemberLevel {
-        id: number;
-        no: number;
-        name: string;
-        date: string;
-    }
-    const [isMemberLevelPopupOpen, setIsMemberLevelPopupOpen] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [selectedMemberLevels, setSelectedMemberLevels] = useState<MemberLevel[]>([]);
-    const [memberLevelOption, setMemberLevelOption] = useState("전체(회원+비회원)");
-    
-    // Access Authority Member Level State
-    const [accessAuthMemberLevelOption, setAccessAuthMemberLevelOption] = useState("전체(회원+비회원)");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [selectedAccessAuthMemberLevels, setSelectedAccessAuthMemberLevels] = useState<MemberLevel[]>([]);
-    
-    // Valid target: 'purchase' (default/existing) or 'access' (new)
-    const [memberLevelPopupTarget, setMemberLevelPopupTarget] = useState<'purchase' | 'access' | null>(null);
-
-    // Date Picker State (Original Exposure Date)
-    const datePickerRef = useRef<HTMLInputElement>(null);
-    const [exposureDate, setExposureDate] = useState(new Date().toISOString().slice(0, 16).replace('T', ' '));
-    
-    // Sales Period States & Refs
-    const salesStartDateRef = useRef<HTMLInputElement>(null);
-    const salesEndDateRef = useRef<HTMLInputElement>(null);
-    const [salesPeriodOption, setSalesPeriodOption] = useState("제한없음");
-    const [salesStartDate, setSalesStartDate] = useState(new Date().toISOString().slice(0, 16).replace('T', ' ').split(' ')[0] + " 00:00");
-    const [salesEndDate, setSalesEndDate] = useState(() => {
-        const d = new Date();
-        d.setDate(d.getDate() + 6);
-        return d.toISOString().slice(0, 16).replace('T', ' ').split(' ')[0] + " 23:59";
-    });
-
-    const handleSalesDateShortcut = (days: number) => {
-        const start = new Date();
-        const end = new Date();
-        end.setDate(start.getDate() + (days === 0 ? 0 : days - 1));
-        
-        setSalesStartDate(start.toISOString().slice(0, 10) + " 00:00");
-        setSalesEndDate(end.toISOString().slice(0, 10) + " 23:59");
-    };
-
-    const handleSalesMonthShortcut = (months: number) => {
-        const start = new Date();
-        const end = new Date();
-        end.setMonth(start.getMonth() + months);
-        
-        setSalesStartDate(start.toISOString().slice(0, 10) + " 00:00");
-        setSalesEndDate(end.toISOString().slice(0, 10) + " 23:59");
-    };
 
     // Origin Image States
     interface OriginImage {
@@ -302,22 +195,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         setGuidePopupState({ isOpen: true, type, title });
     };
 
-    const handleDateIconClick = () => {
-        try {
-            datePickerRef.current?.showPicker();
-        } catch {
-            // Fallback for browsers not supporting showPicker, though unlikely on modern desktop
-            datePickerRef.current?.focus(); 
-        }
-    };
-
-    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.value) {
-            // value comes as YYYY-MM-DDTHH:mm, replace T with space to match format
-            setExposureDate(e.target.value.replace('T', ' '));
-        }
-    };
-
     // Essential Info Items
     interface EssentialItem {
         id: number;
@@ -364,25 +241,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         }]);
     };
 
-    // Additional Items State
-    interface AdditionalItem {
-        id: number;
-        name: string;
-        value: string;
-    }
-    const [additionalItems, setAdditionalItems] = useState<AdditionalItem[]>([]);
 
-    const handleAddAdditionalItem = () => {
-        setAdditionalItems(prev => [...prev, { id: Date.now(), name: '', value: '' }]);
-    };
-
-    const handleRemoveAdditionalItem = (id: number) => {
-        setAdditionalItems(prev => prev.filter(item => item.id !== id));
-    };
-
-     const handleAdditionalItemChange = (id: number, field: 'name' | 'value', text: string) => {
-        setAdditionalItems(prev => prev.map(item => item.id === id ? { ...item, [field]: text } : item));
-    };
     // Color Picker State
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [selectedColor, setSelectedColor] = useState<string | null>(null);
@@ -557,50 +416,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     )}
                 </Section>
 
-                {/* 3. 노출 및 판매상태 설정 */}
-                <Section title="노출 및 판매상태 설정" isOpen={sections.display} onToggle={() => toggleSection('display')}>
-                    <Row label="PC쇼핑몰 노출상태" help>
-                        <RadioGroup name="pc_display" options={['노출함', '노출안함']} defaultValue={initialProduct?.displayStatusPC === 'DISPLAY' ? '노출함' : '노출안함'} />
-                    </Row>
-                    <Row label="PC쇼핑몰 판매상태" help>
-                        <RadioGroup name="pc_sale" options={['판매함', '판매안함']} />
-                    </Row>
-                    <Row label="모바일쇼핑몰 노출상태">
-                        <RadioGroup name="mobile_display" options={['노출함', '노출안함']} defaultValue={initialProduct?.displayStatusMobile === 'DISPLAY' ? '노출함' : '노출안함'} />
-                    </Row>
-                    <Row label="모바일쇼핑몰 판매상태">
-                         <RadioGroup name="mobile_sale" options={['판매함', '판매안함']} />
-                    </Row>
-                    <Row label="메인상품 진열 상태">
-                        <div className="grid grid-cols-2 gap-4 w-full">
-                            <div className="border border-gray-200">
-                                <div className="bg-gray-100 p-2 text-xs font-bold text-center border-b">PC쇼핑몰</div>
-                                <div className="p-3 space-y-2">
-                                    <Checkbox label="New Arrivals" />
-                                    <Checkbox label="Best Sellers" />
-                                    <Checkbox label="MD Pick" />
-                                </div>
-                            </div>
-                            <div className="border border-gray-200">
-                                <div className="bg-gray-100 p-2 text-xs font-bold text-center border-b">모바일쇼핑몰</div>
-                                <div className="p-3 space-y-2">
-                                     <Checkbox label="New Arrivals" />
-                                     <Checkbox label="Best Sellers" />
-                                </div>
-                            </div>
-                        </div>
-                         <div className="mt-2 text-xs text-gray-500 flex items-start gap-1">
-                             <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                             <span>자동진열로 설정된 메인분류는 체크(진열)상태가 기본이며, 체크해제시 해당 메인분류의 진열 예외 상품으로 저장됩니다.</span>
-                        </div>
-                    </Row>
-                     <Row label="인기상품 포함 상태">
-                        <div className="text-xs text-gray-500 flex items-start gap-1">
-                             <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                             <span>인기상품 수집 범위가 전체 상품으로 설정된 경우 체크(포함) 상태가 기본이며, 체크 해제 시 해당 인기상품의 수집 예외 상품으로 저장됩니다.</span>
-                        </div>
-                     </Row>
-                </Section>
+
 
                 {/* 4. 기본 정보 */}
                 <Section title="기본 정보" isOpen={sections.basic} onToggle={() => toggleSection('basic')}>
@@ -619,106 +435,10 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     </div>
 
                     <Row label="기준몰 상품명" required help>
-                        <div className="space-y-3 w-full">
-                            <div className="flex items-center gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input 
-                                        type="radio" 
-                                        name="name_type" 
-                                        className="radio radio-xs border-gray-300" 
-                                        checked={productNameType === 'basic'}
-                                        onChange={() => setProductNameType('basic')}
-                                    />
-                                    <span className="text-sm text-gray-700">기본 상품명</span>
-                                </label>
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input 
-                                        type="radio" 
-                                        name="name_type" 
-                                        className="radio radio-xs border-gray-300 checked:bg-[#ff4d4f]" 
-                                        checked={productNameType === 'expanded'}
-                                        onChange={() => setProductNameType('expanded')}
-                                    />
-                                    <span className="text-sm text-gray-700 font-bold">확장 상품명</span>
-                                </label>
-                            </div>
-
-                            <div className="bg-gray-50 p-3 border border-gray-200 rounded-sm space-y-3">
-                                {/* Basic Name (Always Visible) */}
-                                <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                    <span className="text-sm font-bold text-gray-700">기본</span>
-                                     <div className="flex items-center gap-2 w-full">
-                                        <input type="text" name="name" defaultValue={initialProduct?.name} className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" required />
-                                        <span className="text-xs text-gray-400">0 / 250</span>
-                                     </div>
-                                </div>
-
-                                {/* Expanded Fields */}
-                                {productNameType === 'expanded' && (
-                                    <>
-                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                            <span className="text-sm font-bold text-gray-700">메인</span>
-                                             <div className="flex items-center gap-2 w-full">
-                                                <input type="text" name="name_main" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
-                                                <span className="text-xs text-gray-400">0 / 250</span>
-                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                            <span className="text-sm font-bold text-gray-700">리스트</span>
-                                             <div className="flex items-center gap-2 w-full">
-                                                <input type="text" name="name_list" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
-                                                <span className="text-xs text-gray-400">0 / 250</span>
-                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                            <span className="text-sm font-bold text-gray-700">상세</span>
-                                             <div className="flex items-center gap-2 w-full">
-                                                <input type="text" name="name_detail" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
-                                                <span className="text-xs text-gray-400">0 / 250</span>
-                                             </div>
-                                        </div>
-                                        <div className="grid grid-cols-[100px_1fr] items-center gap-4">
-                                            <span className="text-sm font-bold text-gray-700">제휴</span>
-                                             <div className="flex items-center gap-2 w-full">
-                                                <input type="text" name="name_affiliate" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" />
-                                                <span className="text-xs text-gray-400">0 / 250</span>
-                                             </div>
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* Overseas Store Product Name */}
-                            <div className="border border-gray-200 rounded-sm">
-                                <div className="bg-[#f9f9f9] px-4 py-2 border-b border-gray-200 text-sm text-gray-700">
-                                    해외 상점 상품명(기본)
-                                </div>
-                                <div className="p-4 bg-white flex gap-4 items-start">
-                                    <div className="w-8 pt-1 flex justify-center">
-                                        <div className="w-6 h-4 bg-red-600 relative border border-gray-200 shadow-sm">
-                                            <span className="absolute top-0 left-0.5 text-[8px] leading-3 text-yellow-400">★</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                        <div className="flex items-center gap-2 w-full">
-                                            <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm bg-gray-100" disabled />
-                                            <div className="bg-gray-50 border border-gray-200 px-2 h-8 flex items-center text-xs text-gray-500 rounded-sm w-16 justify-center">0 / 250</div>
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <label className="flex items-center gap-1.5 cursor-pointer">
-                                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300 checked:bg-[#ff4d4f] rounded-[2px]" defaultChecked />
-                                                <span className="text-sm text-gray-600 tracking-tight">기준몰 기본 상품명 공통사용</span>
-                                            </label>
-                                            <button type="button" className="px-2 py-1 bg-[#666] text-white text-xs rounded-sm hover:bg-[#555]">참고 번역</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                "확장 상품명"제휴" 상품명을 입력하면 외부연동(네이버 쇼핑 등)시 별도의 상품명을 사용할 수 있습니다.
-                            </div>
-                        </div>
+                         <div className="flex items-center gap-2 w-full max-w-2xl">
+                            <input type="text" name="name" defaultValue={initialProduct?.name} className="input input-sm h-8 flex-1 border-gray-300 rounded-sm" required />
+                            <span className="text-xs text-gray-400">0 / 250</span>
+                         </div>
                     </Row>
                     
                     <Row label="검색 키워드" help>
@@ -735,67 +455,12 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         </div>
                     </Row>
 
-                    <Row label="상품 노출시간" help>
-                        <div className="flex items-center gap-1 relative">
-                            <input 
-                                type="text" 
-                                className="input input-sm h-8 w-40 border-gray-300 rounded-sm text-center" 
-                                value={exposureDate}
-                                onChange={(e) => setExposureDate(e.target.value)}
-                            />
-                            <input 
-                                type="datetime-local"
-                                ref={datePickerRef}
-                                className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0"
-                                onChange={handleDateChange}
-                            />
-                            <button 
-                                type="button" 
-                                onClick={handleDateIconClick}
-                                className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                            >
-                                <Calendar size={16} className="text-gray-500" />
-                            </button>
-                            <span className="text-gray-700 ml-1">부터</span>
-                        </div>
-                    </Row>
-
-
-                </Section>
-
-                {/* 5. 이미지 설정 */}
-                <Section title="이미지 설정" isOpen={sections.image} onToggle={() => toggleSection('image')}>
-                    <Row label="저장소 선택">
-                        <div className="flex items-center gap-2">
-                            <select className="select select-bordered select-sm h-8 rounded-sm" defaultValue="default">
-                                <option disabled>=저장소 선택=</option>
-                                <option value="default">기본 경로</option>
-                                <option value="direct">URL 직접입력</option>
-                            </select>
-                             <div className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                저장소 관리는 기본설정&gt;기본 정책&gt;파일 저장소 관리에서 가능합니다.
-                            </div>
-                        </div>
-                    </Row>
-
                 </Section>
 
 
 
                 <Section title="추가 정보" helpText="help" isOpen={sections.additional} onToggle={() => toggleSection('additional')}>
-                    <Row label="매입처 상품명">
-                         <div className="w-full">
-                            <label className="flex items-center gap-2 cursor-pointer mb-2">
-                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
-                                <span className="text-sm text-gray-700">체크시 기본 상품명이 매입처 상품명에 추가됩니다.</span>
-                            </label>
-                            <div className="flex items-center w-full">
-                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
-                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 250</span>
-                             </div>
-                         </div>
-                    </Row>
+
                     
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         <Row label="브랜드">
@@ -841,366 +506,22 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                                 <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 30</span>
                              </div>
                         </Row>
-                        <Row label="모델번호" help>
-                             <div className="flex items-center w-full">
-                                <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
-                                <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">0 / 30</span>
-                             </div>
-                        </Row>
+
                     </div>
 
-                    <Row label="HS코드">
-                        <div className="space-y-2">
-                             <div className="flex items-center gap-1">
-                                <select className="select select-bordered select-sm h-8 rounded-sm w-32 bg-[#f2f2f2]">
-                                    <option>대한민국</option>
-                                </select>
-                                <button 
-                                    type="button" 
-                                    onClick={() => {
-                                        setActiveHSCodeRowId(null);
-                                        setIsHSCodePopupOpen(true);
-                                    }}
-                                    className="px-3 py-1 bg-[#999] text-white text-xs rounded-sm hover:bg-[#888]"
-                                >
-                                    HS코드 선택
-                                </button>
-                                <input type="text" className="input input-sm h-8 w-40 border-gray-300 rounded-sm" value={selectedHSCode} disabled />
-                                <button type="button" onClick={handleAddHSCode} className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1">
-                                    <span className="font-bold">+</span> 추가
-                                </button>
-                             </div>
-                             
-                             {/* Dynamic HS Code Rows */}
-                             {additionalHSCodes.map(row => (
-                                <div key={row.id} className="flex items-center gap-1">
-                                    <select 
-                                        className="select select-bordered select-sm h-8 rounded-sm w-32 border-red-500 text-gray-800"
-                                        value={row.country}
-                                        onChange={(e) => handleHSCodeRowChange(row.id, 'country', e.target.value)}
-                                    >
-                                        <option value="미국">미국</option>
-                                        <option value="중국">중국</option>
-                                        <option value="일본">일본</option>
-                                    </select>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => {
-                                            setActiveHSCodeRowId(row.id);
-                                            setIsHSCodePopupOpen(true);
-                                        }}
-                                        className="px-3 py-1 bg-[#999] text-white text-xs rounded-sm hover:bg-[#888]"
-                                    >
-                                        HS코드 선택
-                                    </button>
-                                    <input type="text" className="input input-sm h-8 w-40 border-gray-300 rounded-sm" value={row.code} disabled />
-                                    <button 
-                                        type="button" 
-                                        onClick={() => handleRemoveHSCode(row.id)}
-                                        className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1"
-                                    >
-                                        <span className="font-bold">-</span> 삭제
-                                    </button>
-                                </div>
-                             ))}
-                             <div className="text-xs text-gray-400 flex items-center gap-1">
-                                <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                                추가 버튼을 이용하여 국가별 HS코드를 추가 입력할 수 있습니다.
-                             </div>
-                        </div>
-                    </Row>
+
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                        <Row label="제조일">
-                            <div className="flex items-center gap-1 relative">
-                                <input 
-                                    type="text" 
-                                    className="input input-sm h-8 w-40 border-gray-300 rounded-sm text-center placeholder-gray-300" 
-                                    placeholder="수기입력 가능"
-                                    value={manufactureDate} 
-                                    onChange={(e) => setManufactureDate(e.target.value)}
-                                />
-                                <input 
-                                    type="date" 
-                                    ref={manufactureDateRef} 
-                                    className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
-                                    onChange={(e) => setManufactureDate(e.target.value)} 
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleAdditionalDateIconClick(manufactureDateRef)}
-                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                                >
-                                    <Calendar size={16} className="text-gray-500" />
-                                </button>
-                            </div>
-                        </Row>
-                        <Row label="출시일">
-                            <div className="flex items-center gap-1 relative">
-                                <input 
-                                    type="text" 
-                                    className="input input-sm h-8 w-40 border-gray-300 rounded-sm text-center placeholder-gray-300" 
-                                    placeholder="수기입력 가능" 
-                                    value={releaseDate} 
-                                    onChange={(e) => setReleaseDate(e.target.value)}
-                                />
-                                <input 
-                                    type="date" 
-                                    ref={releaseDateRef} 
-                                    className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
-                                    onChange={(e) => setReleaseDate(e.target.value)} 
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleAdditionalDateIconClick(releaseDateRef)}
-                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                                >
-                                    <Calendar size={16} className="text-gray-500" />
-                                </button>
-                            </div>
-                        </Row>
-                    </div>
+
                     
-                    <Row label="유효일자">
-                        <div className="flex items-center gap-1 relative">
-                            <span className="text-sm text-gray-700 mr-2">시작일 / 종료일</span>
-                             <input 
-                                type="text" 
-                                className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-center placeholder-gray-300" 
-                                placeholder="수기입력 가능" 
-                                value={validStartDate}
-                                onChange={(e) => setValidStartDate(e.target.value)}
-                             />
-                             <input 
-                                type="date" 
-                                ref={validStartDateRef} 
-                                className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
-                                onChange={(e) => setValidStartDate(e.target.value)} 
-                            />
-                            <button 
-                                type="button" 
-                                onClick={() => handleAdditionalDateIconClick(validStartDateRef)}
-                                className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                            >
-                                <Calendar size={16} className="text-gray-500" />
-                            </button>
-                            <span className="text-gray-500 mx-1">~</span>
-                            <div className="relative flex items-center gap-1">
-                                <input 
-                                    type="text" 
-                                    className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-center placeholder-gray-300" 
-                                    placeholder="수기입력 가능" 
-                                    value={validEndDate}
-                                    onChange={(e) => setValidEndDate(e.target.value)}
-                                />
-                                <input 
-                                    type="date" 
-                                    ref={validEndDateRef} 
-                                    className="absolute opacity-0 pointer-events-none w-0 h-0 bottom-0 left-0" 
-                                    onChange={(e) => setValidEndDate(e.target.value)} 
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={() => handleAdditionalDateIconClick(validEndDateRef)}
-                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                                >
-                                    <Calendar size={16} className="text-gray-500" />
-                                </button>
-                            </div>
-                        </div>
-                    </Row>
 
-                    <Row label="구매가능 회원등급" help>
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-4 flex-wrap">
-                                <div className="flex items-center gap-4">
-                                    {['전체(회원+비회원)', '회원전용(비회원제외)', '특정회원등급'].map((option) => (
-                                        <label key={option} className="flex items-center gap-2 cursor-pointer">
-                                            <input 
-                                                type="radio" 
-                                                name="member_level" 
-                                                className="radio radio-xs" 
-                                                checked={memberLevelOption === option}
-                                                onChange={() => {
-                                                    setMemberLevelOption(option);
-                                                    if (option === '특정회원등급') {
-                                                        setMemberLevelPopupTarget('purchase');
-                                                        setIsMemberLevelPopupOpen(true);
-                                                    }
-                                                }}
-                                            />
-                                            <span className="text-sm">{option}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                                <button 
-                                    type="button" 
-                                    onClick={() => {
-                                        setMemberLevelPopupTarget('purchase');
-                                        setIsMemberLevelPopupOpen(true);
-                                    }}
-                                    className="px-2 py-1 bg-gray-400 text-white text-xs rounded-sm hover:bg-gray-500"
-                                >
-                                    회원등급 선택
-                                </button>
-                                <label className="flex items-center gap-2 cursor-pointer ml-2">
-                                    <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
-                                    <span className="text-sm text-gray-500">구매불가 고객 가격 대체문구 사용</span>
-                                </label>
-                            </div>
-                             <div className="text-xs text-gray-500 flex items-center gap-1">
-                                <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                                "구매불가 고객 가격 대체문구 사용"에 체크 및 내용 입력 시, 구매가 불가능한 고객들을 대상으로 가격 대신 해당 문구가 노출됩니다.
-                             </div>
-                        </div>
-                    </Row>
 
-                    <Row label="성인인증" help>
-                        <div className="relative w-full">
-                            <div className="space-y-3">
-                                <div className="flex items-center gap-6">
-                                    <RadioGroup name="adult_auth" options={['사용안함', '사용함']} defaultValue="사용안함" />
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" checked disabled />
-                                        <span className="text-sm text-gray-400">미인증 고객 상품 노출함</span>
-                                    </label>
-                                    <label className="flex items-center gap-2 cursor-pointer">
-                                        <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
-                                        <span className="text-sm text-gray-500">미인증 고객 상품 이미지 노출함</span>
-                                    </label>
-                                </div>
-                                <div className="text-xs text-gray-400 space-y-1">
-                                    <p className="flex items-start gap-1">
-                                         <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                                         해당 상품의 상세페이지 접근시 성인인증확인 인트로 페이지가 출력되며, 진열 이미지는 19금 이미지로 대체되어 보여집니다.
-                                    </p>
-                                    <p className="pl-5">성인인증 기능은 별도의 인증 서비스 신청완료 후 이용 가능합니다.</p>
-                                    <p className="pl-5 pt-1">
-                                        <a href="#" className="text-blue-500 underline">휴대폰인증 설정 바로가기</a> <a href="#" className="text-blue-500 underline ml-2">아이핀인증 설정 바로가기</a>
-                                    </p>
-                                    <p className="flex items-center gap-1 text-red-500 mt-2">
-                                        <span className="font-bold bg-red-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                                        구 실명인증 서비스는 성인인증 수단으로 연결되지 않습니다.
-                                    </p>
-                                </div>
-                            </div>
-                            
-                        </div>
-                    </Row>
 
-                    <Row label="접근 권한">
-                         <div className="flex items-center gap-4 flex-wrap">
-                            <div className="flex items-center gap-4">
-                                {['전체(회원+비회원)', '회원전용(비회원제외)', '특정회원등급'].map((option) => (
-                                    <label key={option} className="flex items-center gap-2 cursor-pointer">
-                                        <input 
-                                            type="radio" 
-                                            name="access_auth_2" 
-                                            className="radio radio-xs" 
-                                            checked={accessAuthMemberLevelOption === option}
-                                            onChange={() => {
-                                                setAccessAuthMemberLevelOption(option);
-                                                if (option === '특정회원등급') {
-                                                    setMemberLevelPopupTarget('access');
-                                                    setIsMemberLevelPopupOpen(true);
-                                                }
-                                            }}
-                                        />
-                                        <span className="text-sm">{option}</span>
-                                    </label>
-                                ))}
-                            </div>
-                            <button 
-                                type="button" 
-                                onClick={() => {
-                                    setMemberLevelPopupTarget('access');
-                                    setIsMemberLevelPopupOpen(true);
-                                }}
-                                className="px-2 py-1 bg-gray-400 text-white text-xs rounded-sm hover:bg-gray-500"
-                            >
-                                회원등급 선택
-                            </button>
-                            <label className="flex items-center gap-2 cursor-pointer ml-4">
-                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" defaultChecked />
-                                <span className="text-sm text-gray-500">접근불가 고객 상품 노출함</span>
-                            </label>
-                            
-                             {/* Scroll buttons overlay simulation */}
-                             <div className="absolute right-0 -mr-6 top-0 flex flex-col gap-1">
-                                <button className="w-8 h-8 rounded-full bg-[#d0d0d0] text-white flex items-center justify-center mb-1">↑</button>
-                                <button className="w-8 h-8 rounded-full bg-[#d0d0d0] text-white flex items-center justify-center">↓</button>
-                            </div>
-                         </div>
-                    </Row>
 
-                    <Row label="추가항목" help>
-                        <div className="w-full space-y-2">
-                            <div className="flex items-center gap-2">
-                                <button 
-                                    type="button" 
-                                    onClick={handleAddAdditionalItem}
-                                    className="px-3 py-1 border border-gray-300 bg-white text-xs rounded-sm hover:bg-gray-50 flex items-center gap-1"
-                                >
-                                    <span className="text-gray-600 font-bold">+</span> 항목추가
-                                </button>
-                                <div className="text-xs text-gray-500 flex items-center gap-1 ml-2">
-                                    <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px]">!</span>
-                                    상품특성에 맞게 항목을 추가할 수 있습니다 (예. 감독, 저자, 출판사, 유통사, 상품영문명 등)
-                                </div>
-                            </div>
-                            
-                            {/* Table */}
-                            <div className="border border-gray-300 border-b-0">
-                                {/* Header */}
-                                <div className="w-full bg-[#bfbfbf] h-9 flex items-center text-white text-center text-xs border-b border-gray-300">
-                                    <div className="w-20 border-r border-gray-300/50 h-full flex items-center justify-center">순서</div>
-                                    <div className="w-48 border-r border-gray-300/50 h-full flex items-center justify-center">항목</div>
-                                    <div className="flex-1 border-r border-gray-300/50 h-full flex items-center justify-center">내용</div>
-                                    <div className="w-20 h-full flex items-center justify-center">삭제</div>
-                                </div>
-                                
-                                {/* Rows */}
-                                {additionalItems.length === 0 ? (
-                                    <div className="h-20 flex items-center justify-center bg-[#f9f9f9] border-b border-gray-300 text-xs text-gray-500">
-                                        추가된 항목이 없습니다.
-                                    </div>
-                                ) : (
-                                    additionalItems.map((item, index) => (
-                                        <div key={item.id} className="flex items-center text-xs border-b border-gray-300 bg-white">
-                                            <div className="w-20 border-r border-gray-300 h-9 flex items-center justify-center text-gray-600">
-                                                {index + 1}
-                                            </div>
-                                            <div className="w-48 border-r border-gray-300 h-9 flex items-center justify-center px-2">
-                                                <input 
-                                                    type="text" 
-                                                    className="w-full h-6 border border-gray-300 px-2 outline-none" 
-                                                    value={item.name}
-                                                    onChange={(e) => handleAdditionalItemChange(item.id, 'name', e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="flex-1 border-r border-gray-300 h-9 flex items-center justify-center px-2">
-                                                <input 
-                                                    type="text" 
-                                                    className="w-full h-6 border border-gray-300 px-2 outline-none" 
-                                                    value={item.value}
-                                                    onChange={(e) => handleAdditionalItemChange(item.id, 'value', e.target.value)}
-                                                />
-                                            </div>
-                                            <div className="w-20 h-9 flex items-center justify-center">
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => handleRemoveAdditionalItem(item.id)}
-                                                    className="px-2 py-0.5 border border-gray-300 bg-white text-[11px] rounded-sm hover:bg-gray-50 flex items-center gap-1"
-                                                >
-                                                    <span className="text-gray-400">-</span> 삭제
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </Row>
+
+
+
+
+
                 </Section>
 
 
@@ -1219,51 +540,10 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                                 <label className="flex items-center gap-2"><input type="radio" name="tax" className="radio radio-xs" /> <span>면세</span></label>
                             </div>
                         </Row>
-                        <Row label="상품 무게 / 용량" help>
-                             <div className="flex flex-col gap-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-10 text-xs text-gray-500">무게</span>
-                                    <input type="text" className="input input-sm h-7 w-20 border-gray-300 rounded-sm text-right" defaultValue="0" />
-                                    <span className="text-xs">g</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="w-10 text-xs text-gray-500">용량</span>
-                                    <input type="text" className="input input-sm h-7 w-20 border-gray-300 rounded-sm text-right" defaultValue="0" />
-                                    <span className="text-xs">ml</span>
-                                </div>
-                            </div>
-                        </Row>
                     </div>
 
 
 
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                         <Row label="판매 재고">
-                            <RadioGroup name="stock_type" options={['무한정 판매', '재고량에 따름']} defaultValue="무한정 판매" />
-                         </Row>
-                         <Row label="상품 재고">
-                             <div className="flex items-center gap-2">
-                                <input type="number" className="input input-sm h-8 w-24 border-gray-300 rounded-sm text-right" defaultValue="0" />
-                                <span>개</span>
-                             </div>
-                         </Row>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                        <Row label="묶음주문 단위">
-                             <div className="flex items-center gap-2">
-                                <select className="select select-bordered select-xs w-24" defaultValue="옵션기준">
-                                    <option value="옵션기준">옵션기준</option>
-                                    <option value="상품기준">상품기준</option>
-                                </select>
-                                <input type="number" className="input input-sm h-8 w-16 border-gray-300 rounded-sm text-right" defaultValue="1" />
-                                <span className="text-sm">개 단위로 주문 및 장바구니에 담김</span>
-                             </div>
-                        </Row>
-                        <Row label="품절 상태">
-                             <RadioGroup name="soldout_status" options={['정상', '품절(수동)']} defaultValue="정상" />
-                        </Row>
-                    </div>
 
                     <Row label="구매수량 설정" help>
                         <div className="flex items-center gap-4">
@@ -1279,185 +559,11 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         </div>
                     </Row>
 
-                    <Row label="판매기간" help>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <div className="flex items-center gap-4">
-                                {['제한없음', '시작일 / 종료일'].map(option => (
-                                    <label key={option} className="flex items-center gap-2 cursor-pointer">
-                                        <input 
-                                            type="radio" 
-                                            name="sales_period" 
-                                            className="radio radio-xs checked:bg-red-500" 
-                                            checked={salesPeriodOption === option}
-                                            onChange={() => setSalesPeriodOption(option)}
-                                        />
-                                        <span className="text-sm">{option}</span>
-                                    </label>
-                                ))}
-                            </div>
-                            
-                            <div className="flex items-center gap-1">
-                                <input 
-                                    type="text" 
-                                    className="input input-sm h-8 w-40 border-gray-300 bg-gray-50 rounded-sm text-center text-xs" 
-                                    value={salesStartDate}
-                                    readOnly
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={() => salesStartDateRef.current?.showPicker()}
-                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                                >
-                                    <Calendar size={16} className="text-gray-500" />
-                                </button>
-                                <input 
-                                    type="datetime-local" 
-                                    ref={salesStartDateRef}
-                                    className="absolute invisible w-0 h-0"
-                                    onChange={(e) => {
-                                        if (e.target.value) {
-                                            setSalesStartDate(e.target.value.replace('T', ' '));
-                                            setSalesPeriodOption('시작일 / 종료일');
-                                        }
-                                    }}
-                                />
-                            </div>
 
-                            <span className="text-gray-400">~</span>
-
-                            <div className="flex items-center gap-1">
-                                <input 
-                                    type="text" 
-                                    className="input input-sm h-8 w-40 border-gray-300 bg-gray-50 rounded-sm text-center text-xs" 
-                                    value={salesEndDate}
-                                    readOnly
-                                />
-                                <button 
-                                    type="button" 
-                                    onClick={() => salesEndDateRef.current?.showPicker()}
-                                    className="w-8 h-8 border border-gray-300 bg-white flex items-center justify-center rounded-sm hover:bg-gray-50"
-                                >
-                                    <Calendar size={16} className="text-gray-500" />
-                                </button>
-                                <input 
-                                    type="datetime-local" 
-                                    ref={salesEndDateRef}
-                                    className="absolute invisible w-0 h-0"
-                                    onChange={(e) => {
-                                        if (e.target.value) {
-                                            setSalesEndDate(e.target.value.replace('T', ' '));
-                                            setSalesPeriodOption('시작일 / 종료일');
-                                        }
-                                    }}
-                                />
-                            </div>
-
-                            <div className="flex gap-0.5 ml-2">
-                                {[
-                                    { label: '오늘', value: 1 },
-                                    { label: '7일', value: 7 },
-                                    { label: '15일', value: 15 },
-                                    { label: '1개월', value: '1m' },
-                                    { label: '3개월', value: '3m' },
-                                    { label: '1년', value: '1y' }
-                                ].map((t) => (
-                                    <button 
-                                        key={t.label} 
-                                        type="button" 
-                                        onClick={() => {
-                                            if (t.value === '1m') handleSalesMonthShortcut(1);
-                                            else if (t.value === '3m') handleSalesMonthShortcut(3);
-                                            else if (t.value === '1y') handleSalesMonthShortcut(12);
-                                            else handleSalesDateShortcut(t.value as number);
-                                            setSalesPeriodOption('시작일 / 종료일');
-                                        }}
-                                        className={`px-2 py-1 border border-gray-300 text-xs rounded-sm bg-white hover:bg-gray-50`}
-                                    >
-                                        {t.label}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </Row>
-
-                     <Row label="재입고 알림">
-                        <div className="space-y-1">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-400" />
-                                <span className="text-sm">상품 재입고 알림 사용</span>
-                            </label>
-                            <div className="text-xs text-gray-500 flex items-start gap-1">
-                                <span className="font-bold bg-gray-400 text-white px-1 rounded-sm text-[10px]">!</span>
-                                상품/옵션 품절시 쇼핑몰 상세페이지에 재입고 알림신청 버튼이 노출됩니다.
-                            </div>
-                        </div>
-                    </Row>
                 </Section>
 
 
 
-                {/* 10. 상품 할인/혜택 설정 */}
-                <Section title="상품 할인/혜택 설정" isOpen={sections.discount} onToggle={() => toggleSection('discount')}>
-                    <Row label="적용방법">
-                        <div className="w-full">
-                            <div className="mb-4">
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input type="radio" name="discount_method" className="radio radio-xs checked:bg-[#ff4d4f] border-gray-300" defaultChecked />
-                                    <span className="text-sm font-bold">개별설정</span>
-                                </label>
-                            </div>
-                            
-                            <div className="bg-[#f9f9f9] p-4 border border-gray-200 rounded-sm">
-                                {/* 상품 할인 설정 */}
-                                <div className="mb-6">
-                                    <h4 className="font-bold text-sm text-gray-800 mb-2 pl-1">상품 할인 설정</h4>
-                                    <div className="bg-white border border-gray-200">
-                                        <div className="flex items-center border-b border-gray-200">
-                                            <div className="w-32 bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200">사용여부</div>
-                                            <div className="p-3 flex items-center gap-6">
-                                                <RadioGroup name="discount_usage" options={['사용안함', '사용함']} defaultValue="사용안함" />
-                                            </div>
-                                        </div>
-                                        <div className="p-2 text-xs text-gray-500 flex items-center gap-1">
-                                            <span className="font-bold bg-gray-500 text-white px-1 rounded-sm text-[10px] min-w-[14px] text-center">!</span>
-                                            <span>절사기준 <a href="#" className="text-blue-600 underline">[기본설정&gt;기본정책&gt;금액/단위 기준설정]</a>에서 설정한 기준에 따름 : 0.1원 단위로 버림</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* 혜택 제외 설정 */}
-                                <div>
-                                    <div className="flex items-center gap-1 mb-2 pl-1">
-                                        <h4 className="font-bold text-sm text-gray-800">혜택 제외 설정</h4>
-                                        <span className="font-bold bg-[#333] text-white px-1 rounded-sm text-[10px] min-w-[14px] text-center">!</span>
-                                        <span className="text-xs text-gray-400">상품 할인 설정의 진행유형 및 기간과 상관없이 별도 설정이 가능합니다.</span>
-                                    </div>
-                                    
-                                    <div className="bg-white border border-gray-200">
-                                        <div className="flex border-b border-gray-200">
-                                            <div className="w-32 bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center">제외 혜택 선택</div>
-                                            <div className="p-3 flex flex-col gap-1.5">
-                                                {['회원 추가 할인혜택 적용 제외', '회원 중복 할인혜택 적용 제외', '회원 추가 마일리지 적립 적용 제외', '상품쿠폰 할인/적립 혜택 적용 제외'].map(label => (
-                                                    <label key={label} className="flex items-center gap-2 cursor-pointer">
-                                                        <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" />
-                                                        <span className="text-sm text-gray-600">{label}</span>
-                                                    </label>
-                                                ))}
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center">
-                                            <div className="w-32 bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 self-stretch flex items-center">제외 대상 선택</div>
-                                            <div className="p-3 flex items-center gap-4">
-                                                <RadioGroup name="exclusion_target" options={['전체회원', '특정회원등급']} defaultValue="전체회원" />
-                                                <button type="button" className="px-2 py-1 bg-[#aeaeae] text-white text-xs rounded-sm">회원등급 선택</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Row>
-                </Section>
 
                 {/* 11. 가격 설정 */}
                 <Section title="가격 설정" isOpen={sections.price} onToggle={() => toggleSection('price')}>
@@ -1512,22 +618,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     </div>
                 </Section>
 
-                {/* 12. 옵션/재고 설정 */}
-                <Section title="옵션/재고 설정" isOpen={sections.option} onToggle={() => toggleSection('option')}>
-                    <Row label="옵션 사용">
-                        <RadioGroup name="option_usage" options={['사용함', '사용안함']} defaultValue="사용안함" />
-                    </Row>
-                </Section>
 
-                {/* 13. 텍스트 옵션 / 추가상품 설정 */}
-                <Section title="텍스트 옵션 / 추가상품 설정" isOpen={sections.text_option} onToggle={() => toggleSection('text_option')}>
-                    <Row label="텍스트 옵션">
-                        <RadioGroup name="text_option_usage" options={['사용함', '사용안함']} defaultValue="사용안함" />
-                    </Row>
-                     <Row label="추가상품" help>
-                        <RadioGroup name="additional_product_usage" options={['사용함', '사용안함']} defaultValue="사용안함" />
-                    </Row>
-                </Section>
 
                 {/* 14. 상품 이미지 (New Position) */}
                 <Section title="상품 이미지" isOpen={sections.product_image} onToggle={() => toggleSection('product_image')}>
@@ -1547,11 +638,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         </div>
                     </div>
 
-                    <Row label="이미지 저장소">
-                        <div className="text-sm">
-                            기본 경로 ( <label className="inline-flex items-center gap-1 cursor-pointer"><input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300" /> <span>URL 직접입력 추가사용</span></label> )
-                        </div>
-                    </Row>
+
                     
                     <Row label="원본 이미지">
                         <div className="w-full py-2">
@@ -1777,24 +864,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     </Row>
                 </Section>
 
-                {/* 12. 관련상품 */}
-                <Section title="관련상품" isOpen={sections.related} onToggle={() => toggleSection('related')}>
-                    <Row label="관련상품 설정">
-                        <div className="flex items-center gap-4">
-                            <RadioGroup name="related_products" options={['사용안함', '자동(같은 카테고리 상품이 무작위로 보여짐)', '수동(아래 직접 선택등록)']} defaultValue="사용안함" />
-                        </div>
-                    </Row>
-                </Section>
-
-
-
-                 {/* 13. 상품이미지 돋보기 */}
-                <Section title="상품이미지 돋보기" isOpen={sections.magnifier} onToggle={() => toggleSection('magnifier')}>
-                     <Row label="사용상태">
-                         <RadioGroup name="magnifier" options={['사용함', '사용안함']} defaultValue="사용안함" />
-                    </Row>
-                </Section>
-
                  {/* 14. 외부 동영상(YouTube) 등록 */}
                  <Section title="외부 동영상(YouTube) 등록" isOpen={sections.video} onToggle={() => toggleSection('video')}>
                      <Row label="사용상태">
@@ -1947,14 +1016,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     </Row>
                 </Section>
 
-
-
-                {/* 17. 관리자 메모 */}
-                <Section title="관리자 메모" helpText="help" isOpen={sections.admin_memo} onToggle={() => toggleSection('admin_memo')}>
-                    <Row label="관리자 메모">
-                         <textarea className="w-full h-20 p-2 border border-gray-300 rounded-sm outline-none resize-none"></textarea>
-                    </Row>
-                </Section>
             </form>
 
             <PhotoAttachmentPopup 
@@ -1995,36 +1056,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                 }}
             />
 
-            <HSCodePopup
-                isOpen={isHSCodePopupOpen}
-                onClose={() => {
-                    setIsHSCodePopupOpen(false);
-                    setActiveHSCodeRowId(null);
-                }}
-                onConfirm={(code) => {
-                    if (code) {
-                        if (activeHSCodeRowId === null) {
-                            setSelectedHSCode(code.code);
-                        } else {
-                            handleHSCodeRowChange(activeHSCodeRowId, 'code', code.code);
-                        }
-                    }
-                    setActiveHSCodeRowId(null);
-                }}
-                country={activeHSCodeRowId === null ? "대한민국" : additionalHSCodes.find(r => r.id === activeHSCodeRowId)?.country || ""}
-            />
 
-            <MemberLevelPopup 
-                isOpen={isMemberLevelPopupOpen}
-                onClose={() => setIsMemberLevelPopupOpen(false)}
-                onConfirm={(levels) => {
-                    if (memberLevelPopupTarget === 'purchase') {
-                        setSelectedMemberLevels(levels);
-                    } else if (memberLevelPopupTarget === 'access') {
-                        setSelectedAccessAuthMemberLevels(levels);
-                    }
-                }}
-            />
             <EssentialInfoPopup 
                 isOpen={isEssentialInfoPopupOpen}
                 onClose={() => setIsEssentialInfoPopupOpen(false)}
@@ -2128,11 +1160,3 @@ function RadioGroup({ name, options, defaultValue }: { name: string; options: st
     );
 }
 
-function Checkbox({ label }: { label: string }) {
-    return (
-        <label className="flex items-center gap-2 cursor-pointer">
-             <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-300 text-blue-600" />
-             <span className="text-sm text-gray-700">{label}</span>
-        </label>
-    );
-}

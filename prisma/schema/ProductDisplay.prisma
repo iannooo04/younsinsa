@@ -91,3 +91,43 @@ model SearchPageDisplaySettings {
 
   updatedAt      DateTime @updatedAt
 }
+
+// ----------------------------------------------------------------------
+// 4. 기획전 관리 (Exhibition Management)
+// ----------------------------------------------------------------------
+
+// "Special Offer", "TOPSALE" 등 이벤트나 기획전 용도
+model Exhibition {
+  id             String   @id @default(cuid())
+  
+  name           String   // 기획전명
+  displayType    String   @default("NORMAL") // 진열유형 (일반형, 그룹형 등)
+  range          String   @default("ALL") // 노출범위 (ALL, PC, MOBILE)
+  status         String   @default("ONGOING") // 진행상태 (ONGOING, READY, END)
+  
+  startDate      DateTime? // 시작일
+  endDate        DateTime? // 종료일
+  
+  // 기획전에 속한 상품 목록
+  products       ExhibitionProduct[]
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// 기획전과 상품 간의 N:M 연결 모델
+model ExhibitionProduct {
+  id             String   @id @default(cuid())
+  
+  exhibitionId   String
+  exhibition     Exhibition @relation(fields: [exhibitionId], references: [id], onDelete: Cascade)
+  
+  productId      String
+  product        Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  
+  sortOrder      Int      @default(0) // 기획전 내 진열 순서
+  
+  createdAt      DateTime @default(now())
+  
+  @@unique([exhibitionId, productId])
+}

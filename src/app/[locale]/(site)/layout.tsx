@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { getBasicInfoSettingsAction } from "@/actions/basic-info-actions";
 import { getCategoriesAction } from "@/actions/category-actions";
 import { getBrandsAction } from "@/actions/brand-actions";
+import { getExhibitionsAction } from "@/actions/exhibition-actions";
 
 export default async function SiteLayout({
   children,
@@ -21,11 +22,12 @@ export default async function SiteLayout({
   const user = session?.user as any;
   const userLevel = user?.level || 1;
 
-  // Fetch basic info, categories, and brands for dynamic display
-  const [basicInfoRes, categories, brands] = await Promise.all([
+  // Fetch basic info, categories, brands, and exhibitions for dynamic display
+  const [basicInfoRes, categories, brands, exhibitions] = await Promise.all([
     getBasicInfoSettingsAction(),
     getCategoriesAction(),
-    getBrandsAction()
+    getBrandsAction(),
+    getExhibitionsAction({ onlyActive: true })
   ]);
 
   const basicInfo = basicInfoRes.success ? basicInfoRes.settings : null;
@@ -37,6 +39,7 @@ export default async function SiteLayout({
         userLevel={userLevel} 
         categories={categories}
         brands={brands}
+        exhibitions={exhibitions}
         basicInfo={basicInfo} 
       />
       <main className="flex-1 w-full flex flex-col">{children}</main>

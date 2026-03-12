@@ -18,6 +18,31 @@ export async function getBrandsAction() {
   }
 }
 
+export async function getFeaturedBrandsAction() {
+  try {
+    const brands = await prisma.brand.findMany({
+      where: {
+        isExposedKR: true,
+        logoUrl: {
+          not: null, // Only fetch brands that have a logo
+        },
+      },
+      orderBy: { createdAt: "asc" }, // Or you can order by another field if there's priority
+      take: 20, // Limit the number of featured brands
+      select: {
+          id: true,
+          name: true,
+          logoUrl: true,
+          slug: true,
+      }
+    });
+    return brands;
+  } catch (error) {
+    console.error("Error fetching featured brands:", error);
+    return [];
+  }
+}
+
 export async function getBrandAction(id: string) {
     try {
         const brand = await prisma.brand.findUnique({

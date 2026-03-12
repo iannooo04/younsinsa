@@ -6,9 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
-
-import { getPublicProductsAction } from "@/actions/product-actions";
 import { getPublicMainDisplayGroupsAction, getDisplayGroupProductsAction } from "@/actions/product-display-actions";
+import BrandLogoGrid from "@/components/common/BrandLogoGrid";
+import { getFeaturedBrandsAction } from "@/actions/brand-actions";
 
 interface ProductItem {
   id: string;
@@ -30,12 +30,17 @@ interface DisplayGroup {
 export default function HomePage() {
   const t = useTranslations("home");
   const [displayGroups, setDisplayGroups] = useState<DisplayGroup[]>([]);
+  const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
         setLoading(true);
-        // 1. Fetch Display Groups
+        // Fetch Brands
+        const fetchedBrands = await getFeaturedBrandsAction();
+        setBrands(fetchedBrands);
+
+        // Fetch Display Groups
         const groupsRes = await getPublicMainDisplayGroupsAction('PC');
         
         if (groupsRes.success && groupsRes.groups.length > 0) {
@@ -52,16 +57,8 @@ export default function HomePage() {
             );
             setDisplayGroups(groupsWithProducts);
         } else {
-            // Fallback: If no groups defined, fetch newest products as a default group
-            const res = await getPublicProductsAction(1, 10, 'newest');
-            if (res.success) {
-                setDisplayGroups([{
-                    id: 0,
-                    name: t("rankingTitle"),
-                    description: null,
-                    products: res.items as ProductItem[]
-                }]);
-            }
+            // Removed fallback that generated "실시간 랭킹"
+            setDisplayGroups([]);
         }
         setLoading(false);
     }
@@ -411,7 +408,16 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 4. Product Display Groups */}
+      {/* 4. Featured Brands Grid */}
+      <section className="container mx-auto px-4 py-8 border-b border-gray-100">
+         <div className="mb-6 flex flex-col items-center justify-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">인기 브랜드</h3>
+            <p className="text-sm text-gray-500">지금 가장 사랑받는 브랜드를 만나보세요</p>
+         </div>
+         <BrandLogoGrid brands={brands} />
+      </section>
+
+      {/* 5. Product Display Groups */}
       {loading ? (
         <div className="container mx-auto px-4 py-20 text-center text-gray-400">
            {t("loading") || "Loading..."}

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import {
     Select,
     SelectContent,
@@ -22,10 +22,9 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, Youtube, ChevronUp, Book, Plus } from "lucide-react";
+import { Youtube, ChevronUp, Book, Plus } from "lucide-react";
 import { getOptionTemplatesAction, deleteOptionTemplatesAction, copyOptionTemplatesAction } from "@/actions/option-template-actions";
 import { format } from "date-fns";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function CommonlyUsedOptionsPage() {
     const router = useRouter();
@@ -40,31 +39,11 @@ export default function CommonlyUsedOptionsPage() {
     const [pageSize, setPageSize] = useState(10);
 
     // Filter State
-    const [supplierType, setSupplierType] = useState('all');
-    const [searchType, setSearchType] = useState('integrated');
-    const [keyword, setKeyword] = useState('');
     const [displayType, setDisplayType] = useState('all');
-    const [dateType, setDateType] = useState('regDate');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    
-    // Date Picker Refs
-    const startDateRef = useRef<HTMLInputElement>(null);
-    const endDateRef = useRef<HTMLInputElement>(null);
-    
-    // Supplier Popup State
-    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
-    const [selectedSupplierName, setSelectedSupplierName] = useState<string>("");
     
     // Applied Filter State (Triggers fetch)
     const [appliedFilters, setAppliedFilters] = useState({
-        supplierType: 'all',
-        searchType: 'integrated',
-        keyword: '',
         displayType: 'all',
-        dateType: 'regDate',
-        startDate: '',
-        endDate: ''
     });
 
     const fetchData = useCallback(async () => {
@@ -86,13 +65,7 @@ export default function CommonlyUsedOptionsPage() {
     const handleSearch = () => {
         setPage(1);
         setAppliedFilters({
-            supplierType,
-            searchType,
-            keyword,
-            displayType,
-            dateType,
-            startDate,
-            endDate
+            displayType
         });
     };
 
@@ -146,38 +119,7 @@ export default function CommonlyUsedOptionsPage() {
         }
     };
     
-    // Date Helpers
-    const setPeriod = (period: string) => {
-        const end = new Date();
-        const start = new Date();
-        
-        switch (period) {
-            case "오늘":
-                break; // Start is today
-            case "7일":
-                start.setDate(end.getDate() - 7);
-                break;
-            case "15일":
-                start.setDate(end.getDate() - 15);
-                break;
-            case "1개월":
-                start.setMonth(end.getMonth() - 1);
-                break;
-            case "3개월":
-                start.setMonth(end.getMonth() - 3);
-                break;
-            case "전체":
-                setStartDate("");
-                setEndDate("");
-                return;
-            default:
-                break;
-        }
-        if (period !== "전체") {
-             setStartDate(format(start, "yyyy-MM-dd"));
-             setEndDate(format(end, "yyyy-MM-dd"));
-        }
-    };
+
 
     const totalPages = Math.ceil(totalCount / pageSize);
 
@@ -204,73 +146,8 @@ export default function CommonlyUsedOptionsPage() {
                 </div>
                 
                 <div className="border border-gray-300 bg-white">
-                    {/* Row 1: Supplier */}
-                    <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
-                        <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup 
-                                value={supplierType} 
-                                onValueChange={(val) => {
-                                    setSupplierType(val);
-                                    if (val === 'supplier') {
-                                        setIsSupplierPopupOpen(true);
-                                    }
-                                }} 
-                                className="flex items-center gap-4"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="all" id="supplier-all" />
-                                    <Label htmlFor="supplier-all">전체</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="headquarters" id="supplier-headquarters" />
-                                    <Label htmlFor="supplier-headquarters">본사</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="supplier" id="supplier-supplier" />
-                                    <Label htmlFor="supplier-supplier">공급사</Label>
-                                </div>
-                            </RadioGroup>
-                            <Button 
-                                variant="secondary" 
-                                className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm"
-                                onClick={() => setIsSupplierPopupOpen(true)}
-                            >
-                                공급사 선택
-                            </Button>
-                            {selectedSupplierName && (
-                                <span className="text-xs text-gray-600 font-medium">
-                                    선택된 공급사: <span className="text-blue-600">{selectedSupplierName}</span>
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Row 2: Search Term */}
-                    <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select value={searchType} onValueChange={setSearchType}>
-                                <SelectTrigger className="w-[140px] h-8 text-xs">
-                                    <SelectValue placeholder="=통합검색=" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="integrated">=통합검색=</SelectItem>
-                                    <SelectItem value="manageName">옵션 관리명</SelectItem>
-                                    <SelectItem value="name">옵션명</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Input 
-                                className="w-64 h-8" 
-                                value={keyword} 
-                                onChange={(e) => setKeyword(e.target.value)} 
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            />
-                        </div>
-                    </div>
-
                     {/* Row 3: Option Display Type */}
-                    <div className="flex items-center border-b border-gray-200">
+                    <div className="flex items-center">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">옵션노출 방식</div>
                         <div className="flex-1 p-3">
                              <RadioGroup value={displayType} onValueChange={setDisplayType} className="flex items-center gap-4">
@@ -287,73 +164,6 @@ export default function CommonlyUsedOptionsPage() {
                                     <Label htmlFor="type-separated">분리형</Label>
                                 </div>
                             </RadioGroup>
-                        </div>
-                    </div>
-
-                     {/* Row 4: Period Search */}
-                     <div className="flex items-center">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select value={dateType} onValueChange={setDateType}>
-                                <SelectTrigger className="w-[100px] h-8 text-xs">
-                                    <SelectValue placeholder="등록일" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="regDate">등록일</SelectItem>
-                                    <SelectItem value="modDate">수정일</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div className="relative">
-                                <Input 
-                                    type="text" 
-                                    className="w-32 h-8 pl-2 pr-8" 
-                                    value={startDate}
-                                    placeholder="YYYY-MM-DD"
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
-                                <input 
-                                    type="date" 
-                                    ref={startDateRef}
-                                    className="absolute opacity-0 w-0 h-0"
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
-                                <CalendarIcon 
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600" 
-                                    onClick={() => startDateRef.current?.showPicker()}
-                                />
-                            </div>
-                            <span className="text-gray-500">~</span>
-                            <div className="relative">
-                                <Input 
-                                    type="text"
-                                    className="w-32 h-8 pl-2 pr-8" 
-                                    value={endDate}
-                                    placeholder="YYYY-MM-DD"
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
-                                <input 
-                                    type="date" 
-                                    ref={endDateRef}
-                                    className="absolute opacity-0 w-0 h-0"
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
-                                <CalendarIcon 
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600" 
-                                    onClick={() => endDateRef.current?.showPicker()}
-                                />
-                            </div>
-                             <div className="flex gap-0.5 ml-2">
-                                {["오늘", "7일", "15일", "1개월", "3개월", "전체"].map((period) => (
-                                    <Button 
-                                        key={period} 
-                                        variant="outline" 
-                                        onClick={() => setPeriod(period)}
-                                        className={`h-8 px-3 text-xs rounded-sm bg-white text-gray-600 border-gray-300 hover:bg-gray-50`}
-                                    >
-                                        {period}
-                                    </Button>
-                                ))}
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -563,23 +373,7 @@ export default function CommonlyUsedOptionsPage() {
                 </div>
             </div>
 
-            <SupplierPopup 
-                isOpen={isSupplierPopupOpen}
-                onClose={() => setIsSupplierPopupOpen(false)}
-                onConfirm={(supplier) => {
-                    if (supplier) {
-                        setSupplierType('supplier');
-                        if (Array.isArray(supplier)) {
-                            if (supplier.length > 0) {
-                                setSelectedSupplierName(supplier[0].name);
-                            }
-                        } else {
-                            setSelectedSupplierName(supplier.name);
-                        }
-                    }
-                    setIsSupplierPopupOpen(false);
-                }}
-            />
+
         </div>
     );
 }

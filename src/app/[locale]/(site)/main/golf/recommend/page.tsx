@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell, Heart } from "lucide-react";
 import Image from "next/image";
+import BrandLogoGrid from "@/components/common/BrandLogoGrid";
+import { getFeaturedBrandsAction } from "@/actions/brand-actions";
 
 export default function GolfRecommendPage() {
+  const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+
+  useEffect(() => {
+    async function loadBrands() {
+      const data = await getFeaturedBrandsAction();
+      setBrands(data);
+    }
+    loadBrands();
+  }, []);
+
   const [activeTab, setActiveTab] = useState("추천");
 
   const tabs = ["추천", "랭킹", "스타일", "발매", "골프위크"];
@@ -58,14 +70,7 @@ export default function GolfRecommendPage() {
     { id: 5, brand: "파리게이츠", name: "스마일 패턴 모자", price: "89,000원", discount: "10%", img: "https://images.unsplash.com/photo-1582716401301-b2407dc7563d?auto=format&fit=crop&w=600&q=80" },
   ];
 
-  const rankingItems = [
-    { id: 1, brand: "타이틀리스트", name: "Pro V1 골프공 (12구)", price: "72,000원", discount: "", img: "https://images.unsplash.com/photo-1592656094267-764a45160876?auto=format&fit=crop&w=600&q=80" },
-    { id: 2, brand: "풋조이", name: "프리미어 시리즈 골프화", price: "280,000원", discount: "10%", img: "https://images.unsplash.com/photo-1608231387042-66d1773070a5?auto=format&fit=crop&w=600&q=80" },
-    { id: 3, brand: "브리지스톤", name: "V300 8 아이언세트", price: "1,450,000원", discount: "20%", img: "https://images.unsplash.com/photo-1593111774240-d529f12db4bb?auto=format&fit=crop&w=600&q=80" },
-    { id: 4, brand: "PXG", name: "0311 GEN6 드라이버", price: "890,000원", discount: "15%", img: "https://images.unsplash.com/photo-1623518596660-32b00570b54e?auto=format&fit=crop&w=600&q=80" },
-    { id: 5, brand: "부쉬넬", name: "Pro X3 거리측정기", price: "750,000원", discount: "5%", img: "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80" },
-    { id: 6, brand: "에코", name: "바이옴 C4 골프화", price: "390,000원", discount: "10%", img: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=600&q=80" },
-  ];
+
 
   return (
     <div className="bg-white min-h-screen pb-20">
@@ -269,40 +274,13 @@ export default function GolfRecommendPage() {
         </div>
       </div>
 
-      {/* 12. Real-time Ranking */}
+      {/* 12. Featured Brands Grid */}
       <div className="py-8 px-4 border-b border-gray-100">
-         <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">실시간 랭킹</h3>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {["전체", "클럽", "용품", "남성웨어", "여성웨어", "잡화"].map((tag, idx) => (
-                    <button key={idx} className={`px-3 py-1.5 border rounded-md text-xs whitespace-nowrap ${idx === 0 ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200'}`}>
-                        {tag}
-                    </button>
-                ))}
-            </div>
+         <div className="mb-4 flex flex-col items-center justify-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">인기 브랜드</h3>
+            <p className="text-sm text-gray-500">지금 가장 사랑받는 브랜드를 만나보세요</p>
          </div>
-
-         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-8">
-             {rankingItems.map((product, index) => (
-                <div key={product.id} className="relative">
-                    <div className="absolute top-0 left-0 z-10 bg-black text-white w-6 h-6 flex items-center justify-center text-xs font-bold rounded-tl-lg rounded-br-lg">
-                        {index + 1}
-                    </div>
-                    <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <Image src={product.img} alt={product.name} fill className="object-cover" />
-                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
-                            <Heart size={18} />
-                         </button>
-                    </div>
-                     <p className="text-xs font-bold text-black mb-1">{product.brand}</p>
-                    <p className="text-xs text-gray-600 mb-1 line-clamp-2 leading-snug h-[2.5em]">{product.name}</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-sm font-bold text-red-500">{product.discount}</span>
-                        <span className="text-sm font-bold text-black">{product.price}</span>
-                    </div>
-                </div>
-            ))}
-         </div>
+         <BrandLogoGrid brands={brands} />
       </div>
 
       {/* Floating Action Button */}

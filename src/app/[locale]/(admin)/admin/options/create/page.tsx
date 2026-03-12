@@ -14,18 +14,14 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { HelpCircle, List, Youtube, ChevronUp } from "lucide-react";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function CreateCommonlyUsedOptionPage() {
     const router = useRouter();
 
     // Form State
-    const [supplierType, setSupplierType] = useState("본사");
     const [manageName, setManageName] = useState("");
     const [displayType, setDisplayType] = useState("일체형");
     const [optionCount, setOptionCount] = useState("");
-    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
-    const [selectedSupplierName, setSelectedSupplierName] = useState("");
 
     // Options Registration State
     const [options, setOptions] = useState([
@@ -100,42 +96,6 @@ export default function CreateCommonlyUsedOptionPage() {
                 </div>
                 
                 <div className="border-t-2 border-gray-800">
-                    {/* Row 1: Supplier */}
-                    <div className="flex border-b border-gray-200">
-                        <div className="w-[180px] bg-gray-50 p-4 font-bold text-gray-700 flex items-center">공급사 구분</div>
-                        <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup 
-                                value={supplierType} 
-                                onValueChange={(val) => {
-                                    setSupplierType(val);
-                                    if (val === '공급사') setIsSupplierPopupOpen(true);
-                                }} 
-                                className="flex items-center gap-4"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="본사" id="sup-head" className="radio-xs" />
-                                    <Label htmlFor="sup-head">본사</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="공급사" id="sup-vendor" className="radio-xs" />
-                                    <Label htmlFor="sup-vendor">공급사</Label>
-                                </div>
-                            </RadioGroup>
-                            <button 
-                                type="button"
-                                className="h-7 text-xs bg-[#aeaeae] text-white rounded-sm px-3 ml-2 flex items-center justify-center transition-none hover:bg-[#aeaeae] active:bg-[#aeaeae] cursor-pointer"
-                                onClick={() => setIsSupplierPopupOpen(true)}
-                            >
-                                공급사 선택
-                            </button>
-                            {selectedSupplierName && (
-                                <span className="text-xs text-blue-600 font-medium">
-                                    {selectedSupplierName}
-                                </span>
-                            )}
-                        </div>
-                    </div>
-
                     {/* Row 2: Management Name */}
                     <div className="flex border-b border-gray-200">
                         <div className="w-[180px] bg-gray-50 p-4 font-bold text-gray-700 flex items-center gap-1">
@@ -274,21 +234,7 @@ export default function CreateCommonlyUsedOptionPage() {
                 </div>
             </div>
 
-            <SupplierPopup 
-                isOpen={isSupplierPopupOpen}
-                onClose={() => setIsSupplierPopupOpen(false)}
-                onConfirm={(supplier) => {
-                    if (supplier) {
-                        setSupplierType("공급사");
-                        if (Array.isArray(supplier)) {
-                            if (supplier.length > 0) setSelectedSupplierName(supplier[0].name);
-                        } else {
-                            setSelectedSupplierName(supplier.name);
-                        }
-                    }
-                    setIsSupplierPopupOpen(false);
-                }}
-            />
+
         </div>
     );
 }

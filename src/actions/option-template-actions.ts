@@ -8,57 +8,15 @@ export async function getOptionTemplatesAction(
   page: number = 1,
   pageSize: number = 10,
   searchParams?: {
-    supplierType?: string; // 'all', 'headquarters', 'supplier'
-    searchType?: string;   // 'integrated', 'name'
-    keyword?: string;
     displayType?: string;  // 'all', 'integrated', 'separated'
-    dateType?: string;     // 'regDate', 'modDate'
-    startDate?: string;
-    endDate?: string;
   }
 ) {
   try {
     const where: Prisma.OptionTemplateWhereInput = {};
 
-    // 1. Supplier Filter
-    if (searchParams?.supplierType && searchParams.supplierType !== 'all') {
-      if (searchParams.supplierType === 'headquarters') {
-        where.supplierId = null; // Assuming null is headquarters
-      } else if (searchParams.supplierType === 'supplier') {
-        where.supplierId = { not: null };
-      }
-    }
-
-    // 2. Keyword Filter
-    if (searchParams?.keyword) {
-      if (searchParams.searchType === 'name') {
-        where.name = { contains: searchParams.keyword, mode: 'insensitive' };
-      } else {
-        // Integrated search
-        where.OR = [
-          { name: { contains: searchParams.keyword, mode: 'insensitive' } },
-          { manageName: { contains: searchParams.keyword, mode: 'insensitive' } },
-        ];
-      }
-    }
-
-    // 3. Display Type Filter
+    // 1. Display Type Filter
     if (searchParams?.displayType && searchParams.displayType !== 'all') {
       where.type = searchParams.displayType;
-    }
-
-    // 4. Date Filter
-    if (searchParams?.startDate && searchParams?.endDate) {
-      const start = new Date(searchParams.startDate);
-      const end = new Date(searchParams.endDate);
-      // Adjust end date to end of day
-      end.setHours(23, 59, 59, 999);
-
-      if (searchParams.dateType === 'modDate') {
-        where.updatedAt = { gte: start, lte: end };
-      } else {
-        where.createdAt = { gte: start, lte: end };
-      }
     }
 
     const totalCount = await prisma.optionTemplate.count({ where });

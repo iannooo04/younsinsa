@@ -389,7 +389,7 @@ model Product {
   posts         Post[]
 
   recommendedInBrands BrandRecommendedProduct[] @relation("ProductRecommendedInBrands")
-
+  exhibitions         ExhibitionProduct[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?

@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell, Heart, ChevronUp } from "lucide-react";
 import Image from "next/image";
+import BrandLogoGrid from "@/components/common/BrandLogoGrid";
+import { getFeaturedBrandsAction } from "@/actions/brand-actions";
 
 export default function WomenRecommendPage() {
+  const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+
+  useEffect(() => {
+    async function loadBrands() {
+      const data = await getFeaturedBrandsAction();
+      setBrands(data);
+    }
+    loadBrands();
+  }, []);
+
   const [activeTab, setActiveTab] = useState("추천");
 
   const tabs = ["추천", "랭킹", "스타일", "세일", "우먼위크"];
@@ -55,14 +67,7 @@ export default function WomenRecommendPage() {
     { id: 4, img: "https://images.unsplash.com/photo-1485230905971-8bc6f849a6bc?auto=format&fit=crop&w=600&q=80" },
   ];
 
-  const rankingItems = [
-    { id: 1, brand: "우알롱", name: "Signature Hood Zip-up", price: "82,000원", discount: "10%", img: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?auto=format&fit=crop&w=600&q=80" },
-    { id: 2, brand: "닉앤니콜", name: "에센셜 부클 가디건", price: "45,000원", discount: "20%", img: "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=600&q=80" },
-    { id: 3, brand: "폴로 랄프 로렌", name: "케이블 니트 코튼 스웨터", price: "219,000원", discount: "5%", img: "https://images.unsplash.com/photo-1620799139507-2a76f79a2f4d?auto=format&fit=crop&w=600&q=80" },
-    { id: 4, brand: "가니", name: "소프트 울 니트 베스트", price: "285,000원", discount: "15%", img: "https://images.unsplash.com/photo-1434389677669-e08b4cac3105?auto=format&fit=crop&w=600&q=80" },
-    { id: 5, brand: "세인트제임스", name: "Guildo U Elbow Patch", price: "138,000원", discount: "", img: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?auto=format&fit=crop&w=600&q=80" },
-    { id: 6, brand: "어그", name: "클래식 울트라 미니", price: "219,000원", discount: "10%", img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=600&q=80" },
-  ];
+
 
   const outerItems = [
     { id: 1, brand: "인사일런스 우먼", name: "캐시미어 발마칸 코트", price: "289,000원", discount: "10%", img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?auto=format&fit=crop&w=600&q=80" },
@@ -289,40 +294,13 @@ export default function WomenRecommendPage() {
         </div>
       </div>
 
-      {/* 9. Real-time Ranking */}
+      {/* 9. Featured Brands Grid */}
       <div className="py-8 px-4 border-b border-gray-100">
-         <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">실시간 랭킹</h3>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {["전체", "상의", "아우터", "바지", "잡화", "신발"].map((tag, idx) => (
-                    <button key={idx} className={`px-3 py-1.5 border rounded-md text-xs whitespace-nowrap ${idx === 0 ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200'}`}>
-                        {tag}
-                    </button>
-                ))}
-            </div>
+         <div className="mb-4 flex flex-col items-center justify-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">인기 브랜드</h3>
+            <p className="text-sm text-gray-500">지금 가장 사랑받는 브랜드를 만나보세요</p>
          </div>
-
-         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-8">
-             {rankingItems.map((product, index) => (
-                <div key={product.id} className="relative">
-                    <div className="absolute top-0 left-0 z-10 bg-black text-white w-6 h-6 flex items-center justify-center text-xs font-bold rounded-tl-lg rounded-br-lg">
-                        {index + 1}
-                    </div>
-                    <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <Image src={product.img} alt={product.name} fill className="object-cover" />
-                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
-                            <Heart size={18} />
-                         </button>
-                    </div>
-                     <p className="text-xs font-bold text-black mb-1">{product.brand}</p>
-                    <p className="text-xs text-gray-600 mb-1 line-clamp-2 leading-snug h-[2.5em]">{product.name}</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-sm font-bold text-red-500">{product.discount}</span>
-                        <span className="text-sm font-bold text-black">{product.price}</span>
-                    </div>
-                </div>
-            ))}
-         </div>
+         <BrandLogoGrid brands={brands} />
       </div>
 
       {/* Floating Action Button */}

@@ -1,10 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Bell, Heart, ChevronUp } from "lucide-react";
 import Image from "next/image";
+import BrandLogoGrid from "@/components/common/BrandLogoGrid";
+import { getFeaturedBrandsAction } from "@/actions/brand-actions";
 
 export default function PlayerRecommendPage() {
+  const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+
+  useEffect(() => {
+    async function loadBrands() {
+      const data = await getFeaturedBrandsAction();
+      setBrands(data);
+    }
+    loadBrands();
+  }, []);
+
   const [activeTab, setActiveTab] = useState("추천");
 
   const tabs = ["추천", "랭킹", "세일", "발매", "스포츠위크"];
@@ -92,14 +104,7 @@ export default function PlayerRecommendPage() {
     { id: 6, brand: "웨이든", name: "[2PACK]액티브+ 박시 롱슬리브", price: "51,480원", discount: "34%", img: "https://image.msscdn.net/images/goods_img/20190529/1057866/1057866_1_500.jpg" },
   ];
 
-  const rankingItems = [
-    { id: 1, brand: "노스페이스", name: "NJ3NR50A 남성 눕시 온 자켓 BLACK", price: "269,000원", discount: "", img: "https://image.msscdn.net/images/goods_img/20230912/3553254/3553254_16945035544778_500.jpg" },
-    { id: 2, brand: "나이키", name: "ACG 루나 레이크 PrimaLoft® 써마 핏 ADV 루즈 후드 재켓 W", price: "324,000원", discount: "20%", img: "https://image.msscdn.net/images/goods_img/20230823/3487519/3487519_16927585544262_500.jpg" },
-    { id: 3, brand: "아크테릭스", name: "아톰 후디 남성 - BLACK / AJPFM09556", price: "456,000원", discount: "5%", img: "https://image.msscdn.net/images/goods_img/20230426/3262959/3262959_16824908076632_500.jpg" },
-    { id: 4, brand: "아디다스", name: "아디제로 EVO SL M - 블랙:화이트 / JP7149", price: "209,000원", discount: "", img: "https://image.msscdn.net/images/goods_img/20230912/3553267/3553267_16945036735626_500.jpg" },
-    { id: 5, brand: "매든", name: "[4COLORS] 지그재그 퍼니 풀오버 후디", price: "66,930원", discount: "25%", img: "https://image.msscdn.net/images/goods_img/20230918/3565576/3565576_16950201419779_500.jpg" },
-    { id: 6, brand: "노르디스크", name: "하이퍼 크리스탈 구스다운 eige", price: "599,000원", discount: "", img: "https://image.msscdn.net/images/goods_img/20231023/3648601/3648601_16980481267566_500.jpg" },
-  ];
+
 
   return (
     <div className="bg-white min-h-screen pb-20">
@@ -428,40 +433,13 @@ export default function PlayerRecommendPage() {
         </div>
       </div>
 
-      {/* 12. Real-time Ranking */}
+      {/* 12. Featured Brands Grid */}
       <div className="py-8 px-4 border-b border-gray-100">
-         <div className="mb-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-3">실시간 랭킹</h3>
-            <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-                {["전체", "아웃도어", "캠핑", "야구", "애슬레저", "러닝", "워터스포츠"].map((tag, idx) => (
-                    <button key={idx} className={`px-3 py-1.5 border rounded-md text-xs whitespace-nowrap ${idx === 0 ? 'bg-black text-white border-black' : 'bg-white text-gray-500 border-gray-200'}`}>
-                        {tag}
-                    </button>
-                ))}
-            </div>
+         <div className="mb-4 flex flex-col items-center justify-center">
+            <h3 className="text-xl font-bold text-gray-900 mb-1">인기 브랜드</h3>
+            <p className="text-sm text-gray-500">지금 가장 사랑받는 브랜드를 만나보세요</p>
          </div>
-
-         <div className="grid grid-cols-2 md:grid-cols-3 gap-x-3 gap-y-8">
-             {rankingItems.map((product, index) => (
-                <div key={product.id} className="relative">
-                    <div className="absolute top-0 left-0 z-10 bg-black text-white w-6 h-6 flex items-center justify-center text-xs font-bold rounded-tl-lg rounded-br-lg">
-                        {index + 1}
-                    </div>
-                    <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden mb-2 relative">
-                         <Image src={product.img} alt={product.name} fill className="object-cover" />
-                         <button className="absolute bottom-2 right-2 text-gray-400 hover:text-red-500">
-                            <Heart size={18} />
-                         </button>
-                    </div>
-                     <p className="text-xs font-bold text-black mb-1">{product.brand}</p>
-                    <p className="text-xs text-gray-600 mb-1 line-clamp-2 leading-snug h-[2.5em]">{product.name}</p>
-                    <div className="flex items-center gap-1">
-                        <span className="text-sm font-bold text-red-500">{product.discount}</span>
-                        <span className="text-sm font-bold text-black">{product.price}</span>
-                    </div>
-                </div>
-            ))}
-         </div>
+         <BrandLogoGrid brands={brands} />
       </div>
 
       {/* Floating Action Button for Filter/Sort if needed, but not in image */}

@@ -2,19 +2,12 @@
 
 import { useState } from "react";
 import { HelpCircle, ChevronRight } from "lucide-react";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 import SearchSettingSavePopup from "@/components/admin/SearchSettingSavePopup";
 
 import BrandPopup from "@/components/admin/BrandPopup";
 
 export default function ProductSearchForm() {
     const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
-    const [supplierMode, setSupplierMode] = useState("all");
-    
-    // Supplier Popup State
-    const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [selectedSupplier, setSelectedSupplier] = useState<{id: string, name: string} | null>(null);
-
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
     const [selectedBrand, setSelectedBrand] = useState<{id: string, name: string} | null>(null);
@@ -46,55 +39,6 @@ export default function ProductSearchForm() {
             {/* Form Content */}
             <div className="px-6 py-4 text-sm text-gray-700">
                 
-                {/* Row 1: Supplier */}
-                <div className="grid grid-cols-[120px_1fr] items-center gap-4 py-3 border-b border-gray-100">
-                    <div className="font-bold">공급사 구분</div>
-                    <div className="flex items-center gap-4">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input 
-                                type="radio" 
-                                name="supplier" 
-                                className="radio radio-xs checked:bg-primary" 
-                                checked={supplierMode === "all"} 
-                                onChange={() => setSupplierMode("all")}
-                            />
-                            <span>전체</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input 
-                                type="radio" 
-                                name="supplier" 
-                                className="radio radio-xs checked:bg-primary" 
-                                checked={supplierMode === "headquarters"} 
-                                onChange={() => setSupplierMode("headquarters")}
-                            />
-                            <span>본사</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                            <input 
-                                type="radio" 
-                                name="supplier" 
-                                className="radio radio-xs checked:bg-primary" 
-                                checked={supplierMode === "supplier"} 
-                                onChange={() => {
-                                    setSupplierMode("supplier");
-                                    setIsPopupOpen(true);
-                                }}
-                            />
-                            <span>공급사</span>
-                        </label>
-                        <button 
-                            className="btn btn-xs btn-outline rounded-sm font-normal text-gray-600"
-                            onClick={() => setIsPopupOpen(true)}
-                        >
-                            공급사 선택
-                        </button>
-                        {selectedSupplier && (
-                            <span className="text-blue-600 font-bold">[{selectedSupplier.name}]</span>
-                        )}
-                    </div>
-                </div>
-
                 {/* Row 2: Keyword */}
                 <div className="grid grid-cols-[120px_1fr] items-center gap-4 py-3 border-b border-gray-100">
                     <div className="font-bold">검색어</div>
@@ -118,29 +62,7 @@ export default function ProductSearchForm() {
                     </div>
                 </div>
 
-                {/* Row 3: Date */}
-                <div className="grid grid-cols-[120px_1fr] items-center gap-4 py-3 border-b border-gray-100">
-                    <div className="font-bold">기간검색</div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <select className="select select-bordered select-sm w-32 rounded-sm bg-gray-50">
-                            <option>등록일</option>
-                            <option>수정일</option>
-                        </select>
-                        <div className="flex items-center gap-1">
-                            <input type="date" className="input input-bordered input-sm rounded-sm w-36" />
-                            <span className="text-gray-400">~</span>
-                            <input type="date" className="input input-bordered input-sm rounded-sm w-36" />
-                        </div>
-                        <div className="flex gap-0.5 ml-2">
-                            <button className="btn btn-xs bg-gray-100 hover:bg-gray-200 border-gray-300 rounded-sm font-normal">오늘</button>
-                            <button className="btn btn-xs bg-gray-100 hover:bg-gray-200 border-gray-300 rounded-sm font-normal">7일</button>
-                            <button className="btn btn-xs bg-gray-100 hover:bg-gray-200 border-gray-300 rounded-sm font-normal">15일</button>
-                            <button className="btn btn-xs bg-gray-100 hover:bg-gray-200 border-gray-300 rounded-sm font-normal">1개월</button>
-                            <button className="btn btn-xs bg-gray-100 hover:bg-gray-200 border-gray-300 rounded-sm font-normal">3개월</button>
-                            <button className="btn btn-xs bg-gray-600 text-white hover:bg-gray-700 border-gray-600 rounded-sm font-normal">전체</button>
-                        </div>
-                    </div>
-                </div>
+
 
                 {/* Advanced Fields */}
                 {isAdvancedOpen && (
@@ -371,20 +293,6 @@ export default function ProductSearchForm() {
             </div>
 
             {/* Popups */}
-            <SupplierPopup 
-                isOpen={isPopupOpen} 
-                onClose={() => setIsPopupOpen(false)} 
-                onConfirm={(val) => {
-                    if (Array.isArray(val)) {
-                        setSelectedSupplier(val[0] || null);
-                    } else {
-                        setSelectedSupplier(val);
-                    }
-                    setSupplierMode("supplier");
-                    setIsPopupOpen(false);
-                }} 
-            />
-            
             <BrandPopup 
                 isOpen={isBrandPopupOpen}
                 onClose={() => setIsBrandPopupOpen(false)}
