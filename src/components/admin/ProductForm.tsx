@@ -426,6 +426,35 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         <Row label="상품코드">
                             <span className="text-gray-500 text-sm">상품 등록시 자동 생성됩니다.</span>
                         </Row>
+                        <Row label="노출 상태" required help>
+                            <div className="flex items-center gap-6">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-700">PC쇼핑몰</span>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="pc_display" value="노출함" className="radio radio-xs checked:bg-red-500" defaultChecked={initialProduct ? initialProduct.displayStatusPC === 'DISPLAY' : true} />
+                                        <span className="text-sm">노출함</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="pc_display" value="노출안함" className="radio radio-xs" defaultChecked={initialProduct ? initialProduct.displayStatusPC !== 'DISPLAY' : false} />
+                                        <span className="text-sm">노출안함</span>
+                                    </label>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-gray-700">모바일쇼핑몰</span>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="mobile_display" value="노출함" className="radio radio-xs checked:bg-red-500" defaultChecked={initialProduct ? initialProduct.displayStatusMobile === 'DISPLAY' : true} />
+                                        <span className="text-sm">노출함</span>
+                                    </label>
+                                    <label className="flex items-center gap-1 cursor-pointer">
+                                        <input type="radio" name="mobile_display" value="노출안함" className="radio radio-xs" defaultChecked={initialProduct ? initialProduct.displayStatusMobile !== 'DISPLAY' : false} />
+                                        <span className="text-sm">노출안함</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </Row>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2">
                          <Row label="자체 상품코드" help>
                              <div className="flex items-center w-full">
                                 <input type="text" className="input input-sm h-8 flex-1 border-gray-300 rounded-sm min-w-0" />
@@ -540,6 +569,12 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                                 <label className="flex items-center gap-2"><input type="radio" name="tax" className="radio radio-xs" /> <span>면세</span></label>
                             </div>
                         </Row>
+                         <Row label="재고 수량">
+                             <div className="flex items-center w-full">
+                                <input type="number" name="stockQuantity" defaultValue={initialProduct?.stockQuantity || 0} className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" />
+                                <span className="text-sm text-gray-600 ml-1">개</span>
+                             </div>
+                        </Row>
                     </div>
 
 
@@ -572,12 +607,12 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         <div className="flex border-b border-gray-200 last:border-b-0">
                             <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">정가</div>
                             <div className="flex-1 p-2 flex items-center border-r border-gray-200">
-                                <input type="text" className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
+                                <input type="text" name="consumerPrice" defaultValue={initialProduct?.consumerPrice || ''} className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
                                 <span className="ml-1 text-sm text-gray-600">원</span>
                             </div>
                             <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">매입가</div>
                             <div className="flex-1 p-2 flex items-center border-r border-gray-200">
-                                <input type="text" className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
+                                <input type="text" name="supplyPrice" defaultValue={initialProduct?.supplyPrice || ''} className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
                                 <span className="ml-1 text-sm text-gray-600">원</span>
                             </div>
                              <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">
@@ -592,7 +627,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         <div className="flex">
                             <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">판매가</div>
                             <div className="flex-1 p-2 flex items-center border-r border-gray-200">
-                                <input type="text" className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
+                                <input type="text" name="price" defaultValue={initialProduct?.price || ''} className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
                                 <span className="ml-1 text-sm text-gray-600">원</span>
                             </div>
                             <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">공급가</div>
