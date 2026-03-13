@@ -786,18 +786,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     </div>
 
                     <div className="border-t border-gray-200">
-                         {/* Editor Tabs */}
-                        <div className="bg-[#f2f2f2] border-b border-gray-300 p-1 flex items-center justify-between">
-                            <div className="flex">
-                                <div className="bg-[#777] text-white text-xs px-3 py-2 font-bold cursor-pointer">PC쇼핑몰 상세 설명</div>
-                                <div className="bg-[#f2f2f2] text-gray-500 text-xs px-3 py-2 border-r border-gray-300 cursor-pointer hover:bg-white">모바일쇼핑몰 상세 설명</div>
-                            </div>
-                            <label className="flex items-center gap-1 text-xs px-2">
-                                <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-400 checked:bg-red-500" defaultChecked />
-                                <span>PC/모바일 상세설명 동일사용</span>
-                            </label>
-                        </div>
-
                         {/* Photo Button Toolbar */}
                         <div className="bg-[#f0f0f0] border-b border-gray-300 p-1 flex items-center gap-1">
                              <button 
