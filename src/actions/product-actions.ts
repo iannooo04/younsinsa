@@ -660,6 +660,42 @@ export async function getBrandsSimpleAction() {
     }
 }
 
+// --- Fetch Brands (Hierarchy) ---
+export async function getBrandHierarchyAction() {
+    try {
+        const brands = await prisma.brand.findMany({
+            where: {
+                parentId: null
+            },
+            select: {
+                id: true,
+                name: true,
+                createdAt: true,
+                children: {
+                    select: {
+                        id: true,
+                        name: true,
+                        createdAt: true,
+                        children: {
+                            select: {
+                                id: true,
+                                name: true,
+                                createdAt: true,
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+        return brands;
+    } catch {
+        return [];
+    }
+}
+
 export async function getProductsForExcelAction(params: {
     supplierType?: 'head' | 'supplier';
     supplierId?: string;

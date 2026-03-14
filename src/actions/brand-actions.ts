@@ -73,7 +73,13 @@ export async function getBrandAction(id: string) {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function createBrandAction(data: Record<string, any>) {
   try {
-    const { recommendedProducts, ...createData } = data;
+    const {
+        recommendedProducts,
+        accessInaccessibleExposed: _accessInaccessibleExposed,
+        accessApplyToChildren: _accessApplyToChildren,
+        productDisplaySort: _productDisplaySort,
+        ...createData 
+    } = data;
 
     const newBrand = await prisma.brand.create({
       data: {
@@ -104,7 +110,13 @@ export async function createBrandAction(data: Record<string, any>) {
 export async function updateBrandAction(id: string, data: Record<string, any>) {
     try {
         // Handle recommendedProducts separately if passed
-        const { recommendedProducts, ...updateData } = data;
+        const {
+            recommendedProducts,
+            accessInaccessibleExposed: _accessInaccessibleExposed,
+            accessApplyToChildren: _accessApplyToChildren,
+            productDisplaySort: _productDisplaySort,
+            ...updateData 
+        } = data;
 
         const updatedBrand = await prisma.brand.update({
             where: { id },

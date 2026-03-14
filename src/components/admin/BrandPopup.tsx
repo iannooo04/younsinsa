@@ -2,14 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { getBrandsSimpleAction } from "@/actions/product-actions";
+import { getBrandHierarchyAction } from "@/actions/product-actions";
+import dayjs from "dayjs";
 
-interface Brand {
+// Type definitions for the hierarchy returned by getBrandHierarchyAction
+interface BrandHierarchy {
+    id: string;
+    name: string;
+    createdAt: Date;
+    children?: BrandHierarchy[];
+}
+
+interface BrandNode {
     id: string;
     no: number;
     country: string; // 'KR'
     name: string;
     date: string;
+    depth: number;
+    pathIds: string[]; // [depth1Id, depth2Id?, depth3Id?]
+    pathNames: string[]; // ['Parent', 'Child', 'Grandchild']
 }
 
 interface Props {
@@ -19,7 +31,14 @@ interface Props {
 }
 
 export default function BrandPopup({ isOpen, onClose, onConfirm }: Props) {
-    const [brands, setBrands] = useState<Brand[]>([]);
+    const [allBrands, setAllBrands] = useState<BrandNode[]>([]);
+    const [treeData, setTreeData] = useState<BrandHierarchy[]>([]);
+    
+    // Dropdown States
+    const [selectedDepth1, setSelectedDepth1] = useState<string>("");
+    const [selectedDepth2, setSelectedDepth2] = useState<string>("");
+    const [selectedDepth3, setSelectedDepth3] = useState<string>("");
+
     const [loading, setLoading] = useState(false);
     const [searchName, setSearchName] = useState("");
     const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -33,16 +52,37 @@ export default function BrandPopup({ isOpen, onClose, onConfirm }: Props) {
     const fetchBrands = async () => {
         setLoading(true);
         try {
-            const res = await getBrandsSimpleAction();
-            const formatted = res.map((brand, idx) => ({
-                id: brand.id,
-                no: 23 - idx, // Mocking the descending order from image
-                country: "KR",
-                name: brand.name.includes("Golf") ? brand.name : `Malbon Golf > Men > ${brand.name.toUpperCase()}`,
-                date: "2025-12-05"
-            }));
-            
-            setBrands(formatted);
+            const rawTree = await getBrandHierarchyAction();
+            setTreeData(rawTree as BrandHierarchy[]);
+
+            const flattened: BrandNode[] = [];
+            let counter = 1;
+
+            // Helper function to flatten the tree for the table view
+            const flattenNode = (node: BrandHierarchy, depth: number, accPathIds: string[], accPathNames: string[]) => {
+                const currentPathIds = [...accPathIds, node.id];
+                const currentPathNames = [...accPathNames, node.name];
+
+                flattened.push({
+                    id: node.id,
+                    no: counter++,
+                    country: "KR",
+                    name: currentPathNames.join(' > '),
+                    date: dayjs(node.createdAt).format("YYYY-MM-DD"),
+                    depth,
+                    pathIds: currentPathIds,
+                    pathNames: currentPathNames
+                });
+
+                if (node.children && node.children.length > 0) {
+                    node.children.forEach(child => flattenNode(child, depth + 1, currentPathIds, currentPathNames));
+                }
+            };
+
+            rawTree.forEach((rootNode) => flattenNode(rootNode as BrandHierarchy, 1, [], []));
+
+            // Reverse to match the mock descending order visually, if desired
+            setAllBrands(flattened.reverse().map((b, idx) => ({ ...b, no: flattened.length - idx })));
         } catch (error) {
             console.error(error);
         } finally {
@@ -51,14 +91,48 @@ export default function BrandPopup({ isOpen, onClose, onConfirm }: Props) {
     };
 
     const handleConfirm = () => {
-        const brand = brands.find(b => b.id === selectedId) || null;
+        const brand = allBrands.find(b => b.id === selectedId) || null;
         onConfirm(brand ? { id: brand.id, name: brand.name } : null);
         onClose();
     };
 
-    const filteredBrands = brands.filter(b => 
-        b.name.toLowerCase().includes(searchName.toLowerCase())
-    );
+    // Filter logic
+    const filteredBrands = allBrands.filter(b => {
+        // 1. Text Search Filter
+        const matchesName = b.name.toLowerCase().includes(searchName.toLowerCase());
+        
+        // 2. Dropdown Filter
+        let matchesDropdown = true;
+        if (selectedDepth3) {
+            matchesDropdown = b.id === selectedDepth3;
+        } else if (selectedDepth2) {
+            matchesDropdown = b.pathIds[1] === selectedDepth2 || b.id === selectedDepth2;
+        } else if (selectedDepth1) {
+            matchesDropdown = b.pathIds[0] === selectedDepth1 || b.id === selectedDepth1;
+        }
+
+        return matchesName && matchesDropdown;
+    });
+
+    // Derived states for dropdown options
+    const depth1Options = treeData;
+    const depth2Options = depth1Options.find(b => b.id === selectedDepth1)?.children || [];
+    const depth3Options = depth2Options.find(b => b.id === selectedDepth2)?.children || [];
+
+    const handleDepth1Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedDepth1(e.target.value);
+        setSelectedDepth2("");
+        setSelectedDepth3("");
+    };
+
+    const handleDepth2Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedDepth2(e.target.value);
+        setSelectedDepth3("");
+    };
+
+    const handleDepth3Change = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        setSelectedDepth3(e.target.value);
+    };
 
     if (!isOpen) return null;
 
@@ -91,11 +165,40 @@ export default function BrandPopup({ isOpen, onClose, onConfirm }: Props) {
                             <div className="flex h-12 items-center">
                                 <div className="w-32 bg-gray-50 h-full flex items-center px-4 font-bold text-gray-700 text-sm">브랜드 선택</div>
                                 <div className="flex-1 px-4 flex gap-2">
-                                    {[1, 2, 3].map(i => (
-                                        <select key={i} className="flex-1 h-8 border border-gray-300 rounded-sm px-1 text-sm bg-white focus:outline-none focus:border-gray-500">
-                                            <option>=브랜드선택=</option>
-                                        </select>
-                                    ))}
+                                    <select 
+                                        className="flex-1 h-8 border border-gray-300 rounded-sm px-1 text-sm bg-white focus:outline-none focus:border-gray-500"
+                                        value={selectedDepth1}
+                                        onChange={handleDepth1Change}
+                                    >
+                                        <option value="">= 1차 브랜드 =</option>
+                                        {depth1Options.map(opt => (
+                                            <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                        ))}
+                                    </select>
+                                    
+                                    <select 
+                                        className="flex-1 h-8 border border-gray-300 rounded-sm px-1 text-sm bg-white focus:outline-none focus:border-gray-500 disabled:bg-gray-100"
+                                        value={selectedDepth2}
+                                        onChange={handleDepth2Change}
+                                        disabled={!selectedDepth1}
+                                    >
+                                        <option value="">= 2차 브랜드 =</option>
+                                        {depth2Options.map(opt => (
+                                            <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                        ))}
+                                    </select>
+
+                                    <select 
+                                        className="flex-1 h-8 border border-gray-300 rounded-sm px-1 text-sm bg-white focus:outline-none focus:border-gray-500 disabled:bg-gray-100"
+                                        value={selectedDepth3}
+                                        onChange={handleDepth3Change}
+                                        disabled={!selectedDepth2}
+                                    >
+                                        <option value="">= 3차 브랜드 =</option>
+                                        {depth3Options.map(opt => (
+                                            <option key={opt.id} value={opt.id}>{opt.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
                             </div>
                         </div>
