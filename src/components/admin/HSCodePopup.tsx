@@ -20,8 +20,8 @@ export default function HSCodePopup({ isOpen, onClose, onConfirm, country }: Pro
     const [selectedCode, setSelectedCode] = useState<HSCode | null>(null);
 
     // Placeholder for actual data or search functionality
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [searchResults, setSearchResults] = useState<HSCode[]>([]);
+     
+    const [searchResults, _setSearchResults] = useState<HSCode[]>([]);
 
     if (!isOpen) return null;
 

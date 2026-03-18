@@ -131,10 +131,10 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     
     // Supplier Popup State
     const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [selectedSupplierName, setSelectedSupplierName] = useState<string>("");
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [supplierType, setSupplierType] = useState("본사");
+     
+    const [_selectedSupplierName, setSelectedSupplierName] = useState<string>("");
+     
+    const [_supplierType, _setSupplierType] = useState("본사");
 
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
@@ -204,11 +204,11 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         label2: string;
         value2: string;
     }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [essentialItems, setEssentialItems] = useState<EssentialItem[]>([]);
+     
+    const [_essentialItems, setEssentialItems] = useState<EssentialItem[]>([]);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleAddEssentialItem = (type: 2 | 4) => {
+     
+    const _handleAddEssentialItem = (type: 2 | 4) => {
         setEssentialItems(prev => [...prev, { 
             id: Date.now(), 
             type, 
@@ -219,18 +219,18 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         }]);
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleRemoveEssentialItem = (id: number) => {
+     
+    const _handleRemoveEssentialItem = (id: number) => {
         setEssentialItems(prev => prev.filter(item => item.id !== id));
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleEssentialItemChange = (id: number, field: keyof EssentialItem, value: string) => {
+     
+    const _handleEssentialItemChange = (id: number, field: keyof EssentialItem, value: string) => {
         setEssentialItems(prev => prev.map(item => item.id === id ? { ...item, [field]: value } : item));
     };
     
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleCopyEssentialItem = (label: string, value: string) => {
+     
+    const _handleCopyEssentialItem = (label: string, value: string) => {
         setEssentialItems(prev => [...prev, {
             id: Date.now(),
             type: 2, // Assuming copy creates a 2-slot looking item (filling first pair)
@@ -243,11 +243,11 @@ export default function ProductForm({ categories, initialProduct }: Props) {
 
 
     // Color Picker State
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [selectedColor, setSelectedColor] = useState<string | null>(null);
+     
+    const [_selectedColor, setSelectedColor] = useState<string | null>(null);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const handleColorClick = (color: string) => {
+     
+    const _handleColorClick = (color: string) => {
         setSelectedColor(color);
     };
     const handleAddCategory = () => {

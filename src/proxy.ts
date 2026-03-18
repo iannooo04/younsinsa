@@ -13,8 +13,8 @@ const intlMiddleware = createIntlMiddleware({
 });
 
 // 공개 경로 패턴 (로그인 없이 접근 가능)
-/* eslint-disable @typescript-eslint/no-unused-vars */
-const PUBLIC_PATHS = [
+ 
+const _PUBLIC_PATHS = [
     /^\/$/,
     /^\/(?:ko|en|ja|zh|vi)\/?$/,
     /^\/(?:ko|en|ja|zh|vi)\/home(?:\/.*)?$/,
@@ -26,7 +26,7 @@ const PUBLIC_PATHS = [
     /^\/api\/popup\/categories(?:\/.*)?$/,
     /^\/api\/auth(?:\/.*)?$/, // NextAuth API
 ];
-/* eslint-enable @typescript-eslint/no-unused-vars */
+ 
 
 export default auth((req) => {
     const { nextUrl } = req;

@@ -21,8 +21,8 @@ interface Props {
 }
 
 export default function ExhibitionPopup({ isOpen, onClose, onConfirm }: Props) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [exhibitions, setExhibitions] = useState<Exhibition[]>([]);
+     
+    const [exhibitions, _setExhibitions] = useState<Exhibition[]>([]);
     const [loading, setLoading] = useState(false);
     
     // Search Filters

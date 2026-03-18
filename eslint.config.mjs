@@ -15,14 +15,19 @@ const eslintConfig = defineConfig([
     "src/generated/**",
   ]),
   {
-    rules: {
-      "@typescript-eslint/no-empty-object-type": "off",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["warn", { 
-        "argsIgnorePattern": "^_",
-        "varsIgnorePattern": "^_",
-        "caughtErrorsIgnorePattern": "^_"
-      }],
+  plugins: {
+    "unused-imports": (await import("eslint-plugin-unused-imports")).default,
+  },
+  rules: {
+    "@typescript-eslint/no-empty-object-type": "off",
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "off",
+    "unused-imports/no-unused-imports": "error",
+    "unused-imports/no-unused-vars": ["warn", { 
+      "argsIgnorePattern": "^_",
+      "varsIgnorePattern": "^_",
+      "caughtErrorsIgnorePattern": "^_"
+    }],
       "prefer-const": "warn",
       "react-hooks/exhaustive-deps": "warn",
       // React Compiler rules (if applicable)

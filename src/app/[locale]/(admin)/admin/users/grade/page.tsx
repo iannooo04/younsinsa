@@ -90,8 +90,8 @@ export default function MemberGradePage() {
   const handleSettingsSave = async () => {
       if (!settings) return;
       // Filter only settings fields
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, basicPolicyId, ...data } = settings;
+       
+      const { _id, _basicPolicyId, ...data } = settings;
       const res = await updateMemberGradeSettingsAction(data);
        if (res.success) {
           toast.success("설정이 저장되었습니다.");
