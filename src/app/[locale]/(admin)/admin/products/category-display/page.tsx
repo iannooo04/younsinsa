@@ -11,7 +11,6 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Youtube, ChevronUp } from "lucide-react";
 import { 
     getCategoryLevelsAction, 
     getCategoryDisplaySettingsAction, 
@@ -307,24 +306,6 @@ export default function CategoryProductDisplayPage() {
                 </div>
 
 
-            {/* Floating Actions */}
-            <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-                </Button>
-                 <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                    <span className="block">따라</span>
-                    <span className="block">하기</span>
-                </Button>
-                <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                    <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100">
-                         <ChevronUp size={16} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none transform rotate-180">
-                         <ChevronUp size={16} />
-                    </Button>
-                </div>
-            </div>
-        </div>
+                    </div>
     );
 }

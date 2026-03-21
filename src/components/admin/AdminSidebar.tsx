@@ -45,10 +45,6 @@ const menuItems: MenuItem[] = [
                     { name: "부가세율 설정", href: "/admin/settings/vat" },
                     { name: "이용 / 탈퇴 안내", href: "/admin/settings/guide" },
                     { name: "금액 / 단위 기준 설정", href: "/admin/settings/currency" },
-
-                    { name: "저장소 경로 일괄 관리", href: "/admin/settings/storage-path" },
-
-                    { name: "검색엔진 최적화(SEO) 설정", href: "/admin/settings/seo" },
                 ]
             },
             {
@@ -153,7 +149,6 @@ const menuItems: MenuItem[] = [
                 items: [
                     { name: "주문통합리스트", href: "/admin/orders" },
                     { name: "송장일괄등록", href: "/admin/orders/invoice-bulk" },
-                    { name: "주문 내역 삭제", href: "/admin/orders/delete-history" },
                 ]
             },
             {

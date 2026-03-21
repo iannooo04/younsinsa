@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar, Youtube, ChevronUp, HelpCircle } from "lucide-react";
+import { Calendar, HelpCircle } from "lucide-react";
 
 export default function WishlistAnalysisPage() {
   return (
@@ -29,33 +29,6 @@ export default function WishlistAnalysisPage() {
 
       {/* Search Filter Section */}
       <div className="border-t border-gray-400 mb-6">
-        {/* Shop */}
-        <div className="flex border-b border-gray-200">
-          <div className="w-40 bg-gray-50 p-3 flex items-center font-bold text-gray-700">
-            상점
-          </div>
-          <div className="flex-1 p-3 flex items-center gap-6">
-            <RadioGroup defaultValue="all" className="flex items-center gap-6">
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="all" id="store-all" className="text-red-500 border-gray-300" />
-                <Label htmlFor="store-all" className="font-normal cursor-pointer">전체</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="kr" id="store-kr" className="text-red-500 border-gray-300" />
-                <Label htmlFor="store-kr" className="font-normal cursor-pointer flex items-center gap-1">
-                  <span className="w-4 h-4 rounded-full border bg-gray-100 flex items-center justify-center text-[10px]">🇰🇷</span> 기준몰
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value="cn" id="store-cn" className="text-red-500 border-gray-300" />
-                <Label htmlFor="store-cn" className="font-normal cursor-pointer flex items-center gap-1">
-                 <span className="w-4 h-4 rounded-full border bg-gray-100 flex items-center justify-center text-[10px]">🇨🇳</span> 중문몰
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
-        </div>
-
         {/* Period */}
         <div className="flex border-b border-gray-200">
           <div className="w-40 bg-gray-50 p-3 flex items-center font-bold text-gray-700">
@@ -213,25 +186,7 @@ export default function WishlistAnalysisPage() {
         </div>
       </div>
 
-       {/* Floating Actions */}
-       <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-        <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-          <Youtube size={16} />
-        </Button>
-        <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-          <span className="block">따라</span>
-          <span className="block">하기</span>
-        </Button>
-        <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-          <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-            <ChevronUp className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0 rotate-180">
-            <ChevronUp className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
+       
        {/* Footer Copyright */}
        <div className="mt-12 py-6 text-center text-[11px] text-gray-400 border-t border-gray-300 mt-12">
         © NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-red-500">5.1.23.1206.5ccf2dd6</span>)

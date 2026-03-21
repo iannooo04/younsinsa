@@ -176,16 +176,7 @@ export default function MainHeader({
 
         {/* 🛠️ 우측 메뉴 영역 */}
         <div className="flex gap-5 items-center text-xs">
-          {/* 오프라인 스토어 */}
-          {/* 오프라인 스토어 */}
-          <Link
-            href="/offline"
-            className="flex items-center gap-5 border-r border-gray-700 pr-5 cursor-pointer hidden md:flex"
-          >
-            <span className="hover:text-gray-300 font-medium">
-              {t("menu.offline")}
-            </span>
-          </Link>
+
 
           {/* 검색 (아이콘 + 텍스트) */}
           <button

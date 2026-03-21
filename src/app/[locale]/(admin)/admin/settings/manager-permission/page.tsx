@@ -7,11 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Plus } from "lucide-react";
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export default function ManagerPermissionPage() {
-    const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header */}
@@ -33,101 +30,6 @@ export default function ManagerPermissionPage() {
 
                     {/* Search Filters */}
                     <div className="border border-gray-300 bg-white">
-                        <div className="grid grid-cols-[100px_1fr] border-b border-gray-200">
-                            <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center text-xs">공급사 구분</div>
-                            <div className="p-3 flex items-center gap-4">
-                                <RadioGroup defaultValue="hq" className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2">
-                                        <RadioGroupItem value="hq" id="type-hq" />
-                                        <Label htmlFor="type-hq" className="font-normal cursor-pointer text-xs">본사</Label>
-                                    </div>
-                                    <div className="flex items-center gap-2" onClickCapture={() => setIsSupplierDialogOpen(true)}>
-                                        <RadioGroupItem value="supplier" id="type-supplier" />
-                                        <Label 
-                                            htmlFor="type-supplier" 
-                                            className="font-normal cursor-pointer text-xs"
-                                            onClick={() => setIsSupplierDialogOpen(true)}
-                                        >
-                                            공급사
-                                        </Label>
-                                    </div>
-                                </RadioGroup>
-                                <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button variant="secondary" size="sm" className="h-6 text-xs bg-gray-400 text-white hover:bg-gray-500 border-0 rounded-sm">
-                                            공급사 선택
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-[700px] p-0 gap-0">
-                                        <DialogHeader className="p-6 pb-2 border-b border-black">
-                                            <DialogTitle className="text-xl font-bold text-gray-900">공급사 선택</DialogTitle>
-                                        </DialogHeader>
-                                        
-                                        <div className="p-4 space-y-4">
-                                            {/* Popup Search */}
-                                            <div className="bg-gray-50 p-4 border-t border-b border-gray-200 flex items-center gap-4">
-                                                <span className="font-medium text-gray-700 w-20">공급사명</span>
-                                                <div className="flex items-center gap-2 flex-1">
-                                                    <Input className="h-8 border-gray-300 w-full" />
-                                                    <Button className="h-8 w-24 bg-[#4B5563] text-white hover:bg-[#374151] rounded-none">
-                                                        검색
-                                                    </Button>
-                                                </div>
-                                            </div>
-
-                                            {/* Popup Table */}
-                                            <div className="border border-gray-300">
-                                                <table className="w-full text-center text-xs">
-                                                    <thead className="bg-[#A6A6A6] text-white">
-                                                        <tr>
-                                                            <th className="py-2 w-12 border-r border-gray-400">
-                                                                <div className="flex justify-center">
-                                                                    <Checkbox className="bg-white border-white data-[state=checked]:text-black w-4 h-4 rounded-sm" />
-                                                                </div>
-                                                            </th>
-                                                            <th className="py-2 w-16 border-r border-gray-400">번호</th>
-                                                            <th className="py-2 border-r border-gray-400">공급사명</th>
-                                                            <th className="py-2 w-24 border-r border-gray-400">상태</th>
-                                                            <th className="py-2 w-32">등록일</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody className="bg-white divide-y divide-gray-200">
-                                                        <tr className="hover:bg-gray-50">
-                                                            <td className="py-3 border-r border-gray-200">
-                                                                <div className="flex justify-center">
-                                                                    <Checkbox className="border-gray-300 w-4 h-4 rounded-sm" />
-                                                                </div>
-                                                            </td>
-                                                            <td className="py-3 border-r border-gray-200">1</td>
-                                                            <td className="py-3 border-r border-gray-200 text-left px-4 font-medium">니어인터내셔널</td>
-                                                            <td className="py-3 border-r border-gray-200">운영</td>
-                                                            <td className="py-3 text-gray-600">2025-11-25</td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            {/* Popup Pagination */}
-                                            <div className="flex justify-center py-2">
-                                            <Button variant="ghost" className="h-8 w-8 p-0 rounded-none bg-[#4B5563] text-white hover:bg-[#374151]">
-                                                    1
-                                                </Button>
-                                            </div>
-
-                                            {/* Popup Footer */}
-                                            <div className="flex justify-center pt-2">
-                                                <Button 
-                                                    className="w-24 h-10 bg-[#4B5563] text-white hover:bg-[#374151] rounded-none text-sm font-medium"
-                                                    onClick={() => setIsSupplierDialogOpen(false)}
-                                                >
-                                                    확인
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                            </div>
-                        </div>
                         <div className="grid grid-cols-[100px_1fr]">
                             <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center text-xs">검색어</div>
                             <div className="p-3">
@@ -407,22 +309,6 @@ export default function ManagerPermissionPage() {
                 </div>
             </div>
             
-             {/* Floating Actions */}
-             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-12 h-12 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px]">YouTube</span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-[#6E36E2] hover:bg-[#6E36E2]/90 shadow-lg text-white p-0 flex flex-col items-center justify-center border-0 gap-0">
-                    <span className="text-[10px] leading-none">따라</span>
-                    <span className="text-[10px] leading-none">하기</span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↑
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↓
-                </Button>
-            </div>
-        </div>
+                     </div>
     );
 }

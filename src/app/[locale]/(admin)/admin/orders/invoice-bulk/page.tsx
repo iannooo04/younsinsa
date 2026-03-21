@@ -12,8 +12,6 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Youtube,
-  ChevronUp,
   BookOpen,
   AlertCircle,
   Calendar
@@ -24,7 +22,6 @@ import { uploadInvoiceExcelAction, getInvoiceUploadHistoryAction } from "@/actio
 import { format } from "date-fns";
 
 import DeliveryCompanyCodePopup from "@/components/admin/DeliveryCompanyCodePopup";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 
 interface InvoiceRow {
     orderNo: string;
@@ -54,7 +51,6 @@ export default function InvoiceBulkPage() {
   const endDateInputRef = useRef<HTMLInputElement>(null);
 
   const [isDeliveryCompanyPopupOpen, setIsDeliveryCompanyPopupOpen] = useState(false);
-  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [isUploading, startTransition] = useTransition();
   const [, setUploadResult] = useState<{
     success: boolean;
@@ -228,36 +224,6 @@ export default function InvoiceBulkPage() {
         </div>
 
         <div className="p-0">
-             {/* Supplier Type */}
-             <div className="flex text-xs border-b border-gray-200 min-h-[44px]">
-                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 whitespace-nowrap">
-                    공급사 구분
-                </div>
-                <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup defaultValue="all" className="flex items-center gap-4">
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="all" id="supplier-all" />
-                            <label htmlFor="supplier-all" className="cursor-pointer">전체</label>
-                        </div>
-                         <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="main" id="supplier-main" />
-                            <label htmlFor="supplier-main" className="cursor-pointer">본사</label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="supplier" id="supplier-specific" />
-                            <label htmlFor="supplier-specific" className="cursor-pointer">공급사</label>
-                        </div>
-                    </RadioGroup>
-                    <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="h-6 text-[11px] !bg-gray-600 !text-white hover:!bg-gray-700 rounded-none px-2"
-                        onClick={() => setIsSupplierPopupOpen(true)}
-                    >
-                         공급사 선택
-                    </Button>
-                </div>
-            </div>
 
             {/* Keyword & Status */}
             <div className="flex text-xs border-b border-gray-200 min-h-[44px]">
@@ -507,36 +473,10 @@ export default function InvoiceBulkPage() {
            </div>
        </div>
 
-       {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0 transform rotate-180">
-                         <ChevronUp className="w-4 h-4" />
-                </Button>
-            </div>
-        </div>
-
+       
       <DeliveryCompanyCodePopup 
         isOpen={isDeliveryCompanyPopupOpen} 
         onClose={() => setIsDeliveryCompanyPopupOpen(false)} 
-      />
-      <SupplierPopup
-        isOpen={isSupplierPopupOpen}
-        onClose={() => setIsSupplierPopupOpen(false)}
-        onConfirm={(selected) => {
-            console.log("Selected supplier:", selected);
-            // Handle selection logic here if needed in the future
-        }}
       />
     </div>
   );

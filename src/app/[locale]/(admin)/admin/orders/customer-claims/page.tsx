@@ -16,14 +16,12 @@ import {
 import {
   HelpCircle,
   Calendar,
-  Youtube,
   ChevronUp,
   FileSpreadsheet,
   Check,
   RefreshCw,
   Printer,
 } from "lucide-react";
-import SupplierPopup from '@/components/admin/SupplierPopup';
 import MemberGradeSelectPopup from '@/components/admin/MemberGradeSelectPopup';
 import BrandPopup from "@/components/admin/BrandPopup";
 import SearchConditionChangePopup from "@/components/admin/SearchConditionChangePopup";
@@ -94,7 +92,6 @@ export default function CustomerClaimsPage() {
   const [manualPayment, setManualPayment] = useState(false);
 
   // Popup State
-  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [isMemberGradePopupOpen, setIsMemberGradePopupOpen] = useState(false);
   const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
   const [isSearchConditionPopupOpen, setIsSearchConditionPopupOpen] = useState(false);
@@ -279,52 +276,12 @@ export default function CustomerClaimsPage() {
                                 <RadioGroupItem value="all" id="store-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                                 <Label htmlFor="store-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="KR" id="store-kr" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="store-kr" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
-                                    <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-white">🇰🇷</span>
-                                    기준몰
-                                </Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="CN" id="store-cn" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="store-cn" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
-                                    <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-red-600 text-white">🇨🇳</span>
-                                    중문몰
-                                </Label>
-                            </div>
+                            
+                             
                         </RadioGroup>
                 </div>
             </div>
 
-            {/* Supplier Type */}
-            <div className="flex items-center text-xs border-b border-gray-200">
-                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    공급사 구분
-                </div>
-                <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup defaultValue="all" className="flex gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="all" id="supplier-all" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="supplier-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="head" id="supplier-head" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="provider" id="supplier-provider" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                            </div>
-                        </RadioGroup>
-                        <Button 
-                            className="h-7 bg-[#555] hover:bg-[#444] text-white text-[11px] rounded-sm px-2"
-                            onClick={() => setIsSupplierPopupOpen(true)}
-                        >
-                            공급사 선택
-                        </Button>
-                </div>
-            </div>
 
              {/* Search Query */}
              <div className="flex items-center text-xs border-b border-gray-200">
@@ -534,22 +491,9 @@ export default function CustomerClaimsPage() {
                                     />
                                     <Label htmlFor="orderType-all" className="text-gray-700 font-normal">전체</Label>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="orderType-pc" checked={orderType.pc} onCheckedChange={(c) => setOrderType(p => ({...p, pc: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="orderType-pc" className="text-gray-700 font-normal">PC쇼핑몰</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="orderType-mobile" checked={orderType.mobile} onCheckedChange={(c) => setOrderType(p => ({...p, mobile: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="orderType-mobile" className="text-gray-700 font-normal">모바일쇼핑몰</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <span>(</span>
-                                    <Checkbox id="orderType-app" checked={orderType.app} onCheckedChange={(c) => setOrderType(p => ({...p, app: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="orderType-app" className="text-gray-700 font-normal">WEB</Label>
-                                    <Checkbox id="orderType-app2" className="rounded-[2px] border-gray-300 ml-1"/>
-                                    <Label htmlFor="orderType-app2" className="text-gray-700 font-normal">APP</Label>
-                                    <span>)</span>
-                                </div>
+                                
+                                
+                                
                                  <div className="flex items-center gap-1.5 ml-2">
                                     <Checkbox id="orderType-manual" checked={orderType.manual} onCheckedChange={(c) => setOrderType(p => ({...p, manual: !!c}))} className="rounded-[2px] border-gray-300"/>
                                     <Label htmlFor="orderType-manual" className="text-gray-700 font-normal">수기주문</Label>
@@ -1169,33 +1113,7 @@ export default function CustomerClaimsPage() {
           </div>
       </div>
       
-       {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0 transform rotate-180">
-                         <ChevronUp className="w-4 h-4" />
-                </Button>
-            </div>
-        </div>
-
-        <SupplierPopup
-            isOpen={isSupplierPopupOpen}
-            onClose={() => setIsSupplierPopupOpen(false)}
-            onConfirm={(selected: unknown) => {
-                console.log("Selected supplier:", selected);
-            }}
-        />
-
+       
         <MemberGradeSelectPopup 
            isOpen={isMemberGradePopupOpen}
            onClose={() => setIsMemberGradePopupOpen(false)}

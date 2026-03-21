@@ -7,8 +7,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   HelpCircle,
-  Youtube,
-  ChevronUp,
   Info
 } from "lucide-react";
 import {
@@ -295,8 +293,7 @@ export default function BoardListPage() {
                              <th className="w-20 border-r border-gray-300 font-normal">전체게시글</th>
                              <th className="w-20 border-r border-gray-300 font-normal">미답변</th>
                              <th className="w-24 border-r border-gray-300 font-normal">유형</th>
-                             <th className="w-40 border-r border-gray-300 font-normal text-[10px]">PC쇼핑몰 스킨</th>
-                             <th className="w-40 border-r border-gray-300 font-normal text-[10px]">모바일쇼핑몰 스킨</th>
+                             <th className="w-40 border-r border-gray-300 font-normal text-[10px]">스킨</th>
                              <th className="w-20 border-r border-gray-300 font-normal">URL복사</th>
                              <th className="w-16 border-r border-gray-300 font-normal">쇼핑몰</th>
                              <th className="w-16 border-r border-gray-300 font-normal">게시글</th>
@@ -305,9 +302,9 @@ export default function BoardListPage() {
                      </thead>
                      <tbody>
                          {loading ? (
-                             <tr><td colSpan={14} className="py-10 text-gray-500">로딩중...</td></tr>
+                             <tr><td colSpan={13} className="py-10 text-gray-500">로딩중...</td></tr>
                          ) : boards.length === 0 ? (
-                             <tr><td colSpan={14} className="py-10 text-gray-500">검색된 게시판이 없습니다.</td></tr>
+                             <tr><td colSpan={13} className="py-10 text-gray-500">검색된 게시판이 없습니다.</td></tr>
                          ) : boards.map((row, i) => (
                              <tr key={row.id} className="h-20 border-b border-gray-200 hover:bg-gray-50 text-gray-700">
                                  <td className="border-r border-gray-200">
@@ -324,31 +321,11 @@ export default function BoardListPage() {
                                  <td className="border-r border-gray-200 font-normal">{row.stats?.total || 0}</td>
                                  <td className="border-r border-gray-200 font-normal">{row.stats?.unreplied}</td>
                                  <td className="border-r border-gray-200 font-normal">{getTypeName(row.type)}</td>
-                                 <td className="border-r border-gray-200 text-left p-2">
-                                     <div className="space-y-1">
-                                         <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇰🇷</span> {getTypeName(row.type)}(기본)
-                                         </div>
-                                         <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇨🇳</span> {getTypeName(row.type)}(기본)
-                                         </div>
-                                     </div>
-                                 </td>
-                                 <td className="border-r border-gray-200 text-left p-2">
-                                     <div className="space-y-1">
-                                         <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇰🇷</span> {getTypeName(row.type)}(기본)
-                                         </div>
-                                         <div className="flex items-center gap-1 text-[10px]">
-                                             <span className="text-xs">🇨🇳</span> {getTypeName(row.type)}(기본)
-                                         </div>
-                                     </div>
+                                 <td className="border-r border-gray-200 text-center">
+                                     {getTypeName(row.type)}(기본)
                                  </td>
                                  <td className="border-r border-gray-200 p-1">
-                                     <div className="flex flex-col gap-1">
-                                         <Button variant="outline" className="h-6 text-[10px] w-full p-0 border-gray-300 font-normal rounded-none">PC</Button>
-                                         <Button variant="outline" className="h-6 text-[10px] w-full p-0 border-gray-300 font-normal rounded-none">모바일</Button>
-                                     </div>
+                                     <Button variant="outline" className="h-6 text-[10px] w-full p-0 border-gray-300 font-normal rounded-none">복사</Button>
                                  </td>
                                  <td className="border-r border-gray-200">
                                      <Button variant="outline" className="h-6 px-2 text-[10px] border-gray-300 font-normal rounded-none text-gray-600">보기</Button>
@@ -404,7 +381,7 @@ export default function BoardListPage() {
                   <h4 className="font-bold text-gray-700 mb-2">[게시판 관리] 신규 생성한 게시판은 쇼핑몰에 어떻게 연결하나요?</h4>
                    <ul className="list-none space-y-2 text-gray-500 pl-1 leading-relaxed">
                     <li>· 신규 생성된 게시판은 게시판 리스트에 추가되며, [보기] 버튼을 클릭하여 페이지로 이동하거나</li>
-                    <li className="pl-3">[PC] / [모바일] 버튼을 클릭하여 게시판의 URL을 클립보드에 복사할 수 있습니다.</li>
+                    <li className="pl-3">[복사] 버튼을 클릭하여 게시판의 URL을 클립보드에 복사할 수 있습니다.</li>
                     <li>· "디자인 &gt; 디자인 관리 &gt; 디자인 페이지 수정"에서 원하는 페이지 내에 이미지 또는 텍스트를 넣고</li>
                     <li className="pl-1">게시판 URL을 링크를 처리하면, 신규 생성한 게시판으로 연결시킬 수 있습니다.</li>
                   </ul>
@@ -417,24 +394,6 @@ export default function BoardListPage() {
             © NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-red-500">5.1.23.1206.5ccf2dd6</span>)
         </div>
 
-        {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0">
-                         <ChevronUp className="w-4 h-4 rotate-180" />
-                </Button>
             </div>
-        </div>
-    </div>
   );
 }

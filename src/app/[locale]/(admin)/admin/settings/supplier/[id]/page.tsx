@@ -317,14 +317,6 @@ export default function SupplierEditPage({ params }: { params: Promise<{ id: str
                     {isPending ? "수정 중..." : "수정"}
                 </Button>
             </div>
-             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button onClick={() => window.scrollTo(0, 0)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↑
-                </Button>
-                <Button onClick={() => window.scrollTo(0, 9999)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↓
-                </Button>
-            </div>
-        </div>
+                     </div>
     );
 }

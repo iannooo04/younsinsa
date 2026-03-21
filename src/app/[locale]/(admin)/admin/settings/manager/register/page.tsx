@@ -753,15 +753,7 @@ export default function ManagerRegisterPage() {
             </div>
             
             {/* Scroll Buttons */}
-             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button onClick={() => window.scrollTo(0, 0)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↑
-                </Button>
-                <Button onClick={() => window.scrollTo(0, 9999)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↓
-                </Button>
-            </div>
-
+             
             <Dialog open={alertDialog.open} onOpenChange={(open) => setAlertDialog(prev => ({ ...prev, open }))}>
                 <DialogContent className="max-w-[400px] p-0 gap-0 border-0 shadow-xl [&>button]:hidden">
                     <div className="p-6 bg-white rounded-sm space-y-4">

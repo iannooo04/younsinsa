@@ -658,18 +658,6 @@ export default function BasicInfoSettingsPage() {
          © NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-red-400">5.1.23.1206.5ccf2dd6</span>)
       </div>
 
-      {/* Floating Buttons */}
-      <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-        <Button className="rounded-full w-12 h-12 bg-red-500 hover:bg-red-600 shadow-lg text-white p-0 flex items-center justify-center">
-             <span className="text-[10px] leading-tight flex flex-col items-center"><span>따라</span><span>하기</span></span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center">
-            <span className="text-xl">↑</span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center">
-            <span className="text-xl">↓</span>
-        </Button>
-      </div>
-    </div>
+          </div>
   );
 }

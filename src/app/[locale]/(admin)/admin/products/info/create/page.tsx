@@ -2,7 +2,7 @@
 
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { List, Youtube, HelpCircle } from "lucide-react";
+import { List, HelpCircle } from "lucide-react";
 import { createEssentialInfoTemplateAction } from "@/actions/product-essential-info-actions";
 import SupplierPopup from "@/components/admin/SupplierPopup";
 
@@ -317,17 +317,7 @@ export default function CreateEssentialInfoPage() {
                 </div>
             </div>
 
-            {/* Floating Actions */}
-            <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <button className="w-12 h-12 rounded-full bg-[#FF3032] text-white flex items-center justify-center shadow-lg hover:bg-[#E52B2D] transition-colors overflow-hidden">
-                    <Youtube size={24} />
-                </button>
-                <button className="w-12 h-12 rounded-full bg-[#8250C6] text-white flex items-center justify-center shadow-lg hover:bg-[#7040B0] transition-colors text-[11px] leading-tight font-bold flex-col pt-0.5">
-                    <span>따라</span>
-                    <span>하기</span>
-                </button>
-            </div>
-
+            
             <SupplierPopup 
                 isOpen={isSupplierPopupOpen}
                 onClose={() => setIsSupplierPopupOpen(false)}

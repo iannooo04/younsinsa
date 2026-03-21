@@ -7,30 +7,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle, Plus, ChevronDown } from "lucide-react";
-import { useState, useEffect, useTransition, useCallback } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { getAdminsAction, AdminSearchFilter, deleteAdminsAction } from "@/actions/admin-actions";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import Link from "next/link";
 
-import { getSuppliersAction } from "@/actions/supplier-actions";
-import { Admin, Supplier } from "@/generated/prisma";
-import { X } from "lucide-react";
+import { Admin } from "@/generated/prisma";
 
 export default function ManagerManagementPage() {
-    const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
     const [isDetailedSearchOpen, setIsDetailedSearchOpen] = useState(false);
     
     // Data State
     const [admins, setAdmins] = useState<Admin[]>([]);
     const [total, setTotal] = useState(0);
     const [isPending, startTransition] = useTransition();
-
-    // Supplier Dialog State
-    const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-    const [supplierTotal, setSupplierTotal] = useState(0);
-    const [supplierPage, setSupplierPage] = useState(1);
-    const [supplierKeyword, setSupplierKeyword] = useState("");
-    const [selectedSupplier, setSelectedSupplier] = useState<{id: string, name: string} | null>(null);
 
     // Filter State
     const [filter, setFilter] = useState<AdminSearchFilter>({
@@ -64,32 +53,6 @@ export default function ManagerManagementPage() {
             }
         });
     };
-
-    // Fetch Suppliers
-    const fetchSuppliers = useCallback(async (page = 1) => {
-        const result = await getSuppliersAction({
-            page,
-            pageSize: 5,
-            orderBy: "name_asc",
-            filter: {
-                keyword: supplierKeyword,
-                keywordType: "integrated",
-                status: "ACTIVE"
-            }
-        });
-        if (result.success) {
-            setSuppliers(result.items || []);
-            setSupplierTotal(result.total || 0);
-            setSupplierPage(page);
-        }
-    }, [supplierKeyword]);
-
-    // Effect for Suppliers (when dialog opens or keyword changes)
-    useEffect(() => {
-        if (isSupplierDialogOpen) {
-            fetchSuppliers(1);
-        }
-    }, [isSupplierDialogOpen, supplierKeyword, fetchSuppliers]);
 
     // Initial Fetch & Update on dependencies
     useEffect(() => {
@@ -142,17 +105,6 @@ export default function ManagerManagementPage() {
         }
     };
 
-    const selectSupplier = (supplier: Supplier) => {
-        setSelectedSupplier({ id: supplier.id, name: supplier.name });
-        setFilter(prev => ({ ...prev, supplierId: supplier.id, supplyType: "supplier" }));
-        setIsSupplierDialogOpen(false);
-    };
-
-    const clearSupplierSelection = () => {
-        setSelectedSupplier(null);
-        setFilter(prev => ({ ...prev, supplierId: undefined }));
-    }
-
     return (
         <div className="p-6 space-y-6 bg-white min-h-screen font-sans text-sm pb-24">
             {/* Header ... */}
@@ -173,130 +125,6 @@ export default function ManagerManagementPage() {
                 </div>
 
                 <div className="border-t border-gray-400 bg-white border-b border-gray-200">
-                    <div className="grid grid-cols-[150px_1fr] divide-x border-b border-gray-200">
-                        <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">공급사 구분</div>
-                        <div className="p-3 flex items-center gap-6">
-                            <RadioGroup 
-                                value={filter.supplyType} 
-                                onValueChange={(v) => {
-                                    setFilter({ ...filter, supplyType: v as AdminSearchFilter['supplyType'] });
-                                    if (v === 'supplier') {
-                                        setIsSupplierDialogOpen(true);
-                                    } else {
-                                        clearSupplierSelection();
-                                    }
-                                }}
-                                className="flex items-center gap-6"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="all" id="type-all" />
-                                    <Label htmlFor="type-all" className="font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="headquarters" id="type-hq" />
-                                    <Label htmlFor="type-hq" className="font-normal cursor-pointer">본사</Label>
-                                </div>
-                                <div className="flex items-center gap-2" onClickCapture={() => setIsSupplierDialogOpen(true)}>
-                                    <RadioGroupItem value="supplier" id="type-supplier" />
-                                    <Label 
-                                        htmlFor="type-supplier" 
-                                        className="font-normal cursor-pointer"
-                                        onClick={() => setIsSupplierDialogOpen(true)}
-                                    >
-                                        공급사
-                                    </Label>
-                                </div>
-                            </RadioGroup>
-                             
-                             <div className="flex items-center gap-2">
-                                {selectedSupplier && (
-                                    <span className="text-blue-600 font-medium text-xs border border-blue-200 bg-blue-50 px-2 py-1 rounded-sm flex items-center gap-1">
-                                        {selectedSupplier.name}
-                                        <X size={12} className="cursor-pointer" onClick={clearSupplierSelection} />
-                                    </span>
-                                )}
-                                <Dialog open={isSupplierDialogOpen} onOpenChange={setIsSupplierDialogOpen}>
-                                    <DialogTrigger asChild>
-                                        <Button 
-                                            variant="secondary" 
-                                            size="sm" 
-                                            className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 border-0 rounded-sm"
-                                        >
-                                            공급사 선택
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="max-w-[500px] p-0 gap-0">
-                                        <DialogHeader className="p-4 border-b">
-                                            <DialogTitle className="text-lg font-bold">공급사 검색</DialogTitle>
-                                        </DialogHeader>
-                                        <div className="p-4 space-y-4">
-                                            <div className="flex gap-2">
-                                                <Input 
-                                                    placeholder="공급사명 또는 코드 검색" 
-                                                    value={supplierKeyword}
-                                                    onChange={(e) => setSupplierKeyword(e.target.value)}
-                                                    className="h-9 text-sm"
-                                                />
-                                                <Button onClick={() => fetchSuppliers(1)} className="h-9 bg-gray-700 hover:bg-gray-800">검색</Button>
-                                            </div>
-                                            
-                                            <div className="border border-gray-200 rounded-sm max-h-[300px] overflow-y-auto">
-                                                <table className="w-full text-left text-xs">
-                                                    <thead className="bg-gray-50 font-medium text-gray-600 sticky top-0">
-                                                        <tr>
-                                                            <th className="p-2 border-b">공급사명</th>
-                                                            <th className="p-2 border-b">코드</th>
-                                                            <th className="p-2 border-b w-16">선택</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        {suppliers.length === 0 ? (
-                                                            <tr><td colSpan={3} className="p-4 text-center text-gray-500">검색 결과가 없습니다.</td></tr>
-                                                        ) : (
-                                                            suppliers.map(sup => (
-                                                                <tr key={sup.id} className="border-b hover:bg-gray-50">
-                                                                    <td className="p-2">{sup.name}</td>
-                                                                    <td className="p-2 text-gray-500">{sup.code || "-"}</td>
-                                                                    <td className="p-2">
-                                                                        <Button size="sm" onClick={() => selectSupplier(sup)} className="h-6 text-xs bg-blue-500 hover:bg-blue-600">
-                                                                            선택
-                                                                        </Button>
-                                                                    </td>
-                                                                </tr>
-                                                            ))
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            
-                                            <div className="flex justify-center gap-1">
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm" 
-                                                    disabled={supplierPage <= 1}
-                                                    onClick={() => fetchSuppliers(supplierPage - 1)}
-                                                >
-                                                    &lt;
-                                                </Button>
-                                                <span className="flex items-center text-xs text-gray-500">
-                                                    {supplierPage} / {Math.ceil(supplierTotal / 5) || 1}
-                                                </span>
-                                                <Button 
-                                                    variant="ghost" 
-                                                    size="sm"
-                                                    disabled={supplierPage >= Math.ceil(supplierTotal / 5)}
-                                                    onClick={() => fetchSuppliers(supplierPage + 1)}
-                                                >
-                                                    &gt;
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </DialogContent>
-                                </Dialog>
-                             </div>
-                        </div>
-                    </div>
-
                     <div className="grid grid-cols-[150px_1fr] divide-x border-b border-gray-200">
                         <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">검색어</div>
                         <div className="p-3 flex items-center gap-2">
@@ -635,22 +463,6 @@ export default function ManagerManagementPage() {
                 </div>
             </div>
             
-             {/* Floating Actions */}
-             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-12 h-12 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px]">YouTube</span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-[#6E36E2] hover:bg-[#6E36E2]/90 shadow-lg text-white p-0 flex flex-col items-center justify-center border-0 gap-0">
-                    <span className="text-[10px] leading-none">따라</span>
-                    <span className="text-[10px] leading-none">하기</span>
-                </Button>
-                <Button onClick={() => window.scrollTo(0, 0)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↑
-                </Button>
-                <Button onClick={() => window.scrollTo(0, 9999)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↓
-                </Button>
-            </div>
-        </div>
+                     </div>
     );
 }

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { HelpCircle, Youtube, Plus, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown } from "lucide-react";
+import { HelpCircle, Plus, ChevronsUp, ChevronUp, ChevronDown, ChevronsDown } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function OrderAdditionalInfoSettingsPage() {
@@ -141,12 +141,6 @@ export default function OrderAdditionalInfoSettingsPage() {
                 </div>
             </div>
 
-            {/* Floating Actions */}
-            <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-12 h-12 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px] font-bold"><Youtube size={20}/></span>
-                </Button>
-            </div>
-        </div>
+                    </div>
     );
 }

@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/select";
 import {
   CircleHelp as HelpCircle,
-  Youtube,
-  ChevronUp,
   Info,
   Trash2,
 } from "lucide-react";
@@ -33,8 +31,7 @@ export default function BoardCreatePage() {
   const [loading, setLoading] = useState(false);
   const [showTemplateModal, setShowTemplateModal] = useState(false);
   const [formData, setFormData] = useState({
-      usePcMall: "use",
-      useMobileMall: "use",
+      useMall: "use",
       type: "normal",
       boardId: "",
       name: "",
@@ -137,8 +134,8 @@ export default function BoardCreatePage() {
     };
 
     const result = await createBoardAction({
-        usePcMall: formData.usePcMall === 'use',
-        useMobileMall: formData.useMobileMall === 'use',
+        usePcMall: formData.useMall === 'use',
+        useMobileMall: formData.useMall === 'use',
         type: mapType(formData.type),
         boardId: formData.boardId,
         name: formData.name,
@@ -193,24 +190,10 @@ export default function BoardCreatePage() {
         </div>
 
         <div className="border-t border-gray-400">
-          {/* PC Mall Use */}
-          <FormRow label="PC쇼핑몰 사용여부" required>
+          {/* Mall Use */}
+          <FormRow label="쇼핑몰 사용여부" required>
             <div className="flex flex-col gap-2">
-              <RadioGroup value={formData.usePcMall} onValueChange={(v) => handleChange('usePcMall', v)} className="flex items-center gap-6">
-                <OptionItem value="use" label="사용" />
-                <OptionItem value="no" label="사용안함" />
-              </RadioGroup>
-              <div className="flex items-start gap-1 text-[11px] text-gray-400 leading-relaxed">
-                 <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px] mt-0.5 flex-shrink-0">!</span>
-                 <span>"사용 안함" 설정 시 쇼핑몰 회원(비회원포함)접근을 하지 못하도록 설정합니다.<br/>관리자에서 접근 시 사용여부 설정과 상관없이 접속이 가능합니다.</span>
-              </div>
-            </div>
-          </FormRow>
-
-          {/* Mobile Mall Use */}
-          <FormRow label="모바일쇼핑몰 사용여부" required>
-             <div className="flex flex-col gap-2">
-              <RadioGroup value={formData.useMobileMall} onValueChange={(v) => handleChange('useMobileMall', v)} className="flex items-center gap-6">
+              <RadioGroup value={formData.useMall} onValueChange={(v) => handleChange('useMall', v)} className="flex items-center gap-6">
                 <OptionItem value="use" label="사용" />
                 <OptionItem value="no" label="사용안함" />
               </RadioGroup>
@@ -298,10 +281,10 @@ export default function BoardCreatePage() {
                    </thead>
                    <tbody className="divide-y divide-gray-200">
                       <tr className="h-12">
-                         <td className="bg-white font-bold border-r border-gray-200" rowSpan={2}>PC 쇼핑몰</td>
+                         <td className="bg-white font-bold border-r border-gray-200">쇼핑몰</td>
                          <td className="bg-white border-r border-gray-200">
                             <div className="flex items-center gap-2 pl-4">
-                               <span className="text-xs">🇰🇷</span> glance
+                               glance
                             </div>
                          </td>
                          <td className="bg-white p-2">
@@ -311,49 +294,6 @@ export default function BoardCreatePage() {
                                    <SelectItem value="placeholder">선택해주세요</SelectItem>
                                    <SelectItem value="default">일반형(기본) (default)</SelectItem>
                                </SelectContent>
-                            </Select>
-                         </td>
-                      </tr>
-                      <tr className="h-12">
-                         <td className="bg-white border-r border-gray-200 border-t border-gray-200">
-                            <div className="flex items-center gap-2 pl-4">
-                               <span className="text-xs">🇨🇳</span> mime_cn
-                            </div>
-                         </td>
-                         <td className="bg-white p-2 border-t border-gray-200">
-                           <Select defaultValue="placeholder">
-                               <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white"><SelectValue/></SelectTrigger>
-                               <SelectContent>
-                                   <SelectItem value="placeholder">선택해주세요</SelectItem>
-                                   <SelectItem value="default">일반형(기본) (default)</SelectItem>
-                               </SelectContent>
-                           </Select>
-                         </td>
-                      </tr>
-                      <tr className="h-12 border-t-2 border-gray-200">
-                        <td className="bg-white font-bold border-r border-gray-200" rowSpan={2}>모바일 쇼핑몰</td>
-                        <td className="bg-white border-r border-gray-200">
-                           <div className="flex items-center gap-2 pl-4">
-                              <span className="text-xs">🇰🇷</span> glance
-                           </div>
-                        </td>
-                        <td className="bg-white p-2">
-                            <Select defaultValue="placeholder">
-                               <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white"><SelectValue/></SelectTrigger>
-                               <SelectContent><SelectItem value="placeholder">선택해주세요</SelectItem></SelectContent>
-                            </Select>
-                        </td>
-                      </tr>
-                       <tr className="h-12">
-                         <td className="bg-white border-r border-gray-200 border-t border-gray-200">
-                            <div className="flex items-center gap-2 pl-4">
-                               <span className="text-xs">🇨🇳</span> mime_cn
-                            </div>
-                         </td>
-                         <td className="bg-white p-2 border-t border-gray-200">
-                           <Select defaultValue="placeholder">
-                               <SelectTrigger className="w-full h-8 text-xs border-gray-300 bg-white"><SelectValue/></SelectTrigger>
-                               <SelectContent><SelectItem value="placeholder">선택해주세요</SelectItem></SelectContent>
                             </Select>
                          </td>
                       </tr>
@@ -702,17 +642,13 @@ export default function BoardCreatePage() {
                <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-4">
                      <div className="flex items-center gap-1.5">
-                        <Checkbox id="pc-view" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" checked />
-                        <Label htmlFor="pc-view" className="text-gray-700 cursor-pointer">PC쇼핑몰</Label>
-                     </div>
-                     <div className="flex items-center gap-1.5">
-                        <Checkbox id="mo-view" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" checked />
-                        <Label htmlFor="mo-view" className="text-gray-700 cursor-pointer">모바일쇼핑몰</Label>
+                        <Checkbox id="mall-view" className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" checked />
+                        <Label htmlFor="mall-view" className="text-gray-700 cursor-pointer">쇼핑몰</Label>
                      </div>
                   </div>
                    <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <span className="bg-gray-500 text-white w-3 h-3 text-[9px] flex items-center justify-center rounded-[2px]">!</span>
-                    <span>PC쇼핑몰, 모바일쇼핑몰 전체 체크 시, PC 및 모바일쇼핑몰의 리스트 및 상세 영역의 조회수가 노출됩니다.</span>
+                    <span>쇼핑몰 체크 시, 쇼핑몰의 리스트 및 상세 영역의 조회수가 노출됩니다.</span>
                  </div>
                </div>
             </FormRow>
@@ -1356,25 +1292,7 @@ export default function BoardCreatePage() {
             © NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-red-500">5.1.23.1206.5ccf2dd6</span>)
         </div>
 
-        {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0">
-                         <ChevronUp className="w-4 h-4 rotate-180" />
-                </Button>
             </div>
-        </div>
-    </div>
   );
 }
 

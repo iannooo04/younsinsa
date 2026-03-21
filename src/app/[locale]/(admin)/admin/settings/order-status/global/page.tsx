@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState, useEffect, useTransition } from "react";
 import { getOrderStatusSettingsAction, updateOrderStatusSettingsAction } from "@/actions/basic-policy-actions";
-import { ChevronUp, Youtube } from "lucide-react";
 
 
 type StatusConfig = {
@@ -228,18 +227,6 @@ export default function GlobalOrderStatusPage() {
             </div>
 
             {/* Footer Buttons (Scroll to top/down) */}
-            <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-               <Button className="rounded-full w-12 h-12 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px] font-bold"><Youtube size={20}/></span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-[#6E36E2] hover:bg-[#6E36E2]/90 shadow-lg text-white p-0 flex flex-col items-center justify-center border-0 gap-0">
-                    <span className="text-[10px] leading-none">따라</span>
-                    <span className="text-[10px] leading-none">하기</span>
-                </Button>
-                 <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth'})}>
-                    <ChevronUp size={20} />
-                </Button>
-            </div>
-        </div>
+                    </div>
     );
 }

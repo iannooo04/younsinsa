@@ -19,14 +19,12 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Youtube,
   ChevronUp,
   FileSpreadsheet,
   BookOpen,
   RefreshCcw,
   Printer
 } from "lucide-react";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
 import BrandPopup from "@/components/admin/BrandPopup";
 import SearchConditionChangePopup from "@/components/admin/SearchConditionChangePopup";
@@ -61,7 +59,6 @@ export default function OrderIntegratedListPage() {
   const [orders, setOrders] = useState<OrderListItem[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [isMemberGradePopupOpen, setIsMemberGradePopupOpen] = useState(false);
   const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
   const [isSearchConditionPopupOpen, setIsSearchConditionPopupOpen] = useState(false);
@@ -69,7 +66,6 @@ export default function OrderIntegratedListPage() {
   const [isSearchSettingSavePopupOpen, setIsSearchSettingSavePopupOpen] = useState(false);
   const [isMultiSearchMode, setIsMultiSearchMode] = useState(false);
   const [multiSearchItems, setMultiSearchItems] = useState([{ id: 0, type: "order_no", value: "" }]);
-  const [supplierType, setSupplierType] = useState("all");
   
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
@@ -221,61 +217,12 @@ export default function OrderIntegratedListPage() {
                                 <RadioGroupItem value="all" id="store-all" className="border-red-500 text-red-500 focus:ring-red-500" />
                                 <Label htmlFor="store-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
                             </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="KR" id="store-kr" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="store-kr" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
-                                    <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-white">🇰🇷</span>
-                                    기준몰
-                                </Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="CN" id="store-cn" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="store-cn" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1">
-                                    <span className="w-4 h-4 rounded-full border border-gray-300 flex items-center justify-center text-[8px] bg-red-600 text-white">🇨🇳</span>
-                                    중문몰
-                                </Label>
-                            </div>
+                            
+                             
                         </RadioGroup>
                 </div>
             </div>
 
-            {/* Supplier Type */}
-            <div className="flex items-center text-xs border-b border-gray-200">
-                <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    공급사 구분
-                </div>
-                <div className="flex-1 p-3 flex items-center gap-4">
-                     <RadioGroup 
-                        value={supplierType} 
-                        onValueChange={(value) => {
-                            setSupplierType(value);
-                            if (value === "provider") {
-                                setIsSupplierPopupOpen(true);
-                            }
-                        }}
-                        className="flex gap-4"
-                     >
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="all" id="supplier-all" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="supplier-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="head" id="supplier-head" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                            </div>
-                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="provider" id="supplier-provider" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                            </div>
-                        </RadioGroup>
-                        <Button 
-                            onClick={() => setIsSupplierPopupOpen(true)}
-                            className="h-7 text-[11px] bg-[#A4A4A4] text-white hover:bg-[#888888] rounded-sm px-2"
-                        >
-                            공급사 선택
-                        </Button>
-                </div>
-            </div>
 
              {/* Search Query */}
              <div className="flex items-center text-xs border-b border-gray-200">
@@ -484,18 +431,9 @@ export default function OrderIntegratedListPage() {
                                     <Checkbox id="order-type-all" className="rounded-[2px] border-red-500 text-red-500" defaultChecked />
                                     <Label htmlFor="order-type-all" className="font-normal cursor-pointer">전체</Label>
                                 </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="order-type-pc" className="rounded-[2px] border-gray-300" />
-                                    <Label htmlFor="order-type-pc" className="font-normal cursor-pointer">PC쇼핑몰</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="order-type-mobile" className="rounded-[2px] border-gray-300" />
-                                    <Label htmlFor="order-type-mobile" className="font-normal cursor-pointer">모바일쇼핑몰</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-gray-500">
-                                    ( <Checkbox id="order-type-web" className="rounded-[2px] border-gray-300" /> <Label htmlFor="order-type-web" className="font-normal cursor-pointer">WEB</Label>
-                                      <Checkbox id="order-type-app" className="rounded-[2px] border-gray-300 ml-2" /> <Label htmlFor="order-type-app" className="font-normal cursor-pointer">APP</Label> )
-                                </div>
+                                
+                                
+                                
                                 <div className="flex items-center gap-1.5">
                                     <Checkbox id="order-type-manual" className="rounded-[2px] border-gray-300" />
                                     <Label htmlFor="order-type-manual" className="font-normal cursor-pointer">수기주문</Label>
@@ -1797,33 +1735,7 @@ export default function OrderIntegratedListPage() {
            </div>
        </div>
 
-       {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0 transform rotate-180">
-                         <ChevronUp className="w-4 h-4" />
-                </Button>
-            </div>
-        </div>
-
-        <SupplierPopup
-            isOpen={isSupplierPopupOpen}
-            onClose={() => setIsSupplierPopupOpen(false)}
-            onConfirm={(selected) => {
-                console.log("Selected supplier:", selected);
-            }}
-        />
-
+       
         <MemberGradeSelectPopup
             isOpen={isMemberGradePopupOpen}
             onClose={() => setIsMemberGradePopupOpen(false)}

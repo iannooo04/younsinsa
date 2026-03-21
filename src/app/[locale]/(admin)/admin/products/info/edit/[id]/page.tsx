@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Plus, Minus, Youtube, ChevronUp, Book } from "lucide-react";
+import { Plus, Minus, Book } from "lucide-react";
 import { useRouter, useParams } from "next/navigation";
 import { getEssentialInfoTemplateAction, updateEssentialInfoTemplateAction } from "@/actions/product-essential-info-actions";
 
@@ -220,20 +220,6 @@ export default function EditEssentialInfoPage() {
                 </div>
             </div>
 
-            {/* Floating Actions */}
-            <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <Youtube size={16}/>
-                </Button>
-                <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                    <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100">
-                         <ChevronUp size={16} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none transform rotate-180">
-                         <ChevronUp size={16} />
-                    </Button>
-                </div>
-            </div>
-        </div>
+                    </div>
     );
 }

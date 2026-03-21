@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  Youtube,
-  ChevronUp,
   Info,
 } from "lucide-react";
 import { getFaqsAction, deleteFaqsAction } from "@/actions/board-faq-actions";
@@ -31,7 +29,6 @@ export default function FAQManagementPage() {
   const [total, setTotal] = useState(0);
   
   // Filters
-  const [mallId, setMallId] = useState("KR");
   const [category, setCategory] = useState("all");
   const [type, setType] = useState("all"); // 'all', 'normal', 'best'
   const [startDate, setStartDate] = useState(format(subDays(new Date(), 7), "yyyy-MM-dd"));
@@ -65,7 +62,6 @@ export default function FAQManagementPage() {
   const fetchFaqs = React.useCallback(async () => {
     setLoading(true);
     const res = await getFaqsAction({
-        mallId: mallId === 'base' ? 'KR' : mallId === 'cn' ? 'CN' : 'KR', // Map UI values
         category: category,
         isBest: type === 'best',
         keyword,
@@ -83,7 +79,7 @@ export default function FAQManagementPage() {
         toast.error("데이터를 불러오는데 실패했습니다.");
     }
     setLoading(false);
-  }, [mallId, category, type, keyword, page, pageSize, startDate, endDate, searchType]);
+  }, [category, type, keyword, page, pageSize, startDate, endDate, searchType]);
 
   useEffect(() => {
     fetchFaqs();
@@ -139,29 +135,6 @@ export default function FAQManagementPage() {
         </div>
 
         <div className="border-t border-gray-400 border-b border-gray-200">
-          {/* Store */}
-          <div className="flex border-b border-gray-200 min-h-[48px]">
-            <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
-              상점
-            </div>
-            <div className="flex-1 p-2 flex items-center px-4">
-              <RadioGroup value={mallId} onValueChange={setMallId} className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="KR" id="skin-base" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
-                  <Label htmlFor="skin-base" className="text-gray-700 cursor-pointer text-xs font-normal flex items-center gap-1">
-                    <span className="text-sm">🇰🇷</span> 기준몰
-                  </Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value="CN" id="skin-cn" className="border-gray-300 data-[state=checked]:border-red-500 data-[state=checked]:text-red-500 text-red-500 focus:ring-red-500 w-4 h-4" />
-                  <Label htmlFor="skin-cn" className="text-gray-700 cursor-pointer text-xs font-normal flex items-center gap-1">
-                    <span className="text-sm">🇨🇳</span> 중문몰
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-          </div>
-
           {/* Category */}
           <div className="flex border-b border-gray-200 min-h-[48px]">
             <div className="w-32 bg-[#FBFBFB] p-3 pl-4 font-normal text-gray-700 flex items-center border-r border-gray-200">
@@ -304,7 +277,6 @@ export default function FAQManagementPage() {
                 />
               </th>
               <th className="w-20 border-r border-gray-300 font-normal">번호</th>
-              <th className="w-24 border-r border-gray-300 font-normal">상점 구분</th>
               <th className="w-32 border-r border-gray-300 font-normal">카테고리</th>
               <th className="border-r border-gray-300 font-normal">제목</th>
               <th className="w-24 border-r border-gray-300 font-normal">유형</th>
@@ -314,9 +286,9 @@ export default function FAQManagementPage() {
           </thead>
           <tbody>
              {loading ? (
-                 <tr className="h-40"><td colSpan={8} className="text-gray-400">로딩중...</td></tr>
+                 <tr className="h-40"><td colSpan={7} className="text-gray-400">로딩중...</td></tr>
              ) : faqs.length === 0 ? (
-                <tr className="h-40"><td colSpan={8} className="text-gray-400">FAQ가 없습니다.</td></tr>
+                <tr className="h-40"><td colSpan={7} className="text-gray-400">FAQ가 없습니다.</td></tr>
              ) : (
                  faqs.map((faq, index) => (
                     <tr key={faq.id} className="h-10 border-b border-gray-200 hover:bg-gray-50">
@@ -328,9 +300,6 @@ export default function FAQManagementPage() {
                             />
                         </td>
                         <td className="border-r border-gray-200">{total - ((page - 1) * pageSize) - index}</td>
-                        <td className="border-r border-gray-200">
-                             {faq.mallId === 'KR' ? '🇰🇷 기준몰' : '🇨🇳 중문몰'}
-                        </td>
                         <td className="border-r border-gray-200">{faq.category}</td>
                         <td className="border-r border-gray-200 text-left px-4">{faq.question}</td>
                         <td className="border-r border-gray-200">
@@ -377,24 +346,6 @@ export default function FAQManagementPage() {
         © NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-red-500">5.1.23.1206.5ccf2dd6</span>)
       </div>
 
-      {/* Floating Actions */}
-      <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-        <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-          <Youtube size={16} />
-        </Button>
-        <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-          <span className="block">따라</span>
-          <span className="block">하기</span>
-        </Button>
-        <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-          <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-            <ChevronUp className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0 rotate-180">
-            <ChevronUp className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
+          </div>
   );
 }

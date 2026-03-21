@@ -13,7 +13,6 @@ interface GuideContent {
 }
 
 export default function GuideSettingsPage() {
-  const [countryTab, setCountryTab] = useState<"kr" | "cn">("kr");
   const [isPending, startTransition] = useTransition();
 
   const [usageContent, setUsageContent] = useState<GuideContent>({ kr: "", cn: "" });
@@ -59,33 +58,6 @@ export default function GuideSettingsPage() {
         </Button>
       </div>
 
-       {/* Tabs */}
-       <div className="space-y-4">
-          {/* Country Tabs */}
-          <div className="flex border-b border-gray-300">
-            <button
-                onClick={() => setCountryTab("kr")}
-                className={`px-6 py-2 text-sm font-medium flex items-center gap-2 border-t border-l border-r rounded-t-sm h-10 min-w-[120px] justify-center ${
-                    countryTab === "kr"
-                    ? "bg-white text-gray-900 border-b-white -mb-px relative z-10 font-bold"
-                    : "bg-gray-50 text-gray-500 border-b-gray-300"
-                }`}
-            >
-                <span className="text-lg">🇰🇷</span> <span>기준몰</span>
-            </button>
-            <button
-                onClick={() => setCountryTab("cn")}
-                className={`px-6 py-2 text-sm font-medium flex items-center gap-2 border-t border-r rounded-t-sm h-10 min-w-[60px] justify-center ${
-                    countryTab === "cn"
-                    ? "bg-white text-gray-900 border-b-white -mb-px relative z-10 font-bold"
-                    : "bg-gray-50 text-gray-500 border-b-gray-300"
-                }`}
-            >
-                <span className="text-lg">🇨🇳</span> <span>중문몰</span>
-            </button>
-          </div>
-      </div>
-
       {/* Usage Guide Section */}
       <div className="space-y-4">
         <h2 className="text-lg font-bold flex items-center gap-2 text-gray-800">
@@ -101,8 +73,8 @@ export default function GuideSettingsPage() {
                 <td className="p-4 bg-white">
                   <Textarea 
                       className="w-full min-h-[300px] border-gray-300 resize-y text-gray-600 text-sm leading-relaxed p-4"
-                      value={usageContent[countryTab]}
-                      onChange={(e) => setUsageContent(prev => ({...prev, [countryTab]: e.target.value}))}
+                      value={usageContent.kr}
+                      onChange={(e) => setUsageContent(prev => ({...prev, kr: e.target.value}))}
                   />
                   <div className="mt-2 text-xs text-gray-500 flex items-start gap-1.5">
                     <span className="bg-gray-600 text-white min-w-[14px] h-[14px] flex items-center justify-center rounded-[2px] text-[10px] mt-0.5">!</span>
@@ -133,8 +105,8 @@ export default function GuideSettingsPage() {
                 <td className="p-4 bg-white">
                   <Textarea 
                       className="w-full min-h-[300px] border-gray-300 resize-y text-gray-600 text-sm leading-relaxed p-4"
-                      value={withdrawalContent[countryTab]}
-                      onChange={(e) => setWithdrawalContent(prev => ({...prev, [countryTab]: e.target.value}))}
+                      value={withdrawalContent.kr}
+                      onChange={(e) => setWithdrawalContent(prev => ({...prev, kr: e.target.value}))}
                   />
                   <div className="mt-2 text-xs text-gray-500 flex items-start gap-1.5">
                     <span className="bg-gray-600 text-white min-w-[14px] h-[14px] flex items-center justify-center rounded-[2px] text-[10px] mt-0.5">!</span>
@@ -150,21 +122,6 @@ export default function GuideSettingsPage() {
         </div>
       </div>
 
-      {/* Floating Buttons (Optional) */}
-      <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-        <Button className="rounded-full w-12 h-12 bg-red-500 hover:bg-red-600 shadow-lg text-white p-0 flex items-center justify-center border-0">
-             <span className="text-[10px] leading-tight flex flex-col items-center font-medium"><span>따라</span><span>하기</span></span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-purple-600 hover:bg-purple-700 shadow-lg text-white p-0 flex items-center justify-center border-0">
-             <span className="text-[10px] leading-tight flex flex-col items-center font-medium"><span>따라</span><span>하기</span></span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0">
-            <span className="text-xl">↑</span>
-        </Button>
-        <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0">
-            <span className="text-xl">↓</span>
-        </Button>
-      </div>
-    </div>
+          </div>
   );
 }

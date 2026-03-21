@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { HelpCircle, Youtube, ArrowUp, ArrowDown, Plus, Minus } from "lucide-react";
+import { HelpCircle, Plus, Minus } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import { getOrderStatusSettingsAction, updateOrderStatusSettingsAction } from "@/actions/basic-policy-actions";
@@ -611,22 +611,6 @@ export default function OrderStatusSettingsPage() {
                 &copy; NHN COMMERCE Corp All Rights Reserved. (ver : <span className="text-[#FF424D]">5.1.23.1206.5ccf2dd6</span>)
             </div>
 
-            {/* Floating Actions */}
-            <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                <Button className="rounded-full w-12 h-12 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px] font-bold"><Youtube size={20}/></span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-[#6E36E2] hover:bg-[#6E36E2]/90 shadow-lg text-white p-0 flex flex-col items-center justify-center border-0 gap-0">
-                    <span className="text-[10px] leading-none">따라</span>
-                    <span className="text-[10px] leading-none">하기</span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    <ArrowUp size={20} />
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    <ArrowDown size={20} />
-                </Button>
-            </div>
-        </div>
+                    </div>
     );
 }

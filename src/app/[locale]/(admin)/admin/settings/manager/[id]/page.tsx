@@ -685,23 +685,7 @@ export default function ManagerEditPage({ params }: { params: Promise<{ id: stri
                  </table>
             </div>
 
-             {/* Floating Actions (Right Bottom) */}
-             <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-                 <Button className="rounded-full w-12 h-12 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                    <span className="text-[10px] font-bold">YouTube</span>
-                </Button>
-                <Button className="rounded-full w-12 h-12 bg-[#6E36E2] hover:bg-[#6E36E2]/90 shadow-lg text-white p-0 flex flex-col items-center justify-center border-0 gap-0">
-                    <span className="text-[10px] leading-none font-bold">따라</span>
-                    <span className="text-[10px] leading-none font-bold">하기</span>
-                </Button>
-                <Button onClick={() => window.scrollTo(0, 0)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↑
-                </Button>
-                <Button onClick={() => window.scrollTo(0, 9999)} className="rounded-full w-12 h-12 bg-gray-300 hover:bg-gray-400 shadow-lg text-white p-0 flex items-center justify-center border-0 text-xl font-bold">
-                    ↓
-                </Button>
-            </div>
-
+             
             <Dialog open={isPermissionDialogOpen} onOpenChange={setIsPermissionDialogOpen}>
                 <DialogContent className="max-w-[900px] p-0 gap-0 border-0 shadow-xl [&>button]:hidden h-[80vh] flex flex-col">
                     <DialogHeader className="p-4 border-b flex flex-row items-center justify-between m-0">

@@ -2,20 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+
 import {
   HelpCircle,
-  Youtube,
-  ChevronUp,
   Info
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -29,10 +20,6 @@ export default function MemberJoinPolicyPage() {
   
   // State
   const [approvalMethod, setApprovalMethod] = useState("none");
-  const [ageLimitMethod, setAgeLimitMethod] = useState("none");
-  const [useAgeConsent, setUseAgeConsent] = useState(false);
-  const [underageAge, setUnderageAge] = useState("14");
-  const [underageAction, setUnderageAction] = useState("approval");
   const [simpleLoginAuthMethod, setSimpleLoginAuthMethod] = useState("use");
   const [rejoinLimitMethod, setRejoinLimitMethod] = useState("unused");
   const [rejoinLimitDays, setRejoinLimitDays] = useState(0);
@@ -45,10 +32,6 @@ export default function MemberJoinPolicyPage() {
         if (result.success && result.policy) {
             const p = result.policy;
             setApprovalMethod(p.approvalMethod);
-            setAgeLimitMethod(p.ageLimitMethod);
-            setUseAgeConsent(p.useAgeConsent);
-            setUnderageAge(String(p.underageAge));
-            setUnderageAction(p.underageAction);
             setSimpleLoginAuthMethod(p.simpleLoginAuthMethod);
             setRejoinLimitMethod(p.rejoinLimitMethod);
             setRejoinLimitDays(p.rejoinLimitDays);
@@ -64,10 +47,10 @@ export default function MemberJoinPolicyPage() {
   const handleSave = async () => {
       const data = {
           approvalMethod,
-          ageLimitMethod,
-          useAgeConsent,
-          underageAge,
-          underageAction,
+          ageLimitMethod: "none",
+          useAgeConsent: false,
+          underageAge: 14,
+          underageAction: "approval",
           simpleLoginAuthMethod,
           rejoinLimitMethod,
           rejoinLimitDays,
@@ -129,89 +112,7 @@ export default function MemberJoinPolicyPage() {
                 </div>
             </div>
 
-             {/* Age Limit */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-48 bg-[#FBFBFB] p-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    가입연령제한 설정 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
-                </div>
-                <div className="flex-1 p-4 bg-white">
-                    <div className="flex flex-col gap-3">
-                        <RadioGroup value={ageLimitMethod} onValueChange={setAgeLimitMethod} className="flex flex-col gap-3">
-                            <div className="flex items-center gap-2">
-                                 <RadioGroupItem value="none" id="age-limit-none" className="border-gray-300 text-gray-600 focus:ring-0" />
-                                 <Label htmlFor="age-limit-none" className="text-gray-700 font-normal cursor-pointer text-xs">제한 안함</Label>
-                            </div>
-                            
-                            <div className="flex items-center gap-2 ml-6">
-                                 <Checkbox 
-                                    id="age-consent" 
-                                    checked={useAgeConsent}
-                                    onCheckedChange={(checked) => setUseAgeConsent(checked as boolean)}
-                                    className="border-gray-300 rounded-[2px]" 
-                                />
-                                 <Label htmlFor="age-consent" className="text-gray-700 font-normal cursor-pointer text-xs">'만 14세 이상입니다.' 동의 항목 사용</Label>
-                                 <span className="text-[11px] text-gray-400 ml-1 bg-[#F4F4F4] px-1 rounded-sm border border-gray-200">!</span>
-                                 <span className="text-[11px] text-gray-400">가입연령제한 설정 ‘제한 안함’사용 시 해당 설정 사용을 권장합니다.</span>
-                            </div>
-
-                             <div className="flex items-center gap-2">
-                                <RadioGroupItem value="limit" id="age-limit-use" className="border-gray-300 text-gray-600 focus:ring-0" />
-                                <Label htmlFor="age-limit-use" className="text-gray-700 font-normal cursor-pointer text-xs">연령 제한 사용</Label>
-                             </div>
-                        </RadioGroup>
-
-                        {/* Limit Config - Visible/Active mostly when limit is selected, but keeping visible for better UX or disable if not selected? UI suggests it's inline. */}
-                         <div className="flex items-center gap-2 ml-6">
-                             <div className="flex items-center gap-1">
-                                 <span>만</span>
-                                 <Select value={underageAge} onValueChange={setUnderageAge} disabled={ageLimitMethod !== 'limit'}>
-                                    <SelectTrigger className="w-16 h-7 text-[11px] border-gray-300 bg-white">
-                                        <SelectValue placeholder="14" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="14">14</SelectItem>
-                                        <SelectItem value="15">15</SelectItem>
-                                        <SelectItem value="19">19</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <span>미만인 경우</span>
-                             </div>
-
-                             <RadioGroup value={underageAction} onValueChange={setUnderageAction} disabled={ageLimitMethod !== 'limit'} className="flex items-center gap-4 ml-4">
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="approval" id="underage-approval" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="underage-approval" className="text-gray-700 font-normal cursor-pointer text-xs">운영자 승인 후 가입</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="ban" id="underage-ban" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="underage-ban" className="text-gray-700 font-normal cursor-pointer text-xs">가입불가</Label>
-                                </div>
-                             </RadioGroup>
-                             <Button type="button" className="h-6 px-2 text-[11px] bg-[#333333] text-white rounded-[2px] hover:bg-[#222222]">법정대리인 동의서 샘플 다운로드</Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
-        
-         <div className="mt-2 space-y-1">
-            <p className="text-[11px] text-red-500 flex items-start gap-1">
-                 <span className="inline-block bg-red-500 text-white w-3 h-3 text-[9px] text-center leading-3 rounded-[2px] mt-0.5">!</span>
-                 개인정보 보호법에 따라 만 14세 미만의 아동은 법정대리인의 동의 확인 후 회원가입이 가능합니다. <Link href="#" className="underline">[자세히보기]</Link>
-            </p>
-             <p className="text-[11px] text-[#888888] flex items-start gap-1">
-                 <span className="inline-block bg-[#888888] text-white w-3 h-3 text-[9px] text-center leading-3 rounded-[2px] mt-0.5">!</span>
-                 '운영자 승인 후 가입' 및 '가입불가'로 설정 시 본인인증서비스를 사용하거나 회원가입 항목의 '생일'항목을 필수로 설정해야 합니다. 본인인증서비스 또는 생일 필수 설정이 없는 경우, 만 14세 미만 회원을 판단할 수 없으므로 '미승인' 상태로 가입되거나, 가입이 불가하오니 주의해주시기 바랍니다.
-            </p>
-             <p className="text-[11px] text-[#888888] flex items-start gap-1 ml-4">
-                 <span className="inline-block bg-[#888888] text-white w-1 h-3 text-[9px] text-center leading-3 mr-1 mt-0.5">I</span>
-                 <span>본인인증서비스: <Link href="#" className="text-blue-500 hover:underline">휴대폰인증 설정&gt;</Link> <Link href="#" className="text-blue-500 hover:underline">아이핀인증 설정&gt;</Link></span>
-            </p>
-             <p className="text-[11px] text-[#888888] flex items-start gap-1 ml-4">
-                 <span className="inline-block bg-[#888888] text-white w-1 h-3 text-[9px] text-center leading-3 mr-1 mt-0.5">I</span>
-                 <span>생일 항목 사용 및 필수 설정: <Link href="#" className="text-blue-500 hover:underline">회원 가입 항목 관리&gt;</Link></span>
-            </p>
-         </div>
       </div>
 
        {/* Simple Login Settings */}
@@ -242,11 +143,6 @@ export default function MemberJoinPolicyPage() {
             </div>
         </div>
          <div className="mt-2 space-y-1">
-             <p className="text-[11px] text-[#888888] flex items-start gap-1">
-                 <span className="inline-block bg-[#888888] text-white w-3 h-3 text-[9px] text-center leading-3 rounded-[2px] mt-0.5">!</span>
-                 '가입연령제한 설정'이 '운영자 승인 후 가입' 및 '가입불가' 이고 가입 항목 중 '생일'이 필수가 아닌 경우, 본인확인인증서비스가 필수이므로 '제외함'설정이 불가합니다.<br/>
-                 상단의 가입연령제한 설정 및 "<Link href="#" className="text-blue-500 hover:underline">회원&gt;회원 관리&gt;회원 가입 항목 관리</Link>"의 설정을 확인해주시기 바랍니다.
-            </p>
              <p className="text-[11px] text-[#888888] flex items-start gap-1">
                  <span className="inline-block bg-[#888888] text-white w-3 h-3 text-[9px] text-center leading-3 rounded-[2px] mt-0.5">!</span>
                  원더 아이디 로그인의 경우, '사용함'으로 설정하여도 본인인증 서비스가 실행되지 않습니다.
@@ -344,25 +240,7 @@ export default function MemberJoinPolicyPage() {
           </div>
       </div>
        
-        {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold"><Youtube size={16}/></span>
-            </Button>
-                <Button className="rounded-full w-10 h-10 bg-[#7B4DFF] hover:bg-[#7B4DFF]/90 shadow-lg text-white p-0 flex items-center justify-center border-0 text-[10px] leading-tight flex-col">
-                <span className="block">따라</span>
-                <span className="block">하기</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0">
-                         <ChevronUp className="w-4 h-4 rotate-180" />
-                </Button>
-            </div>
-        </div>
-
+        
     </div>
   );
 }

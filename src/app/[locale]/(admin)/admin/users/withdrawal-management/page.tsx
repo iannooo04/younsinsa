@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/select";
 import {
   HelpCircle,
-  ChevronUp,
   Info
 } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -132,37 +131,6 @@ export default function WithdrawalMemberManagementPage() {
         </div>
 
         <div className="border-t border-gray-400 border-b border-gray-200">
-             {/* Store */}
-             <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    상점
-                </div>
-                <div className="flex-1 p-3">
-                    <RadioGroup 
-                        value={searchParams.mallId} 
-                        onValueChange={(v) => handleParamChange('mallId', v)}
-                        className="flex items-center gap-6"
-                    >
-                         <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="all" id="store-all" className="border-red-500 text-red-500 focus:ring-red-500" />
-                            <Label htmlFor="store-all" className="text-gray-600 font-normal cursor-pointer text-xs">전체</Label>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="base" id="store-kr" className="border-gray-300 text-gray-600" />
-                            <Label htmlFor="store-kr" className="text-gray-600 font-normal cursor-pointer text-xs flex items-center gap-1">
-                                🇰🇷 기준몰
-                            </Label>
-                        </div>
-                         <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="chinese" id="store-cn" className="border-gray-300 text-gray-600" />
-                            <Label htmlFor="store-cn" className="text-gray-600 font-normal cursor-pointer text-xs flex items-center gap-1">
-                                🇨🇳 중문몰
-                            </Label>
-                        </div>
-                    </RadioGroup>
-                </div>
-            </div>
-
             {/* ID */}
              <div className="flex border-b border-gray-200">
                 <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
@@ -324,7 +292,6 @@ export default function WithdrawalMemberManagementPage() {
                                  />
                              </th>
                              <th className="w-12 border-r border-gray-300">번호</th>
-                             <th className="w-32 border-r border-gray-300">상점 구분</th>
                              <th className="border-r border-gray-300">아이디</th>
                              <th className="w-24 border-r border-gray-300">탈퇴유형</th>
                              <th className="w-32 border-r border-gray-300">탈퇴일</th>
@@ -337,7 +304,7 @@ export default function WithdrawalMemberManagementPage() {
                      <tbody>
                          {users.length === 0 ? (
                              <tr className="h-14">
-                                 <td colSpan={10} className="text-center text-gray-500">검색된 정보가 없습니다.</td>
+                                 <td colSpan={9} className="text-center text-gray-500">검색된 정보가 없습니다.</td>
                              </tr>
                          ) : (
                              users.map((user, idx) => (
@@ -350,7 +317,6 @@ export default function WithdrawalMemberManagementPage() {
                                          />
                                      </td>
                                      <td className="border-r border-gray-200">{total - ((searchParams.page || 1) - 1) * (searchParams.limit || 10) - idx}</td>
-                                     <td className="border-r border-gray-200">{user.mallId === 'KR' ? '한국' : '중국'}</td>
                                      <td className="border-r border-gray-200 font-bold text-gray-800">{user.username}</td>
                                      <td className="border-r border-gray-200">
                                          {user.info?.withdrawalType === 'admin' ? '관리자삭제' : '본인탈퇴'}
@@ -412,21 +378,7 @@ export default function WithdrawalMemberManagementPage() {
           </div>
       </div>
        
-        {/* Floating Actions */}
-        <div className="fixed right-6 bottom-6 flex flex-col gap-2 z-50">
-            <Button className="rounded-full w-10 h-10 bg-[#FF424D] hover:bg-[#FF424D]/90 shadow-lg text-white p-0 flex items-center justify-center border-0">
-                <span className="text-[10px] font-bold">삭제</span>
-            </Button>
-            <div className="flex flex-col gap-0 rounded-full bg-white shadow-lg overflow-hidden border border-gray-200">
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none border-b border-gray-100 p-0">
-                        <ChevronUp className="w-4 h-4" />
-                </Button>
-                <Button variant="ghost" size="icon" className="h-8 w-10 hover:bg-gray-50 text-gray-400 rounded-none p-0">
-                         <ChevronUp className="w-4 h-4 rotate-180" />
-                </Button>
-            </div>
-        </div>
-
+        
     </div>
   );
 }
