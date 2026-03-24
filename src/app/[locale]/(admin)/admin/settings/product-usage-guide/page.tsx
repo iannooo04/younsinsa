@@ -1,17 +1,13 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { HelpCircle, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState, useEffect, useTransition } from "react";
 import { getProductUsageGuideSettingsAction, updateProductUsageGuideSettingsAction } from "@/actions/basic-policy-actions";
 import { Prisma } from "@/generated/prisma";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 
 interface Guide {
     id: string;
@@ -28,21 +24,6 @@ export default function ProductUsageGuidePage() {
     const [guides, setGuides] = useState<Guide[]>([]);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     
-    // Filter States
-    const [providerType, setProviderType] = useState("all");
-    const [searchType, setSearchType] = useState("total");
-    const [keyword, setKeyword] = useState("");
-    const [guideType, setGuideType] = useState("none");
-
-    const [isSupplierDialogOpen, setIsSupplierDialogOpen] = useState(false);
-    const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
-
-    useEffect(() => {
-        if (providerType !== "supplier") {
-            setSelectedSupplier(null);
-        }
-    }, [providerType]);
-
     useEffect(() => {
         const fetchData = async () => {
              const result = await getProductUsageGuideSettingsAction();
@@ -112,30 +93,7 @@ export default function ProductUsageGuidePage() {
         });
     };
 
-    // Filtering Logic
-    const filteredGuides = guides.filter(guide => {
-        // Provider
-        if (providerType === "hq" && guide.supplier !== "hq") return false;
-        if (providerType === "supplier") {
-            if (guide.supplier === "hq") return false;
-            if (selectedSupplier && guide.supplier !== selectedSupplier.id) return false;
-        }
-
-        // Guide Type
-        if (guideType !== "none" && guide.type !== guideType) return false;
-
-        // Keyword
-        if (keyword) {
-            if (searchType === "total") {
-                if (!guide.title.includes(keyword) && !guide.code.includes(keyword)) return false;
-            } else if (searchType === "title") {
-                 if (!guide.title.includes(keyword)) return false;
-            } else if (searchType === "code") {
-                 if (!guide.code.includes(keyword)) return false;
-            }
-        }
-        return true;
-    });
+    const filteredGuides = guides;
 
     const getTypeName = (type: string) => {
         switch(type) {
@@ -166,109 +124,6 @@ export default function ProductUsageGuidePage() {
                             <Plus size={12} className="mr-1" /> 이용안내 등록
                         </Button>
                     </Link>
-                </div>
-            </div>
-
-            {/* Search Section */}
-            <div className="space-y-4">
-                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-gray-800">이용안내 검색</h2>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
-                </div>
-                
-                <div className="border border-gray-300 bg-white">
-                    {/* Provider Type */}
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">공급사 구분</div>
-                        <div className="p-3 flex items-center gap-6">
-                            <RadioGroup 
-                                value={providerType} 
-                                onValueChange={(val) => {
-                                    setProviderType(val);
-                                    if (val === "supplier") setIsSupplierDialogOpen(true);
-                                }} 
-                                className="flex items-center gap-4"
-                            >
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="all" id="provider-all" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="provider-all" className="font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="hq" id="provider-hq" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="provider-hq" className="font-normal cursor-pointer">본사</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="supplier" id="provider-supplier" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="provider-supplier" className="font-normal cursor-pointer">공급사</Label>
-                                </div>
-                            </RadioGroup>
-                            <Button 
-                                type="button"
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-7 text-xs border border-gray-300 font-normal !bg-gray-100 text-gray-600 hover:bg-gray-200"
-                                onClick={() => {
-                                    setProviderType("supplier");
-                                    setIsSupplierDialogOpen(true);
-                                }}
-                            >
-                                {selectedSupplier ? selectedSupplier.name : "공급사 선택"}
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Search Keyword */}
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">검색어</div>
-                        <div className="p-3 flex items-center gap-2">
-                            <Select value={searchType} onValueChange={setSearchType}>
-                                <SelectTrigger className="w-32 h-8 rounded-sm bg-white border-gray-300">
-                                    <SelectValue placeholder="=통합검색=" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="total">=통합검색=</SelectItem>
-                                    <SelectItem value="title">이용안내 제목</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Input 
-                                className="w-72 h-8 rounded-sm" 
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                            />
-                        </div>
-                    </div>
-
-                    {/* Guide Type */}
-                    <div className="grid grid-cols-[180px_1fr]">
-                        <div className="p-3 bg-gray-50 font-medium text-gray-700 flex items-center">이용안내 종류</div>
-                        <div className="p-3 py-4">
-                            <RadioGroup value={guideType} onValueChange={setGuideType} className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="none" id="type-none" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="type-none" className="font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="delivery" id="type-delivery" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="type-delivery" className="font-normal cursor-pointer">배송안내</Label>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="refund" id="type-refund" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="type-refund" className="font-normal cursor-pointer">환불안내</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="exchange" id="type-exchange" className="text-[#FF424D] border-gray-300 data-[state=checked]:border-[#FF424D] data-[state=checked]:bg-[#FF424D]" />
-                                    <Label htmlFor="type-exchange" className="font-normal cursor-pointer">교환안내</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-center py-4 border-b border-gray-300">
-                    <Button className="bg-[#555555] hover:bg-[#444444] text-white rounded-sm w-32 h-10 text-sm font-bold">
-                        검 색
-                    </Button>
                 </div>
             </div>
 
@@ -400,18 +255,6 @@ export default function ProductUsageGuidePage() {
                 </div>
             </div>
 
-                        
-            <SupplierPopup 
-                isOpen={isSupplierDialogOpen} 
-                onClose={() => setIsSupplierDialogOpen(false)} 
-                onConfirm={(supplier) => {
-                    if (Array.isArray(supplier)) {
-                        setSelectedSupplier(supplier[0] || null);
-                    } else {
-                        setSelectedSupplier(supplier);
-                    }
-                }} 
-            />
         </div>
     );
 }

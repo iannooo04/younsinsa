@@ -32,9 +32,7 @@ export default function ProductSelectionPage() {
     const [isCategoryUnspecified, setIsCategoryUnspecified] = useState(false);
     const [isBrandUnspecified, setIsBrandUnspecified] = useState(false);
     const [pcExposure, setPcExposure] = useState('all');
-    const [mobileExposure, setMobileExposure] = useState('all');
     const [pcSales, setPcSales] = useState('all');
-    const [mobileSales, setMobileSales] = useState('all');
     const [stockStatus, setStockStatus] = useState('all');
     const [soldOutStatus, setSoldOutStatus] = useState('all');
     const [minPrice, setMinPrice] = useState('');
@@ -227,50 +225,26 @@ export default function ProductSelectionPage() {
                                     </div>
                                 </div>
 
-                                {/* PC Display Status */}
+                                {/* Display Status */}
                                 <div className="flex border-b border-gray-200">
-                                    <div className="w-24 bg-gray-50 p-2 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 leading-tight">PC쇼핑몰<br/>상품노출<br/>상태</div>
+                                    <div className="w-24 bg-gray-50 p-2 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 leading-tight">상품노출<br/>상태</div>
                                     <div className="flex-1 p-2 flex items-center">
                                         <RadioGroup value={pcExposure} onValueChange={setPcExposure} className="flex gap-4">
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="all" id="pc-exp-all" /><Label htmlFor="pc-exp-all">전체</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="exposed" id="pc-exp-exposed" className="text-red-500 border-red-500 checked:bg-red-500" /><Label htmlFor="pc-exp-exposed">노출함</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="hidden" id="pc-exp-hidden" /><Label htmlFor="pc-exp-hidden">노출안함</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="all" id="exp-all" /><Label htmlFor="exp-all">전체</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="exposed" id="exp-exposed" className="text-red-500 border-red-500 checked:bg-red-500" /><Label htmlFor="exp-exposed">노출함</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="hidden" id="exp-hidden" /><Label htmlFor="exp-hidden">노출안함</Label></div>
                                         </RadioGroup>
                                     </div>
                                 </div>
 
-                                {/* Mobile Display Status */}
+                                {/* Sales Status */}
                                 <div className="flex border-b border-gray-200">
-                                    <div className="w-24 bg-gray-50 p-2 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 leading-tight">모바일쇼핑몰<br/>상품노출<br/>상태</div>
-                                    <div className="flex-1 p-2 flex items-center">
-                                        <RadioGroup value={mobileExposure} onValueChange={setMobileExposure} className="flex gap-4">
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="all" id="mo-exp-all" className="text-red-500 border-red-500 checked:bg-red-500" /><Label htmlFor="mo-exp-all">전체</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="exposed" id="mo-exp-exposed" /><Label htmlFor="mo-exp-exposed">노출함</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="hidden" id="mo-exp-hidden" /><Label htmlFor="mo-exp-hidden">노출안함</Label></div>
-                                        </RadioGroup>
-                                    </div>
-                                </div>
-
-                                {/* PC Sales Status */}
-                                <div className="flex border-b border-gray-200">
-                                    <div className="w-24 bg-gray-50 p-2 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 leading-tight">PC쇼핑몰<br/>상품판매<br/>상태</div>
+                                    <div className="w-24 bg-gray-50 p-2 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 leading-tight">상품판매<br/>상태</div>
                                     <div className="flex-1 p-2 flex items-center">
                                         <RadioGroup value={pcSales} onValueChange={setPcSales} className="flex gap-4">
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="all" id="pc-sale-all" /><Label htmlFor="pc-sale-all">전체</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="selling" id="pc-sale-selling" className="text-red-500 border-red-500 checked:bg-red-500" /><Label htmlFor="pc-sale-selling">판매함</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="stop" id="pc-sale-stop" /><Label htmlFor="pc-sale-stop">판매안함</Label></div>
-                                        </RadioGroup>
-                                    </div>
-                                </div>
-
-                                {/* Mobile Sales Status */}
-                                <div className="flex border-b border-gray-200">
-                                    <div className="w-24 bg-gray-50 p-2 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 leading-tight">모바일쇼핑몰<br/>상품판매<br/>상태</div>
-                                    <div className="flex-1 p-2 flex items-center">
-                                        <RadioGroup value={mobileSales} onValueChange={setMobileSales} className="flex gap-4">
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="all" id="mo-sale-all" className="text-red-500 border-red-500 checked:bg-red-500" /><Label htmlFor="mo-sale-all">전체</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="selling" id="mo-sale-selling" /><Label htmlFor="mo-sale-selling">판매함</Label></div>
-                                            <div className="flex items-center space-x-2"><RadioGroupItem value="stop" id="mo-sale-stop" /><Label htmlFor="mo-sale-stop">판매안함</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="all" id="sale-all" /><Label htmlFor="sale-all">전체</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="selling" id="sale-selling" className="text-red-500 border-red-500 checked:bg-red-500" /><Label htmlFor="sale-selling">판매함</Label></div>
+                                            <div className="flex items-center space-x-2"><RadioGroupItem value="stop" id="sale-stop" /><Label htmlFor="sale-stop">판매안함</Label></div>
                                         </RadioGroup>
                                     </div>
                                 </div>
@@ -494,8 +468,7 @@ export default function ProductSelectionPage() {
                                     <TableHead className="w-12 text-center text-gray-700 bg-gray-100 p-0 h-8 font-normal border-r border-gray-200">재고</TableHead>
                                     <TableHead className="w-16 text-center text-gray-700 bg-gray-100 p-0 h-8 font-normal border-r border-gray-200">품절상태</TableHead>
                                     <TableHead className="w-24 text-center text-gray-700 bg-gray-100 p-0 h-8 font-normal border-r border-gray-200">등록일/수정일</TableHead>
-                                    <TableHead className="w-24 text-center text-gray-700 bg-gray-100 p-0 h-8 font-normal border-r border-gray-200">PC쇼핑몰 노출상태</TableHead>
-                                    <TableHead className="w-24 text-center text-gray-700 bg-gray-100 p-0 h-8 font-normal">모바일쇼핑몰 노출상태</TableHead>
+                                    <TableHead className="w-32 text-center text-gray-700 bg-gray-100 p-0 h-8 font-normal">상품 노출상태</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -521,9 +494,6 @@ export default function ProductSelectionPage() {
                                         <TableCell className="p-0 text-center border-r border-gray-200">
                                             <div>2023-01-01</div>
                                             <div>2023-01-02</div>
-                                        </TableCell>
-                                        <TableCell className="p-0 text-center border-r border-gray-200">
-                                            <div className="w-4 h-4 border border-gray-300 mx-auto rounded-full" />
                                         </TableCell>
                                         <TableCell className="p-0 text-center">
                                             <div className="w-4 h-4 border border-gray-300 mx-auto rounded-full" />

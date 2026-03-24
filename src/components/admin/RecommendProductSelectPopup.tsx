@@ -215,8 +215,7 @@ export default function RecommendProductSelectPopup({
                         <TableHead className="text-center w-28 text-gray-600 font-bold">공급사</TableHead>
                         <TableHead className="text-center w-16 text-gray-600 font-bold">재고</TableHead>
                         <TableHead className="text-center w-20 text-gray-600 font-bold">품절상태</TableHead>
-                        <TableHead className="text-center w-32 text-gray-600 font-bold bg-[#e6e6e6] whitespace-nowrap">PC쇼핑몰 노출상태</TableHead>
-                        <TableHead className="text-center w-32 text-gray-600 font-bold bg-[#e6e6e6] whitespace-nowrap">모바일쇼핑몰 노출상태</TableHead>
+                        <TableHead className="text-center w-32 text-gray-600 font-bold bg-[#e6e6e6] whitespace-nowrap">상품 노출상태</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -261,7 +260,6 @@ export default function RecommendProductSelectPopup({
                             <TableCell className="text-center text-gray-500">{product.stock}</TableCell>
                             <TableCell className="text-center text-gray-500">{product.status}</TableCell>
                             <TableCell className="text-center text-gray-500">{product.pcStatus}</TableCell>
-                            <TableCell className="text-center text-gray-500">{product.mobileStatus}</TableCell>
                         </TableRow>
                         ))
                     )}

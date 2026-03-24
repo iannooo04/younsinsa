@@ -115,7 +115,7 @@ export default function MainHeader({
               className="cursor-pointer relative block w-[100px] h-[30px] md:w-[120px] md:h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
             >
               <Image 
-                src="/images/nkbus_logo_white.png" 
+                src={`${process.env.NEXT_PUBLIC_CDN_URL}/images/nkbus_logo_white.png`} 
                 alt={basicInfo?.shopName || "NKBUS"} 
                 fill
                 className="object-contain" // 이미지는 크게 (부모 영역 무시하려면 absolute 필요하지만 fill은 absolute임)
@@ -394,7 +394,7 @@ export default function MainHeader({
               className="shrink-0 cursor-pointer relative block w-[180px] h-[40px] md:w-[300px] md:h-[60px]" // 부모 높이는 작게, 너비는 확보
             >
               <Image 
-                src="/images/nkbus_logo_white.png" 
+                src={`${process.env.NEXT_PUBLIC_CDN_URL}/images/nkbus_logo_white.png`} 
                 alt={basicInfo?.shopName || "NKBUS"} 
                 fill
                 className="object-contain object-left scale-[2.0] origin-left"

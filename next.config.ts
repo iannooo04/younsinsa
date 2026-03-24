@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
 
   // ✅ [수정] 외부 이미지 도메인 허용 설정 추가
   images: {
+    localPatterns: [
+      {
+        pathname: '/api/images',
+        search: '?key=*',
+      },
+    ],
     remotePatterns: [
       {
         protocol: "https",
@@ -23,6 +29,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "flagcdn.com",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.nkbus.com",
       },
     ],
   },

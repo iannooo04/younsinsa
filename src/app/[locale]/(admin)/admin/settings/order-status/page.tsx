@@ -137,17 +137,15 @@ export default function OrderStatusSettingsPage() {
         const mallName = getVal(key, 'mallName', title) as string;
         
         // Logic for showing dots/checks in last 3 columns
-        const showMileageGrant = benefitSettings.mileageGrant === key;
         const showCouponGrant = benefitSettings.couponGrant === key;
         const showStockDeduct = benefitSettings.stockDeduct === key;
 
         const isCancelGroup = ["auto_cancel", "soldout_cancel", "admin_cancel", "customer_cancel_request"].includes(key);
-        const showMileageRestore = isCancelGroup && benefitSettings.mileageRestoreCancel;
         const showCouponRestore = isCancelGroup && benefitSettings.couponRestoreCancel;
         const showStockRestore = isCancelGroup && benefitSettings.stockRestoreCancel;
 
         return (
-            <div key={key} className="border-b border-gray-200 grid grid-cols-[120px_1fr_120px_120px_60px_160px_160px_90px] text-center text-xs text-gray-600 items-center hover:bg-gray-50">
+            <div key={key} className="border-b border-gray-200 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px] text-center text-xs text-gray-600 items-center hover:bg-gray-50">
                 <div className="py-3 font-bold text-gray-800">{title}</div>
                 <div className="py-3 px-4 text-left flex items-start gap-1">
                     <span className="w-4 h-4 flex-none bg-gray-600 text-white rounded-sm text-[10px] flex items-center justify-center font-bold">!</span>
@@ -178,10 +176,10 @@ export default function OrderStatusSettingsPage() {
                 
                 {/* Dynamic Columns */}
                 <div className="py-3 bg-gray-50 border-l border-r border-gray-200 h-full flex items-center justify-center">
-                    {(showMileageGrant || showMileageRestore) && <div className="w-3 h-3 rounded-full bg-gray-400"></div>}
+                    {(showCouponGrant) && <div className="w-3 h-3 rounded-full bg-gray-400"></div>}
                 </div>
                 <div className="py-3 bg-gray-50 border-r border-gray-200 h-full flex items-center justify-center">
-                    {(showCouponGrant || showCouponRestore) && <div className="w-3 h-3 rounded-full bg-gray-400"></div>}
+                    {(showCouponRestore) && <div className="w-3 h-3 rounded-full bg-gray-400"></div>}
                 </div>
                 <div className="py-3 bg-gray-50 h-full flex items-center justify-center">
                     {(showStockDeduct || showStockRestore) && <div className="w-3 h-3 rounded-full bg-red-400"></div>}
@@ -198,7 +196,7 @@ export default function OrderStatusSettingsPage() {
         const use = getVal(key, 'use', false) as boolean;
         
         return (
-            <div key={key} className="border-b border-gray-200 grid grid-cols-[120px_1fr_120px_120px_60px_160px_160px_90px] text-center text-xs text-gray-600 items-center hover:bg-gray-50">
+            <div key={key} className="border-b border-gray-200 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px] text-center text-xs text-gray-600 items-center hover:bg-gray-50">
                 <div className="py-3 px-2 font-bold text-gray-800 flex items-center justify-between">
                     <span>{title}</span>
                     <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600" onClick={() => handleRemoveStatus(key)}>
@@ -235,14 +233,8 @@ export default function OrderStatusSettingsPage() {
                 <div className="py-3 bg-gray-50 border-l border-r border-gray-200 h-full flex items-center justify-center">
                     {/* Grant - Empty for order group */}
                 </div>
-                <div className="py-3 bg-gray-50 border-r border-gray-200 h-full grid grid-cols-2 items-center">
-                     {/* Deduct - Checkboxes */}
-                     <div className="flex justify-center border-r border-gray-200 h-full items-center">
-                        <Checkbox className="w-4 h-4 bg-white border-gray-300" />
-                     </div>
-                     <div className="flex justify-center h-full items-center">
-                         <Checkbox className="w-4 h-4 bg-white border-gray-300" />
-                     </div>
+                <div className="py-3 bg-gray-50 border-r border-gray-200 h-full flex items-center justify-center">
+                     <Checkbox className="w-4 h-4 bg-white border-gray-300" />
                 </div>
                 <div className="py-3 bg-gray-50 h-full flex items-center justify-center">
                     {/* Stock - Radio */}
@@ -285,98 +277,39 @@ export default function OrderStatusSettingsPage() {
                 
                 <div className="border border-gray-300 border-b-0">
                     {/* Table Header */}
-                    <div className="bg-gray-100 text-center font-bold text-gray-700 text-xs border-b border-gray-300 grid grid-cols-[120px_1fr_120px_120px_60px_160px_160px_90px]">
+                    <div className="bg-gray-100 text-center font-bold text-gray-700 text-xs border-b border-gray-300 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">기준상태</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">상태설명</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">관리자페이지<br/>노출이름</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">쇼핑몰페이지<br/>노출이름</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">사용<br/>설정</div>
                         
-                        <div className="border-r border-gray-300">
-                            <div className="py-2 border-b border-gray-300">혜택지급시점</div>
-                            <div className="grid grid-cols-2 h-full">
-                                <div className="py-2 border-r border-gray-300">마일리지</div>
-                                <div className="py-2">쿠폰</div>
-                            </div>
-                        </div>
-
-                        <div className="border-r border-gray-300">
-                            <div className="py-2 border-b border-gray-300">혜택차감시점</div>
-                            <div className="grid grid-cols-2 h-full">
-                                <div className="py-2 border-r border-gray-300">마일리지</div>
-                                <div className="py-2">쿠폰</div>
-                            </div>
-                        </div>
+                        <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">쿠폰지급시점</div>
+                        <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">쿠폰차감시점</div>
 
                         <div className="py-3 flex items-center justify-center h-full row-span-2">재고차감<br/>시점</div>
                     </div>
 
                     {/* Group 1: Header */}
-                    <div className="bg-blue-50/50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
+                    <div className="bg-blue-50/50 border-b border-gray-200 py-2 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
+                         <div className="col-span-5 flex items-center gap-2 px-4">
                             <span className="text-blue-500 font-bold text-xs">주문 상태 설정</span>
                             <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600" onClick={() => handleAddStatus('order')}><Plus size={10} className="mr-1"/>추가</Button>
                         </div>
-                        <div className="flex">
-                             {/* Grant (160px) - Empty */}
-                             <div className="w-[160px] flex items-center justify-center shrink-0"></div>
-                             {/* Deduct (160px) - Checkboxes */}
-                             <div className="w-[160px] flex items-center justify-center shrink-0">
-                                <div className="w-[80px] flex justify-center"><Checkbox disabled className="w-4 h-4 bg-gray-100 border-gray-300" /></div>
-                                <div className="w-[80px] flex justify-center"><Checkbox disabled className="w-4 h-4 bg-gray-100 border-gray-300" /></div>
-                             </div>
-                             {/* Stock (90px) - Radio */}
-                             <div className="w-[90px] flex justify-center shrink-0">
-                                {renderCustomRadio(benefitSettings.stockDeduct, "deposit_wait", () => handleBenefitChange('stockDeduct', 'deposit_wait'), "border-[#FF424D]", "bg-[#FF424D]")}
-                            </div>
+                        <div className="flex items-center justify-center"></div>
+                        <div className="flex items-center justify-center">
+                            <Checkbox disabled className="w-4 h-4 bg-gray-100 border-gray-300" />
                         </div>
+                        <div className="flex items-center justify-center"></div>
                     </div>
 
                     {/* Row: 입금대기 */}
-                    {renderRow("deposit_wait", "입금대기", "주문 후 입금 전 상태로 무통장, 가상계좌, 기타가 해당됩니다.", true, 'gray', true)}
-
+                    
                     {/* Custom Rows */}
                     {Object.keys(statusSettings).filter(k => k.startsWith('custom_order_')).map(key => renderCustomRow(key))}
 
 
-                     {/* Group 2: Payment Status */}
-                    <div className="bg-gray-50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                             <span className="text-blue-500 font-bold text-xs">입금 상태 설정</span>
-                            <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600"><Plus size={10} className="mr-1"/>추가</Button>
-                            <span className="text-[#FF424D] text-xs font-bold flex items-center ml-4">
-                                <span className="w-3.5 h-3.5 flex justify-center items-center bg-[#FF424D] text-white pb-0.5 rounded-sm text-[10px] leading-none mr-1">!</span>
-                                통계데이터는 해당 &quot;입금 상태 설정&quot; 그룹의 주문상태로 변경한 시점부터 집계됩니다.
-                            </span>
-                        </div>
-                        <div className="flex">
-                             {/* Grant (160px) */}
-                            <div className="w-[160px] flex items-center justify-center shrink-0">
-                                <div className="w-[80px] flex justify-center">
-                                    <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                        {renderCustomRadio(benefitSettings.mileageGrant, "payment_complete", () => handleBenefitChange('mileageGrant', 'payment_complete'))}
-                                        (결제완료 시)
-                                    </Label>
-                                </div>
-                                <div className="w-[80px] flex justify-center">
-                                    <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                        {renderCustomRadio(benefitSettings.couponGrant, "payment_complete", () => handleBenefitChange('couponGrant', 'payment_complete'))}
-                                        (결제완료 시)
-                                    </Label>
-                                </div>
-                            </div>
-                             {/* Deduct (160px) - Mixed */}
-                             <div className="w-[160px] flex items-center justify-center shrink-0"></div>
-                             {/* Stock (90px) */}
-                             <div className="w-[90px] flex justify-center shrink-0">
-                                 {renderCustomRadio(benefitSettings.stockDeduct, "payment_complete", () => handleBenefitChange('stockDeduct', 'payment_complete'))}
-                             </div>
-                        </div>
-                    </div>
-
-                    {/* Row: 결제완료 */}
-                    {renderRow("payment_complete", "결제완료", "입금확인된 상태, 또는 결제완료된 상태입니다.", true, 'gray', true)}
-
+                     
                      {/* Group 3: Product Status */}
                     <div className="bg-blue-50/50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
                          <div className="flex items-center gap-2">
@@ -391,35 +324,20 @@ export default function OrderStatusSettingsPage() {
                     {renderRow("product_out", "상품출고", "배송준비 완료 단계입니다.", false)}
 
                     {/* Group 4: Delivery Status */}
-                     <div className="bg-gray-50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
+                     <div className="bg-gray-50 border-b border-gray-200 py-2 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
+                         <div className="col-span-5 flex items-center gap-2 px-4">
                              <span className="text-blue-500 font-bold text-xs">배송 상태 설정</span>
                             <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600"><Plus size={10} className="mr-1"/>추가</Button>
                         </div>
-                        <div className="flex">
-                             {/* Grant (160px) */}
-                            <div className="w-[160px] flex items-center justify-center shrink-0">
-                                <div className="w-[80px] flex justify-center">
-                                    <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                        {renderCustomRadio(benefitSettings.mileageGrant, "delivery_complete", () => handleBenefitChange('mileageGrant', 'delivery_complete'))}
-                                        (배송완료 시)
-                                    </Label>
-                                </div>
-                                <div className="w-[80px] flex justify-center">
-                                    <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                        {renderCustomRadio(benefitSettings.couponGrant, "delivery_complete", () => handleBenefitChange('couponGrant', 'delivery_complete'))}
-                                        (배송완료 시)
-                                    </Label>
-                                </div>
-                            </div>
-                             {/* Deduct (160px) */}
-                             <div className="w-[160px] flex items-center justify-center shrink-0"></div>
-                             {/* Stock (90px) */}
-                             <div className="w-[90px] flex justify-center shrink-0">
-                                <div className="invisible">
-                                    {renderCustomRadio(benefitSettings.stockDeduct, "stock-del", () => {})}
-                                </div>
-                             </div>
+                        <div className="flex items-center justify-center">
+                            <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
+                                {renderCustomRadio(benefitSettings.couponGrant, "delivery_complete", () => handleBenefitChange('couponGrant', 'delivery_complete'))}
+                                (배송완료 시)
+                            </Label>
+                        </div>
+                        <div className="flex items-center justify-center"></div>
+                        <div className="flex items-center justify-center invisible">
+                            {renderCustomRadio(benefitSettings.stockDeduct, "stock-del", () => {})}
                         </div>
                     </div>
 
@@ -427,32 +345,19 @@ export default function OrderStatusSettingsPage() {
                     {renderRow("delivery_complete", "배송완료", "배송 완료된 상태입니다. (고객이 수취확인하거나, 관리자가 변경한 상태", true)}
 
                     {/* Group 5: Purchase Confirm */}
-                    <div className="bg-gray-50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
+                    <div className="bg-gray-50 border-b border-gray-200 py-2 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
+                         <div className="col-span-5 flex items-center gap-2 px-4">
                              <span className="text-blue-500 font-bold text-xs">구매확정 상태 설정</span>
                             <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600"><Plus size={10} className="mr-1"/>추가</Button>
                         </div>
-                        <div className="flex">
-                             {/* Grant (160px) */}
-                            <div className="w-[160px] flex items-center justify-center shrink-0">
-                                <div className="w-[80px] flex justify-center">
-                                    <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                        {renderCustomRadio(benefitSettings.mileageGrant, "purchase_confirm", () => handleBenefitChange('mileageGrant', 'purchase_confirm'), "border-[#FF424D]", "bg-[#FF424D]")}
-                                        (구매확정 시)
-                                    </Label>
-                                </div>
-                                <div className="w-[80px] flex justify-center">
-                                    <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                        {renderCustomRadio(benefitSettings.couponGrant, "purchase_confirm", () => handleBenefitChange('couponGrant', 'purchase_confirm'), "border-[#FF424D]", "bg-[#FF424D]")}
-                                        (구매확정 시)
-                                    </Label>
-                                </div>
-                            </div>
-                            {/* Deduct (160px) */}
-                            <div className="w-[160px] flex items-center justify-center shrink-0"></div>
-                            {/* Stock (90px) */}
-                            <div className="w-[90px] flex justify-center shrink-0"></div>
+                        <div className="flex items-center justify-center">
+                            <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
+                                {renderCustomRadio(benefitSettings.couponGrant, "purchase_confirm", () => handleBenefitChange('couponGrant', 'purchase_confirm'), "border-[#FF424D]", "bg-[#FF424D]")}
+                                (구매확정 시)
+                            </Label>
                         </div>
+                        <div className="flex items-center justify-center"></div>
+                        <div className="flex items-center justify-center"></div>
                     </div>
                     {renderRow("purchase_confirm", "구매확정", "구매확정된 상태입니디. (고객이 구매확정하거나, 관리자가 상태변경)", true)}
 
@@ -468,28 +373,21 @@ export default function OrderStatusSettingsPage() {
 
                  <div className="border border-gray-300 border-b-0">
                     {/* Header */}
-                    <div className="bg-gray-100 text-center font-bold text-gray-700 text-xs border-b border-gray-300 grid grid-cols-[120px_1fr_120px_120px_60px_160px_160px_90px]">
+                    <div className="bg-gray-100 text-center font-bold text-gray-700 text-xs border-b border-gray-300 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">기준상태</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">상태설명</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">관리자페이지<br/>노출이름</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">쇼핑몰페이지<br/>노출이름</div>
                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">사용<br/>설정</div>
                         
-                        <div className="border-r border-gray-300">
-                            <div className="py-2 border-b border-gray-300">혜택복원시점</div>
-                            <div className="grid grid-cols-2 h-full">
-                                <div className="py-2 border-r border-gray-300">마일리지</div>
-                                <div className="py-2">쿠폰</div>
-                            </div>
-                        </div>
-
-                         <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">재고복원시점</div>
+                        <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">쿠폰복원시점</div>
+                        <div className="py-3 flex items-center justify-center border-r border-gray-300 h-full row-span-2">재고복원시점</div>
                         <div className="py-3 flex items-center justify-center h-full row-span-2">재고차감시점</div>
                     </div>
 
                     {/* Group 1: Cancel Status */}
-                    <div className="bg-blue-50/50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
+                    <div className="bg-blue-50/50 border-b border-gray-200 py-2 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
+                         <div className="col-span-5 flex items-center gap-2 px-4">
                              <span className="text-blue-500 font-bold text-xs">취소 상태 설정</span>
                             <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600"><Plus size={10} className="mr-1"/>추가</Button>
                              <span className="text-gray-700 text-xs flex items-center ml-4">
@@ -500,17 +398,17 @@ export default function OrderStatusSettingsPage() {
                                   /> 일 동안 미입금시 주문자동취소 <span className="text-gray-400 ml-1">(자동취소를 원하지 않는 경우 0으로 설정)</span>
                             </span>
                         </div>
-                        <div className="flex justify-end pr-[55px] gap-[68px]"> {/* Align */}
-                            <div className="flex gap-[68px] mr-12">
-                                <div className="flex justify-center w-4"><Checkbox className="w-4 h-4 bg-gray-100 border-gray-300" disabled checked={benefitSettings.mileageRestoreCancel} /></div>
-                                <div className="flex justify-center w-4"><Checkbox className="w-4 h-4 bg-gray-100 border-gray-300" disabled checked={benefitSettings.couponRestoreCancel} /></div>
-                            </div>
-                             <div className="flex justify-center w-4"><Checkbox 
-                                className="w-4 h-4 border-[#FF424D] data-[state=checked]:bg-[#FF424D]" 
-                                checked={benefitSettings.stockRestoreCancel}
-                                onCheckedChange={(c) => handleBenefitChange('stockRestoreCancel', c === true)}
-                             /></div>
+                        <div className="flex items-center justify-center">
+                            <Checkbox className="w-4 h-4 bg-gray-100 border-gray-300" disabled checked={benefitSettings.couponRestoreCancel} />
                         </div>
+                             <div className="flex items-center justify-center">
+                                 <Checkbox 
+                                    className="w-4 h-4 border-[#FF424D] data-[state=checked]:bg-[#FF424D]" 
+                                    checked={benefitSettings.stockRestoreCancel}
+                                    onCheckedChange={(c) => handleBenefitChange('stockRestoreCancel', c === true)}
+                                 />
+                             </div>
+                        <div className="flex items-center justify-center"></div>
                     </div>
 
                     {renderRow("auto_cancel", "자동취소", "주문접수 후 오랜동안 미입금 되거나, 가상계좌 만료된 상태입니다.", true)}
@@ -537,16 +435,7 @@ export default function OrderStatusSettingsPage() {
                         </div>
                          <div className="flex justify-end pr-[55px] gap-[68px]">
                             <div className="flex gap-[68px] mr-12 invisible"></div>
-                             <div className="flex justify-end gap-1 items-center">
-                                 <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                    <Checkbox 
-                                        className="w-4 h-4 border-[#FF424D] data-[state=checked]:bg-[#FF424D]" 
-                                        checked={benefitSettings.mileageRestoreReturn}
-                                        onCheckedChange={(c) => handleBenefitChange('mileageRestoreReturn', c === true)}
-                                    />
-                                    (반품회수완료 시)
-                                </Label>
-                             </div>
+                             <div className="flex justify-end gap-1 items-center"></div>
                         </div>
                     </div>
                     {renderRow("return_request", "반품접수", "배송후 환불/교환 목적으로 반품을 접수하는 단계입니다.", true)}
@@ -561,16 +450,7 @@ export default function OrderStatusSettingsPage() {
                         </div>
                           <div className="flex justify-end pr-[55px] gap-[68px]">
                             <div className="flex gap-[68px] mr-12 invisible"></div>
-                             <div className="flex justify-end gap-1 items-center">
-                                 <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                    <Checkbox 
-                                        className="w-4 h-4 border-[#FF424D] data-[state=checked]:bg-[#FF424D]" 
-                                        checked={benefitSettings.mileageRestoreExchange}
-                                        onCheckedChange={(c) => handleBenefitChange('mileageRestoreExchange', c === true)}
-                                    />
-                                    (교환완료 시)
-                                </Label>
-                             </div>
+                             <div className="flex justify-end gap-1 items-center"></div>
                         </div>
                     </div>
                     {renderRow("exchange_request", "교환접수", "반품 접수이후 상품 교환 접수 단계입니다.", true)}
@@ -587,16 +467,7 @@ export default function OrderStatusSettingsPage() {
                         </div>
                           <div className="flex justify-end pr-[55px] gap-[68px]">
                             <div className="flex gap-[68px] mr-12 invisible"></div>
-                             <div className="flex justify-end gap-1 items-center">
-                                 <Label className="flex flex-col items-center gap-1 font-normal text-xs text-gray-500 whitespace-nowrap cursor-pointer">
-                                    <Checkbox 
-                                        className="w-4 h-4 border-gray-300 data-[state=checked]:bg-gray-500 data-[state=checked]:border-gray-500" 
-                                        checked={benefitSettings.mileageRestoreRefund}
-                                        onCheckedChange={(c) => handleBenefitChange('mileageRestoreRefund', c === true)}
-                                    />
-                                    (환불완료 시)
-                                </Label>
-                             </div>
+                             <div className="flex justify-end gap-1 items-center"></div>
                         </div>
                     </div>
                     {renderRow("refund_request", "환불접수", "입금확인 또는 반품요청 이후 관리자가 환불 처리하는 단계입니다.", true, 'gray')}

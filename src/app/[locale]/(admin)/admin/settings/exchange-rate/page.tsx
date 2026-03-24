@@ -24,9 +24,7 @@ export default function ExchangeRateSettingsPage() {
     // Initial default rates
     const [rates, setRates] = useState<Rates>({
         "USD": { mode: "auto", rate: 1436.5, adjustment: 0 },
-        "CNY": { mode: "auto", rate: 204.86, adjustment: 0 },
-        "JPY": { mode: "auto", rate: 9.1839, adjustment: 0 },
-        "EUR": { mode: "auto", rate: 1689.56, adjustment: 0 }
+        "CNY": { mode: "auto", rate: 204.86, adjustment: 0 }
     });
 
     useEffect(() => {
@@ -39,9 +37,10 @@ export default function ExchangeRateSettingsPage() {
                 const updatedRates = { ...loadedRates };
                 let hasUpdates = false;
 
+                const supportedCurrencies = ["USD", "CNY", "KRW"];
                 await Promise.all(Object.keys(loadedRates).map(async (currency) => {
                      // Check if it's one of our supported currencies and mode is auto
-                     if (loadedRates[currency]?.mode === 'auto') {
+                     if (supportedCurrencies.includes(currency) && loadedRates[currency]?.mode === 'auto') {
                          const liveResult = await fetchLiveExchangeRateAction(currency);
                          if (liveResult.success && liveResult.rate) {
                              updatedRates[currency] = {
@@ -106,9 +105,7 @@ export default function ExchangeRateSettingsPage() {
 
     const currencies = [
         { code: "USD", name: "USD - U.S Dollar ( $ )" },
-        { code: "CNY", name: "CNY - Yuan ( ¥ )" },
-        { code: "JPY", name: "JPY - Yen ( ¥ )" },
-        { code: "EUR", name: "EUR - euro ( € )" }
+        { code: "CNY", name: "CNY - Yuan ( ¥ )" }
     ];
 
     return (

@@ -188,42 +188,22 @@ export default function ProductSearchForm() {
                             </div>
                         </div>
                         
-                         {/* PC Exposure & Sale */}
+                         {/* Exposure & Sale */}
                         <div className="grid grid-cols-2 gap-x-12 py-3 border-b border-gray-100">
                             <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">PC쇼핑몰<br/>상품노출 상태</div>
+                                <div className="font-bold">상품노출 상태</div>
                                 <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2"><input type="radio" name="pcexposure" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="pcexposure" className="radio radio-xs checked:bg-primary" /><span>노출함</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="pcexposure" className="radio radio-xs checked:bg-primary" /><span>노출안함</span></label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="exposure" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="exposure" className="radio radio-xs checked:bg-primary" /><span>노출함</span></label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="exposure" className="radio radio-xs checked:bg-primary" /><span>노출안함</span></label>
                                 </div>
                             </div>
                             <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">PC쇼핑몰<br/>상품판매 상태</div>
+                                <div className="font-bold">상품판매 상태</div>
                                 <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2"><input type="radio" name="pcsale" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="pcsale" className="radio radio-xs checked:bg-primary" /><span>판매함</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="pcsale" className="radio radio-xs checked:bg-primary" /><span>판매안함</span></label>
-                                </div>
-                            </div>
-                        </div>
-
-                         {/* Mobile Exposure & Sale */}
-                        <div className="grid grid-cols-2 gap-x-12 py-3 border-b border-gray-100">
-                            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">모바일쇼핑몰<br/>상품노출 상태</div>
-                                <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2"><input type="radio" name="mobileexposure" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="mobileexposure" className="radio radio-xs checked:bg-primary" /><span>노출함</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="mobileexposure" className="radio radio-xs checked:bg-primary" /><span>노출안함</span></label>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">모바일쇼핑몰<br/>상품판매 상태</div>
-                                <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2"><input type="radio" name="mobilesale" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="mobilesale" className="radio radio-xs checked:bg-primary" /><span>판매함</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="mobilesale" className="radio radio-xs checked:bg-primary" /><span>판매안함</span></label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="sale" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="sale" className="radio radio-xs checked:bg-primary" /><span>판매함</span></label>
+                                    <label className="flex items-center gap-2"><input type="radio" name="sale" className="radio radio-xs checked:bg-primary" /><span>판매안함</span></label>
                                 </div>
                             </div>
                         </div>

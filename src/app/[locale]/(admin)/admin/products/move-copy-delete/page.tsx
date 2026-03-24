@@ -22,7 +22,6 @@ import {
     TableRow,
 } from "@/components/ui/ui-table";
 import { Link } from "@/i18n/routing";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 import BrandPopup from "@/components/admin/BrandPopup";
 import CategoryPopup from "@/components/admin/CategoryPopup";
 import { 
@@ -63,7 +62,6 @@ export default function ProductMoveCopyDeletePage() {
     const [pageSize, setPageSize] = useState(10);
 
     // Filter State
-    const [supplierType, setSupplierType] = useState('all'); // Not implemented in backend yet fully but added to UI
     const [searchType, setSearchType] = useState('productName');
     const [keyword, setKeyword] = useState('');
     const [startDate, setStartDate] = useState('');
@@ -86,10 +84,8 @@ export default function ProductMoveCopyDeletePage() {
     const [useOption, setUseOption] = useState('all');
     const [useTextOption, setUseTextOption] = useState('all');
     const [useAdditionalProduct, setUseAdditionalProduct] = useState('all');
-    const [pcDisplayStatus, setPcDisplayStatus] = useState('all');
-    const [pcSaleStatus, setPcSaleStatus] = useState('all');
-    const [mobileDisplayStatus, setMobileDisplayStatus] = useState('all');
-    const [mobileSaleStatus, setMobileSaleStatus] = useState('all');
+    const [displayStatus, setDisplayStatus] = useState('all');
+    const [saleStatus, setSaleStatus] = useState('all');
     const [stockType, setStockType] = useState('all');
     const [soldOutStatus, setSoldOutStatus] = useState('all');
     const [shippingFeeType, setShippingFeeType] = useState('all');
@@ -107,10 +103,6 @@ export default function ProductMoveCopyDeletePage() {
         }
     };
     
-    // Supplier Popup State
-    const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
-    const [selectedSupplierName, setSelectedSupplierName] = useState<string>("");
-
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
     const [selectedBrandInfo, setSelectedBrandInfo] = useState<{id: string, name: string} | null>(null);
@@ -144,8 +136,7 @@ export default function ProductMoveCopyDeletePage() {
             keyword,
             startDate,
             endDate,
-            dateType,
-            supplierType
+            dateType
         });
 
         if (result.success) {
@@ -153,7 +144,7 @@ export default function ProductMoveCopyDeletePage() {
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType, supplierType]);
+    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType]);
 
     useEffect(() => {
         fetchData();
@@ -306,48 +297,6 @@ export default function ProductMoveCopyDeletePage() {
                 </div>
                 
                 <div className="border border-gray-300 bg-white">
-                    {/* Row 1: Supplier */}
-                    <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">공급사 구분</div>
-                        <div className="flex-1 p-3 flex items-center gap-6">
-                            <RadioGroup 
-                                value={supplierType} 
-                                onValueChange={(val) => {
-                                    setSupplierType(val);
-                                    if (val === 'supplier') {
-                                        setIsSupplierPopupOpen(true);
-                                    }
-                                }} 
-                                className="flex items-center gap-6"
-                            >
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="all" id="supplier-all" />
-                                    <Label htmlFor="supplier-all">전체</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="headquarters" id="supplier-headquarters" />
-                                    <Label htmlFor="supplier-headquarters">본사</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="supplier" id="supplier-supplier" />
-                                    <Label htmlFor="supplier-supplier">공급사</Label>
-                                    <Button 
-                                        variant="secondary" 
-                                        className="h-7 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm ml-2"
-                                        onClick={() => setIsSupplierPopupOpen(true)}
-                                    >
-                                        공급사 선택
-                                    </Button>
-                                    {selectedSupplierName && (
-                                        <span className="text-xs text-blue-600 font-medium ml-2">
-                                            선택됨: {selectedSupplierName}
-                                        </span>
-                                    )}
-                                </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
-
                     {/* Row 2: Search Term */}
                     <div className="flex items-center border-b border-gray-200">
                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
@@ -643,84 +592,42 @@ export default function ProductMoveCopyDeletePage() {
                             </div>
                         </div>
 
-                        {/* Row 10: PC Display & Sale Status */}
+                        {/* Row 10: Product Display & Sale Status */}
                         <div className="flex border-b border-gray-200">
                             <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">PC쇼핑몰<br/>상품노출 상태</div>
+                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">상품노출 상태</div>
                                 <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={pcDisplayStatus} onValueChange={setPcDisplayStatus} className="flex gap-4">
+                                    <RadioGroup value={displayStatus} onValueChange={setDisplayStatus} className="flex gap-4">
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="pc-display-all" />
-                                            <Label htmlFor="pc-display-all" className="text-xs">전체</Label>
+                                            <RadioGroupItem value="all" id="display-all" />
+                                            <Label htmlFor="display-all" className="text-xs">전체</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="display" id="pc-display-yes" />
-                                            <Label htmlFor="pc-display-yes" className="text-xs">노출함</Label>
+                                            <RadioGroupItem value="display" id="display-yes" />
+                                            <Label htmlFor="display-yes" className="text-xs">노출함</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="hidden" id="pc-display-no" />
-                                            <Label htmlFor="pc-display-no" className="text-xs">노출안함</Label>
+                                            <RadioGroupItem value="hidden" id="display-no" />
+                                            <Label htmlFor="display-no" className="text-xs">노출안함</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
                             </div>
                             <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">PC쇼핑몰<br/>상품판매 상태</div>
+                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">상품판매 상태</div>
                                 <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={pcSaleStatus} onValueChange={setPcSaleStatus} className="flex gap-4">
+                                    <RadioGroup value={saleStatus} onValueChange={setSaleStatus} className="flex gap-4">
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="pc-sale-all" />
-                                            <Label htmlFor="pc-sale-all" className="text-xs">전체</Label>
+                                            <RadioGroupItem value="all" id="sale-all" />
+                                            <Label htmlFor="sale-all" className="text-xs">전체</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="sale" id="pc-sale-yes" />
-                                            <Label htmlFor="pc-sale-yes" className="text-xs">판매함</Label>
+                                            <RadioGroupItem value="sale" id="sale-yes" />
+                                            <Label htmlFor="sale-yes" className="text-xs">판매함</Label>
                                         </div>
                                         <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="stop" id="pc-sale-no" />
-                                            <Label htmlFor="pc-sale-no" className="text-xs">판매안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Row 11: Mobile Display & Sale Status */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">모바일쇼핑몰<br/>상품노출 상태</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={mobileDisplayStatus} onValueChange={setMobileDisplayStatus} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="mobile-display-all" />
-                                            <Label htmlFor="mobile-display-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="display" id="mobile-display-yes" />
-                                            <Label htmlFor="mobile-display-yes" className="text-xs">노출함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="hidden" id="mobile-display-no" />
-                                            <Label htmlFor="mobile-display-no" className="text-xs">노출안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">모바일쇼핑몰<br/>상품판매 상태</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={mobileSaleStatus} onValueChange={setMobileSaleStatus} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="mobile-sale-all" />
-                                            <Label htmlFor="mobile-sale-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="sale" id="mobile-sale-yes" />
-                                            <Label htmlFor="mobile-sale-yes" className="text-xs">판매함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="stop" id="mobile-sale-no" />
-                                            <Label htmlFor="mobile-sale-no" className="text-xs">판매안함</Label>
+                                            <RadioGroupItem value="stop" id="sale-no" />
+                                            <Label htmlFor="sale-no" className="text-xs">판매안함</Label>
                                         </div>
                                     </RadioGroup>
                                 </div>
@@ -1168,25 +1075,6 @@ export default function ProductMoveCopyDeletePage() {
                     </div>
                 </div>
             </div>
-
-            
-            <SupplierPopup 
-                isOpen={isSupplierPopupOpen}
-                onClose={() => setIsSupplierPopupOpen(false)}
-                onConfirm={(supplier) => {
-                    if (supplier) {
-                        setSupplierType('supplier');
-                        if (Array.isArray(supplier)) {
-                            if (supplier.length > 0) {
-                                setSelectedSupplierName(supplier[0].name);
-                            }
-                        } else {
-                            setSelectedSupplierName(supplier.name);
-                        }
-                    }
-                    setIsSupplierPopupOpen(false);
-                }}
-            />
 
             <BrandPopup 
                 isOpen={isBrandPopupOpen}

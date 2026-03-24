@@ -4,25 +4,21 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { DisplayStatus, ProductImageType, Prisma } from "@/generated/prisma";
 import * as XLSX from "xlsx";
-import { join } from "path";
-import { writeFile } from "fs/promises";
+import { uploadFile } from "@/lib/s3";
 
-// Helper: Save Image
-async function saveImage(file: File): Promise<string | null> {
+// Helper: Save Image to R2
+async function saveImage(file: File, folderPrefix: string = "products/general"): Promise<string | null> {
     if (!file || file.size === 0) return null;
 
     try {
         const buffer = Buffer.from(await file.arrayBuffer());
-        // Simple unique filename: timestamp-random.ext
         const ext = file.name.split('.').pop() || 'jpg';
-        const filename = `${Date.now()}-${Math.round(Math.random() * 10000)}.${ext}`;
-        const uploadDir = join(process.cwd(), "public/uploads");
-        const filepath = join(uploadDir, filename);
-
-        await writeFile(filepath, buffer);
-        return `/uploads/${filename}`;
+        const filename = `${folderPrefix}/${Date.now()}-${Math.round(Math.random() * 10000)}.${ext}`;
+        
+        const url = await uploadFile(buffer, filename, file.type || 'application/octet-stream');
+        return url;
     } catch (error) {
-        console.error("Error saving image:", error);
+        console.error("Error saving image to R2:", error);
         return null;
     }
 }
@@ -55,8 +51,9 @@ export async function createProductAction(prevState: unknown, formData: FormData
     const categoryId = rawFormData.categoryId as string;
     
     // Status mapping
-    const displayStatusPC = rawFormData.pc_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
-    const displayStatusMobile = rawFormData.mobile_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+    const unifiedDisplayStatus = rawFormData.display_status === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+    const displayStatusPC = unifiedDisplayStatus;
+    const displayStatusMobile = unifiedDisplayStatus;
     
     // Description
     const descriptionPC = rawFormData.description as string || "";
@@ -76,8 +73,9 @@ export async function createProductAction(prevState: unknown, formData: FormData
         // We need to clarify how the form sends images.
         // If ProductForm uses <input type="file" name="images" multiple />
         
+        const folderPrefix = `products/${code}`;
         for (const file of imageFiles) {
-            const path = await saveImage(file);
+            const path = await saveImage(file, folderPrefix);
             if (path) uploadedImages.push(path);
         }
 
@@ -140,8 +138,9 @@ export async function updateProductAction(prevState: unknown, formData: FormData
     const categoryId = rawFormData.categoryId as string;
     
     // Status mapping
-    const displayStatusPC = rawFormData.pc_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
-    const displayStatusMobile = rawFormData.mobile_display === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+    const unifiedDisplayStatus = rawFormData.display_status === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
+    const displayStatusPC = unifiedDisplayStatus;
+    const displayStatusMobile = unifiedDisplayStatus;
 
     // Description
     const descriptionPC = rawFormData.description as string || "";
@@ -170,9 +169,11 @@ export async function updateProductAction(prevState: unknown, formData: FormData
         // Note: Real logic might need to handle deletions or reordering. 
         // For now, we append new images.
         if (imageFiles.length > 0) {
+             const productInfo = await prisma.product.findUnique({ where: { id }, select: { code: true } });
+             const folderPrefix = `products/${productInfo?.code || id}`;
              const uploadedImages: string[] = [];
              for (const file of imageFiles) {
-                const path = await saveImage(file);
+                const path = await saveImage(file, folderPrefix);
                 if (path) uploadedImages.push(path);
             }
             

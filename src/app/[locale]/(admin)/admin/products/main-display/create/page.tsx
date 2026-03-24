@@ -310,8 +310,7 @@ export default function ProductDisplayCreatePage() {
                                 <TableHead className="text-center w-32 text-white">공급사</TableHead>
                                 <TableHead className="text-center w-16 text-white">재고</TableHead>
                                 <TableHead className="text-center w-20 text-white">품절상태</TableHead>
-                                <TableHead className="text-center w-20 text-white">PC쇼핑몰 노출상태</TableHead>
-                                <TableHead className="text-center w-20 text-white">모바일쇼핑몰 노출상태</TableHead>
+                                <TableHead className="text-center w-24 text-white">상품 노출상태</TableHead>
                             </TableRow>
                         </TableHeader>
                          <TableBody>
@@ -337,7 +336,6 @@ export default function ProductDisplayCreatePage() {
                                        <TableCell>{product.stock}</TableCell>
                                        <TableCell>{product.status}</TableCell>
                                        <TableCell>{product.pc}</TableCell>
-                                       <TableCell>{product.mobile}</TableCell>
                                     </TableRow>
                                 ))
                             )}

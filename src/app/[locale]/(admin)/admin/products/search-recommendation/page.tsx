@@ -36,35 +36,20 @@ export default function SearchRecommendationPage() {
             </div>
             
             <div className="border border-gray-300 border-b-0 text-xs">
-                {/* Row 1: Exposure Status (PC & Mobile) */}
+                {/* Row 1: Exposure Status */}
                 <div className="flex border-b border-gray-200">
                     <div className="w-48 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                        PC쇼핑몰 노출상태
-                    </div>
-                    <div className="p-3 border-r border-gray-200 flex-1">
-                        <RadioGroup defaultValue="visible" className="flex gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="visible" id="pc-visible" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="pc-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="hidden" id="pc-hidden" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="pc-hidden" className="text-gray-700 font-normal cursor-pointer">노출안함</Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-                    <div className="w-48 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                        모바일쇼핑몰 노출상태
+                        상품 노출상태
                     </div>
                     <div className="p-3 flex-1">
                         <RadioGroup defaultValue="visible" className="flex gap-4">
                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="visible" id="mo-visible" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                <Label htmlFor="mo-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
+                                <RadioGroupItem value="visible" id="visible" className="border-red-500 text-red-500 focus:ring-red-500" />
+                                <Label htmlFor="visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <RadioGroupItem value="hidden" id="mo-hidden" className="border-gray-300 text-gray-600" />
-                                <Label htmlFor="mo-hidden" className="text-gray-700 font-normal cursor-pointer">노출안함</Label>
+                                <RadioGroupItem value="hidden" id="hidden" className="border-gray-300 text-gray-600" />
+                                <Label htmlFor="hidden" className="text-gray-700 font-normal cursor-pointer">노출안함</Label>
                             </div>
                         </RadioGroup>
                     </div>
@@ -257,8 +242,7 @@ export default function SearchRecommendationPage() {
                             <th className="py-2 border-r border-[#CDCDCD]">공급사</th>
                             <th className="py-2 border-r border-[#CDCDCD]">재고</th>
                             <th className="py-2 border-r border-[#CDCDCD]">품절상태</th>
-                            <th className="py-2 border-r border-[#CDCDCD]">PC쇼핑몰 노출상태</th>
-                            <th className="py-2 border-r border-[#CDCDCD]">모바일쇼핑몰 노출상태</th>
+                            <th className="py-2 border-r border-[#CDCDCD]">상품 노출상태</th>
                             <th className="py-2 border-r border-[#CDCDCD]">진열</th>
                             <th className="py-2">삭제</th>
                         </tr>

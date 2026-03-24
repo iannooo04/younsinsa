@@ -48,7 +48,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         product_image: true,
         detail: true,
         shipping: true,
-        video: true,
         guide: true,
         seo: true,
     });
@@ -429,24 +428,13 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                         <Row label="노출 상태" required help>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-gray-700">PC쇼핑몰</span>
+                                    <span className="text-sm font-bold text-gray-700">쇼핑몰 노출</span>
                                     <label className="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="pc_display" value="노출함" className="radio radio-xs checked:bg-red-500" defaultChecked={initialProduct ? initialProduct.displayStatusPC === 'DISPLAY' : true} />
+                                        <input type="radio" name="display_status" value="노출함" className="radio radio-xs checked:bg-red-500" defaultChecked={initialProduct ? initialProduct.displayStatusPC === 'DISPLAY' : true} />
                                         <span className="text-sm">노출함</span>
                                     </label>
                                     <label className="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="pc_display" value="노출안함" className="radio radio-xs" defaultChecked={initialProduct ? initialProduct.displayStatusPC !== 'DISPLAY' : false} />
-                                        <span className="text-sm">노출안함</span>
-                                    </label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-gray-700">모바일쇼핑몰</span>
-                                    <label className="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="mobile_display" value="노출함" className="radio radio-xs checked:bg-red-500" defaultChecked={initialProduct ? initialProduct.displayStatusMobile === 'DISPLAY' : true} />
-                                        <span className="text-sm">노출함</span>
-                                    </label>
-                                    <label className="flex items-center gap-1 cursor-pointer">
-                                        <input type="radio" name="mobile_display" value="노출안함" className="radio radio-xs" defaultChecked={initialProduct ? initialProduct.displayStatusMobile !== 'DISPLAY' : false} />
+                                        <input type="radio" name="display_status" value="노출안함" className="radio radio-xs" defaultChecked={initialProduct ? initialProduct.displayStatusPC !== 'DISPLAY' : false} />
                                         <span className="text-sm">노출안함</span>
                                     </label>
                                 </div>
@@ -887,12 +875,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     </Row>
                 </Section>
 
-                 {/* 14. 외부 동영상(YouTube) 등록 */}
-                 <Section title="외부 동영상(YouTube) 등록" isOpen={sections.video} onToggle={() => toggleSection('video')}>
-                     <Row label="사용상태">
-                         <RadioGroup name="youtube_video" options={['사용함', '사용안함']} defaultValue="사용안함" />
-                    </Row>
-                </Section>
+
 
                 {/* 15. 이용안내 */}
                 <Section title="이용안내" isOpen={sections.guide} onToggle={() => toggleSection('guide')}>

@@ -1115,7 +1115,7 @@ export default function CategoryManagementPage() {
                       </div>
                       
                       {/* Product Table Header */}
-                      <div className="grid grid-cols-[40px_60px_60px_1fr_100px_100px_60px_80px_140px_140px] bg-[#B0B0B0] text-white text-center text-xs font-bold py-2 border-b border-gray-300 items-center whitespace-nowrap">
+                      <div className="grid grid-cols-[40px_60px_60px_1fr_100px_100px_60px_80px_140px] bg-[#B0B0B0] text-white text-center text-xs font-bold py-2 border-b border-gray-300 items-center whitespace-nowrap">
                           <div className="flex justify-center"><Checkbox className="border-white data-[state=checked]:text-black" /></div>
                           <div>번호</div>
                           <div>이미지</div>
@@ -1124,8 +1124,7 @@ export default function CategoryManagementPage() {
                           <div>공급사</div>
                           <div>재고</div>
                           <div>품절상태</div>
-                          <div>PC쇼핑몰 노출상태</div>
-                          <div>모바일쇼핑몰 노출상태</div>
+                          <div>상품 노출상태</div>
                       </div>
                       
                       {/* Empty State */}

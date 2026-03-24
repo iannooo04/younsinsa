@@ -319,8 +319,7 @@ export default function ProductDisplayEditPage() {
                                 <TableHead className="text-center w-32">공급사</TableHead>
                                 <TableHead className="text-center w-16">재고</TableHead>
                                 <TableHead className="text-center w-20">품절상태</TableHead>
-                                <TableHead className="text-center w-20">PC쇼핑몰 노출상태</TableHead>
-                                <TableHead className="text-center w-20">모바일쇼핑몰 노출상태</TableHead>
+                                <TableHead className="text-center w-24">상품 노출상태</TableHead>
                             </TableRow>
                         </TableHeader>
                          <TableBody>
@@ -358,7 +357,6 @@ export default function ProductDisplayEditPage() {
                                    <TableCell>{product.stock}</TableCell>
                                    <TableCell>{product.status}</TableCell>
                                    <TableCell>{product.pc}</TableCell>
-                                   <TableCell>{product.mobile}</TableCell>
                                 </TableRow>
                             ))}
                          </TableBody>

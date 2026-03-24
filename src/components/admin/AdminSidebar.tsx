@@ -35,7 +35,7 @@ const menuItems: MenuItem[] = [
     { name: "Images", href: "/admin/images", icon: Image },
     {
         name: "설정",
-        href: "/admin/settings",
+        href: "#",
         icon: Settings,
         groups: [
             {
@@ -43,8 +43,7 @@ const menuItems: MenuItem[] = [
                 items: [
 
                     { name: "부가세율 설정", href: "/admin/settings/vat" },
-                    { name: "이용 / 탈퇴 안내", href: "/admin/settings/guide" },
-                    { name: "금액 / 단위 기준 설정", href: "/admin/settings/currency" },
+
                 ]
             },
             {
@@ -52,7 +51,7 @@ const menuItems: MenuItem[] = [
                 items: [
                     { name: "운영자 관리", href: "/admin/settings/manager" },
                     { name: "운영자 권한 설정", href: "/admin/settings/manager-permission" },
-                    { name: "운영 보안 설정", href: "/admin/settings/security" },
+
                     { name: "쇼핑몰 이용 설정", href: "/admin/settings/mall-usage" },
 
                 ]
@@ -62,14 +61,12 @@ const menuItems: MenuItem[] = [
                 items: [
 
                     { name: "환율 설정", href: "/admin/settings/exchange-rate" },
-                    { name: "해외 배송조건 관리", href: "/admin/settings/overseas-shipping-condition" },
 
                 ]
             },
             {
                 title: "상품 정책",
                 items: [
-                    { name: "상품 기본 설정", href: "/admin/settings/product-basic" },
                     { name: "상품 상세 이용안내 관리", href: "/admin/settings/product-usage-guide" },
                     { name: "최근 본 상품 설정", href: "/admin/settings/recent-products" },
                 ]

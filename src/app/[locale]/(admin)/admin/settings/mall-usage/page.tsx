@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle } from "lucide-react";
@@ -10,13 +10,6 @@ import { getMallUsageSettingsAction, updateMallUsageSettingsAction } from "@/act
 
 export default function MallUsageSettingsPage() {
     const [isPending, startTransition] = useTransition();
-
-    // 1. Intro Page Settings
-    const [pcIntro, setPcIntro] = useState(false);
-    const [mobileIntro, setMobileIntro] = useState(false);
-
-    // 3. Mileage / Coupon Double Use
-    const [mileageCouponDouble, setMileageCouponDouble] = useState("allow");
 
     // 4. Member Auto Logout
     const [memberAutoLogoutType, setMemberAutoLogoutType] = useState("default");
@@ -29,6 +22,9 @@ export default function MallUsageSettingsPage() {
     const [cartStoragePeriod, setCartStoragePeriod] = useState(7);
     const [soldOutDisplay, setSoldOutDisplay] = useState("display");
     const [under14Restriction, setUnder14Restriction] = useState("allow");
+    const [pcIntro, setPcIntro] = useState(false);
+    const [mobileIntro, setMobileIntro] = useState(false);
+    const [mileageCouponDouble, setMileageCouponDouble] = useState("allow");
 
     useEffect(() => {
         const fetchData = async () => {
@@ -42,10 +38,8 @@ export default function MallUsageSettingsPage() {
                 setUnder14Restriction(result.settings.under14Restriction || "allow");
                 setMemberAutoLogoutType(result.settings.memberAutoLogoutType);
                 setMemberAutoLogoutTime(result.settings.memberAutoLogoutTime || 60);
-                
-                // New fields
-                setPcIntro(result.settings.pcIntro || false);
-                setMobileIntro(result.settings.mobileIntro || false);
+                setPcIntro(result.settings.pcIntro ?? false);
+                setMobileIntro(result.settings.mobileIntro ?? false);
                 setMileageCouponDouble(result.settings.mileageCouponDouble || "allow");
             }
         };
@@ -62,9 +56,9 @@ export default function MallUsageSettingsPage() {
                 soldOutDisplay,
                 memberAutoLogoutType,
                 memberAutoLogoutTime,
+                under14Restriction,
                 pcIntro,
                 mobileIntro,
-                under14Restriction,
                 mileageCouponDouble,
             });
             if (result.success) {
@@ -87,65 +81,6 @@ export default function MallUsageSettingsPage() {
                 >
                     {isPending ? "저장 중..." : "설정 저장"}
                 </Button>
-            </div>
-
-            {/* 1. Intro Page Settings */}
-            <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-gray-800">인트로페이지 사용 설정</h2>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
-                </div>
-                <div className="border-t border-gray-400">
-                    <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">사용설정</div>
-                        <div className="p-4 space-y-3">
-                            <div className="flex items-center gap-6">
-                                <div className="flex items-center gap-2">
-                                    <Checkbox 
-                                        id="intro" 
-                                        checked={pcIntro} 
-                                        onCheckedChange={(c) => {
-                                            const val = !!c;
-                                            setPcIntro(val);
-                                            setMobileIntro(val);
-                                        }} 
-                                        className="rounded-sm border-gray-300"
-                                    />
-                                    <Label htmlFor="intro" className="font-normal text-gray-700">인트로페이지</Label>
-                                </div>
-                            </div>
-                            <p className="text-xs text-red-500 font-medium flex items-start gap-1 mt-1">
-                                <span className="w-4 flex justify-center bg-red-500 text-white pb-0.5 rounded-sm text-[10px] leading-3 mt-0.5">!</span> 
-                                인트로페이지 접속권한 설정에 따라 전체 쇼핑몰 접속 권한이 자동 변경됩니다.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* 3. Mileage / Coupon Double Use Settings */}
-            <div className="space-y-4">
-                 <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-gray-800">마일리지 / 쿠폰 중복사용 설정</h2>
-                    <HelpCircle size={14} className="text-gray-400 cursor-help" />
-                </div>
-                <div className="border-t border-gray-400">
-                     <div className="grid grid-cols-[180px_1fr] border-b border-gray-200">
-                        <div className="p-4 bg-gray-50 font-medium text-gray-700">마일리지 / 쿠폰<br/>중복사용 설정</div>
-                        <div className="p-4 space-y-2">
-                            <RadioGroup value={mileageCouponDouble} onValueChange={setMileageCouponDouble} className="space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="allow" id="double-allow" />
-                                    <Label htmlFor="double-allow" className="font-normal cursor-pointer">마일리지와 쿠폰 동시 사용 제한 없음. (허용)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <RadioGroupItem value="disallow" id="double-disallow" />
-                                    <Label htmlFor="double-disallow" className="font-normal cursor-pointer">마일리지와 쿠폰 동시 사용 불가</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* 4. Member Auto Logout */}

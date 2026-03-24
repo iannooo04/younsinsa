@@ -54,7 +54,6 @@ export default function MainProductDisplayPage() {
     
     // Advanced Search State
     const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
-    const [mallType, setMallType] = useState('ALL');
     const [displayStatus, setDisplayStatus] = useState('all');
     const [sort, setSort] = useState('regDesc');
     
@@ -85,7 +84,6 @@ export default function MainProductDisplayPage() {
             startDate,
             endDate,
             dateType,
-            mallType,
             displayStatus,
             sort
         });
@@ -95,7 +93,7 @@ export default function MainProductDisplayPage() {
             setTotalCount(result.totalCount);
         }
         setLoading(false);
-    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType, mallType, displayStatus, sort]);
+    }, [page, pageSize, searchType, keyword, startDate, endDate, dateType, displayStatus, sort]);
 
     useEffect(() => {
         fetchData();
@@ -285,25 +283,6 @@ export default function MainProductDisplayPage() {
                 {isAdvancedSearchOpen && (
                     <div className="border border-t-0 border-gray-300 bg-white">
                         <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">쇼핑몰 유형</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={mallType} onValueChange={setMallType} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="ALL" id="mall-all" />
-                                            <Label htmlFor="mall-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="PC" id="mall-pc" />
-                                            <Label htmlFor="mall-pc" className="text-xs">PC쇼핑몰</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="MOBILE" id="mall-mobile" />
-                                            <Label htmlFor="mall-mobile" className="text-xs">모바일쇼핑몰</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
                             <div className="flex-1 flex">
                                 <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">노출상태</div>
                                 <div className="flex-1 p-3 flex items-center gap-4">
@@ -394,7 +373,6 @@ export default function MainProductDisplayPage() {
                                     />
                                 </TableHead>
                                 <TableHead className="w-16 text-center">번호</TableHead>
-                                <TableHead className="text-center w-32 border-l border-gray-300">쇼핑몰 유형</TableHead>
                                 <TableHead className="text-center border-l border-gray-300">분류명</TableHead>
                                 <TableHead className="text-center border-l border-gray-300 w-24">분류 설명</TableHead>
                                 <TableHead className="text-center border-l border-gray-300 w-32">선택테마</TableHead>
@@ -425,7 +403,6 @@ export default function MainProductDisplayPage() {
                                             />
                                         </TableCell>
                                         <TableCell className="text-gray-500 font-normal">{item.id}</TableCell>
-                                        <TableCell className="border-l border-gray-200">{item.mallType === 'MOBILE' ? '모바일쇼핑몰' : 'PC쇼핑몰'}</TableCell>
                                         <TableCell className="text-left pl-4 font-normal text-gray-800 border-l border-gray-200">{item.name}</TableCell>
                                         <TableCell className="border-l border-gray-200">{item.description}</TableCell>
                                         <TableCell className="border-l border-gray-200">{item.themeName}</TableCell>
