@@ -86,11 +86,6 @@ export default function ProductSearchForm() {
                         <div className="grid grid-cols-[120px_1fr] items-center gap-4 py-3 border-b border-gray-100">
                             <div className="font-bold">메인분류</div>
                             <div className="flex items-center gap-2">
-                                <select className="select select-bordered select-sm w-32 rounded-sm bg-gray-50">
-                                    <option>=전체=</option>
-                                    <option>PC쇼핑몰</option>
-                                    <option>모바일쇼핑몰</option>
-                                </select>
                                 <select className="select select-bordered select-sm w-48 rounded-sm bg-gray-50"><option>=메인페이지 분류 선택=</option></select>
                             </div>
                         </div>
@@ -126,26 +121,7 @@ export default function ProductSearchForm() {
                             </div>
                         </div>
 
-                        {/* Mileage */}
-                        <div className="grid grid-cols-2 gap-x-12 py-3 border-b border-gray-100">
-                             <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">마일리지</div>
-                                <div className="flex items-center gap-2">
-                                    <input type="text" className="input input-bordered input-sm w-24 rounded-sm" />
-                                    <span>이상 ~</span>
-                                    <input type="text" className="input input-bordered input-sm w-24 rounded-sm" />
-                                    <span>이하</span>
-                                </div>
-                            </div>
-                            <div className="grid grid-cols-[120px_1fr] items-center gap-4">
-                                <div className="font-bold">마일리지 지급방법</div>
-                                <div className="flex items-center gap-4">
-                                    <label className="flex items-center gap-2"><input type="radio" name="mileage" className="radio radio-xs checked:bg-primary" defaultChecked /><span>전체</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="mileage" className="radio radio-xs checked:bg-primary" /><span>통합설정</span></label>
-                                    <label className="flex items-center gap-2"><input type="radio" name="mileage" className="radio radio-xs checked:bg-primary" /><span>개별설정</span></label>
-                                </div>
-                            </div>
-                        </div>
+
                         
                          {/* Stock & Option */}
                         <div className="grid grid-cols-2 gap-x-12 py-3 border-b border-gray-100">

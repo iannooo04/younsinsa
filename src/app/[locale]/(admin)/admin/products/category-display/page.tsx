@@ -251,13 +251,12 @@ export default function CategoryProductDisplayPage() {
                     </div>
                     
                     <div className="border-t-2 border-gray-400 border-b border-gray-300">
-                        <div className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px_140px_100px] bg-[#f1f1f1] text-xs text-center font-bold text-gray-700 h-10 items-center border-b border-gray-300">
+                        <div className="grid grid-cols-[40px_80px_60px_1fr_100px_80px_80px_140px_100px] bg-[#f1f1f1] text-xs text-center font-bold text-gray-700 h-10 items-center border-b border-gray-300">
                             <div className="flex justify-center"><Checkbox className="w-4 h-4 rounded-[2px]" /></div>
                             <div>진열순서</div>
                             <div>이미지</div>
                             <div>상품명</div>
                             <div>판매가</div>
-                            <div>공급사</div>
                             <div>재고</div>
                             <div>품절상태</div>
                             <div>등록일/수정일</div>
@@ -275,7 +274,7 @@ export default function CategoryProductDisplayPage() {
                         ) : (
                             <div>
                                 {products.map((p, idx) => (
-                                    <div key={p.id} className="grid grid-cols-[40px_80px_60px_1fr_100px_120px_80px_80px_140px_100px] text-xs text-center h-16 items-center border-b border-gray-200 hover:bg-gray-50 bg-white">
+                                    <div key={p.id} className="grid grid-cols-[40px_80px_60px_1fr_100px_80px_80px_140px_100px] text-xs text-center h-16 items-center border-b border-gray-200 hover:bg-gray-50 bg-white">
                                         <div className="flex justify-center"><Checkbox className="w-4 h-4 rounded-[2px]" /></div>
                                         <div className="text-gray-500">{idx + 1}</div>
                                         <div className="flex justify-center">
@@ -283,7 +282,6 @@ export default function CategoryProductDisplayPage() {
                                         </div>
                                         <div className="text-left px-2 truncate font-medium text-gray-700">{p.name}</div>
                                         <div className="text-right px-4 font-mono">{p.price?.toLocaleString()}</div>
-                                        <div className="text-gray-500">{p.supplier?.name || "본사"}</div>
                                         <div>{p.stockQuantity}</div>
                                         <div>{p.stockQuantity <= 0 ? "품절" : "정상"}</div>
                                         <div className="text-gray-500 text-[11px]">

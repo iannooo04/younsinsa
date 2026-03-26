@@ -52,8 +52,6 @@ export default function JoinApprovalChangePage() {
       // Detailed fields
       visitCountMin: undefined,
       visitCountMax: undefined,
-      mileageMin: undefined,
-      mileageMax: undefined,
       depositMin: undefined,
       depositMax: undefined,
       orderCountMin: undefined,
@@ -72,7 +70,6 @@ export default function JoinApprovalChangePage() {
       anniversaryStart: '',
       anniversaryEnd: '',
       linkedProvider: 'all',
-      joinPath: 'all',
   });
 
   // Selection State
@@ -397,22 +394,17 @@ export default function JoinApprovalChangePage() {
                         </div>
                     </div>
 
-                    {/* Row 2: Mileage / Deposit */}
+                    {/* Row 2: Deposit */}
                     <div className="flex border-b border-gray-200">
-                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">마일리지</div>
-                        <div className="flex-1 p-3 border-r border-gray-200 flex items-center gap-2">
-                            <Input className="w-24 h-7 text-xs" value={searchParams.mileageMin || ''} onChange={(e) => handleParamChange('mileageMin', Number(e.target.value))} />
-                            <span>원 ~</span>
-                            <Input className="w-24 h-7 text-xs" value={searchParams.mileageMax || ''} onChange={(e) => handleParamChange('mileageMax', Number(e.target.value))} />
-                            <span>원</span>
-                        </div>
-                         <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">예치금</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
+                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">예치금</div>
+                        <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
                             <Input className="w-24 h-7 text-xs" value={searchParams.depositMin || ''} onChange={(e) => handleParamChange('depositMin', Number(e.target.value))} />
                             <span>원 ~</span>
                             <Input className="w-24 h-7 text-xs" value={searchParams.depositMax || ''} onChange={(e) => handleParamChange('depositMax', Number(e.target.value))} />
                             <span>원</span>
                         </div>
+                        <div className="w-40 bg-[#FBFBFB] p-3 border-r border-gray-200"></div>
+                        <div className="flex-1 p-3"></div>
                     </div>
 
                     {/* Row 3: Order Count / Amount */}
@@ -453,22 +445,15 @@ export default function JoinApprovalChangePage() {
                         </div>
                     </div>
 
-                    {/* Row 5: Join Path / Long Term Idle */}
+                    {/* Row 5: Long Term Idle */}
                     <div className="flex border-b border-gray-200">
-                        <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">가입경로</div>
-                        <div className="flex-1 p-3 border-r border-gray-200">
-                            <RadioGroup value={searchParams.joinPath} onValueChange={(v) => handleParamChange('joinPath', v)} className="flex gap-6">
-                                {/* Mocking Join Path as it's not in schema yet */}
-                                <div className="flex items-center gap-1.5"><RadioGroupItem value="all" id="path-all"/><Label htmlFor="path-all">전체</Label></div>
-                                <div className="flex items-center gap-1.5"><RadioGroupItem value="pc" id="path-pc"/><Label htmlFor="path-pc">PC</Label></div>
-                                <div className="flex items-center gap-1.5"><RadioGroupItem value="mobile" id="path-mobile"/><Label htmlFor="path-mobile">모바일</Label></div>
-                            </RadioGroup>
-                        </div>
                          <div className="w-40 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">장기 미로그인</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
+                        <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
                              <Input className="w-24 h-7 text-xs" placeholder="" />
                              <span>일 이상 로그인하지 않은 회원</span>
                         </div>
+                        <div className="w-40 bg-[#FBFBFB] p-3 border-r border-gray-200"></div>
+                        <div className="flex-1 p-3"></div>
                     </div>
 
                     {/* Row 6: Gender / Birthday */}

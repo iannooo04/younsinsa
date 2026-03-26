@@ -9,6 +9,7 @@ import Image from "next/image";
 import { getPublicMainDisplayGroupsAction, getDisplayGroupProductsAction } from "@/actions/product-display-actions";
 import BrandLogoGrid from "@/components/common/BrandLogoGrid";
 import { getFeaturedBrandsAction } from "@/actions/brand-actions";
+import { getActiveBannersAction } from "@/actions/banner-actions";
 
 interface ProductItem {
   id: string;
@@ -31,6 +32,8 @@ export default function HomePage() {
   const t = useTranslations("home");
   const [displayGroups, setDisplayGroups] = useState<DisplayGroup[]>([]);
   const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dynamicBanners, setDynamicBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +42,12 @@ export default function HomePage() {
         // Fetch Brands
         const fetchedBrands = await getFeaturedBrandsAction();
         setBrands(fetchedBrands);
+
+        // Fetch Banners
+        const bannersRes = await getActiveBannersAction('home');
+        if (bannersRes.success) {
+            setDynamicBanners(bannersRes.banners);
+        }
 
         // Fetch Display Groups
         const groupsRes = await getPublicMainDisplayGroupsAction('PC');
@@ -66,138 +75,159 @@ export default function HomePage() {
   }, [t]);
 
   // 1. 배너 슬라이드 데이터
-  const bannerSlides = [
-    {
-      id: 1,
-      left: {
-        img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1600&auto=format&fit=crop",
-        title: "요즘 방한 <br /> 슈즈 트렌드",
-        desc: "어그, 23.65 외",
-        bgColor: "bg-gray-200",
-      },
-      center: {
-        img: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=800&auto=format&fit=crop",
-        title: "키즈 크리스마스 위크",
-        subTitle: "인기 선물 특가",
-        desc: "최대 80% 할인",
-        bgColor: "bg-[#A40000]",
-        overlayColor: "bg-[#A40000]/20",
-      },
-      right: {
-        img: "https://images.unsplash.com/photo-1556906781-9a412961c28c?q=80&w=800&auto=format&fit=crop",
-        title: "스포츠위크",
-        subTitle: "2만원으로 만나는 <br/> 스포츠 럭키 박스",
-        desc: "인기 운동 용품 당첨의 기회",
-        bgColor: "bg-[#5D85C3]",
-        overlayColor: "bg-[#5D85C3]/20",
-      },
-    },
-    {
-      id: 2,
-      left: {
-        img: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?q=80&w=1600&auto=format&fit=crop",
-        title: "24 F/W <br /> 시즌 오프 시작",
-        desc: "최대 80% 할인 혜택",
-        bgColor: "bg-gray-800",
-      },
-      center: {
-        img: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?q=80&w=800&auto=format&fit=crop",
-        title: "럭셔리 부티크",
-        subTitle: "하이엔드 컬렉션",
-        desc: "매일 업데이트 되는 신상",
-        bgColor: "bg-black",
-        overlayColor: "bg-black/20",
-      },
-      right: {
-        img: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=800&auto=format&fit=crop",
-        title: "뷰티 어워즈",
-        subTitle: "올해 가장 사랑받은 <br/> 뷰티 아이템",
-        desc: "단독 특가 진행 중",
-        bgColor: "bg-pink-600",
-        overlayColor: "bg-pink-600/20",
-      },
-    },
-  ];
+  const bannerSlides = useMemo(() => {
+    if (dynamicBanners.length === 0) return [];
+    
+    const chunks = [];
+    for (let i = 0; i < dynamicBanners.length; i += 3) {
+      const left = dynamicBanners[i];
+      const center = dynamicBanners[i + 1];
+      const right = dynamicBanners[i + 2];
+      
+      chunks.push({
+        id: i,
+        left: left ? { img: left.pcImage, title: left.title, desc: left.description || '', link: left.linkUrl || '', bgColor: "bg-gray-800" } : { img: "", title: "", desc: "", link: "", bgColor: "bg-gray-200" },
+        center: center ? { img: center.pcImage, title: center.title, subTitle: "", desc: center.description || '', link: center.linkUrl || '', bgColor: "bg-black", overlayColor: "bg-black/20" } : { img: "", title: "", subTitle: "", desc: "", link: "", bgColor: "bg-gray-200", overlayColor: "" },
+        right: right ? { img: right.pcImage, title: right.title, subTitle: "", desc: right.description || '', link: right.linkUrl || '', bgColor: "bg-pink-600", overlayColor: "bg-pink-600/20" } : { img: "", title: "", subTitle: "", desc: "", link: "", bgColor: "bg-gray-200", overlayColor: "" },
+      });
+    }
+    return chunks;
+  }, [dynamicBanners]);
 
   // 2. 슬라이드 상태 관리
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(true);
 
   const prevSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === 0 ? bannerSlides.length - 1 : prev - 1
-    );
+    if (bannerSlides.length <= 1) return;
+    if (currentSlide <= 0) {
+      setIsTransitioning(false);
+      setCurrentSlide(bannerSlides.length - 1);
+    } else {
+      setIsTransitioning(true);
+      setCurrentSlide((prev) => prev - 1);
+    }
   };
 
   const nextSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === bannerSlides.length - 1 ? 0 : prev + 1
-    );
+    if (bannerSlides.length <= 1) return;
+    if (currentSlide >= bannerSlides.length) return;
+    setIsTransitioning(true);
+    setCurrentSlide((prev) => prev + 1);
   };
 
-  // 🛠️ [신규] 상단 배너 바로가기 데이터 (사진 참고)
+  useEffect(() => {
+    if (bannerSlides.length <= 1) return;
+    if (currentSlide === bannerSlides.length) {
+      // 복제된 첫 번째 슬라이드에 도달하면 애니메이션 대기 후 실제로 0번(첫 번째)으로 눈속임 이동
+      const timeout = setTimeout(() => {
+        setIsTransitioning(false);
+        setCurrentSlide(0);
+      }, 500); // Tailwind duration-500 과 동일한 시간
+      return () => clearTimeout(timeout);
+    }
+  }, [currentSlide, bannerSlides.length]);
+
+  // 🛠️ [신규] 배너 3초 자동 슬라이드 (오른쪽에서 왼쪽으로 무조건 한 방향 롤링)
+  useEffect(() => {
+    if (bannerSlides.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => {
+        if (prev >= bannerSlides.length) return prev;
+        setIsTransitioning(true);
+        return prev + 1;
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [bannerSlides.length]);
+
+  // 🛠️ [신규] 상단 배너 바로가기 데이터 (가로 9칸 x 2줄 그리드)
   const topShortcutBanners = [
+    { id: 1, title: "아디다스 와플 컬렉션", brandLogo: "adidas", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 2, title: "아디다스 × 띠그클럽", brandLogo: "adidas", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 3, title: "캘빈클라인 인더 시티", brandLogo: "CalvinKlein", bg: "bg-[#EFEAE2]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 4, title: "산리오 캐릭터즈 × 뚜오미오", brandLogo: "Sanrio", bg: "bg-[#F6E8EF]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 5, title: "팀버랜드 × 메타마운드", brandLogo: "Timberland", bg: "bg-[#EFEAE2]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 6, title: "KBO + 스타벅스", brandLogo: "STARBUCKS", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 7, title: "푸마 스프린트 매쉬", brandLogo: "PUMA", bg: "bg-[#EFEAE2]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 8, title: "팀버랜드 × 와코마리아", brandLogo: "Timberland", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 9, title: "수아레 × 패션플래닛", brandLogo: "SUARE", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 10, title: "탄산마그네슘 × 송이송이", brandLogo: "", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 11, title: "스탠리1913 × 유벤투스", brandLogo: "STANLEY", bg: "bg-[#E8F0EA]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 12, title: "인더스트 × 후디진호", brandLogo: "INDUST", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 13, title: "에어맥스 데이", brandLogo: "NIKE", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 14, title: "쿠빈 굿즈 컬렉션", brandLogo: "COSMOPOL", bg: "bg-[#EAEAEA]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 15, title: "이슬쌤의 아이 팔레트", brandLogo: "LUVUM", bg: "bg-[#E6ECEE]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 16, title: "르아브 크리에이터 컬렉션", brandLogo: "LEARVE", bg: "bg-[#EAEAEA]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 17, title: "반스 컬러이즈드 슬립온", brandLogo: "VANS", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+    { id: 18, title: "리복 클럽 C 로머", brandLogo: "Reebok", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
+  ];
+
+  // 🛠️ [신규] 하단 아이콘 바로가기 데이터 (가로 11칸 그리드)
+  const bottomShortcutIcons = [
+    { id: 1, title: "유즈드 수수료 ↓", icon: "🍋" },
+    { id: 2, title: "브랜드위크", icon: "🛍️" },
+    { id: 3, title: "최대 8%적립", icon: "M" },
+    { id: 4, title: "무퀴즈", icon: "🧩" },
+    { id: 5, title: "무신사 월간 랭킹", icon: "👟" },
+    { id: 6, title: "최저가 보상제", icon: "💰" },
+    { id: 7, title: "매일 아울렛 입고", icon: "🧥" },
+    { id: 8, title: "타임세일", icon: "⏰" },
+    { id: 9, title: "라이브", icon: "📺" },
+    { id: 10, title: "체험단", icon: "🧢" },
+    { id: 11, title: "서비스 전체보기", icon: "≡" },
+  ];
+
+  // 🛠️ [신규] 나의 관심 기반 상품 추천 데이터 
+  const interestBasedProducts = [
     {
       id: 1,
-      title: "화심주조 미라온",
-      bg: "bg-[#EAE5DD]",
-      img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?auto=format&fit=crop&w=100&q=80",
+      brand: "디미트리블랙",
+      name: "[10주년기획] ⊗ 모두의 커브드 치노 팬츠_4 COLOR",
+      price: 34900,
+      discount: 30,
+      image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: 2,
-      title: "스노우피크 15% 쿠폰",
-      bg: "bg-[#DDE4EA]",
-      img: "https://images.unsplash.com/photo-1504198458649-3128b932f49e?auto=format&fit=crop&w=100&q=80",
+      brand: "트릴리온",
+      name: "[기획] 커브드 와이드 절개 코튼 팬츠_5color",
+      price: 29800,
+      discount: 31,
+      image: "https://images.unsplash.com/photo-1542272604-780c96850d76?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: 3,
-      title: "키즈 크리스마스 위크",
-      bg: "bg-[#EAE0DD]",
-      img: "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&w=100&q=80",
+      brand: "시그니처",
+      name: "와이드 커브드 다트 코튼 팬츠[베이지]",
+      price: 34900,
+      discount: 34,
+      image: "https://images.unsplash.com/photo-1584865288642-42078afe6942?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: 4,
-      title: "뷰티 30% 쿠폰",
-      bg: "bg-[#EADCD9]",
-      img: "https://images.unsplash.com/photo-1516762689617-e1cffcef479d?auto=format&fit=crop&w=100&q=80",
-      badge: "30%",
+      brand: "키유어",
+      name: "커브드 와이드 코튼 팬츠_베이지 [벨트/키링 선택]",
+      price: 43450,
+      discount: 45,
+      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: 5,
-      title: "스포츠 최대 20% 쿠폰",
-      bg: "bg-[#DDE6EA]",
-      img: "https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&w=100&q=80",
+      brand: "르아르",
+      name: "커브드 코튼 치노 팬츠 [베이지]",
+      price: 39900,
+      discount: 5,
+      image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=400&q=80",
     },
     {
       id: 6,
-      title: "카비시 x 킥플립 동화",
-      bg: "bg-[#EAE5DD]",
-      img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&w=100&q=80",
+      brand: "인템포무드",
+      name: "코튼 레이온 파라슈트 팬츠",
+      price: 49900,
+      discount: 32,
+      image: "https://images.unsplash.com/photo-1542272604-780c96850d76?auto=format&fit=crop&w=400&q=80",
     },
-    {
-      id: 7,
-      title: "2025 슈즈 리포트",
-      bg: "bg-[#E2E2E8]",
-      img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=100&q=80",
-    },
-  ];
-
-  // 🛠️ [신규] 하단 아이콘 바로가기 데이터 (사진 참고)
-  const bottomShortcutIcons = [
-    {
-      id: 1,
-      title: "유즈드 라스트 찬스 쿠폰",
-      icon: "🎫",
-      bg: "bg-yellow-100",
-    },
-    { id: 2, title: "이미리 AI 포토부스", icon: "🤖", bg: "bg-blue-100" },
-    { id: 3, title: "100원 래플 x 투썸", icon: "🍰", bg: "bg-red-50" },
-    { id: 4, title: "최저가 보상제", icon: "💰", bg: "bg-orange-50" },
-    { id: 5, title: "매일 아울렛 입고", icon: "🧥", bg: "bg-orange-100" },
-    { id: 6, title: "최대 8% 적립", icon: "M", bg: "bg-black text-white" },
-    { id: 7, title: "타임세일", icon: "⏰", bg: "bg-gray-100" },
-    { id: 8, title: "라이브", icon: "📺", bg: "bg-gray-100" },
-    { id: 9, title: "이미리 월간 랭킹", icon: "🏆", bg: "bg-yellow-50" },
-    { id: 10, title: "체험단", icon: "🧢", bg: "bg-blue-50" },
   ];
 
   // 3. 필터링 로직
@@ -263,24 +293,30 @@ export default function HomePage() {
 
         {/* 슬라이드 컨테이너 */}
         <div
-          className="h-full flex transition-transform duration-500 ease-in-out"
+          className={`h-full flex ${isTransitioning ? "transition-transform duration-500 ease-in-out" : ""}`}
           style={{ transform: `translateX(-${currentSlide * 100}%)` }}
         >
-          {bannerSlides.map((slide) => (
+          {/* 심리스(Seamless) 무한 롤링을 위해 1번 슬라이드를 맨 끝에 복제해서 붙입니다 */}
+          {[...bannerSlides, ...(bannerSlides.length > 1 ? [bannerSlides[0]] : [])].map((slide, index) => (
             <div
-              key={slide.id}
+              key={`${slide.id}-${index}`}
               className="min-w-full h-full grid grid-cols-1 md:grid-cols-4"
             >
               {/* 왼쪽 */}
               <div
                 className={`md:col-span-2 relative ${slide.left.bgColor} overflow-hidden cursor-pointer group/item`}
+                onClick={() => {
+                  if (slide.left.link) window.open(slide.left.link, "_self");
+                }}
               >
-                <Image
-                  src={slide.left.img}
-                  alt={slide.left.title}
-                  fill
-                  className="object-cover group-hover/item:scale-105 transition-transform duration-700"
-                />
+                {slide.left.img && (
+                  <Image
+                    src={slide.left.img}
+                    alt={slide.left.title}
+                    fill
+                    className="object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  />
+                )}
                 <div className="absolute bottom-8 left-8 text-white z-10 drop-shadow-md">
                   <h2
                     className="text-3xl font-bold leading-tight mb-2"
@@ -290,121 +326,111 @@ export default function HomePage() {
                     {slide.left.desc}
                   </p>
                 </div>
-                <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
               {/* 중앙 */}
               <div
                 className={`md:col-span-1 relative ${slide.center.bgColor} overflow-hidden cursor-pointer group/item`}
+                onClick={() => {
+                  if (slide.center.link) window.open(slide.center.link, "_self");
+                }}
               >
-                <Image
-                  src={slide.center.img}
-                  alt={slide.center.title}
-                  fill
-                  className="object-cover opacity-90 group-hover/item:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute top-8 left-6 right-6 text-white z-10">
+                {slide.center.img && (
+                  <Image
+                    src={slide.center.img}
+                    alt={slide.center.title}
+                    fill
+                    className="object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  />
+                )}
+                <div className="absolute top-8 left-6 right-6 text-white z-10 drop-shadow-md">
                   <h2 className="text-2xl font-bold leading-snug mb-1">
                     {slide.center.title}
                   </h2>
                 </div>
-                <div className="absolute bottom-8 left-6 text-white z-10">
+                <div className="absolute bottom-8 left-6 text-white z-10 drop-shadow-md">
                   <h3
                     className="text-lg font-bold mb-1"
                     dangerouslySetInnerHTML={{ __html: slide.center.subTitle! }}
                   />
                   <p className="text-xs opacity-80">{slide.center.desc}</p>
                 </div>
-                <div
-                  className={`absolute inset-0 ${slide.center.overlayColor} pointer-events-none`}
-                />
               </div>
               {/* 오른쪽 */}
               <div
                 className={`md:col-span-1 relative ${slide.right.bgColor} overflow-hidden cursor-pointer group/item`}
+                onClick={() => {
+                  if (slide.right.link) window.open(slide.right.link, "_self");
+                }}
               >
-                <Image
-                  src={slide.right.img}
-                  alt={slide.right.title}
-                  fill
-                  className="object-cover group-hover/item:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute top-8 left-6 text-white z-10">
+                {slide.right.img && (
+                  <Image
+                    src={slide.right.img}
+                    alt={slide.right.title}
+                    fill
+                    className="object-cover group-hover/item:scale-105 transition-transform duration-700"
+                  />
+                )}
+                <div className="absolute top-8 left-6 text-white z-10 drop-shadow-md">
                   <h2 className="text-xl font-bold">{slide.right.title}</h2>
                 </div>
-                <div className="absolute bottom-8 left-6 text-white z-10">
+                <div className="absolute bottom-8 left-6 text-white z-10 drop-shadow-md">
                   <h3
                     className="text-lg font-bold leading-tight mb-1"
                     dangerouslySetInnerHTML={{ __html: slide.right.subTitle! }}
                   />
                   <p className="text-xs opacity-80">{slide.right.desc}</p>
                 </div>
-                <div
-                  className={`absolute inset-0 ${slide.right.overlayColor} pointer-events-none`}
-                />
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* 3. Shortcut Banners & Icons (Menu) - 사진 디자인 적용 */}
+      {/* 3. Shortcut Banners & Icons (Menu) - 그리드 사진 디자인 적용 */}
       <section className="container mx-auto px-4 py-8 border-b border-gray-100">
-        {/* 상단 배너형 바로가기 (가로 스크롤) */}
-        <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide mb-2">
+        {/* 상단 18개 배너 그리드 (9열 2행) - 스크롤 없음 */}
+        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2 mb-3">
           {topShortcutBanners.map((banner) => (
             <div
               key={banner.id}
-              className={`min-w-70 h-25 ${banner.bg} rounded-md relative cursor-pointer overflow-hidden group shrink-0`}
+              className={`relative ${banner.bg} rounded-md h-[90px] flex flex-col items-center justify-end pb-2 cursor-pointer hover:opacity-90 transition-opacity`}
             >
-              {/* 이미지 */}
-              <div className="absolute right-4 bottom-0 w-24 h-24 group-hover:scale-110 transition-transform duration-300 relative">
-                  <Image
-                    src={banner.img}
-                    alt={banner.title}
-                    fill
-                    className="object-contain"
-                  />
-              </div>
-              {/* 텍스트 */}
-              <div className="absolute top-4 left-4 z-10">
-                <h3 className="font-bold text-sm text-gray-800 leading-tight w-32 break-keep">
-                  {banner.title}
-                </h3>
-              </div>
-              {/* 뱃지 (옵션) */}
-              {banner.badge && (
-                <div className="absolute top-0 right-4 bg-red-500 text-white text-[10px] px-1.5 py-0.5 font-bold rounded-b-sm">
-                  {banner.badge}
+              {banner.brandLogo && (
+                <div className="absolute top-1.5 right-1.5 text-[8px] font-bold opacity-60 uppercase tracking-tighter max-w-[50%] truncate text-right">
+                  {banner.brandLogo}
                 </div>
               )}
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-10">
+                <Image
+                  src={banner.img}
+                  alt={banner.title}
+                  fill
+                  className="object-contain drop-shadow-sm mix-blend-multiply"
+                />
+              </div>
+              <div className="text-[10px] sm:text-[11px] font-bold text-center leading-tight px-1 z-10 whitespace-nowrap overflow-hidden text-ellipsis w-[95%]">
+                {banner.title}
+              </div>
             </div>
           ))}
         </div>
 
-        {/* 하단 아이콘형 바로가기 (가로 스크롤) */}
-        <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+        {/* 하단 11개 아이콘 그리드 (11열 1행) - 스크롤 없음 */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-1.5">
           {bottomShortcutIcons.map((item) => (
             <div
               key={item.id}
-              className="flex items-center gap-3 min-w-max border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:border-black transition-colors shrink-0"
+              className="border border-gray-200 bg-white rounded flex items-center justify-center gap-1.5 h-10 cursor-pointer hover:border-gray-800 transition-colors px-1"
             >
-              <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-lg ${item.bg}`}
-              >
-                {item.icon}
+              <div className={`w-4 h-4 flex items-center justify-center text-[10px] font-extrabold rounded-full ${item.icon === "M" ? "bg-black text-white" : ""}`}>
+                {item.icon !== "M" && item.icon}
+                {item.icon === "M" && "M"}
               </div>
-              <span className="text-xs font-bold text-gray-800">
+              <span className="text-[10px] sm:text-[11px] font-medium text-gray-800 tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
                 {item.title}
               </span>
             </div>
           ))}
-          {/* 서비스 전체보기 버튼 */}
-          <div className="flex items-center gap-2 min-w-max border border-gray-200 rounded-md px-3 py-2 cursor-pointer hover:border-black transition-colors shrink-0 bg-gray-50">
-            <span className="text-gray-500 text-lg">≡</span>
-            <span className="text-xs font-bold text-gray-800">
-              서비스 전체보기
-            </span>
-          </div>
         </div>
       </section>
 
@@ -415,6 +441,70 @@ export default function HomePage() {
             <p className="text-sm text-gray-500">지금 가장 사랑받는 브랜드를 만나보세요</p>
          </div>
          <BrandLogoGrid brands={brands} />
+      </section>
+
+      {/* 4.5. 나의 관심 기반 상품 추천 (신규 영역) */}
+      <section className="w-full pl-4 md:pl-6 pr-0 pt-12 pb-16 bg-white shrink-0">
+        {/* 타이틀 및 더보기 */}
+        <div className="flex justify-between items-end mb-4 bg-white relative pr-4 md:pr-6">
+          <h2 className="text-[20px] font-extrabold text-black tracking-tight">나의 관심 기반 상품 추천</h2>
+          <Link href="/interest" className="text-[12px] text-gray-500 font-medium hover:text-black transition-colors underline decoration-gray-300 underline-offset-4 cursor-pointer">
+            더보기
+          </Link>
+        </div>
+
+        {/* 원형 상품 아이콘 (관심/최근 본 상품 기준) */}
+        <div className="flex gap-2.5 mb-5 overflow-visible">
+          {/* 선택됨 (검은 테두리) */}
+          <div className="w-[45px] h-[45px] rounded-full ring-[1.5px] ring-black p-[2px] cursor-pointer bg-white relative">
+            <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 relative">
+               <Image src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=100&q=80" fill className="object-cover" alt="interest item 1"/>
+            </div>
+          </div>
+          {/* 선택안됨 (회색 테두리) */}
+          <div className="w-[45px] h-[45px] rounded-full ring-[1.5px] ring-transparent border border-gray-200 p-[2px] cursor-pointer hover:border-gray-400 transition-colors bg-white relative">
+            <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 relative">
+               <Image src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" fill className="object-cover" alt="interest item 2"/>
+            </div>
+          </div>
+        </div>
+
+        {/* 안내 텍스트 */}
+        <p className="text-[11px] font-bold text-black mb-4">
+          최근 본 <span className="underline decoration-black underline-offset-2">디미트리블랙 코튼 팬츠</span> 연관 상품
+        </p>
+
+        {/* 상품 가로 스크롤 리스트 */}
+        <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
+          {interestBasedProducts.map((product) => (
+            <div key={product.id} className="min-w-[150px] md:min-w-[190px] lg:min-w-[210px] flex-shrink-0 flex flex-col cursor-pointer group">
+              {/* 이미지 영역 */}
+              <div className="relative w-full aspect-[4/5] bg-[#f4f4f4] mb-3 overflow-hidden">
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <button className="absolute right-2 bottom-2 text-white/80 hover:text-white transition-colors cursor-pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[20px] h-[20px] fill-transparent hover:fill-white">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* 정보 영역 */}
+              <div className="flex flex-col px-0.5 mt-auto">
+                <span className="text-[11px] font-bold text-black mb-1 leading-none">{product.brand}</span>
+                <span className="text-[12px] text-gray-800 leading-snug line-clamp-2 mb-2 min-h-[34px] font-medium">{product.name}</span>
+                <div className="flex gap-1.5 items-center">
+                  <span className="text-[#FF0000] font-bold text-[14px] tracking-tight">{product.discount}%</span>
+                  <span className="font-extrabold text-[15px] text-black tracking-tight">{product.price.toLocaleString()}원</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* 5. Product Display Groups */}

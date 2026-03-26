@@ -10,14 +10,10 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { getProductsForExcelAction } from "@/actions/product-actions";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 import SearchProductDownloadForm from "@/components/admin/products/excel-download/SearchProductDownloadForm";
 
 export default function ProductExcelDownloadPage() {
   const [tab, setTab] = useState<"all" | "search">("all");
-  const [supplierType, setSupplierType] = useState<"all" | "head" | "supplier">("all");
-  const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
-  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [range, setRange] = useState<"all" | "partial">("all");
   const [start, setStart] = useState(1);
   const [qty, setQty] = useState(300);
@@ -27,8 +23,6 @@ export default function ProductExcelDownloadPage() {
     setIsDownloading(true);
     try {
       const res = await getProductsForExcelAction({
-        supplierType: supplierType === 'all' ? undefined : supplierType,
-        supplierId: selectedSupplier?.id,
         range,
         start,
         count: qty
@@ -137,50 +131,7 @@ export default function ProductExcelDownloadPage() {
                      </div>
                  </div>
 
-                 {/* Row 2: Supplier Type */}
-                 <div className="flex border-b border-gray-200">
-                     <div className="w-40 bg-[#FBFBFB] p-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                         공급사 구분
-                     </div>
-                     <div className="flex-1 p-3 flex items-center">
-                          <RadioGroup 
-                            value={supplierType} 
-                            onValueChange={(v: string) => {
-                                const newVal = v as "all" | "head" | "supplier";
-                                setSupplierType(newVal);
-                                if (newVal === "supplier") {
-                                    setIsSupplierPopupOpen(true);
-                                }
-                            }}
-                            className="flex gap-6"
-                          >
-                              <div className="flex items-center gap-1.5">
-                                  <RadioGroupItem value="all" id="supplier-all" className="border-gray-300 text-gray-600 focus:ring-red-500" />
-                                  <Label htmlFor="supplier-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                  <RadioGroupItem value="head" id="supplier-head" className="border-gray-300 text-gray-600 focus:ring-red-500" />
-                                  <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                              </div>
-                              <div className="flex items-center gap-1.5">
-                                  <RadioGroupItem value="supplier" id="supplier-provider" className="border-gray-300 text-gray-600"/>
-                                  <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                                     <div className="flex items-center gap-2 ml-2">
-                                        <div className="h-7 px-2 flex items-center border border-gray-300 bg-white min-w-[100px]">
-                                            {selectedSupplier?.name || "선택된 공급사 없음"}
-                                        </div>
-                                        <Button 
-                                            variant="secondary" 
-                                            className="h-6 text-[11px] bg-gray-700 text-white hover:bg-gray-600 rounded-sm px-2"
-                                            onClick={() => setIsSupplierPopupOpen(true)}
-                                        >
-                                            공급사 선택
-                                        </Button>
-                                     </div>
-                              </div>
-                          </RadioGroup>
-                     </div>
-                 </div>
+
 
                   {/* Row 3: Download Range */}
                  <div className="flex border-gray-200">
@@ -228,19 +179,6 @@ export default function ProductExcelDownloadPage() {
         <SearchProductDownloadForm />
       )}
 
-      
-      <SupplierPopup 
-        isOpen={isSupplierPopupOpen}
-        onClose={() => setIsSupplierPopupOpen(false)}
-        onConfirm={(s) => {
-          if (Array.isArray(s)) {
-            setSelectedSupplier(s[0] || null);
-          } else {
-            setSelectedSupplier(s);
-          }
-          setSupplierType("supplier");
-        }}
-      />
     </div>
   );
 }

@@ -321,73 +321,84 @@ export default function CategoryPopup({
           </svg>
         </button>
 
-        <div className="w-full px-4 pt-6 pb-2 shrink-0">
-          <div className="flex justify-between items-end border-b border-gray-200 mb-4 pb-4 font-bold text-lg">
-            <div className="flex gap-6 shrink-0">
-              <button
-                onClick={() => setSelectedTab("category")}
-                className={`pb-1 ${
-                  selectedTab === "category"
-                    ? "text-black border-b-2 border-black"
-                    : "text-gray-400 hover:text-black"
-                }`}
-                type="button"
-              >
-                {t("tabs.category")}
-              </button>
-              <button
-                onClick={() => setSelectedTab("brand")}
-                className={`pb-1 ${
-                  selectedTab === "brand"
-                    ? "text-black border-b-2 border-black"
-                    : "text-gray-400 hover:text-black"
-                }`}
-                type="button"
-              >
-                {t("tabs.brand")}
-              </button>
-              <button
-                onClick={() => setSelectedTab("service")}
-                className={`pb-1 ${
-                  selectedTab === "service"
-                    ? "text-black border-b-2 border-black"
-                    : "text-gray-400 hover:text-black"
-                }`}
-                type="button"
-              >
-                {t("tabs.service")}
-              </button>
-            </div>
+        <div className="w-full shrink-0">
+          {/* Main Tabs (카테고리, 브랜드, 팬 스토어, 서비스) */}
+          <div className="px-6 pt-5 flex gap-5 text-[16px] font-bold border-b border-gray-200">
+            <button
+              onClick={() => setSelectedTab("category")}
+              className={`pb-3 relative ${
+                selectedTab === "category"
+                  ? "text-black border-b-[2.5px] border-black"
+                  : "text-gray-400 hover:text-black"
+              }`}
+              type="button"
+            >
+              {t("tabs.category")}
+            </button>
+            <button
+              onClick={() => setSelectedTab("brand")}
+              className={`pb-3 relative ${
+                selectedTab === "brand"
+                  ? "text-black border-b-[2.5px] border-black"
+                  : "text-gray-400 hover:text-black"
+              }`}
+              type="button"
+            >
+              {t("tabs.brand")}
+            </button>
+            <button
+              className={`pb-3 relative text-gray-400 hover:text-black`}
+              type="button"
+            >
+              팬 스토어<span className="absolute top-1 -right-1.5 w-[5px] h-[5px] bg-[#4C6AD2] rounded-full"></span>
+            </button>
+            <button
+              onClick={() => setSelectedTab("service")}
+              className={`pb-3 relative ${
+                selectedTab === "service"
+                  ? "text-black border-b-[2.5px] border-black"
+                  : "text-gray-400 hover:text-black"
+              }`}
+              type="button"
+            >
+              {t("tabs.service")}
+            </button>
+          </div>
 
-            {(selectedTab === "category" || selectedTab === "brand") && (
-              <div className="flex gap-3 text-sm text-gray-500 pb-1.5 mr-8">
-                <span
+          {/* Sub Tabs (전체, 남성, 여성) */}
+          {(selectedTab === "category" || selectedTab === "brand") && (
+            <div className="w-full bg-[#f9f9f9] border-b border-gray-200">
+              <div className="px-6 py-3 flex gap-5 text-[14px] font-bold">
+                <button
                   onClick={() => setSelectedGender("all")}
-                  className={`cursor-pointer hover:text-black ${
-                    selectedGender === "all" ? "font-bold text-black" : ""
+                  className={`transition-colors ${
+                    selectedGender === "all" ? "text-black" : "text-gray-400 hover:text-black"
                   }`}
+                  type="button"
                 >
                   {t("filters.all")}
-                </span>
-                <span
+                </button>
+                <button
                   onClick={() => setSelectedGender("men")}
-                  className={`cursor-pointer hover:text-black ${
-                    selectedGender === "men" ? "font-bold text-black" : ""
+                  className={`transition-colors ${
+                    selectedGender === "men" ? "text-black" : "text-gray-400 hover:text-black"
                   }`}
+                  type="button"
                 >
                   {t("filters.men")}
-                </span>
-                <span
+                </button>
+                <button
                   onClick={() => setSelectedGender("women")}
-                  className={`cursor-pointer hover:text-black ${
-                    selectedGender === "women" ? "font-bold text-black" : ""
+                  className={`transition-colors ${
+                    selectedGender === "women" ? "text-black" : "text-gray-400 hover:text-black"
                   }`}
+                  type="button"
                 >
                   {t("filters.women")}
-                </span>
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* 메인 콘텐츠 영역 (min-h-0 필수) */}
@@ -396,6 +407,29 @@ export default function CategoryPopup({
             <div className="flex h-full">
               {/* 왼쪽 카테고리 리스트 (Brand 스타일 적용) */}
               <ul className="w-32 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
+                {/* 🛠️ 상단 고정 카테고리 (헤더와 동일하게 메뉴 추가) */}
+                <Link
+                  href="/main/golf/recommend"
+                  onClick={onClose}
+                  className="block w-full text-left px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors font-bold text-black"
+                >
+                  GOLF
+                </Link>
+                <Link
+                  href="/main/player/recommend"
+                  onClick={onClose}
+                  className="block w-full text-left px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors font-bold text-black"
+                >
+                  PLAYER
+                </Link>
+                <Link
+                  href="/main/women/recommend"
+                  onClick={onClose}
+                  className="block w-full text-left px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors font-bold text-black border-b border-gray-200 mb-2"
+                >
+                  WOMEN
+                </Link>
+
                 {rootCategories.length === 0 && (
                      <li className="text-gray-400 text-sm px-4 py-3">Loading...</li>
                 )}

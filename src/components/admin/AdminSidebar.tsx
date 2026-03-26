@@ -77,7 +77,6 @@ const menuItems: MenuItem[] = [
                 items: [
 
                     { name: "주문 상태 설정", href: "/admin/settings/order-status" },
-                    { name: "주문서 인쇄 설정", href: "/admin/settings/order-print" },
                     { name: "장바구니 / 관심상품 설정", href: "/admin/settings/cart-wishlist" },
 
                 ]
@@ -111,6 +110,7 @@ const menuItems: MenuItem[] = [
             {
                 title: "상품 진열 관리",
                 items: [
+                    { name: "메인 배너 관리", href: "/admin/products/banners" },
                     { name: "메인페이지 상품진열", href: "/admin/products/main-display" },
                     { name: "카테고리페이지 상품진열", href: "/admin/products/category-display" },
                     { name: "브랜드페이지 상품진열", href: "/admin/products/brand-display" },
@@ -176,6 +176,7 @@ const menuItems: MenuItem[] = [
                     { name: "가입승인/등급변경", href: "/admin/users/approval-change" },
 
                     { name: "회원 탈퇴 / 삭제 관리", href: "/admin/users/withdrawal-management" },
+                    { name: "✨ 외부 유저 관리 (신규)", href: "/admin/users/external-users" },
                 ]
             },
 
@@ -184,9 +185,7 @@ const menuItems: MenuItem[] = [
 
             {
                 title: "간편 로그인",
-                items: [
-                    { name: "구글 아이디 로그인 설정", href: "/admin/settings/google-login" },
-                ]
+                items: []
             }
         ]
     },

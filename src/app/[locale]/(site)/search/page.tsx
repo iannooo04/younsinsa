@@ -56,7 +56,7 @@ export default async function SearchPage(props: SearchPageProps) {
               {/* 이미지 영역 */}
               <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden rounded-sm">
                 <div className="aspect-[3/4]">
-                  {product.image ? (
+                  {product.image && !product.image.includes("placeholder.png") ? (
                     <Image
                       src={product.image}
                       alt={product.name}

@@ -30,8 +30,7 @@ export default function ProductTable({ initialProducts }: Props) {
     const [products] = useState<Product[]>(initialProducts);
 
     const soldOutCount = products.filter((p) => p.stockStatus === '품절').length;
-    const displayedPcCount = products.filter((p) => p.displayStatus === '노출함').length;
-    const displayedMobileCount = products.filter((p) => p.displayStatus === '노출함').length;
+    const displayedCount = products.filter((p) => p.displayStatus === '노출함').length;
 
     return (
         <div className="space-y-4">
@@ -45,7 +44,7 @@ export default function ProductTable({ initialProducts }: Props) {
                     <span>|</span>
                     <span>품절 {soldOutCount}개</span>
                     <span>|</span>
-                    <span>노출 : PC {displayedPcCount}개 / 모바일 {displayedMobileCount}개</span>
+                    <span>노출 : {displayedCount}개</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <select className="select select-bordered select-xs rounded-sm">
@@ -108,8 +107,8 @@ export default function ProductTable({ initialProducts }: Props) {
                             <th>노출상태</th>
                             <th>판매상태</th>
                             <th>재고</th>
-                            <th>등록일/수정일</th>
-                            <th>수정</th>
+                            <th className="whitespace-nowrap min-w-[90px]">등록일/수정일</th>
+                            <th className="whitespace-nowrap w-[60px]">수정</th>
                         </tr>
                     </thead>
                     <tbody className="text-xs">
@@ -144,7 +143,7 @@ export default function ProductTable({ initialProducts }: Props) {
                                          {/* Tags can go here */}
                                     </div>
                                 </td>
-                                <td className="font-bold text-gray-800">{product.price?.toLocaleString()}원</td>
+                                <td className="font-bold text-gray-800 whitespace-nowrap align-middle">{product.price?.toLocaleString()}원</td>
                                 <td className="text-gray-500">{product.supplier}</td>
                                 <td>
                                     <span className={product.displayStatus === '노출함' ? "text-blue-600" : "text-gray-400"}>
@@ -156,17 +155,18 @@ export default function ProductTable({ initialProducts }: Props) {
                                         {product.saleStatus}
                                     </span>
                                 </td>
-                                <td>
-                                    {product.stock}
+                                <td className="text-gray-500 text-[11px] whitespace-nowrap align-middle">
+                                    <div className="flex flex-col items-center justify-center gap-1">
+                                        <div>{new Date(product.createdAt).toISOString().split('T')[0]}</div>
+                                        {product.updatedAt && <div>{new Date(product.updatedAt).toISOString().split('T')[0]}</div>}
+                                    </div>
                                 </td>
-                                <td className="text-gray-500 text-[11px]">
-                                    <div>{new Date(product.createdAt).toISOString().split('T')[0]}</div>
-                                    {product.updatedAt && <div>{new Date(product.updatedAt).toISOString().split('T')[0]}</div>}
-                                </td>
-                                <td>
-                                    <Link href={`/admin/products/edit/${product.id}`}>
-                                        <button className="btn btn-xs btn-outline border-gray-300 text-gray-600 font-normal h-6 min-h-0 rounded-sm">수정</button>
-                                    </Link>
+                                <td className="whitespace-nowrap align-middle">
+                                    <div className="flex items-center justify-center">
+                                        <Link href={`/admin/products/edit/${product.id}`}>
+                                            <button className="btn btn-xs btn-outline border-gray-300 text-gray-600 font-normal h-6 min-h-0 rounded-sm whitespace-nowrap">수정</button>
+                                        </Link>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

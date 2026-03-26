@@ -3,21 +3,15 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   HelpCircle,
   FileSpreadsheet,
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { uploadProductsExcelAction } from "@/actions/product-actions";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 
 export default function ProductExcelUploadPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [supplierType, setSupplierType] = useState<"head" | "supplier">("head");
-  const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
-  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -36,9 +30,6 @@ export default function ProductExcelUploadPage() {
     setIsUploading(true);
     const formData = new FormData();
     formData.append("file", file);
-    if (supplierType === 'supplier' && selectedSupplier) {
-        formData.append("supplierId", selectedSupplier.id);
-    }
 
     try {
       const res = await uploadProductsExcelAction(formData);
@@ -279,47 +270,6 @@ export default function ProductExcelUploadPage() {
                    </Button>
                 </div>
             </div>
-
-            {/* Supplier Row */}
-             <div className="flex border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] p-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    공급사 구분
-                </div>
-                <div className="flex-1 p-3 flex items-center">
-                    <RadioGroup 
-                        value={supplierType} 
-                        onValueChange={(v: string) => {
-                            const newVal = v as "head" | "supplier";
-                            setSupplierType(newVal);
-                            if (newVal === "supplier") {
-                                setIsSupplierPopupOpen(true);
-                            }
-                        }}
-                        className="flex gap-4 items-center"
-                    >
-                        <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="head" id="supplier-head" className="border-gray-300 text-gray-600 focus:ring-red-500" />
-                            <Label htmlFor="supplier-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="supplier" id="supplier-provider" className="border-gray-300 text-gray-600 focus:ring-red-500" />
-                            <Label htmlFor="supplier-provider" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                            <div className="flex items-center gap-2 ml-2">
-                                <div className="h-7 px-2 flex items-center border border-gray-300 bg-white min-w-[100px]">
-                                    {selectedSupplier?.name || "선택된 공급사 없음"}
-                                </div>
-                                <Button 
-                                    variant="secondary" 
-                                    className="h-6 text-[11px] bg-gray-700 text-white hover:bg-gray-600 rounded-sm px-2"
-                                    onClick={() => setIsSupplierPopupOpen(true)}
-                                >
-                                    공급사 선택
-                                </Button>
-                            </div>
-                        </div>
-                    </RadioGroup>
-                </div>
-            </div>
         </div>
       </div>
 
@@ -408,18 +358,6 @@ export default function ProductExcelUploadPage() {
            </div>
       </div>
 
-       
-        <SupplierPopup 
-            isOpen={isSupplierPopupOpen}
-            onClose={() => setIsSupplierPopupOpen(false)}
-            onConfirm={(s) => {
-              if (Array.isArray(s)) {
-                setSelectedSupplier(s[0] || null);
-              } else {
-                setSelectedSupplier(s);
-              }
-            }}
-        />
     </div>
   );
 }

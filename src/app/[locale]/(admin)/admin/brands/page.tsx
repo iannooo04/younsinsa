@@ -643,43 +643,7 @@ export default function BrandManagementPage() {
                       </div>
                   </div>
 
-                   {/* Row: Adult Auth */}
-                   <div className="flex border-b border-gray-200">
-                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          성인인증
-                      </div>
-                       <div className="flex-1 p-3 space-y-2">
-                           <RadioGroup 
-                                value={formData.isAdultAuth ? "used" : "unused"} 
-                                onValueChange={(val: string) => setFormData({...formData, isAdultAuth: val === "used"})}
-                                className="flex gap-6 items-center"
-                           >
-                              <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="unused" id="adult-unused" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
-                                  <Label htmlFor="adult-unused" className="text-gray-700 font-normal cursor-pointer">사용안함</Label>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="used" id="adult-used" className="rounded-full border-gray-300 text-gray-600" />
-                                  <Label htmlFor="adult-used" className="text-gray-700 font-normal cursor-pointer">사용함</Label>
-                              </div>
-                          </RadioGroup>
-                          <div className="text-[11px] text-gray-500 space-y-1 mt-2">
-                             <p className="flex items-center gap-1">
-                                 <span className="bg-gray-600 text-white text-[9px] w-3 h-3 flex items-center justify-center rounded-[1px] font-bold">!</span>
-                                 해당 카테고리의 상품리스트 페이지 접근시 성인인증확인 인트로 페이지가 출력되어 보여집니다.
-                             </p>
-                             <p className="pl-4">성인인증 기능은 별도의 인증 서비스 신청완료 후 이용 가능합니다.</p>
-                             <div className="pl-4 flex gap-2">
-                                 <a href="#" className="underline text-blue-500">휴대폰인증 설정 바로가기</a>
-                                 <a href="#" className="underline text-blue-500">아이핀인증 설정 바로가기</a>
-                             </div>
-                             <p className="flex items-center gap-1 text-red-500 pl-0 pt-1">
-                                 <span className="bg-red-500 text-white text-[9px] w-3 h-3 flex items-center justify-center rounded-[1px] font-bold">!</span>
-                                 구 실명인증 서비스는 성인인증 수단으로 연결되지 않습니다.
-                             </p>
-                          </div>
-                      </div>
-                  </div>
+
 
                    {/* Row: Access Permission */}
                    <div className="flex border-b border-gray-200">
@@ -817,11 +781,11 @@ export default function BrandManagementPage() {
               </div>
           </div>
 
-           {/* Section 2: Selected PC Theme Info */}
+           {/* Section 2: Selected Theme Info */}
           <div className="space-y-2">
               <div className="flex items-center justify-between pb-2 border-b border-gray-300">
                   <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-gray-800">선택된 PC쇼핑몰 테마 정보</h2>
+                      <h2 className="text-sm font-bold text-gray-800">선택된 테마 정보</h2>
                       <HelpCircle className="w-4 h-4 text-gray-400" />
                   </div>
                   <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
@@ -968,34 +932,12 @@ export default function BrandManagementPage() {
                    {/* Row: Theme Selection */}
                    <div className="flex border-b border-gray-200">
                        <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          PC쇼핑몰 테마선택
-                      </div>
-                      <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
-                           <Select 
-                            value={formData.recPcTheme} 
-                            onValueChange={(val) => setFormData({...formData, recPcTheme: val})}
-                           >
-                                <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
-                                    <SelectValue placeholder="추천상품테마" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="추천상품테마">추천상품테마</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
-                                onClick={() => router.push('/admin/products/main-display/theme/register')}
-                            >테마 등록</Button>
-                      </div>
-                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          모바일쇼핑몰 테마선택
+                          쇼핑몰 테마선택
                       </div>
                       <div className="flex-1 p-3 flex items-center gap-2">
                            <Select 
-                            value={formData.recMobileTheme} 
-                            onValueChange={(val) => setFormData({...formData, recMobileTheme: val})}
+                            value={formData.recPcTheme} 
+                            onValueChange={(val) => setFormData({...formData, recPcTheme: val, recMobileTheme: val})}
                            >
                                 <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
                                     <SelectValue placeholder="추천상품테마" />
@@ -1073,11 +1015,9 @@ export default function BrandManagementPage() {
                         <div className="w-16 py-3 border-r border-gray-300">이미지</div>
                         <div className="flex-1 py-3 border-r border-gray-300">상품명</div>
                         <div className="w-24 py-3 border-r border-gray-300">판매가</div>
-                        <div className="w-24 py-3 border-r border-gray-300">공급사</div>
                         <div className="w-20 py-3 border-r border-gray-300">재고</div>
                         <div className="w-16 py-3 border-r border-gray-300">품절상태</div>
-                        <div className="w-20 py-3 border-r border-gray-300 leading-tight">PC쇼핑몰<br/>노출상태</div>
-                        <div className="w-24 py-3 leading-tight">모바일쇼핑몰<br/>노출상태</div>
+                        <div className="w-32 py-3 leading-tight flex items-center justify-center">상품 노출상태</div>
                     </div>
                     {/* Items */}
                     {formData.recommendedProducts.length > 0 ? (
@@ -1090,11 +1030,9 @@ export default function BrandManagementPage() {
                                     <div className="w-16 h-10 flex items-center justify-center bg-gray-50 m-1 border border-gray-100 italic text-[10px] text-gray-300">IMG</div>
                                     <div className="flex-1 text-left px-2 font-medium line-clamp-1">{p?.name || rp.productId}</div>
                                     <div className="w-24 px-1">{(p?.price || 0).toLocaleString()}원</div>
-                                    <div className="w-24 px-1">{p?.supplier || '본사'}</div>
                                     <div className="w-20 px-1">{p?.stock || '0'}</div>
                                     <div className="w-16 px-1">{p?.stockStatus || '-'}</div>
-                                    <div className="w-20 px-1 text-blue-500 font-bold">{p?.displayStatus || '노출함'}</div>
-                                    <div className="w-24 px-1 text-blue-500 font-bold">{p?.displayStatus || '노출함'}</div>
+                                    <div className="w-32 px-1 text-blue-500 font-bold">{p?.displayStatus || '노출함'}</div>
                                 </div>
                             );
                         })

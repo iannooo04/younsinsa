@@ -381,87 +381,18 @@ export default function RefundListPage() {
                                 <Checkbox id="pay-all" className="rounded-[2px] border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:text-white" defaultChecked/>
                                 <Label htmlFor="pay-all" className="font-normal text-gray-700">전체</Label>
                             </div>
-                            <div className="grid grid-cols-4 gap-y-2 gap-x-4">
-                                {/* Row 1 */}
+                            <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
                                     <Checkbox id="pay-card" className="rounded-[2px]"/>
                                     <Label htmlFor="pay-card" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-pink-300 text-white flex justify-center items-center text-[9px] rounded-sm">신</span> 신용카드</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-bank" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-bank" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-yellow-400 text-white flex justify-center items-center text-[9px] rounded-sm">무</span> 무통장 입금</Label>
+                                    <Checkbox id="pay-wechat" className="rounded-[2px]"/>
+                                    <Label htmlFor="pay-wechat" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-green-500 text-white flex justify-center items-center text-[9px] rounded-sm">위</span> 위챗페이</Label>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-full-discount" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-full-discount" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-red-500 text-white flex justify-center items-center text-[9px] rounded-sm">전</span> 전액할인</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-mileage" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-mileage" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-blue-500 text-white flex justify-center items-center text-[9px] rounded-sm">마</span> 마일리지</Label>
-                                </div>
-
-                                {/* Row 2 */}
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-deposit" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-deposit" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-green-500 text-white flex justify-center items-center text-[9px] rounded-sm">예</span> 예치금</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-escrow-trans" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-escrow-trans" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-purple-500 text-white flex justify-center items-center text-[9px] rounded-sm">계</span> 계좌이체 (에스크로)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-account" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-account" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-teal-400 text-white flex justify-center items-center text-[9px] rounded-sm">계</span> 계좌이체</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-virtual" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-virtual" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-yellow-500 text-white flex justify-center items-center text-[9px] rounded-sm">가</span> 가상계좌</Label>
-                                </div>
-
-                                {/* Row 3 */}
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-phone" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-phone" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-orange-400 text-white flex justify-center items-center text-[9px] rounded-sm">휴</span> 휴대폰결제</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-escrow-card" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-escrow-card" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-purple-400 text-white flex justify-center items-center text-[9px] rounded-sm">신</span> 신용카드 (에스크로)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-simple-phone" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-simple-phone" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-teal-400 text-white flex justify-center items-center text-[9px] rounded-sm">휴</span> 휴대폰 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-escrow-virtual" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-escrow-virtual" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-purple-400 text-white flex justify-center items-center text-[9px] rounded-sm">가</span> 가상계좌 (에스크로)</Label>
-                                </div>
-
-                                {/* Row 4 */}
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-simple-card" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-simple-card" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-teal-400 text-white flex justify-center items-center text-[9px] rounded-sm">신</span> 신용카드 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-simple-trans" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-simple-trans" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-teal-400 text-white flex justify-center items-center text-[9px] rounded-sm">계</span> 계좌이체 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-simple-virtual" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-simple-virtual" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-teal-400 text-white flex justify-center items-center text-[9px] rounded-sm">가</span> 가상계좌 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-simple-naver" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-simple-naver" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-green-500 text-white flex justify-center items-center text-[9px] rounded-sm">네</span> 네이버페이 (간편결제)</Label>
-                                </div>
-
-                                {/* Row 5 */}
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-simple-point" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-simple-point" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-teal-400 text-white flex justify-center items-center text-[9px] rounded-sm">포</span> 포인트 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="pay-etc" className="rounded-[2px]"/>
-                                    <Label htmlFor="pay-etc" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-gray-400 text-white flex justify-center items-center text-[9px] rounded-sm">기</span> 기타</Label>
+                                    <Checkbox id="pay-alipay" className="rounded-[2px]"/>
+                                    <Label htmlFor="pay-alipay" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-blue-500 text-white flex justify-center items-center text-[9px] rounded-sm">알</span> 알리페이</Label>
                                 </div>
                             </div>
                         </div>
@@ -604,28 +535,7 @@ export default function RefundListPage() {
                         </div>
                     </div>
 
-                    {/* Row 6: Receipt Request */}
-                    <div className="flex items-center text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-full">
-                            영수증 신청
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-4">
-                             <RadioGroup defaultValue="all" className="flex gap-4">
-                                     <div className="flex items-center gap-1.5">
-                                        <RadioGroupItem value="all" id="receipt-all" className="border-red-500 text-red-500" />
-                                        <Label htmlFor="receipt-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <RadioGroupItem value="cash" id="receipt-cash" className="border-gray-300"/>
-                                        <Label htmlFor="receipt-cash" className="text-gray-700 font-normal flex items-center gap-1 cursor-pointer"><span className="text-[9px] bg-green-500 text-white w-4 h-4 flex items-center justify-center rounded-sm">현</span> 현금영수증</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <RadioGroupItem value="tax" id="receipt-tax" className="border-gray-300"/>
-                                        <Label htmlFor="receipt-tax" className="text-gray-700 font-normal flex items-center gap-1 cursor-pointer"><span className="text-[9px] bg-gray-400 text-white w-4 h-4 flex items-center justify-center rounded-sm">세</span> 세금계산서</Label>
-                                    </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
+
 
                     {/* Row 7: Deposit Overdue & Delivery Delay */}
                     <div className="flex border-b border-gray-200">

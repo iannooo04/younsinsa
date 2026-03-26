@@ -28,7 +28,6 @@ import { getProductsAction, getCategoriesSimpleAction } from "@/actions/product-
 import { updateProductShippingPolicyAction } from "@/actions/shipping-actions";
 import { format } from "date-fns";
 import BrandPopup from "@/components/admin/BrandPopup";
-import ExhibitionPopup from "@/components/admin/ExhibitionPopup";
 import ShippingPolicyPopup from "@/components/admin/ShippingPolicyPopup";
 
 interface Product {
@@ -79,9 +78,6 @@ export default function ProductShippingManagementPage() {
     const [isNoBrand, setIsNoBrand] = useState(false);
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
-    const [minMileage, setMinMileage] = useState('');
-    const [maxMileage, setMaxMileage] = useState('');
-    const [mileageMethod, setMileageMethod] = useState('all');
     const [minStock, setMinStock] = useState('');
     const [maxStock, setMaxStock] = useState('');
     const [useOption, setUseOption] = useState('all');
@@ -93,7 +89,6 @@ export default function ProductShippingManagementPage() {
     const [soldOutStatus, setSoldOutStatus] = useState('all');
     const [shippingFeeType, setShippingFeeType] = useState('all');
     const [shippingFeeDetails, setShippingFeeDetails] = useState<string[]>([]);
-    const [exhibitionKeyword, setExhibitionKeyword] = useState('');
 
     // Fetch Initial Metadata
     const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
@@ -102,7 +97,6 @@ export default function ProductShippingManagementPage() {
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
     const [selectedBrandInfo, setSelectedBrandInfo] = useState<{id: string, name: string} | null>(null);
-    const [isExhibitionPopupOpen, setIsExhibitionPopupOpen] = useState(false);
     const [isShippingPolicyPopupOpen, setIsShippingPolicyPopupOpen] = useState(false);
     const [selectedPolicyName, setSelectedPolicyName] = useState("");
 
@@ -430,37 +424,7 @@ export default function ProductShippingManagementPage() {
                             </div>
                         </div>
 
-                        {/* Row 7: Mileage & Method */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">마일리지</div>
-                                <div className="flex-1 p-3 flex items-center gap-2">
-                                    <Input className="w-24 h-8" value={minMileage} onChange={e => setMinMileage(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">이상 ~</span>
-                                    <Input className="w-24 h-8" value={maxMileage} onChange={e => setMaxMileage(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">이하</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 text-xs">마일리지 지급방법</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={mileageMethod} onValueChange={setMileageMethod} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="mileage-all" />
-                                            <Label htmlFor="mileage-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="integrated" id="mileage-integrated" />
-                                            <Label htmlFor="mileage-integrated" className="text-xs">통합설정</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="individual" id="mileage-individual" />
-                                            <Label htmlFor="mileage-individual" className="text-xs">개별설정</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
+
 
                         {/* Row 8: Stock & Option Use */}
                         <div className="flex border-b border-gray-200">
@@ -676,20 +640,6 @@ export default function ProductShippingManagementPage() {
                              </div>
                         </div>
 
-                        {/* Row 15: Exhibition Search */}
-                        <div className="flex">
-                            <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기획전 검색</div>
-                            <div className="flex-1 p-3 flex items-center gap-2">
-                                <Input className="w-64 h-8" value={exhibitionKeyword} onChange={e => setExhibitionKeyword(e.target.value)} />
-                                <Button 
-                                    variant="secondary" 
-                                    className="h-8 text-xs bg-gray-400 text-white hover:bg-gray-500 rounded-sm"
-                                    onClick={() => setIsExhibitionPopupOpen(true)}
-                                >
-                                    기획전 검색
-                                </Button>
-                            </div>
-                        </div>
                     </div>
                 )}
 
@@ -937,16 +887,6 @@ export default function ProductShippingManagementPage() {
                         setSelectedBrandInfo(brand);
                     }
                     setIsBrandPopupOpen(false);
-                }}
-            />
-
-            <ExhibitionPopup 
-                isOpen={isExhibitionPopupOpen}
-                onClose={() => setIsExhibitionPopupOpen(false)}
-                onConfirm={(ex) => {
-                    if (ex) {
-                        setExhibitionKeyword(ex.name);
-                    }
                 }}
             />
 

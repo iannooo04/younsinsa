@@ -98,18 +98,99 @@ export default function MainHeader({
     pathname.includes("/alerts") ||
     pathname.includes("/settings");
 
-  return (
-    // 배경: 검정, 텍스트: 흰색
-    <header className="border-b border-gray-800 bg-black text-white relative z-40">
+  // 우측 메뉴 공통 렌더링 함수
+  const renderRightMenu = () => (
+    <div className="flex gap-5 items-center text-xs">
+      {/* 검색 (아이콘 + 텍스트) */}
+      <button
+        onClick={() => setIsSearchOpen(true)}
+        className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <span className="hidden md:inline">{t("menu.search")}</span>
+      </button>
 
-      {/* 1. Top Bar */}
+      {/* 좋아요 (아이콘 + 텍스트) */}
+      <Link href="/like/goods" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+        </svg>
+        <span className="hidden md:inline">{t("menu.like")}</span>
+      </Link>
+
+      {/* 마이 (아이콘 + 텍스트) */}
+      <Link href="/mypage" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+        </svg>
+        <span className="hidden md:inline">{t("menu.my")}</span>
+      </Link>
+
+      {/* 장바구니 (아이콘 + 텍스트) */}
+      <Link href="/orders/cart" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+        </svg>
+        <span className="hidden md:inline">{t("menu.cart")}</span>
+      </Link>
+
+      {/* 로그인 버튼 (비로그인 시 노출) */}
+      {!authed ? (
+        <Link href="/member/login">
+          <button className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer">
+            {t("menu.loginSignup")}
+          </button>
+        </Link>
+      ) : (
+        <div className="flex items-center gap-1 ml-1">
+          {userLevel >= 21 && (
+            <Link href="/admin">
+              <button className="border border-orange-500 bg-[#1A1A1A] text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-orange-950 transition-colors tracking-tight cursor-pointer">
+                관리
+              </button>
+            </Link>
+          )}
+          <button
+            onClick={handleLogout}
+            className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight cursor-pointer"
+          >
+            {t("topBar.logout")}
+          </button>
+        </div>
+      )}
+
+      {/* 🌐 언어 변경 드롭다운 */}
+      <div className="dropdown dropdown-end ml-1">
+        <div tabIndex={0} role="button" className="btn btn-ghost btn-xs text-white flex items-center gap-1 px-1 hover:bg-gray-800 h-auto min-h-0 py-1 cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S12 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S12 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+          </svg>
+          <span className="uppercase text-[10px]">{locale}</span>
+        </div>
+        <ul tabIndex={0} className="dropdown-content z-50 menu p-2 shadow bg-white text-black rounded-box w-32 border border-gray-200 mt-1">
+          <li><button className={locale === "ko" ? "active bg-gray-200 w-full text-left" : "w-full text-left"} onClick={() => handleLanguageChange("ko")}>🇰🇷 한국어</button></li>
+          <li><button className={locale === "en" ? "active bg-gray-200 w-full text-left" : "w-full text-left"} onClick={() => handleLanguageChange("en")}>🇺🇸 English</button></li>
+          <li><button className={locale === "ja" ? "active bg-gray-200 w-full text-left" : "w-full text-left"} onClick={() => handleLanguageChange("ja")}>🇯🇵 日本語</button></li>
+          <li><button className={locale === "zh" ? "active bg-gray-200 w-full text-left" : "w-full text-left"} onClick={() => handleLanguageChange("zh")}>🇨🇳 中文</button></li>
+          <li><button className={locale === "vi" ? "active bg-gray-200 w-full text-left" : "w-full text-left"} onClick={() => handleLanguageChange("vi")}>🇻🇳 Tiếng Việt</button></li>
+        </ul>
+      </div>
+    </div>
+  );
+
+  // 상단 바 렌더링 함수
+  const renderTopBar = (isFixed: boolean) => {
+    const isSimple = isSimplePage || isFixed;
+    return (
       <div
-        className={`w-full px-4 text-xs flex justify-between items-center relative z-50 ${isSimplePage ? "py-4" : "py-3 border-b border-gray-900"
+        className={`w-full px-4 text-xs flex justify-between items-center relative z-50 ${isSimple ? "py-4" : "py-3 border-b border-gray-900"
           }`}
       >
         <div className="flex gap-6 items-center">
           {/* ✅ [수정 1] 상단 바(Top Bar)에 있는 YIMILI 로고 클릭 시 추천 페이지로 이동 */}
-          {isSimplePage ? (
+          {isSimple ? (
             <Link
               href={`/main/nkbus/recommend?gf=${currentGf}`}
               className="cursor-pointer relative block w-[100px] h-[30px] md:w-[120px] md:h-[40px]" // 부모 높이는 작게 (헤더 높이 유지)
@@ -129,263 +210,36 @@ export default function MainHeader({
                 onClick={() => openMenuWithTab("category")}
                 className="p-1 hover:bg-gray-800 rounded-md transition-colors -mr-2 cursor-pointer"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
-                  />
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                 </svg>
               </button>
 
               {/* 왼쪽 탭 메뉴 */}
-              <Link
-                href={`/main/nkbus/recommend?gf=${currentGf}`}
-                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
-              >
-                {t("topBar.brand")}
-              </Link>
-              <Link
-                href={`/main/golf/recommend?gf=${currentGf}`}
-                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
-              >
-                {t("topBar.beauty")}
-              </Link>
-              <Link
-                href={`/main/player/recommend?gf=${currentGf}`}
-                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
-              >
-                {t("topBar.player")}
-              </Link>
-              <Link
-                href={`/main/women/recommend?gf=${currentGf}`}
-                className="cursor-pointer hover:text-gray-300 font-bold hidden md:block"
-              >
-                {t("topBar.outlet")}
-              </Link>
+              <Link href={`/main/nkbus/recommend?gf=${currentGf}`} className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">{t("topBar.brand")}</Link>
+              <Link href={`/main/golf/recommend?gf=${currentGf}`} className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">{t("topBar.beauty")}</Link>
+              <Link href={`/main/player/recommend?gf=${currentGf}`} className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">{t("topBar.player")}</Link>
+              <Link href={`/main/women/recommend?gf=${currentGf}`} className="cursor-pointer hover:text-gray-300 font-bold hidden md:block">{t("topBar.outlet")}</Link>
             </>
           )}
         </div>
-
-        {/* 🛠️ 우측 메뉴 영역 */}
-        <div className="flex gap-5 items-center text-xs">
-
-
-          {/* 검색 (아이콘 + 텍스트) */}
-          <button
-            onClick={() => setIsSearchOpen(true)} // 🛠️ [추가] 검색 버튼 클릭 시 팝업 오픈
-            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"
-              />
-            </svg>
-            <span className="hidden md:inline">{t("menu.search")}</span>
-          </button>
-
-          {/* 좋아요 (아이콘 + 텍스트) */}
-          <Link
-            href="/like/goods"
-            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z"
-              />
-            </svg>
-            <span className="hidden md:inline">{t("menu.like")}</span>
-          </Link>
-
-          {/* 마이 (아이콘 + 텍스트) */}
-          <Link
-            href="/mypage"
-            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
-              />
-            </svg>
-            <span className="hidden md:inline">{t("menu.my")}</span>
-          </Link>
-
-          {/* 장바구니 (아이콘 + 텍스트) */}
-          <Link
-            href="/orders/cart"
-            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"
-              />
-            </svg>
-            <span className="hidden md:inline">{t("menu.cart")}</span>
-          </Link>
-
-          {/* 로그인 버튼 (비로그인 시 노출) */}
-          {!authed ? (
-            <Link href="/member/login">
-              <button className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer">
-                {t("menu.loginSignup")}
-              </button>
-            </Link>
-          ) : (
-            <div className="flex items-center gap-1 ml-1">
-              {userLevel >= 21 && (
-                <Link href="/admin">
-                  <button className="border border-orange-500 bg-[#1A1A1A] text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-orange-950 transition-colors tracking-tight cursor-pointer">
-                    관리
-                  </button>
-                </Link>
-              )}
-              <button
-                onClick={handleLogout}
-                className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight cursor-pointer"
-              >
-                {t("topBar.logout")}
-              </button>
-            </div>
-          )}
-
-          {/* 🌐 언어 변경 드롭다운 */}
-          <div className="dropdown dropdown-end ml-1">
-            <div
-              tabIndex={0}
-              role="button"
-              className="btn btn-ghost btn-xs text-white flex items-center gap-1 px-1 hover:bg-gray-800 h-auto min-h-0 py-1 cursor-pointer"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S12 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S12 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
-                />
-              </svg>
-              <span className="uppercase text-[10px]">{locale}</span>
-            </div>
-            <ul
-              tabIndex={0}
-              className="dropdown-content z-50 menu p-2 shadow bg-white text-black rounded-box w-32 border border-gray-200 mt-1"
-            >
-              <li>
-                <button
-                  className={
-                    locale === "ko"
-                      ? "active bg-gray-200 w-full text-left"
-                      : "w-full text-left"
-                  }
-                  onClick={() => handleLanguageChange("ko")}
-                >
-                  🇰🇷 한국어
-                </button>
-              </li>
-              <li>
-                <button
-                  className={
-                    locale === "en"
-                      ? "active bg-gray-200 w-full text-left"
-                      : "w-full text-left"
-                  }
-                  onClick={() => handleLanguageChange("en")}
-                >
-                  🇺🇸 English
-                </button>
-              </li>
-              <li>
-                <button
-                  className={
-                    locale === "ja"
-                      ? "active bg-gray-200 w-full text-left"
-                      : "w-full text-left"
-                  }
-                  onClick={() => handleLanguageChange("ja")}
-                >
-                  🇯🇵 日本語
-                </button>
-              </li>
-              <li>
-                <button
-                  className={
-                    locale === "zh"
-                      ? "active bg-gray-200 w-full text-left"
-                      : "w-full text-left"
-                  }
-                  onClick={() => handleLanguageChange("zh")}
-                >
-                  🇨🇳 中文
-                </button>
-              </li>
-              <li>
-                <button
-                  className={
-                    locale === "vi"
-                      ? "active bg-gray-200 w-full text-left"
-                      : "w-full text-left"
-                  }
-                  onClick={() => handleLanguageChange("vi")}
-                >
-                  🇻🇳 Tiếng Việt
-                </button>
-              </li>
-            </ul>
-          </div>
-        </div>
+        {renderRightMenu()}
       </div>
+    );
+  };
 
-      {/* 2. Main Header (로고 & 검색창 영역) - ✅ [수정] 심플 페이지가 아닐 때만 노출 */}
+  return (
+    <>
+    {/* 배경: 검정, 텍스트: 흰색 */}
+    <header className="border-b border-gray-800 bg-black text-white sticky top-0 z-[60] transition-colors duration-300">
+
+      {/* 1. Top Bar */}
+      {renderTopBar(false)}
+
+      {/* 2. Main Header (로고 & 검색창 영역) - ✅ [수정] 심플 페이지가 아닐 때만 노출, 스크롤 내리면 부드럽게 숨김 */}
       {!isSimplePage && (
-        <div className="w-full px-4 pt-4 pb-0">
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${!isAtTop ? "max-h-0 opacity-0" : "max-h-[160px] opacity-100"}`}>
+          <div className="w-full px-4 pt-4 pb-0">
           <div className="flex items-center justify-between gap-2 md:gap-8">
             {/* Logo */}
             {/* ✅ [수정 2] 검색창 왼쪽의 큰 NKBUS 로고 클릭 시 추천 페이지로 이동 */}
@@ -429,11 +283,13 @@ export default function MainHeader({
             </div>
           </div>
         </div>
+        </div>
       )}
 
-      {/* 3. Category Nav (하단 메뉴) - ✅ [수정] 심플 페이지가 아닐 때만 노출 */}
+      {/* 3. Category Nav (하단 메뉴) - ✅ [수정] 심플 페이지가 아닐 때만 노출, 스크롤 내리면 부드럽게 숨김 */}
       {!isSimplePage && (
-        <div className="bg-black text-white border-t border-gray-900 relative">
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${!isAtTop ? "max-h-0 opacity-0" : "max-h-[80px] opacity-100"}`}>
+          <div className="bg-black text-white border-t border-gray-900 relative">
           <div className="w-full px-4 flex items-center">
             {/* 네비게이션 항목 */}
             <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
@@ -537,7 +393,10 @@ export default function MainHeader({
             </nav>
           </div>
         </div>
+        </div>
       )}
+
+    </header>
 
       {/* 🆕 팝업 메가 메뉴 (초기 탭 전달) */}
       {isMenuOpen && (
@@ -579,6 +438,6 @@ export default function MainHeader({
           </div>
         </div>
       )}
-    </header>
+    </>
   );
 }

@@ -57,8 +57,7 @@ export default function MemberListPage() {
   const [visitMax, setVisitMax] = useState('');
   const [lastLoginStart, setLastLoginStart] = useState('');
   const [lastLoginEnd, setLastLoginEnd] = useState('');
-  const [mileageMin, setMileageMin] = useState('');
-  const [mileageMax, setMileageMax] = useState('');
+
   const [depositMin, setDepositMin] = useState('');
   const [depositMax, setDepositMax] = useState('');
   const [orderMin, setOrderMin] = useState('');
@@ -67,7 +66,6 @@ export default function MemberListPage() {
   const [amountMax, setAmountMax] = useState('');
   const [smsAgree, setSmsAgree] = useState('all');
   const [emailAgree, setEmailAgree] = useState('all');
-  const [joinRoute, setJoinRoute] = useState('all');
   const [longTermLoginDays, setLongTermLoginDays] = useState('');
   const [gender, setGender] = useState('all');
   const [birthdaySearch, setBirthdaySearch] = useState(false);
@@ -392,26 +390,19 @@ export default function MemberListPage() {
                         </div>
                     </div>
 
-                    {/* Mileage and Deposit */}
+                    {/* Deposit */}
                     <div className="flex text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[44px]">
-                            마일리지
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-1 border-r border-gray-200 min-h-[44px] py-1.5 text-[11px]">
-                            <Input value={mileageMin} onChange={(e) => setMileageMin(e.target.value)} className="w-24 h-7 border-gray-300 text-center" />
-                            <span>원 ~</span>
-                            <Input value={mileageMax} onChange={(e) => setMileageMax(e.target.value)} className="w-24 h-7 border-gray-300 text-center" />
-                            <span>원</span>
-                        </div>
                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[44px]">
                             예치금
                         </div>
-                        <div className="flex-1 p-3 flex items-center gap-1 min-h-[44px] py-1.5 px-3 text-[11px]">
+                        <div className="flex-1 p-3 flex items-center gap-1 border-r border-gray-200 min-h-[44px] py-1.5 px-3 text-[11px]">
                             <Input value={depositMin} onChange={(e) => setDepositMin(e.target.value)} className="w-24 h-7 border-gray-300 text-center" />
                             <span>원 ~</span>
                             <Input value={depositMax} onChange={(e) => setDepositMax(e.target.value)} className="w-24 h-7 border-gray-300 text-center" />
                             <span>원</span>
                         </div>
+                        <div className="w-36 bg-[#FBFBFB] p-3 border-r border-gray-200 min-h-[44px]"></div>
+                        <div className="flex-1 p-3 min-h-[44px]"></div>
                     </div>
 
                     {/* Order Count and Amount */}
@@ -478,34 +469,17 @@ export default function MemberListPage() {
                         </div>
                     </div>
 
-                    {/* Join Route and Long-term non-login */}
+                    {/* Long-term non-login */}
                     <div className="flex text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-10">
-                            가입경로
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-6 border-r border-gray-200 h-10 py-1.5">
-                            <RadioGroup value={joinRoute} onValueChange={setJoinRoute} className="flex items-center gap-6">
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="all" id="route-all" className="border-gray-300 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="route-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="pc" id="route-pc" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="route-pc" className="text-gray-700 font-normal cursor-pointer">PC</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="mobile" id="route-mobile" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="route-mobile" className="text-gray-700 font-normal cursor-pointer">모바일</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-10">
                             장기 미로그인
                         </div>
-                        <div className="flex-1 p-3 flex items-center gap-1 h-10 py-1.5 px-3">
+                        <div className="flex-1 p-3 flex items-center gap-1 border-r border-gray-200 h-10 py-1.5 px-3">
                             <Input value={longTermLoginDays} onChange={(e) => setLongTermLoginDays(e.target.value)} className="w-16 h-7 border-gray-300 text-center" />
                             <span>일 이상 로그인하지 않은 회원</span>
                         </div>
+                        <div className="w-36 bg-[#FBFBFB] p-3 border-r border-gray-200 h-10"></div>
+                        <div className="flex-1 p-3 h-10"></div>
                     </div>
 
                     {/* Gender and Birthday */}
@@ -749,8 +723,6 @@ export default function MemberListPage() {
                         <SelectItem value="name-asc">이름 ↑</SelectItem>
                         <SelectItem value="id-desc">아이디 ↓</SelectItem>
                         <SelectItem value="id-asc">아이디 ↑</SelectItem>
-                        <SelectItem value="mileage-desc">마일리지 ↓</SelectItem>
-                        <SelectItem value="mileage-asc">마일리지 ↑</SelectItem>
                         <SelectItem value="deposit-desc">예치금 ↓</SelectItem>
                         <SelectItem value="deposit-asc">예치금 ↑</SelectItem>
                         <SelectItem value="order-amount-desc">주문금액 ↓</SelectItem>
@@ -799,7 +771,6 @@ export default function MemberListPage() {
                   <col className="w-24" />
                   <col className="w-24" />
                   <col className="w-24" />
-                  <col className="w-24" />
               </colgroup>
               <thead className="bg-[#BDBDBD] text-white font-normal">
                   <tr className="h-10">
@@ -811,7 +782,6 @@ export default function MemberListPage() {
                       <th className="border-r border-[#CDCDCD] font-normal">아이디/닉네임</th>
                       <th className="border-r border-[#CDCDCD] font-normal">이름</th>
                       <th className="border-r border-[#CDCDCD] font-normal">등급</th>
-                      <th className="border-r border-[#CDCDCD] font-normal">마일리지</th>
                       <th className="border-r border-[#CDCDCD] font-normal">예치금</th>
                       <th className="border-r border-[#CDCDCD] font-normal">상품주문건수</th>
                       <th className="border-r border-[#CDCDCD] font-normal">주문금액</th>
@@ -826,13 +796,13 @@ export default function MemberListPage() {
               <tbody className="bg-white">
                   {loading ? (
                        <tr>
-                          <td colSpan={16} className="py-24 border-b border-gray-200 text-center text-gray-500">
+                          <td colSpan={15} className="py-24 border-b border-gray-200 text-center text-gray-500">
                               로딩중...
                           </td>
                       </tr>
                   ) : users.length === 0 ? (
                       <tr>
-                          <td colSpan={16} className="py-24 border-b border-gray-200 text-center text-gray-500">
+                          <td colSpan={15} className="py-24 border-b border-gray-200 text-center text-gray-500">
                               검색된 정보가 없습니다.
                           </td>
                       </tr>
@@ -856,7 +826,6 @@ export default function MemberListPage() {
                                    </Link>
                                </td>
                                <td className="border-r border-gray-200">{user.info?.grade?.name || '일반회원'}</td>
-                               <td className="border-r border-gray-200">{user.info?.mileage?.toLocaleString()}</td>
                                <td className="border-r border-gray-200">{user.info?.deposit?.toLocaleString()}</td>
                                <td className="border-r border-gray-200">{user.orderCount?.toLocaleString()}</td>
                                <td className="border-r border-gray-200">{user.totalOrderAmount?.toLocaleString()}</td>

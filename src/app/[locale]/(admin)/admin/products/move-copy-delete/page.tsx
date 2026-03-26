@@ -76,9 +76,6 @@ export default function ProductMoveCopyDeletePage() {
     const [isNoBrand, setIsNoBrand] = useState(false);
     const [minPrice, setMinPrice] = useState('');
     const [maxPrice, setMaxPrice] = useState('');
-    const [minMileage, setMinMileage] = useState('');
-    const [maxMileage, setMaxMileage] = useState('');
-    const [mileageMethod, setMileageMethod] = useState('all');
     const [minStock, setMinStock] = useState('');
     const [maxStock, setMaxStock] = useState('');
     const [useOption, setUseOption] = useState('all');
@@ -486,37 +483,7 @@ export default function ProductMoveCopyDeletePage() {
                             </div>
                         </div>
 
-                        {/* Row 7: Mileage & Method */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">마일리지</div>
-                                <div className="flex-1 p-3 flex items-center gap-2">
-                                    <Input className="w-24 h-8" value={minMileage} onChange={e => setMinMileage(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">이상 ~</span>
-                                    <Input className="w-24 h-8" value={maxMileage} onChange={e => setMaxMileage(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">이하</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">마일리지 지급방법</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={mileageMethod} onValueChange={setMileageMethod} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="mileage-all" />
-                                            <Label htmlFor="mileage-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="integrated" id="mileage-integrated" />
-                                            <Label htmlFor="mileage-integrated" className="text-xs">통합설정</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="individual" id="mileage-individual" />
-                                            <Label htmlFor="mileage-individual" className="text-xs">개별설정</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
+
 
                         {/* Row 8: Stock & Option Use */}
                         <div className="flex border-b border-gray-200">

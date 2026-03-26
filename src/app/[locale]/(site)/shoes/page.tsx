@@ -1,74 +1,93 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
-export default function ShoesPage() {
-  // 1. Banner Slides
-  const bannerSlides = [
-    {
-      id: 1,
-      left: {
-        img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1600&auto=format&fit=crop",
-        title: "SNEAKERS <br /> OF THE WEEK",
-        desc: "이번 주 가장 핫한 스니커즈",
-        bgColor: "bg-stone-200",
-      },
-      center: {
-        img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
-        title: "나이키 한정판",
-        subTitle: "드로우 응모 <br/> 마감 임박",
-        desc: "지금 바로 참여하세요",
-        bgColor: "bg-[#111111]",
-        overlayColor: "bg-[#111111]/20",
-      },
-      right: {
-        img: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop",
-        title: "러닝화 세일",
-        subTitle: "가볍고 편안한 <br/> 러닝을 위해",
-        desc: "최대 50% 할인",
-        bgColor: "bg-[#4A90E2]",
-        overlayColor: "bg-[#4A90E2]/20",
-      },
-    },
-    {
-      id: 2,
-      left: {
-        img: "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?q=80&w=1600&auto=format&fit=crop",
-        title: "BOOTS <br /> COLLECTION",
-        desc: "겨울 스타일의 완성, 부츠",
-        bgColor: "bg-gray-200",
-      },
-      center: {
-        img: "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=800&auto=format&fit=crop",
-        title: "반스",
-        subTitle: "클래식은 <br/> 영원하다",
-        desc: "스테디셀러 모음",
-        bgColor: "bg-red-800",
-        overlayColor: "bg-red-800/20",
-      },
-      right: {
-        img: "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=800&auto=format&fit=crop",
-        title: "구두 & 로퍼",
-        subTitle: "포멀한 룩을 <br/> 위한 선택",
-        desc: "출근룩 추천",
-        bgColor: "bg-amber-900",
-        overlayColor: "bg-amber-900/20",
-      },
-    },
-  ];
+import { getActiveBannersAction } from "@/actions/banner-actions";
 
-  // 2. Slide State
+export default function ShoesPage() {
+  // 1. Banner Slides State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [bannerSlides, setBannerSlides] = useState<any[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  useEffect(() => {
+    async function loadBanners() {
+      const res = await getActiveBannersAction('shoes');
+      if (res.success && res.banners.length > 0) {
+        const chunks = [];
+        for (let i = 0; i < res.banners.length; i += 3) {
+           chunks.push({
+             id: i,
+             left: {
+                img: res.banners[i].pcImage,
+                title: res.banners[i].title,
+                desc: res.banners[i].description || "",
+                bgColor: "bg-gray-200",
+             },
+             center: res.banners[i+1] ? {
+                img: res.banners[i+1].pcImage,
+                title: res.banners[i+1].title,
+                subTitle: "",
+                desc: res.banners[i+1].description || "",
+                bgColor: "bg-stone-800",
+                overlayColor: "bg-black/20",
+             } : null,
+             right: res.banners[i+2] ? {
+                img: res.banners[i+2].pcImage,
+                title: res.banners[i+2].title,
+                subTitle: "",
+                desc: res.banners[i+2].description || "",
+                bgColor: "bg-blue-900",
+                overlayColor: "bg-blue-900/20",
+             } : null,
+           });
+        }
+        setBannerSlides(chunks);
+      } else {
+        // Fallback to defaults
+        setBannerSlides([
+          {
+            id: 1,
+            left: {
+              img: "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=1600&auto=format&fit=crop",
+              title: "SNEAKERS <br /> OF THE WEEK",
+              desc: "이번 주 가장 핫한 스니커즈",
+              bgColor: "bg-stone-200",
+            },
+            center: {
+              img: "https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?q=80&w=800&auto=format&fit=crop",
+              title: "나이키 한정판",
+              subTitle: "드로우 응모 <br/> 마감 임박",
+              desc: "지금 바로 참여하세요",
+              bgColor: "bg-[#111111]",
+              overlayColor: "bg-[#111111]/20",
+            },
+            right: {
+              img: "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?q=80&w=800&auto=format&fit=crop",
+              title: "러닝화 세일",
+              subTitle: "가볍고 편안한 <br/> 러닝을 위해",
+              desc: "최대 50% 할인",
+              bgColor: "bg-[#4A90E2]",
+              overlayColor: "bg-[#4A90E2]/20",
+            },
+          }
+        ]);
+      }
+    }
+    loadBanners();
+  }, []);
+
   const prevSlide = () => {
+    if (bannerSlides.length === 0) return;
     setCurrentSlide((prev) =>
       prev === 0 ? bannerSlides.length - 1 : prev - 1
     );
   };
 
   const nextSlide = () => {
+    if (bannerSlides.length === 0) return;
     setCurrentSlide((prev) =>
       prev === bannerSlides.length - 1 ? 0 : prev + 1
     );
@@ -230,6 +249,8 @@ export default function ShoesPage() {
                 </div>
                 <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
               </div>
+              
+              {slide.center && (
               <div
                 className={`md:col-span-1 relative ${slide.center.bgColor} overflow-hidden cursor-pointer group/item`}
               >
@@ -255,6 +276,9 @@ export default function ShoesPage() {
                   className={`absolute inset-0 ${slide.center.overlayColor} pointer-events-none`}
                 />
               </div>
+              )}
+
+              {slide.right && (
               <div
                 className={`md:col-span-1 relative ${slide.right.bgColor} overflow-hidden cursor-pointer group/item`}
               >
@@ -278,6 +302,7 @@ export default function ShoesPage() {
                   className={`absolute inset-0 ${slide.right.overlayColor} pointer-events-none`}
                 />
               </div>
+              )}
             </div>
           ))}
         </div>

@@ -21,7 +21,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, ChevronUp, ChevronDown, Book, Plus } from "lucide-react";
+import { CalendarIcon, Book, Plus } from "lucide-react";
 import { getMainPageDisplayGroupsAction, deleteMainPageDisplayGroupsAction } from "@/actions/product-display-actions";
 import { format } from "date-fns";
 
@@ -53,7 +53,6 @@ export default function MainProductDisplayPage() {
     const [endDate, setEndDate] = useState('');
     
     // Advanced Search State
-    const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
     const [displayStatus, setDisplayStatus] = useState('all');
     const [sort, setSort] = useState('regDesc');
     
@@ -278,39 +277,29 @@ export default function MainProductDisplayPage() {
                         </div>
                     </div>
 
-                </div>
-
-                {isAdvancedSearchOpen && (
-                    <div className="border border-t-0 border-gray-300 bg-white">
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">노출상태</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={displayStatus} onValueChange={setDisplayStatus} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="display-all" />
-                                            <Label htmlFor="display-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="exposed" id="display-exposed" />
-                                            <Label htmlFor="display-exposed" className="text-xs">노출함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="hidden" id="display-hidden" />
-                                            <Label htmlFor="display-hidden" className="text-xs">노출안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
+                    {/* Row 3: Display Status */}
+                    <div className="flex border-t border-gray-200">
+                        <div className="flex-1 flex">
+                            <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">노출상태</div>
+                            <div className="flex-1 p-3 flex items-center gap-4">
+                                <RadioGroup value={displayStatus} onValueChange={setDisplayStatus} className="flex gap-4">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="all" id="display-all" />
+                                        <Label htmlFor="display-all" className="text-xs">전체</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="exposed" id="display-exposed" />
+                                        <Label htmlFor="display-exposed" className="text-xs">노출함</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="hidden" id="display-hidden" />
+                                        <Label htmlFor="display-hidden" className="text-xs">노출안함</Label>
+                                    </div>
+                                </RadioGroup>
                             </div>
                         </div>
                     </div>
-                )}
 
-                 <div 
-                    className="mt-2 text-blue-500 text-xs flex items-center gap-1 cursor-pointer hover:underline"
-                    onClick={() => setIsAdvancedSearchOpen(!isAdvancedSearchOpen)}
-                >
-                    상세검색 {isAdvancedSearchOpen ? '닫힘' : '펼침'} {isAdvancedSearchOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                 </div>
 
                 <div className="flex justify-center mt-6 mb-10">

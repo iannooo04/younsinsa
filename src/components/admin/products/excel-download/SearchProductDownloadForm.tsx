@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { HelpCircle, FileSpreadsheet } from "lucide-react";
-import SupplierPopup from "@/components/admin/SupplierPopup";
 
 interface Field {
   label: string;
@@ -180,13 +179,10 @@ const FIELDS: Field[] = [
 ];
 
 export default function SearchProductDownloadForm() {
-  const [supplierType, setSupplierType] = useState<"head" | "supplier">("head");
-  const [selectedSupplier, setSelectedSupplier] = useState<{ id: string; name: string } | null>(null);
-  const [isSupplierPopupOpen, setIsSupplierPopupOpen] = useState(false);
+  // supplierType state removed
   const [optionYn, setOptionYn] = useState("all");
   const [addGoodsYn, setAddGoodsYn] = useState("all");
   const [displayYn, setDisplayYn] = useState("all");
-  const [mileagePolicy, setMileagePolicy] = useState("all");
   const [textOptionYn, setTextOptionYn] = useState("all");
   const [sellYn, setSellYn] = useState("all");
   const [downloadRange, setDownloadRange] = useState("partial");
@@ -274,46 +270,7 @@ export default function SearchProductDownloadForm() {
                 </div>
             </div>
 
-            {/* Supplier Row */}
-            <div className="flex border-b border-gray-200">
-                <div className="w-40 bg-[#FBFBFB] px-4 py-3 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    공급사 구분
-                </div>
-                <div className="flex-1 p-2 flex items-center">
-                    <RadioGroup 
-                        value={supplierType} 
-                        onValueChange={(v) => {
-                            const newVal = v as "head" | "supplier";
-                            setSupplierType(newVal);
-                            if (newVal === "supplier") {
-                                setIsSupplierPopupOpen(true);
-                            }
-                        }}
-                        className="flex gap-6 items-center"
-                    >
-                        <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="head" id="s-head" className="border-gray-300 text-gray-600" />
-                            <Label htmlFor="s-head" className="text-gray-700 font-normal cursor-pointer">본사</Label>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                            <RadioGroupItem value="supplier" id="s-supplier" className="border-gray-300 text-gray-600" />
-                            <Label htmlFor="s-supplier" className="text-gray-700 font-normal cursor-pointer">공급사</Label>
-                            <div className="flex items-center gap-2 ml-2">
-                                <div className="h-7 px-2 flex items-center border border-gray-300 bg-white min-w-[100px]">
-                                    {selectedSupplier?.name || "선택된 공급사 없음"}
-                                </div>
-                                <Button 
-                                    variant="secondary" 
-                                    className="h-6 text-[11px] bg-gray-700 text-white hover:bg-gray-600 rounded-sm px-2"
-                                    onClick={() => setIsSupplierPopupOpen(true)}
-                                >
-                                    공급사 선택
-                                </Button>
-                            </div>
-                        </div>
-                    </RadioGroup>
-                </div>
-            </div>
+
 
             {/* Search Keyword */}
             <div className="flex border-b border-gray-200">
@@ -367,19 +324,11 @@ export default function SearchProductDownloadForm() {
                 <div className="w-40 bg-[#FBFBFB] px-4 py-3 font-bold text-gray-700 flex items-center border-r border-gray-200">
                     상품가격
                 </div>
-                <div className="flex-1 p-2 flex items-center gap-1 border-r border-gray-200">
+                <div className="flex-1 p-2 flex items-center gap-1">
                     <Input className="w-24 h-8 text-xs border-gray-300" />
                     <span>원 ~</span>
                     <Input className="w-24 h-8 text-xs border-gray-300" />
                     <span>원</span>
-                </div>
-                 <div className="w-40 bg-[#FBFBFB] px-4 py-3 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    마일리지
-                </div>
-                <div className="flex-1 p-2 flex items-center gap-1">
-                    <Input className="w-24 h-8 text-xs border-gray-300" />
-                    <span>~</span>
-                    <Input className="w-24 h-8 text-xs border-gray-300" />
                 </div>
             </div>
 
@@ -388,21 +337,11 @@ export default function SearchProductDownloadForm() {
                 <div className="w-40 bg-[#FBFBFB] px-4 py-3 font-bold text-gray-700 flex items-center border-r border-gray-200">
                     옵션 여부
                 </div>
-                <div className="flex-1 p-2 flex items-center border-r border-gray-200">
+                <div className="flex-1 p-2 flex items-center">
                      <RadioGroup value={optionYn} onValueChange={setOptionYn} className="flex gap-4">
                         <div className="flex items-center gap-1"><RadioGroupItem value="all" id="opt-all"/><Label htmlFor="opt-all">전체</Label></div>
                         <div className="flex items-center gap-1"><RadioGroupItem value="y" id="opt-y"/><Label htmlFor="opt-y">옵션사용</Label></div>
                         <div className="flex items-center gap-1"><RadioGroupItem value="n" id="opt-n"/><Label htmlFor="opt-n">옵션미사용</Label></div>
-                     </RadioGroup>
-                </div>
-                 <div className="w-40 bg-[#FBFBFB] px-4 py-3 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                    마일리지 정책
-                </div>
-                <div className="flex-1 p-2 flex items-center">
-                     <RadioGroup value={mileagePolicy} onValueChange={setMileagePolicy} className="flex gap-4">
-                        <div className="flex items-center gap-1"><RadioGroupItem value="all" id="mil-all"/><Label htmlFor="mil-all">전체</Label></div>
-                        <div className="flex items-center gap-1"><RadioGroupItem value="global" id="mil-g"/><Label htmlFor="mil-g">통합설정</Label></div>
-                        <div className="flex items-center gap-1"><RadioGroupItem value="individual" id="mil-i"/><Label htmlFor="mil-i">개별설정</Label></div>
                      </RadioGroup>
                 </div>
             </div>
@@ -535,18 +474,6 @@ export default function SearchProductDownloadForm() {
 
 
 
-        <SupplierPopup 
-            isOpen={isSupplierPopupOpen}
-            onClose={() => setIsSupplierPopupOpen(false)}
-            onConfirm={(s) => {
-                 if (Array.isArray(s)) {
-                    setSelectedSupplier(s[0] || null);
-                 } else {
-                    setSelectedSupplier(s);
-                 }
-                setSupplierType('supplier');
-            }}
-        />
     </div>
   );
 }

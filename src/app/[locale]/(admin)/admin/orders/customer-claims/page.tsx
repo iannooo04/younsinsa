@@ -79,10 +79,7 @@ export default function CustomerClaimsPage() {
   const [orderType, setOrderType] = useState({ all: true, pc: false, mobile: false, app: false, manual: false, subscription: false });
   const [orderChannel, setOrderChannel] = useState({ all: true, shoppingMall: false, payco: false, naverPay: false, etc: false });
   const [paymentMethod, setPaymentMethod] = useState({
-      all: true, creditCard: false, deposit: false, mobile: false, simpleCard: false, simplePoint: false,
-      transfer: false, escrowTransfer: false, escrowCard: false, escrowTransfer2: false, etc: false,
-      fullDiscount: false, bankTransfer: false, escrowPhone: false, escrowVirtual: false,
-      mileage: false, virtualAccount: false, escrowVirtual2: false, naverPaySimple: false
+      all: true, creditCard: false, wechatPay: false, alipay: false
   });
   const [invoiceHas, setInvoiceHas] = useState("all");
   const [memberType, setMemberType] = useState("all");
@@ -545,64 +542,18 @@ export default function CustomerClaimsPage() {
                                     <Label htmlFor="pay-all" className="text-gray-700 font-normal">전체</Label>
                                 </div>
                              </div>
-                             <div className="grid grid-cols-4 gap-y-2 gap-x-4">
+                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-pink-100 text-pink-600 flex items-center justify-center text-[9px]">신</span> 신용카드</Label>
+                                    <Checkbox id="pay-card" checked={paymentMethod.creditCard} onCheckedChange={(c) => setPaymentMethod(p => ({...p, creditCard: !!c}))} className="rounded-[2px] border-gray-300"/> 
+                                    <Label htmlFor="pay-card" className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-pink-300 text-white flex items-center justify-center text-[9px]">신</span> 신용카드</Label>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-yellow-100 text-yellow-600 flex items-center justify-center text-[9px]">무</span> 무통장 입금</Label>
+                                    <Checkbox id="pay-wechat" checked={paymentMethod.wechatPay} onCheckedChange={(c) => setPaymentMethod(p => ({...p, wechatPay: !!c}))} className="rounded-[2px] border-gray-300"/> 
+                                    <Label htmlFor="pay-wechat" className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 bg-green-500 text-white flex justify-center items-center text-[9px] rounded-sm">위</span> 위챗페이</Label>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-red-100 text-red-600 flex items-center justify-center text-[9px]">전</span> 전액할인</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-blue-100 text-blue-600 flex items-center justify-center text-[9px]">마</span> 마일리지</Label>
-                                </div>
-                                
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-green-100 text-green-600 flex items-center justify-center text-[9px]">예</span> 예치금</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-purple-100 text-purple-600 flex items-center justify-center text-[9px]">계</span> 계좌이체 (에스크로)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-teal-100 text-teal-600 flex items-center justify-center text-[9px]">계</span> 계좌이체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-orange-100 text-orange-600 flex items-center justify-center text-[9px]">가</span> 가상계좌</Label>
-                                </div>
-
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-orange-500 text-white flex items-center justify-center text-[9px]">휴</span> 휴대폰결제</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-purple-100 text-purple-600 flex items-center justify-center text-[9px]">신</span> 신용카드 (에스크로)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-white border border-gray-300 flex items-center justify-center text-[9px]">휴</span> 휴대폰 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-purple-100 text-purple-600 flex items-center justify-center text-[9px]">가</span> 가상계좌 (에스크로)</Label>
-                                </div>
-
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-teal-500 text-white flex items-center justify-center text-[9px]">신</span> 신용카드 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-teal-500 text-white flex items-center justify-center text-[9px]">계</span> 계좌이체 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-teal-500 text-white flex items-center justify-center text-[9px]">가</span> 가상계좌 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-green-600 text-white flex items-center justify-center text-[9px]">네</span> 네이버페이 (간편결제)</Label>
-                                </div>
-
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-teal-500 text-white flex items-center justify-center text-[9px]">포</span> 포인트 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox className="rounded-[2px] border-gray-300"/> <Label className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 rounded bg-gray-400 text-white flex items-center justify-center text-[9px]">기</span> 기타</Label>
+                                    <Checkbox id="pay-alipay" checked={paymentMethod.alipay} onCheckedChange={(c) => setPaymentMethod(p => ({...p, alipay: !!c}))} className="rounded-[2px] border-gray-300"/> 
+                                    <Label htmlFor="pay-alipay" className="text-gray-700 font-normal text-xs flex items-center gap-1"><span className="w-4 h-4 bg-blue-500 text-white flex justify-center items-center text-[9px] rounded-sm">알</span> 알리페이</Label>
                                 </div>
                              </div>
                         </div>

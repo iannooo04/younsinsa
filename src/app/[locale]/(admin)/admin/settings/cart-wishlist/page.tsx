@@ -5,13 +5,6 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { HelpCircle } from "lucide-react";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select";
 import { useEffect, useState, useTransition } from "react";
 import { getCartWishlistSettingsAction, updateCartWishlistSettingsAction } from "@/actions/basic-policy-actions";
 
@@ -280,22 +273,6 @@ export default function CartWishlistSettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="popup" id="nav-popup" className="border-gray-300" />
                                     <Label htmlFor="nav-popup" className="font-normal text-gray-700">장바구니 페이지 이동여부 확인팝업 노출</Label>
-                                    <Select 
-                                        value={settings.cartMovePageTarget} 
-                                        onValueChange={(val) => handleChange("cartMovePageTarget", val)}
-                                    >
-                                        <SelectTrigger 
-                                            className="w-[110px] h-7 text-xs ml-2"
-                                            disabled={settings.cartMovePageType !== "popup"}
-                                        >
-                                            <SelectValue placeholder="PC" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pc">PC</SelectItem>
-                                            <SelectItem value="mobile">모바일</SelectItem>
-                                            <SelectItem value="all">PC+모바일</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </div>
                             </RadioGroup>
                         </div>
@@ -431,22 +408,6 @@ export default function CartWishlistSettingsPage() {
                                 <div className="flex items-center gap-2">
                                     <RadioGroupItem value="popup" id="wish-nav-popup" className="border-gray-300" />
                                     <Label htmlFor="wish-nav-popup" className="font-normal text-gray-700">관심상품 페이지 이동여부 확인팝업 노출</Label>
-                                    <Select 
-                                        value={settings.wishMovePageTarget} 
-                                        onValueChange={(val) => handleChange("wishMovePageTarget", val)}
-                                    >
-                                        <SelectTrigger 
-                                            className="w-[110px] h-7 text-xs ml-2"
-                                            disabled={settings.wishMovePageType !== "popup"}
-                                        >
-                                            <SelectValue placeholder="PC" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="pc">PC</SelectItem>
-                                            <SelectItem value="mobile">모바일</SelectItem>
-                                            <SelectItem value="all">PC+모바일</SelectItem>
-                                        </SelectContent>
-                                    </Select>
                                 </div>
                             </RadioGroup>
                         </div>

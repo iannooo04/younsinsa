@@ -17,14 +17,13 @@ import { useRouter } from "next/navigation";
 import { 
     getCategoriesAction, 
     createCategoryAction, 
-    updateCategoryAction 
+    updateCategoryAction,
+    deleteCategoryAction
 } from "@/actions/category-actions";
 import { Category } from "@/generated/prisma";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
-import RecommendProductSelectPopup from "@/components/admin/RecommendProductSelectPopup";
-import DecorationEditor from "@/components/admin/DecorationEditor";
 
 interface CategoryWithChildren extends Category {
     children?: CategoryWithChildren[];
@@ -233,23 +232,11 @@ export default function CategoryManagementPage() {
 
   const [isPending, startTransition] = useTransition();
   const [isGradePopupOpen, setIsGradePopupOpen] = useState(false);
-  const [isProductSelectPopupOpen, setIsProductSelectPopupOpen] = useState(false);
 
   // Expanded UI States
   const [sectionsExpanded, setSectionsExpanded] = useState({
       basicInfo: true,
-      pcTheme: true,
-      mobileTheme: true,
-      recommend: true,
-      recommendDecoration: true,
-      decoration: true,
-      navDecoration: true,
   });
-
-  // Decoration Sync States
-  const [isNavSameDescription, setIsNavSameDescription] = useState(true);
-  const [isRecommendSameDescription, setIsRecommendSameDescription] = useState(true);
-  const [isListSameDescription, setIsListSameDescription] = useState(true);
 
   const toggleSection = (section: keyof typeof sectionsExpanded) => {
       setSectionsExpanded(prev => ({...prev, [section]: !prev[section]}));
@@ -270,28 +257,7 @@ export default function CategoryManagementPage() {
       accessRights: "ALL",
       productDisplaySort: "AUTO",
       
-      // Themes
-      pcTheme: "default",
-      mobileTheme: "default",
 
-      // Recommend
-      recommendScope: false,
-      recommendStatusPC: "DISPLAY",
-      recommendStatusMobile: "DISPLAY",
-      recommendSort: "AUTO",
-      recommendThemePC: "default",
-      recommendThemeMobile: "default",
-
-      
-      // Recommend Decoration
-      recommendDecorationSame: true,
-      recommendDecorationPC: "",
-      recommendDecorationMobile: "",
-      
-      // Decoration (HTML)
-      decorationSame: true,
-      decorationPC: "",
-      decorationMobile: "",
 
   });
 
@@ -408,7 +374,6 @@ export default function CategoryManagementPage() {
       });
   };
 
-  /*
   const handleDelete = async () => {
       if (!selectedCategory) return;
       if (!confirm("정말 삭제하시겠습니까?")) return;
@@ -425,7 +390,6 @@ export default function CategoryManagementPage() {
           }
       });
   };
-  */
 
   const renderTree = (nodes: CategoryWithChildren[], depth = 0) => {
       return nodes.map(node => (
@@ -511,14 +475,31 @@ export default function CategoryManagementPage() {
 
               {sectionsExpanded.basicInfo && (
               <div className="border border-t-0 border-gray-300 text-xs text-gray-700 border-l-0 border-r-0">
+                  {/* Current Category (Edit Mode) */}
+                  {mode === 'edit' && selectedCategory && (
+                  <div className="flex border-b border-gray-200 min-h-[50px] bg-red-50">
+                      <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex items-center border-r border-gray-200">현재 카테고리</div>
+                      <div className="flex-1 p-3 flex items-center justify-between">
+                          <span className="font-bold">{selectedCategory.name}</span>
+                          <Button 
+                              variant="destructive" 
+                              size="sm" 
+                              className="h-7 text-xs px-3 rounded-sm bg-red-500 hover:bg-red-600 text-white"
+                              onClick={handleDelete}
+                              disabled={isPending}
+                          >
+                              삭제
+                          </Button>
+                      </div>
+                  </div>
+                  )}
+
                   {/* Exposure Shops */}
                   <div className="flex border-b border-gray-200 min-h-[50px]">
                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex items-center border-r border-gray-200">노출상점</div>
                       <div className="flex-1 p-3 flex flex-col gap-2 justify-center">
                           <div className="flex items-center gap-4">
                             <label className="flex items-center gap-1"><Checkbox checked className="border-gray-300 bg-red-500 border-red-500" /> <span className="text-red-500 font-bold">전체</span></label>
-                            <label className="flex items-center gap-1"><Checkbox className="border-gray-300" /> 🇰🇷 기준몰</label>
-                            <label className="flex items-center gap-1"><Checkbox className="border-gray-300" /> 🇨🇳 중문몰</label>
                           </div>
                           <label className="flex items-center gap-1 text-gray-500"><Checkbox className="border-gray-300" /> 하위 카테고리 동일 적용</label>
                       </div>
@@ -531,23 +512,13 @@ export default function CategoryManagementPage() {
                        </div>
                        <div className="flex-1 p-3 space-y-2">
                            <div className="flex items-center gap-2">
-                               <span className="w-16 font-bold text-gray-600">기준몰</span>
                                <div className="relative">
                                    <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} className="w-[300px] h-7 text-xs pr-10" />
                                    <span className="absolute right-2 top-1.5 text-[10px] text-red-500 font-bold">{formData.name.length} / 30</span>
                                </div>
                            </div>
-                           <div className="flex items-center gap-2">
-                               <span className="w-16 flex items-center gap-1">🇨🇳</span>
-                               <div className="relative bg-gray-100 rounded-sm">
-                                   <Input disabled className="w-[300px] h-7 text-xs bg-gray-100" />
-                                   <span className="absolute right-2 top-1.5 text-[10px] text-red-500 font-bold">0 / 30</span>
-                               </div>
-                               <label className="flex items-center gap-1 text-gray-600"><Checkbox checked className="border-gray-300 bg-red-500 border-red-500" /> 기준몰 카테고리명 공통사용</label>
-                               <Button variant="secondary" size="sm" className="h-6 text-[11px] px-2 bg-gray-600 text-white hover:bg-gray-700 rounded-sm">참고 번역</Button>
-                           </div>
-                           <p className="flex items-center gap-1 text-gray-400 mt-1">
-                                <span className="bg-black text-white text-[10px] px-1 font-bold rounded-sm">!</span> 기본적으로 입력된 텍스트로 해당 카테고리 보여집니다<br/>
+                           <p className="flex flex-col gap-1 text-gray-400 mt-2">
+                                <span className="flex items-center gap-1"><span className="bg-black text-white text-[10px] px-1 font-bold rounded-sm">!</span> 기본적으로 입력된 텍스트로 해당 카테고리가 보여집니다</span>
                                 <span className="ml-5">카테고리를 이미지로 노출하려면 아래 "카테고리 이미지등록" 항목에 이미지를 등록하세요.</span>
                            </p>
                        </div>
@@ -771,376 +742,10 @@ export default function CategoryManagementPage() {
                        </div>
                   </div>
 
-                  {/* Theme Select */}
-                  <div className="flex min-h-[50px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">PC쇼핑몰<br/>테마선택</div>
-                       <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
-                           <Select value={formData.pcTheme} onValueChange={(v) => setFormData({...formData, pcTheme: v})}>
-                               <SelectTrigger className="w-32 h-7 text-xs"><SelectValue /></SelectTrigger>
-                               <SelectContent><SelectItem value="default">카테고리테마</SelectItem></SelectContent>
-                           </Select>
-                           <Button className="h-7 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-3" onClick={() => router.push('/admin/categories/theme-register')}>테마 등록</Button>
-                       </div>
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">모바일쇼핑몰<br/>테마선택</div>
-                       <div className="flex-1 p-3 flex items-center gap-2">
-                           <Select value={formData.mobileTheme} onValueChange={(v) => setFormData({...formData, mobileTheme: v})}>
-                               <SelectTrigger className="w-32 h-7 text-xs"><SelectValue /></SelectTrigger>
-                               <SelectContent><SelectItem value="default">카테고리테마</SelectItem></SelectContent>
-                           </Select>
-                           <Button className="h-7 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-3" onClick={() => router.push('/admin/categories/theme-register')}>테마 등록</Button>
-                       </div>
-                  </div>
               </div>
               )}
           </div>
 
-          {/* Section 2: Selected Theme Info (PC) */}
-          <div className="border-t border-gray-300 pt-4">
-              <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">선택된 PC쇼핑몰 테마 정보</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                   <button onClick={() => toggleSection('pcTheme')} className="text-blue-500 text-xs font-bold flex items-center">
-                       {sectionsExpanded.pcTheme ? '닫힘' : '열림'} <ChevronUp className={`w-3 h-3 ml-1 transform ${sectionsExpanded.pcTheme ? '' : 'rotate-180'}`} />
-                   </button>
-              </div>
-              {sectionsExpanded.pcTheme && (
-                 <div className="border border-gray-200 text-xs text-gray-700">
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">테마명</div>
-                         <div className="flex-1 pl-4 flex items-center gap-2">
-                             <span>카테고리테마</span> <Button variant="outline" className="h-5 text-[10px] px-1 bg-white border-gray-300" onClick={() => router.push('/admin/categories/theme-edit')}>수정</Button>
-                         </div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">이미지 설정</div>
-                         <div className="flex-1 pl-4">추가리스트2 280pixel</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">상품 노출 개수</div>
-                         <div className="flex-1 pl-4">가로 : 4 X 세로 : 5</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 노출</div>
-                         <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 진열</div>
-                         <div className="flex-1 pl-4">정렬 순서대로 보여주기</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절 아이콘 노출</div>
-                         <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">아이콘 노출</div>
-                         <div className="flex-1 pl-4">예</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">노출항목 설정</div>
-                         <div className="flex-1 pl-4">이미지,상품명,이미지,상품명,판매가</div>
-                     </div>
-                     <div className="flex h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">디스플레이 유형</div>
-                         <div className="flex-1 pl-4">갤러리형</div>
-                     </div>
-                 </div>
-              )}
-          </div>
-
-          {/* Section 3: Selected Theme Info (Mobile) */}
-          <div className="border-t border-gray-300 pt-4">
-              <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">선택된 모바일쇼핑몰 테마 정보</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                   <button onClick={() => toggleSection('mobileTheme')} className="text-blue-500 text-xs font-bold flex items-center">
-                       {sectionsExpanded.mobileTheme ? '닫힘' : '열림'} <ChevronUp className={`w-3 h-3 ml-1 transform ${sectionsExpanded.mobileTheme ? '' : 'rotate-180'}`} />
-                   </button>
-              </div>
-              {sectionsExpanded.mobileTheme && (
-                 <div className="border border-gray-200 text-xs text-gray-700">
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">테마명</div>
-                         <div className="flex-1 pl-4 flex items-center gap-2">
-                             <span>카테고리테마</span> <Button variant="outline" className="h-5 text-[10px] px-1 bg-white border-gray-300" onClick={() => router.push('/admin/categories/theme-edit')}>수정</Button>
-                         </div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">이미지 설정</div>
-                         <div className="flex-1 pl-4">리스트이미지(기본) 180pixel</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">상품 노출 개수</div>
-                         <div className="flex-1 pl-4">가로 : 2 X 세로 : 5</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 노출</div>
-                         <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 진열</div>
-                         <div className="flex-1 pl-4">정렬 순서대로 보여주기</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절 아이콘 노출</div>
-                         <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">아이콘 노출</div>
-                         <div className="flex-1 pl-4">예</div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">노출항목 설정</div>
-                         <div className="flex-1 pl-4">이미지,상품명,이미지,상품명,판매가</div>
-                     </div>
-                     <div className="flex h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">디스플레이 유형</div>
-                         <div className="flex-1 pl-4">리스트형</div>
-                     </div>
-                 </div>
-              )}
-          </div>
-
-          {/* Section 4: Recommendation Product Info */}
-          <div className="border-t border-gray-300 pt-4">
-              <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">추천상품 정보</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                   <button onClick={() => toggleSection('recommend')} className="text-blue-500 text-xs font-bold flex items-center">
-                       {sectionsExpanded.recommend ? '닫힘' : '열림'} <ChevronUp className={`w-3 h-3 ml-1 transform ${sectionsExpanded.recommend ? '' : 'rotate-180'}`} />
-                   </button>
-              </div>
-              {sectionsExpanded.recommend && (
-                  <div className="border border-gray-200 text-xs text-gray-700">
-                      <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">적용범위</div>
-                         <div className="flex-1 pl-4 flex items-center gap-2">
-                            <label className="flex items-center gap-1"><Checkbox  className="border-gray-300" /> 하위 카테고리 동일 적용</label>
-                         </div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">PC쇼핑몰<br/>노출상태</div>
-                         <div className="flex-1 pl-4 flex items-center">
-                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                             <RadioGroup value={formData.recommendStatusPC} onValueChange={(v) => setFormData({...formData, recommendStatusPC: v as any})} className="flex gap-4">
-                               <div className="flex items-center gap-1">
-                                  <RadioGroupItem value="DISPLAY" id="rec-pc-disp" className="text-red-500 border-red-500" /> 
-                                  <Label htmlFor="rec-pc-disp" className="font-normal cursor-pointer">노출함</Label>
-                               </div>
-                               <div className="flex items-center gap-1">
-                                  <RadioGroupItem value="HIDDEN" id="rec-pc-hide" className="border-gray-400" />
-                                  <Label htmlFor="rec-pc-hide" className="font-normal text-gray-500 cursor-pointer">노출안함</Label>
-                               </div>
-                             </RadioGroup>
-                         </div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">모바일쇼핑몰<br/>노출상태</div>
-                         <div className="flex-1 pl-4 flex items-center">
-                             {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                             <RadioGroup value={formData.recommendStatusMobile} onValueChange={(v) => setFormData({...formData, recommendStatusMobile: v as any})} className="flex gap-4">
-                               <div className="flex items-center gap-1">
-                                  <RadioGroupItem value="DISPLAY" id="rec-mo-disp" className="text-red-500 border-red-500" />
-                                  <Label htmlFor="rec-mo-disp" className="font-normal cursor-pointer">노출함</Label>
-                               </div>
-                               <div className="flex items-center gap-1">
-                                  <RadioGroupItem value="HIDDEN" id="rec-mo-hide" className="border-gray-400" />
-                                  <Label htmlFor="rec-mo-hide" className="font-normal text-gray-500 cursor-pointer">노출안함</Label>
-                               </div>
-                             </RadioGroup>
-                         </div>
-                     </div>
-                     <div className="flex border-b border-gray-200 h-10 items-center">
-                         <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">상품진열 타입</div>
-                         <div className="flex-1 pl-4 flex items-center">
-                              <RadioGroup value={formData.recommendSort} onValueChange={(v) => setFormData({...formData, recommendSort: v})} className="flex gap-4 items-center">
-                                  <div className="flex items-center gap-1">
-                                      <RadioGroupItem value="AUTO" id="rec-sort-auto" className="text-red-500 border-red-500" />
-                                      <Label htmlFor="rec-sort-auto" className="font-normal cursor-pointer whitespace-nowrap">자동진열</Label>
-                                  </div>
-                                  <Select defaultValue="recent_desc">
-                                    <SelectTrigger className="w-48 h-7 text-xs border-gray-300 rounded-sm"><SelectValue placeholder="최근 등록 상품 위로" /></SelectTrigger>
-                                    <SelectContent>
-                                          <SelectItem value="recent_desc">최근 등록 상품 위로</SelectItem>
-                                          <SelectItem value="recent_asc">최근 등록 상품 아래로</SelectItem>
-                                          <SelectItem value="updated_desc">최근 수정 상품 위로</SelectItem>
-                                          <SelectItem value="updated_asc">최근 수정 상품 아래로</SelectItem>
-                                          <SelectItem value="name_asc">상품명 가나다순</SelectItem>
-                                          <SelectItem value="name_desc">상품명 가나다역순</SelectItem>
-                                          <SelectItem value="price_desc">판매가 높은 상품 위로</SelectItem>
-                                          <SelectItem value="price_asc">판매가 높은 상품 아래로</SelectItem>
-                                          <SelectItem value="sales_desc">판매량 높은 상품 위로</SelectItem>
-                                          <SelectItem value="sales_asc">판매량 높은 상품 아래로</SelectItem>
-                                          <SelectItem value="views_desc">조회수 높은 상품 위로</SelectItem>
-                                          <SelectItem value="views_asc">조회수 높은 상품 아래로</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                  <div className="flex items-center gap-1">
-                                      <RadioGroupItem value="MANUAL" id="rec-sort-manual" className="border-gray-400" />
-                                      <Label htmlFor="rec-sort-manual" className="font-normal text-gray-500 cursor-pointer whitespace-nowrap">수동진열</Label>
-                                  </div>
-                              </RadioGroup>
-                         </div>
-                     </div>
-                     <div className="flex border-b border-gray-200 min-h-[50px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">PC쇼핑몰<br/>테마선택</div>
-                       <div className="flex-1 p-3 flex items-center gap-2 border-r border-gray-200">
-                           <Select value={formData.recommendThemePC} onValueChange={(v) => setFormData({...formData, recommendThemePC: v})}>
-                               <SelectTrigger className="w-32 h-7 text-xs"><SelectValue /></SelectTrigger>
-                               <SelectContent><SelectItem value="default">추천상품테마</SelectItem></SelectContent>
-                           </Select>
-                           <Button className="h-7 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-3" onClick={() => router.push('/admin/categories/theme-register')}>테마 등록</Button>
-                       </div>
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">모바일쇼핑몰<br/>테마선택</div>
-                       <div className="flex-1 p-3 flex items-center gap-2">
-                           <Select value={formData.recommendThemeMobile} onValueChange={(v) => setFormData({...formData, recommendThemeMobile: v})}>
-                               <SelectTrigger className="w-32 h-7 text-xs"><SelectValue /></SelectTrigger>
-                               <SelectContent><SelectItem value="default">추천상품테마</SelectItem></SelectContent>
-                           </Select>
-                           <Button className="h-7 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-3" onClick={() => router.push('/admin/categories/theme-register')}>테마 등록</Button>
-                       </div>
-                     </div>
-                  
-                  {/* Selected PC Theme Info */}
-                  <div className="mt-4 border border-gray-200 border-t-0 bg-white">
-                      <div className="flex items-center justify-between p-3 border-t border-gray-200 border-b">
-                          <div className="flex items-center gap-2">
-                              <h2 className="text-lg font-bold text-gray-800">선택된 PC쇼핑몰 추천상품 테마 정보</h2>
-                              <HelpCircle className="w-4 h-4 text-gray-400" />
-                          </div>
-                          <button className="text-blue-500 text-xs font-bold flex items-center">
-                              닫힘 <ChevronUp className="w-3 h-3 ml-1" />
-                          </button>
-                      </div>
-                      
-                      {/* PC Theme Details */}
-                      <div className="text-xs text-gray-700">
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">테마명</div>
-                              <div className="flex-1 pl-4 flex items-center gap-2">
-                                  <span>추천상품테마</span> 
-                                  <Button variant="outline" className="h-5 text-[10px] px-1 bg-white border-gray-300 rounded-sm" onClick={() => router.push('/admin/categories/theme-edit')}>수정</Button>
-                              </div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">이미지 설정</div>
-                              <div className="flex-1 pl-4">추가리스트2 280pixel</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">상품 노출 개수</div>
-                              <div className="flex-1 pl-4">가로 : 4 X 세로 : 5</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 노출</div>
-                              <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 진열</div>
-                              <div className="flex-1 pl-4">정렬 순서대로 보여주기</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절 아이콘 노출</div>
-                              <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">아이콘 노출</div>
-                              <div className="flex-1 pl-4">예</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">노출항목 설정</div>
-                              <div className="flex-1 pl-4">이미지,상품명,이미지,상품명,판매가</div>
-                          </div>
-                          <div className="flex h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">갤러리형</div>
-                              <div className="flex-1 pl-4">갤러리형</div>
-                          </div>
-                      </div>
-                  </div>
-
-                  {/* Selected Mobile Theme Info */}
-                  <div className="mt-4 border border-gray-200 border-t-0 bg-white">
-                      <div className="flex items-center justify-between p-3 border-t border-gray-200 border-b">
-                          <div className="flex items-center gap-2">
-                              <h2 className="text-lg font-bold text-gray-800">선택된 모바일쇼핑몰 추천상품 테마 정보</h2>
-                              <HelpCircle className="w-4 h-4 text-gray-400" />
-                          </div>
-                          <button className="text-blue-500 text-xs font-bold flex items-center">
-                              닫힘 <ChevronUp className="w-3 h-3 ml-1" />
-                          </button>
-                      </div>
-                      
-                      {/* Mobile Theme Details */}
-                      <div className="text-xs text-gray-700">
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">테마명</div>
-                              <div className="flex-1 pl-4 flex items-center gap-2">
-                                  <span>추천상품테마</span> 
-                                  <Button variant="outline" className="h-5 text-[10px] px-1 bg-white border-gray-300 rounded-sm" onClick={() => router.push('/admin/categories/theme-register')}>수정</Button>
-                              </div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">이미지 설정</div>
-                              <div className="flex-1 pl-4">리스트이미지(기본) 180pixel</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">상품 노출 개수</div>
-                              <div className="flex-1 pl-4">가로 : 2 X 세로 : 5</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 노출</div>
-                              <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절상품 진열</div>
-                              <div className="flex-1 pl-4">정렬 순서대로 보여주기</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">품절 아이콘 노출</div>
-                              <div className="flex-1 pl-4 border-r border-gray-200 h-full flex items-center">예</div>
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">아이콘 노출</div>
-                              <div className="flex-1 pl-4">예</div>
-                          </div>
-                          <div className="flex border-b border-gray-200 h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">노출항목 설정</div>
-                              <div className="flex-1 pl-4">이미지,상품명,이미지,상품명,판매가</div>
-                          </div>
-                          <div className="flex h-10 items-center">
-                              <div className="w-44 bg-gray-50 pl-4 font-bold border-r border-gray-200 h-full flex items-center">갤러리형</div>
-                              <div className="flex-1 pl-4">갤러리형</div>
-                          </div>
-                      </div>
-                  </div>
-
-                  {/* Selected Products List */}
-                  <div className="mt-4 border border-gray-200 border-t-0 bg-white">
-                      <div className="flex items-center justify-between p-3 border-t border-gray-200 border-b">
-                          <div className="flex items-center gap-2">
-                              <h2 className="text-lg font-bold text-gray-800">선택된 추천상품</h2>
-                              <HelpCircle className="w-4 h-4 text-gray-400" />
-                          </div>
-                          <button className="text-blue-500 text-xs font-bold flex items-center">
-                              닫힘 <ChevronUp className="w-3 h-3 ml-1" />
-                          </button>
-                      </div>
-                      
-                      {/* Product Table Header */}
-                      <div className="grid grid-cols-[40px_60px_60px_1fr_100px_100px_60px_80px_140px] bg-[#B0B0B0] text-white text-center text-xs font-bold py-2 border-b border-gray-300 items-center whitespace-nowrap">
-                          <div className="flex justify-center"><Checkbox className="border-white data-[state=checked]:text-black" /></div>
-                          <div>번호</div>
-                          <div>이미지</div>
-                          <div>상품명</div>
-                          <div>판매가</div>
-                          <div>공급사</div>
-                          <div>재고</div>
-                          <div>품절상태</div>
-                          <div>상품 노출상태</div>
-                      </div>
-                      
-                      {/* Empty State */}
-                      <div className="py-12 text-center text-gray-500 text-xs border-b border-gray-200">
-                          등록된 상품이 없습니다.
-                      </div>
-                      
-                      {/* Footer Actions */}
-                       <div className="bg-gray-50 p-2 flex justify-between items-center">
-                           <Button variant="outline" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm">선택 삭제</Button>
-                           <Button variant="outline" className="h-8 text-xs bg-white border-gray-300 text-gray-700 hover:bg-gray-50 rounded-sm" onClick={() => setIsProductSelectPopupOpen(true)}>상품 선택</Button>
-                       </div>
-                    </div>
-                </div>
-            )}
-           </div>
 
           <MemberGradeSelectPopup 
             isOpen={isGradePopupOpen} 
@@ -1150,111 +755,7 @@ export default function CategoryManagementPage() {
                 // Here you would typically update the form data with selected grades
             }} 
           />
-          <RecommendProductSelectPopup
-             isOpen={isProductSelectPopupOpen}
-             onClose={() => setIsProductSelectPopupOpen(false)}
-             onConfirm={(selected) => {
-                 console.log("Selected products:", selected);
-                 setIsProductSelectPopupOpen(false);
-             }}
-          />
 
-
-          {/* Section 5: Category Navigation Decoration */}
-          <div className="border-t border-gray-300 pt-4">
-              <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">카테고리 네비게이션 상단 영역 꾸미기</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                   <button onClick={() => toggleSection('navDecoration')} className="text-blue-500 text-xs font-bold flex items-center">
-                       {sectionsExpanded.navDecoration ? '닫힘' : '열림'} <ChevronUp className={`w-3 h-3 ml-1 transform ${sectionsExpanded.navDecoration ? '' : 'rotate-180'}`} />
-                   </button>
-              </div>
-              {sectionsExpanded.navDecoration && (
-                  <div className="border border-gray-300 bg-white">
-                      <div className="flex items-center h-10 border-b border-gray-300 bg-gray-50 px-2 gap-2">
-                          <Button variant="secondary" className="h-7 text-xs !bg-[#333333] !text-white !hover:bg-[#222222] border-0 rounded-sm">PC쇼핑몰 상세 설명</Button>
-                          <Button variant="outline" disabled={isNavSameDescription} className="h-7 text-xs bg-white text-gray-700 border-gray-300 hover:bg-gray-50 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed">모바일쇼핑몰 상세 설명</Button>
-                          <label className="flex items-center gap-1 text-xs text-gray-700 ml-2">
-                              <Checkbox 
-                                checked={isNavSameDescription} 
-                                onCheckedChange={(checked) => setIsNavSameDescription(checked as boolean)}
-                                className="border-gray-300 bg-red-500 border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
-                              /> 
-                              PC/모바일 상세설명 동일사용
-                          </label>
-                      </div>
-                      <div className="p-2">
-                           <DecorationEditor />
-                      </div>
-                  </div>
-              )}
-          </div>
-
-          {/* Section 6: Category Recommended Product Decoration */}
-          <div className="border-t border-gray-300 pt-4">
-              <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">카테고리 추천 상품 상단 영역 꾸미기</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                   <button onClick={() => toggleSection('recommendDecoration')} className="text-blue-500 text-xs font-bold flex items-center">
-                       {sectionsExpanded.recommendDecoration ? '닫힘' : '열림'} <ChevronUp className={`w-3 h-3 ml-1 transform ${sectionsExpanded.recommendDecoration ? '' : 'rotate-180'}`} />
-                   </button>
-              </div>
-              {sectionsExpanded.recommendDecoration && (
-                  <div className="border border-gray-300 bg-white">
-                      <div className="flex items-center h-10 border-b border-gray-300 bg-gray-50 px-2 gap-2">
-                           <Button variant="secondary" className="h-7 text-xs !bg-[#333333] !text-white !hover:bg-[#222222] border-0 rounded-sm">PC쇼핑몰 상세 설명</Button>
-                          <Button variant="outline" disabled={isRecommendSameDescription} className="h-7 text-xs bg-white text-gray-700 border-gray-300 hover:bg-gray-50 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed">모바일쇼핑몰 상세 설명</Button>
-                          <label className="flex items-center gap-1 text-xs text-gray-700 ml-2">
-                              <Checkbox 
-                                checked={isRecommendSameDescription}
-                                onCheckedChange={(checked) => setIsRecommendSameDescription(checked as boolean)}
-                                className="border-gray-300 bg-red-500 border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
-                              /> 
-                              PC/모바일 상세설명 동일사용
-                          </label>
-                      </div>
-                      <div className="p-2">
-                           <DecorationEditor simpleToolbar />
-                      </div>
-                  </div>
-              )}
-          </div>
-
-          {/* Section 7: Category List Decoration */}
-          <div className="border-t border-gray-300 pt-4">
-              <div className="flex items-center justify-between pb-2">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">카테고리 리스트 상단 영역 꾸미기</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                   <button onClick={() => toggleSection('decoration')} className="text-blue-500 text-xs font-bold flex items-center">
-                       {sectionsExpanded.decoration ? '닫힘' : '열림'} <ChevronUp className={`w-3 h-3 ml-1 transform ${sectionsExpanded.decoration ? '' : 'rotate-180'}`} />
-                   </button>
-              </div>
-              {sectionsExpanded.decoration && (
-                  <div className="border border-gray-300 bg-white">
-                      <div className="flex items-center h-10 border-b border-gray-300 bg-gray-50 px-2 gap-2">
-                           <Button variant="secondary" className="h-7 text-xs !bg-[#333333] !text-white !hover:bg-[#222222] border-0 rounded-sm">PC쇼핑몰 상세 설명</Button>
-                          <Button variant="outline" disabled={isListSameDescription} className="h-7 text-xs bg-white text-gray-700 border-gray-300 hover:bg-gray-50 rounded-sm disabled:opacity-50 disabled:cursor-not-allowed">모바일쇼핑몰 상세 설명</Button>
-                          <label className="flex items-center gap-1 text-xs text-gray-700 ml-2">
-                              <Checkbox 
-                                checked={isListSameDescription}
-                                onCheckedChange={(checked) => setIsListSameDescription(checked as boolean)}
-                                className="border-gray-300 bg-red-500 border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
-                              /> 
-                              PC/모바일 상세설명 동일사용
-                          </label>
-                      </div>
-                      <div className="p-2">
-                           <DecorationEditor simpleToolbar />
-                      </div>
-                  </div>
-              )}
-          </div>
 
           {/* Guide Section */}
           <CategoryGuideSection />

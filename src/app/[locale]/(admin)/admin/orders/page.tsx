@@ -485,91 +485,14 @@ export default function OrderIntegratedListPage() {
                                     <Label htmlFor="pay-card" className="font-normal cursor-pointer">신용카드</Label>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-bank" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-yellow-100 text-yellow-600 flex items-center justify-center text-[9px] font-bold">무</span>
-                                    <Label htmlFor="pay-bank" className="font-normal cursor-pointer">무통장 입금</Label>
+                                    <Checkbox id="pay-wechat" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-green-100 text-green-600 flex items-center justify-center text-[9px] font-bold">위</span>
+                                    <Label htmlFor="pay-wechat" className="font-normal cursor-pointer">위쳇페이</Label>
                                 </div>
                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-discount" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-red-500 text-white flex items-center justify-center text-[9px] font-bold">전</span>
-                                    <Label htmlFor="pay-discount" className="font-normal cursor-pointer">전액할인</Label>
-                                </div>
-                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-mileage" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-blue-500 text-white flex items-center justify-center text-[9px] font-bold">마</span>
-                                    <Label htmlFor="pay-mileage" className="font-normal cursor-pointer">마일리지</Label>
-                                </div>
-                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-deposit" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-green-500 text-white flex items-center justify-center text-[9px] font-bold">예</span>
-                                    <Label htmlFor="pay-deposit" className="font-normal cursor-pointer">예치금</Label>
-                                </div>
-                                
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-escrow" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-purple-500 text-white flex items-center justify-center text-[9px] font-bold">계</span>
-                                    <Label htmlFor="pay-escrow" className="font-normal cursor-pointer">계좌이체 (에스크로)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-virtual-escrow" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">계</span>
-                                    <Label htmlFor="pay-virtual-escrow" className="font-normal cursor-pointer">계좌이체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-virtual" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-yellow-500 text-white flex items-center justify-center text-[9px] font-bold">가</span>
-                                    <Label htmlFor="pay-virtual" className="font-normal cursor-pointer">가상계좌</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-phone" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-orange-500 text-white flex items-center justify-center text-[9px] font-bold">휴</span>
-                                    <Label htmlFor="pay-phone" className="font-normal cursor-pointer">휴대폰결제</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-card-escrow" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-purple-100 text-purple-600 flex items-center justify-center text-[9px] font-bold">신</span>
-                                    <Label htmlFor="pay-card-escrow" className="font-normal cursor-pointer">신용카드 (에스크로)</Label>
-                                </div>
-
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-phone-simple" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">휴</span>
-                                    <Label htmlFor="pay-phone-simple" className="font-normal cursor-pointer">휴대폰 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-virtual-simple" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-purple-500 text-white flex items-center justify-center text-[9px] font-bold">가</span>
-                                    <Label htmlFor="pay-virtual-simple" className="font-normal cursor-pointer">가상계좌 (에스크로)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-card-simple" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">신</span>
-                                    <Label htmlFor="pay-card-simple" className="font-normal cursor-pointer">신용카드 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-transfer-simple" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">계</span>
-                                    <Label htmlFor="pay-transfer-simple" className="font-normal cursor-pointer">계좌이체 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-virtual-simple2" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">가</span>
-                                    <Label htmlFor="pay-virtual-simple2" className="font-normal cursor-pointer">가상계좌 (간편결제)</Label>
-                                </div>
-                                 <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-naver" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-green-500 text-white flex items-center justify-center text-[9px] font-bold">네</span>
-                                    <Label htmlFor="pay-naver" className="font-normal cursor-pointer">네이버페이 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-point" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-teal-500 text-white flex items-center justify-center text-[9px] font-bold">포</span>
-                                    <Label htmlFor="pay-point" className="font-normal cursor-pointer">포인트 (간편결제)</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="pay-etc" className="rounded-[2px] border-gray-300" />
-                                     <span className="w-4 h-4 rounded-[2px] bg-gray-400 text-white flex items-center justify-center text-[9px] font-bold">기</span>
-                                    <Label htmlFor="pay-etc" className="font-normal cursor-pointer">기타</Label>
+                                    <Checkbox id="pay-alipay" className="rounded-[2px] border-gray-300" />
+                                     <span className="w-4 h-4 rounded-[2px] bg-blue-100 text-blue-600 flex items-center justify-center text-[9px] font-bold">알</span>
+                                    <Label htmlFor="pay-alipay" className="font-normal cursor-pointer">알리페이</Label>
                                 </div>
                              </div>
                         </div>
@@ -718,30 +641,7 @@ export default function OrderIntegratedListPage() {
                          </div>
                      </div>
 
-                    {/* Receipt Request */}
-                    <div className="flex border-b border-gray-200">
-                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 text-xs">
-                            영수증 신청
-                        </div>
-                         <div className="flex-1 p-3 flex items-center gap-4 text-xs">
-                              <RadioGroup defaultValue="all" className="flex items-center gap-4">
-                                     <div className="flex items-center gap-1.5">
-                                        <RadioGroupItem value="all" id="receipt-all" className="border-red-500 text-red-500" />
-                                        <Label htmlFor="receipt-all" className="font-normal cursor-pointer">전체</Label>
-                                    </div>
-                                     <div className="flex items-center gap-1.5">
-                                        <RadioGroupItem value="cash" id="receipt-cash" className="border-gray-300" />
-                                         <span className="w-4 h-4 rounded-[2px] bg-green-500 text-white flex items-center justify-center text-[9px] font-bold">현</span>
-                                        <Label htmlFor="receipt-cash" className="font-normal cursor-pointer">현금영수증</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <RadioGroupItem value="tax" id="receipt-tax" className="border-gray-300" />
-                                        <span className="w-4 h-4 rounded-[2px] bg-gray-400 text-white flex items-center justify-center text-[9px] font-bold">세</span>
-                                        <Label htmlFor="receipt-tax" className="font-normal cursor-pointer">세금계산서</Label>
-                                    </div>
-                                 </RadioGroup>
-                         </div>
-                    </div>
+
 
                     {/* Overdue & Delayed */}
                     <div className="flex border-b border-gray-200">

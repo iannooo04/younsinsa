@@ -6,6 +6,11 @@ import path from "path";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
+  },
   // swcMinify: true, // 이미 설정되어 있다면 유지
   // reactStrictMode: true, // 이미 설정되어 있다면 유지
 
@@ -15,6 +20,9 @@ const nextConfig: NextConfig = {
       {
         pathname: '/api/images',
         search: '?key=*',
+      },
+      {
+        pathname: '/uploads/**',
       },
     ],
     remotePatterns: [

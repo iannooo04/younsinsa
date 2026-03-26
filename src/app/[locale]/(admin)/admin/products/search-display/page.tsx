@@ -150,28 +150,11 @@ export default function SearchProductDisplayPage() {
                     </div>
                      {/* Row 3: Theme Selection */}
                     <div className="flex items-center">
-                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 h-12 flex items-center">PC쇼핑몰 테마선택</div>
-                         <div className="flex-1 p-3 flex items-center gap-2 h-12 border-r border-gray-200">
+                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 h-12 flex items-center">적용 테마명</div>
+                         <div className="flex-1 p-3 flex items-center gap-2 h-12">
                              <Select value={pcTheme} onValueChange={setPcTheme}>
                                  <SelectTrigger className="w-48 h-8 text-xs">
-                                     <SelectValue placeholder="PC 테마 선택" />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                     <SelectItem value="default">검색페이지테마</SelectItem>
-                                 </SelectContent>
-                             </Select>
-                             <Button 
-                                onClick={() => router.push('/admin/products/main-display/theme/register')}
-                                className="h-8 bg-[#555555] hover:bg-[#444444] text-white text-xs font-bold rounded-sm px-4"
-                            >
-                                테마 등록
-                            </Button>
-                         </div>
-                         <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 h-12 flex items-center">모바일쇼핑몰 테마선택</div>
-                         <div className="flex-1 p-3 flex items-center gap-2 h-12">
-                             <Select value={mobileTheme} onValueChange={setMobileTheme}>
-                                 <SelectTrigger className="w-48 h-8 text-xs">
-                                     <SelectValue placeholder="모바일 테마 선택" />
+                                     <SelectValue placeholder="테마 선택" />
                                  </SelectTrigger>
                                  <SelectContent>
                                      <SelectItem value="default">검색페이지테마</SelectItem>
@@ -188,12 +171,12 @@ export default function SearchProductDisplayPage() {
                 </div>
             </div>
 
-            {/* PC Theme Info Section */}
+            {/* Unified Theme Info Section */}
             {pcTheme === 'default' && (
                 <div>
                      <div className="flex items-center justify-between mb-2 mt-8">
                         <div className="flex items-center gap-1">
-                            <h2 className="text-sm font-bold text-gray-800">선택된 PC쇼핑몰 테마 정보</h2>
+                            <h2 className="text-sm font-bold text-gray-800">선택된 테마 정보</h2>
                             <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
                         </div>
                         <Button variant="link" className="text-blue-500 h-auto p-0 text-xs hover:no-underline">닫힘 ^</Button>
@@ -245,62 +228,7 @@ export default function SearchProductDisplayPage() {
                 </div>
             )}
 
-            {/* Mobile Theme Info Section */}
-            {mobileTheme === 'default' && (
-                <div>
-                     <div className="flex items-center justify-between mb-2 mt-8">
-                        <div className="flex items-center gap-1">
-                            <h2 className="text-sm font-bold text-gray-800">선택된 모바일쇼핑몰 테마 정보</h2>
-                            <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-[10px] cursor-help h-[18px] flex items-center justify-center">?</span>
-                        </div>
-                        <Button variant="link" className="text-blue-500 h-auto p-0 text-xs hover:no-underline">닫힘 ^</Button>
-                    </div>
-                    
-                    <div className="border border-gray-300 bg-white text-xs">
-                        <div className="flex border-b border-gray-200 h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">테마명</div>
-                            <div className="flex-1 px-4 flex items-center gap-2">
-                                <span className="text-gray-600">검색페이지테마</span>
-                                <Button 
-                                    variant="outline" 
-                                    className="h-6 text-xs px-2 bg-white hover:bg-gray-50 border-gray-300"
-                                    onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
-                                >
-                                    수정
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="flex border-b border-gray-200 h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">이미지 설정</div>
-                            <div className="flex-1 px-4 text-gray-600">리스트이미지(기본) 180pixel</div>
-                        </div>
-                         <div className="flex border-b border-gray-200 h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">상품 노출 개수</div>
-                            <div className="flex-1 px-4 text-gray-600">가로 : 2 X 세로 : 5</div>
-                        </div>
-                        <div className="flex border-b border-gray-200 h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 노출</div>
-                            <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절상품 진열</div>
-                            <div className="flex-1 px-4 text-gray-600">정렬 순서대로 보여주기</div>
-                        </div>
-                        <div className="flex border-b border-gray-200 h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">품절 아이콘 노출</div>
-                            <div className="flex-1 px-4 text-gray-600 border-r border-gray-200">예</div>
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">아이콘 노출</div>
-                            <div className="flex-1 px-4 text-gray-600">예</div>
-                        </div>
-                         <div className="flex border-b border-gray-200 h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">노출항목 설정</div>
-                            <div className="flex-1 px-4 text-gray-600">이미지,상품명,이미지,상품명,판매가</div>
-                        </div>
-                         <div className="flex h-12 items-center">
-                            <div className="w-40 bg-gray-50 px-4 font-bold text-gray-700 h-full flex items-center">디스플레이 유형</div>
-                            <div className="flex-1 px-4 text-gray-600">리스트형</div>
-                        </div>
-                    </div>
-                </div>
-            )}
+
 
 
                     </div>
