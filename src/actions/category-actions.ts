@@ -46,17 +46,23 @@ export async function createCategoryAction(data: {
   type?: ClassifyType;
   displayStatusPC?: DisplayStatus;
   displayStatusMobile?: DisplayStatus;
+  imageUrl?: string;
+  pcHoverImageUrl?: string;
+  customUrl?: string;
 }) {
   try {
     const newCategory = await prisma.category.create({
       data: {
         name: data.name,
         parentId: data.parentId || null,
-        code: data.code,
-        slug: data.slug,
+        code: data.code === "" ? null : data.code,
+        slug: data.slug === "" ? null : data.slug,
         type: data.type,
         displayStatusPC: data.displayStatusPC,
         displayStatusMobile: data.displayStatusMobile,
+        imageUrl: data.imageUrl,
+        pcMouseoverImageUrl: data.pcHoverImageUrl,
+        customUrl: data.customUrl === "" ? null : data.customUrl,
         // Create default display settings
         displaySettings: {
             create: {
@@ -67,6 +73,7 @@ export async function createCategoryAction(data: {
       },
     });
     revalidatePath("/admin/categories");
+    revalidatePath("/", "layout"); // Revalidate storefront
     return { success: true, category: newCategory };
   } catch (error) {
     console.error("Error creating category:", error);
@@ -84,6 +91,16 @@ export async function updateCategoryAction(id: string, data: Record<string, any>
         // We might accept a partial Category input and update it.
         const { displaySettings, ...categoryData } = data;
 
+        if (categoryData.code === "") categoryData.code = null;
+        if (categoryData.slug === "") categoryData.slug = null;
+        if (categoryData.customUrl === "") categoryData.customUrl = null;
+
+        // Map pcHoverImageUrl to pcMouseoverImageUrl for Prisma
+        if ('pcHoverImageUrl' in categoryData) {
+            categoryData.pcMouseoverImageUrl = categoryData.pcHoverImageUrl;
+            delete categoryData.pcHoverImageUrl;
+        }
+
         const updatedCategory = await prisma.category.update({
             where: { id },
             data: {
@@ -99,6 +116,7 @@ export async function updateCategoryAction(id: string, data: Record<string, any>
         });
 
         revalidatePath("/admin/categories");
+        revalidatePath("/", "layout"); // Revalidate storefront
         return { success: true, category: updatedCategory };
     } catch (error) {
         console.error("Error updating category:", error);
@@ -120,8 +138,14 @@ export async function deleteCategoryAction(id: string) {
             return { success: false, error: "상품이 연결된 카테고리는 삭제할 수 없습니다." };
         }
 
+        // Delete associated display settings first to prevent foreign key constraint errors
+        await prisma.categoryDisplaySettings.deleteMany({
+            where: { categoryId: id }
+        });
+
         await prisma.category.delete({ where: { id } });
         revalidatePath("/admin/categories");
+        revalidatePath("/", "layout"); // Revalidate storefront
         return { success: true };
     } catch (error) {
         console.error("Error deleting category:", error);

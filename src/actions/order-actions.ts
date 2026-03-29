@@ -41,17 +41,8 @@ export async function getOrdersAction(params: GetOrdersParams) {
             case "주문통합리스트":
                 // No specific status filter for all
                 break;
-            case "입금대기 리스트":
-                where.status = OrderStatus.DEPOSIT_WAIT;
-                break;
             case "결제완료 리스트":
                 where.status = OrderStatus.PAYMENT_COMPLETE;
-                break;
-            case "상품준비중 리스트":
-                where.status = OrderStatus.PREPARING;
-                break;
-            case "배송중 리스트":
-                where.status = OrderStatus.SHIPPING;
                 break;
             case "배송완료 리스트":
                 where.status = OrderStatus.DELIVERED;

@@ -20,6 +20,7 @@ import {
     updateCategoryAction,
     deleteCategoryAction
 } from "@/actions/category-actions";
+import { uploadImageAction } from "@/actions/product-actions";
 import { Category } from "@/generated/prisma";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -249,6 +250,7 @@ export default function CategoryManagementPage() {
       displayStatusMobile: "DISPLAY",
       parentId: null as string | null,
       code: "",
+      customUrl: "",
       
       // New fields state (mocked for UI)
       exposureShops: ['all'],
@@ -266,18 +268,18 @@ export default function CategoryManagementPage() {
   // File Upload State & Refs
   const [pcHoverImageName, setPcHoverImageName] = useState("");
   const [pcImageName, setPcImageName] = useState("");
-  const [mobileImageName, setMobileImageName] = useState("");
+  const [_mobileImageName, _setMobileImageName] = useState("");
 
   const pcHoverImageInputRef = useRef<HTMLInputElement>(null);
   const pcImageInputRef = useRef<HTMLInputElement>(null);
-  const mobileImageInputRef = useRef<HTMLInputElement>(null);
+  const _mobileImageInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>, type: 'pcHover' | 'pc' | 'mobile') => {
       const file = e.target.files?.[0];
       if (file) {
           if (type === 'pcHover') setPcHoverImageName(file.name);
           else if (type === 'pc') setPcImageName(file.name);
-          else if (type === 'mobile') setMobileImageName(file.name);
+          else if (type === 'mobile') _setMobileImageName(file.name);
       }
   };
 
@@ -303,6 +305,7 @@ export default function CategoryManagementPage() {
           displayStatusPC: cat.displayStatusPC || "DISPLAY",
           displayStatusMobile: cat.displayStatusMobile || "DISPLAY",
           code: cat.code || "",
+          customUrl: cat.customUrl || "",
       });
   };
 
@@ -317,6 +320,7 @@ export default function CategoryManagementPage() {
           displayStatusPC: "DISPLAY",
           displayStatusMobile: "DISPLAY",
           code: "",
+          customUrl: "",
       });
   };
 
@@ -334,10 +338,35 @@ export default function CategoryManagementPage() {
           displayStatusPC: "DISPLAY",
           displayStatusMobile: "DISPLAY",
           code: "",
+          customUrl: "",
       });
   };
 
   const handleSave = async () => {
+      // Because we await image uploads, we cannot place them inside startTransition.
+      // We will do the async work first, then wrap the action calls in startTransition.
+      let uploadedImageUrl: string | undefined = undefined;
+      let uploadedPcHoverUrl: string | undefined = undefined;
+
+      try {
+          if (pcImageInputRef.current?.files?.[0]) {
+              const uploadData = new FormData();
+              uploadData.append("file", pcImageInputRef.current.files[0]);
+              const res = await uploadImageAction(uploadData);
+              if (res.success) uploadedImageUrl = res.url;
+          }
+          if (pcHoverImageInputRef.current?.files?.[0]) {
+              const uploadData = new FormData();
+              uploadData.append("file", pcHoverImageInputRef.current.files[0]);
+              const res = await uploadImageAction(uploadData);
+              if (res.success) uploadedPcHoverUrl = res.url;
+          }
+      } catch (e) {
+          console.error("Image upload failed:", e);
+          alert("이미지 업로드에 실패했습니다. 다시 시도해주세요.");
+          return;
+      }
+
       startTransition(async () => {
           let result;
           if (mode === "edit" && selectedCategory) {
@@ -350,6 +379,9 @@ export default function CategoryManagementPage() {
                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                  displayStatusMobile: formData.displayStatusMobile as any,
                  code: formData.code,
+                 customUrl: formData.customUrl,
+                 imageUrl: uploadedImageUrl,
+                 pcHoverImageUrl: uploadedPcHoverUrl,
              });
           } else {
              result = await createCategoryAction({
@@ -362,11 +394,21 @@ export default function CategoryManagementPage() {
                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                  displayStatusMobile: formData.displayStatusMobile as any,
                  code: formData.code,
+                 customUrl: formData.customUrl,
+                 imageUrl: uploadedImageUrl,
+                 pcHoverImageUrl: uploadedPcHoverUrl,
              });
           }
 
           if (result.success) {
               alert("저장되었습니다.");
+              
+              // 폼 리셋 (이미지 파일)
+              if (pcImageInputRef.current) pcImageInputRef.current.value = "";
+              if (pcHoverImageInputRef.current) pcHoverImageInputRef.current.value = "";
+              setPcImageName("");
+              setPcHoverImageName("");
+
               fetchCategories();
           } else {
               alert(result.error || "실패했습니다.");
@@ -524,6 +566,19 @@ export default function CategoryManagementPage() {
                        </div>
                   </div>
 
+                  {/* Custom URL */}
+                  <div className="flex border-b border-gray-200 min-h-[50px]">
+                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex items-center gap-1 border-r border-gray-200">
+                           커스텀 주소 <span title="입력 시 기본 링크 대신 이 주소로 연결됩니다." className="inline-flex cursor-help"><HelpCircle className="w-3 h-3 text-gray-400" /></span>
+                       </div>
+                       <div className="flex-1 p-3 flex flex-col justify-center">
+                           <div className="flex items-center gap-2">
+                               <Input value={formData.customUrl} onChange={(e) => setFormData({...formData, customUrl: e.target.value})} placeholder="예: https://example.com/promotion 또는 /exhibition/special" className="w-[400px] h-7 text-xs" />
+                           </div>
+                           <p className="text-gray-400 mt-1 text-[11px]">입력하지 않으면 기본 주소(/category/카테고리ID)로 연결됩니다.</p>
+                       </div>
+                  </div>
+
                   {/* Category Type */}
                   <div className="flex border-b border-gray-200 min-h-[50px]">
                        <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex items-center border-r border-gray-200">카테고리 타입</div>
@@ -543,31 +598,16 @@ export default function CategoryManagementPage() {
 
                   {/* Display Status */}
                   <div className="flex border-b border-gray-200 min-h-[50px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">PC쇼핑몰<br/>노출상태</div>
+                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex items-center border-r border-gray-200">노출상태</div>
                        <div className="flex-1 p-3 flex items-center">
-                           <RadioGroup value={formData.displayStatusPC} onValueChange={(v) => setFormData({...formData, displayStatusPC: v})} className="flex gap-4">
+                           <RadioGroup value={formData.displayStatusPC} onValueChange={(v) => setFormData({...formData, displayStatusPC: v, displayStatusMobile: v})} className="flex gap-4">
                                <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="DISPLAY" id="pc-disp" className="text-red-500 border-red-500" />
-                                  <Label htmlFor="pc-disp" className="font-normal">노출함</Label>
+                                  <RadioGroupItem value="DISPLAY" id="disp-yes" className="text-red-500 border-red-500" />
+                                  <Label htmlFor="disp-yes" className="font-normal">노출함</Label>
                                </div>
                                <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="HIDDEN" id="pc-hide" className="border-gray-400" />
-                                  <Label htmlFor="pc-hide" className="font-normal text-gray-500">노출안함</Label>
-                               </div>
-                           </RadioGroup>
-                       </div>
-                  </div>
-                   <div className="flex border-b border-gray-200 min-h-[50px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">모바일쇼핑몰<br/>노출상태</div>
-                       <div className="flex-1 p-3 flex items-center">
-                           <RadioGroup value={formData.displayStatusMobile} onValueChange={(v) => setFormData({...formData, displayStatusMobile: v})} className="flex gap-4">
-                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="DISPLAY" id="mo-disp" className="text-red-500 border-red-500" />
-                                  <Label htmlFor="mo-disp" className="font-normal">노출함</Label>
-                               </div>
-                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="HIDDEN" id="mo-hide" className="border-gray-400" />
-                                  <Label htmlFor="mo-hide" className="font-normal text-gray-500">노출안함</Label>
+                                  <RadioGroupItem value="HIDDEN" id="disp-no" className="border-gray-400" />
+                                  <Label htmlFor="disp-no" className="font-normal text-gray-500">노출안함</Label>
                                </div>
                            </RadioGroup>
                        </div>
@@ -575,9 +615,8 @@ export default function CategoryManagementPage() {
 
                    {/* Images */}
                   <div className="flex border-b border-gray-200 min-h-[50px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">PC쇼핑몰<br/>카테고리 이미지 등록</div>
+                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex items-center border-r border-gray-200">카테고리 이미지 등록</div>
                        <div className="flex-1 p-3 flex items-center gap-4">
-                           <label className="flex items-center gap-1 text-gray-600"><Checkbox className="border-gray-300" /> 모바일 쇼핑몰과 동일 적용</label>
                            <div className="flex items-center gap-2">
                                <input 
                                    type="file" 
@@ -595,8 +634,8 @@ export default function CategoryManagementPage() {
                                    {pcImageName}
                                </div>
                            </div>
-                           <div className="flex items-center gap-2">
-                               <span className="font-bold">PC쇼핑몰<br/>마우스오버 이미지 등록</span>
+                           <div className="flex items-center gap-2 ml-4">
+                               <span className="font-bold border-l border-gray-300 pl-4 text-gray-700">마우스오버 이미지 등록</span>
                                <input 
                                    type="file" 
                                    className="hidden" 
@@ -613,50 +652,6 @@ export default function CategoryManagementPage() {
                                    {pcHoverImageName}
                                </div>
                            </div>
-                       </div>
-                  </div>
-                  <div className="flex border-b border-gray-200 min-h-[50px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">모바일쇼핑몰<br/>카테고리 이미지 등록</div>
-                       <div className="flex-1 p-3 flex items-center gap-2">
-                           <input 
-                               type="file" 
-                               className="hidden" 
-                               ref={mobileImageInputRef} 
-                               onChange={(e) => handleFileChange(e, 'mobile')}
-                           />
-                           <Button 
-                               className="h-7 text-xs px-2 bg-gray-400 text-white border-0 hover:bg-gray-500 rounded-sm"
-                               onClick={() => mobileImageInputRef.current?.click()}
-                           >
-                               찾아보기
-                           </Button>
-                           <div className="w-32 h-7 bg-gray-100 border border-gray-300 flex items-center px-2 text-xs text-gray-600 overflow-hidden whitespace-nowrap">
-                               {mobileImageName}
-                           </div>
-                       </div>
-                  </div>
-
-                  {/* Adult Auth */}
-                   <div className="flex border-b border-gray-200 min-h-[80px]">
-                       <div className="w-44 bg-gray-50 p-3 pl-4 font-bold flex flex-col justify-center border-r border-gray-200">성인인증</div>
-                       <div className="flex-1 p-3 space-y-2">
-                           <RadioGroup value={formData.adultAuth} onValueChange={(v) => setFormData({...formData, adultAuth: v})} className="flex gap-4">
-                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="NOT_USE" id="adult-no" className="text-red-500 border-red-500" />
-                                  <Label htmlFor="adult-no" className="font-normal">사용안함</Label>
-                               </div>
-                               <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="USE" id="adult-yes" className="border-gray-400" />
-                                  <Label htmlFor="adult-yes" className="font-normal text-gray-500">사용함</Label>
-                               </div>
-                               <label className="flex items-center gap-1 text-gray-400 ml-2"><Checkbox checked className="border-gray-300" /> 미인증 고객 카테고리 노출함</label>
-                               <label className="flex items-center gap-1 text-gray-600"><Checkbox className="border-gray-300" /> 하위 카테고리 동일 적용</label>
-                           </RadioGroup>
-                           <p className="flex items-start gap-1 text-gray-400">
-                                <span className="bg-black text-white text-[10px] px-1 font-bold mt-0.5 rounded-sm">!</span> 
-                                <span>해당 카테고리의 상품리스트 페이지 접속시 성인인증확인 인트로 페이지가 출력되어 보여집니다.<br/>성인인증 기능은 별도의 인증 서비스 초기완료 후 이용 가능합니다.</span>
-                           </p>
-                           <div className="text-blue-500 underline text-xs">휴대폰인증 설정 바로가기 아이핀인증 설정 바로가기</div> 
                        </div>
                   </div>
 

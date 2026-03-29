@@ -304,19 +304,7 @@ export default function MainHeader({
                 </Link>
               ))}
 
-              {/* 🛠️ 동적 카테고리 렌더링 */}
-              {categories
-                .filter(cat => !cat.parentId && cat.displayStatusPC === 'DISPLAY')
-                .map(cat => (
-                  <Link
-                    key={cat.id}
-                    href={`/category/${cat.id}?gf=${currentGf}`} // Assuming /category/[id] route
-                    className="hover:text-gray-300 transition-colors cursor-pointer"
-                  >
-                    {cat.name}
-                  </Link>
-                ))
-              }
+
 
               <Link
                 href="/features/immediate"

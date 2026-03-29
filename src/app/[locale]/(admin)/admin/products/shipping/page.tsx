@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -11,7 +10,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -22,7 +20,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, ChevronUp, ChevronDown, Book } from "lucide-react";
+import { ChevronDown, Book } from "lucide-react";
 import { Link } from "@/i18n/routing";
 import { getProductsAction, getCategoriesSimpleAction } from "@/actions/product-actions";
 import { updateProductShippingPolicyAction } from "@/actions/shipping-actions";
@@ -54,9 +52,9 @@ export default function ProductShippingManagementPage() {
     const [pageSize, setPageSize] = useState(10);
 
     // Filter State
-    const [searchType, setSearchType] = useState('productName');
-    const [keyword, setKeyword] = useState('');
-    const [dateType, setDateType] = useState('regDate');
+    const [searchType, _setSearchType] = useState('productName');
+    const [keyword, _setKeyword] = useState('');
+    const [dateType, _setDateType] = useState('regDate');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     
@@ -71,40 +69,40 @@ export default function ProductShippingManagementPage() {
     const [searchTrigger, setSearchTrigger] = useState(0);
 
     // Advanced Search State
-    const [isAdvancedSearchOpen, setIsAdvancedSearchOpen] = useState(false);
-    const [categoryFilters, setCategoryFilters] = useState(['', '', '', '']);
-    const [isUncategorized, setIsUncategorized] = useState(false);
-    const [mainClassifications, setMainClassifications] = useState(['', '']);
-    const [isNoBrand, setIsNoBrand] = useState(false);
-    const [minPrice, setMinPrice] = useState('');
-    const [maxPrice, setMaxPrice] = useState('');
-    const [minStock, setMinStock] = useState('');
-    const [maxStock, setMaxStock] = useState('');
-    const [useOption, setUseOption] = useState('all');
-    const [useTextOption, setUseTextOption] = useState('all');
-    const [useAdditionalProduct, setUseAdditionalProduct] = useState('all');
-    const [displayStatus, setDisplayStatus] = useState('all');
-    const [saleStatus, setSaleStatus] = useState('all');
-    const [stockType, setStockType] = useState('all');
-    const [soldOutStatus, setSoldOutStatus] = useState('all');
-    const [shippingFeeType, setShippingFeeType] = useState('all');
-    const [shippingFeeDetails, setShippingFeeDetails] = useState<string[]>([]);
+    const [_isAdvancedSearchOpen, _setIsAdvancedSearchOpen] = useState(false);
+    const [_categoryFilters, _setCategoryFilters] = useState(['', '', '', '']);
+    const [_isUncategorized, _setIsUncategorized] = useState(false);
+    const [_mainClassifications, _setMainClassifications] = useState(['', '']);
+    const [_isNoBrand, _setIsNoBrand] = useState(false);
+    const [_minPrice, _setMinPrice] = useState('');
+    const [_maxPrice, _setMaxPrice] = useState('');
+    const [_minStock, _setMinStock] = useState('');
+    const [_maxStock, _setMaxStock] = useState('');
+    const [_useOption, _setUseOption] = useState('all');
+    const [_useTextOption, _setUseTextOption] = useState('all');
+    const [_useAdditionalProduct, _setUseAdditionalProduct] = useState('all');
+    const [_displayStatus, _setDisplayStatus] = useState('all');
+    const [_saleStatus, _setSaleStatus] = useState('all');
+    const [_stockType, _setStockType] = useState('all');
+    const [_soldOutStatus, _setSoldOutStatus] = useState('all');
+    const [_shippingFeeType, _setShippingFeeType] = useState('all');
+    const [_shippingFeeDetails, _setShippingFeeDetails] = useState<string[]>([]);
 
     // Fetch Initial Metadata
-    const [categories, setCategories] = useState<{id: string, name: string}[]>([]);
+    const [_categories, setCategories] = useState<{id: string, name: string}[]>([]);
     // const [brands, setBrands] = useState<{id: string, name: string}[]>([]);
 
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
-    const [selectedBrandInfo, setSelectedBrandInfo] = useState<{id: string, name: string} | null>(null);
+    const [_selectedBrandInfo, setSelectedBrandInfo] = useState<{id: string, name: string} | null>(null);
     const [isShippingPolicyPopupOpen, setIsShippingPolicyPopupOpen] = useState(false);
     const [selectedPolicyName, setSelectedPolicyName] = useState("");
 
     // Date Picker Refs
-    const startDateRef = useRef<HTMLInputElement>(null);
-    const endDateRef = useRef<HTMLInputElement>(null);
+    const _startDateRef = useRef<HTMLInputElement>(null);
+    const _endDateRef = useRef<HTMLInputElement>(null);
 
-    const handleDateIconClick = (ref: React.RefObject<HTMLInputElement | null>) => {
+    const _handleDateIconClick = (ref: React.RefObject<HTMLInputElement | null>) => {
         try {
             ref.current?.showPicker();
         } catch {
@@ -141,7 +139,7 @@ export default function ProductShippingManagementPage() {
          
     }, [fetchData, searchTrigger]);
 
-    const handleSearch = () => {
+    const _handleSearch = () => {
         setPage(1);
         setSearchTrigger(prev => prev + 1);
     };
@@ -178,7 +176,7 @@ export default function ProductShippingManagementPage() {
     };
 
     // Date Helper
-    const setPeriod = (period: string) => {
+    const _setPeriod = (period: string) => {
         const end = new Date();
         const start = new Date();
         
@@ -218,442 +216,6 @@ export default function ProductShippingManagementPage() {
             <div className="flex items-center justify-between pb-4 border-b border-gray-300">
                 <h1 className="text-2xl font-bold text-gray-900">상품 배송 관리</h1>
                 <Button className="bg-[#FF424D] hover:bg-[#FF424D]/90 text-white font-bold h-9 w-20 rounded-sm" onClick={handleUpdateShippingPolicy}>저장</Button>
-            </div>
-
-            {/* Search Section */}
-            <div>
-                 <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold text-gray-800">상품 검색</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-xs cursor-help">?</span>
-                    </div>
-                     <Button variant="secondary" className="h-6 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-2">
-                        검색설정저장
-                    </Button>
-                </div>
-                
-                <div className="border border-gray-300 bg-white">
-                    {/* Row 2: Search Term */}
-                    <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">검색어</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select value={searchType} onValueChange={setSearchType}>
-                                <SelectTrigger className="w-[140px] h-8 text-xs">
-                                    <SelectValue placeholder="상품명" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="productName">상품명</SelectItem>
-                                    <SelectItem value="productCode">상품코드</SelectItem>
-                                    <SelectItem value="internalCode">자체상품코드</SelectItem>
-                                    <SelectItem value="keyword">검색 키워드</SelectItem>
-                                    <div className="flex items-center justify-center py-1 text-gray-300 text-[10px] select-none">
-                                        ==========
-                                    </div>
-                                    <SelectItem value="manufacturer">제조사</SelectItem>
-                                    <SelectItem value="origin">원산지</SelectItem>
-                                    <SelectItem value="modelNumber">모델번호</SelectItem>
-                                    <SelectItem value="hsCode">HS코드</SelectItem>
-                                    <SelectItem value="additional">추가항목</SelectItem>
-                                    <div className="flex items-center justify-center py-1 text-gray-300 text-[10px] select-none">
-                                        ==========
-                                    </div>
-                                    <SelectItem value="adminMemo">관리자 메모</SelectItem>
-                                    <SelectItem value="supplierName">공급사명</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Input 
-                                className="w-64 h-8" 
-                                value={keyword} 
-                                onChange={e => setKeyword(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                            />
-                        </div>
-                    </div>
-
-                     {/* Row 3: Period Search */}
-                     <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
-                        <div className="flex-1 p-3 flex items-center gap-2 flex-wrap">
-                            <Select value={dateType} onValueChange={setDateType}>
-                                <SelectTrigger className="w-[100px] h-8 text-xs">
-                                    <SelectValue placeholder="등록일" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="regDate">등록일</SelectItem>
-                                    <SelectItem value="modDate">수정일</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div className="relative">
-                                <Input 
-                                    className="w-32 h-8 pl-2 pr-8" 
-                                    value={startDate}
-                                    onChange={e => setStartDate(e.target.value)}
-                                    placeholder="YYYY-MM-DD"
-                                />
-                                <input 
-                                    type="date"
-                                    ref={startDateRef}
-                                    className="absolute opacity-0 w-0 h-0"
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
-                                <CalendarIcon 
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600" 
-                                    onClick={() => handleDateIconClick(startDateRef)}
-                                />
-                            </div>
-                            <span className="text-gray-500">~</span>
-                            <div className="relative">
-                                <Input 
-                                    className="w-32 h-8 pl-2 pr-8" 
-                                    value={endDate}
-                                    onChange={e => setEndDate(e.target.value)}
-                                    placeholder="YYYY-MM-DD"
-                                />
-                                <input 
-                                    type="date"
-                                    ref={endDateRef}
-                                    className="absolute opacity-0 w-0 h-0"
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
-                                <CalendarIcon 
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600" 
-                                    onClick={() => handleDateIconClick(endDateRef)}
-                                />
-                            </div>
-                             <div className="flex gap-0.5 ml-2">
-                                {["오늘", "7일", "15일", "1개월", "3개월", "전체"].map((period) => (
-                                    <Button 
-                                        key={period} 
-                                        variant="outline" 
-                                        onClick={() => setPeriod(period)}
-                                        className="h-8 px-3 text-xs rounded-sm bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-                                    >
-                                        {period}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                {isAdvancedSearchOpen && (
-                    <div className="border border-t-0 border-gray-300 bg-white">
-                        {/* Row 4: Category */}
-                        <div className="flex items-center border-b border-gray-200">
-                            <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">카테고리</div>
-                            <div className="flex-1 p-3 flex items-center gap-2 flex-wrap text-sm">
-                                {[0, 1, 2, 3].map(i => (
-                                    <Select key={i} value={categoryFilters[i]} onValueChange={(val) => {
-                                        const newFilters = [...categoryFilters];
-                                        newFilters[i] = val;
-                                        setCategoryFilters(newFilters);
-                                    }}>
-                                        <SelectTrigger className="w-40 h-8 text-xs">
-                                            <SelectValue placeholder="=카테고리선택=" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">=카테고리선택=</SelectItem>
-                                            {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
-                                        </SelectContent>
-                                    </Select>
-                                ))}
-                                <div className="flex items-center space-x-2 ml-4 shrink-0">
-                                    <Checkbox id="no-category" checked={isUncategorized} onCheckedChange={(val) => setIsUncategorized(!!val)} />
-                                    <Label htmlFor="no-category" className="text-xs whitespace-nowrap">카테고리 미지정 상품</Label>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Row 5: Main Classification */}
-                        <div className="flex items-center border-b border-gray-200">
-                            <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">메인분류</div>
-                            <div className="flex-1 p-3 flex items-center gap-2">
-                                <Select value={mainClassifications[0]} onValueChange={(val) => setMainClassifications([val, mainClassifications[1]])}>
-                                    <SelectTrigger className="w-40 h-8 text-xs">
-                                        <SelectValue placeholder="=전체=" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">=전체=</SelectItem>
-                                        <SelectItem value="pc">PC쇼핑몰</SelectItem>
-                                        <SelectItem value="mobile">모바일쇼핑몰</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <Select value={mainClassifications[1]} onValueChange={(val) => setMainClassifications([mainClassifications[0], val])}>
-                                    <SelectTrigger className="w-56 h-8 text-xs">
-                                        <SelectValue placeholder="=메인페이지 분류 선택=" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">전체</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        {/* Row 6: Brand & Price */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">브랜드</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <Button 
-                                        variant="outline" 
-                                        className="h-8 text-xs border-gray-300 rounded-sm" 
-                                        onClick={() => setIsBrandPopupOpen(true)}
-                                    >
-                                        브랜드선택
-                                    </Button>
-                                    {selectedBrandInfo && (
-                                        <span className="text-xs text-blue-600 font-medium">
-                                            {selectedBrandInfo.name}
-                                        </span>
-                                    )}
-                                    <div className="flex items-center space-x-2">
-                                        <Checkbox id="no-brand" checked={isNoBrand} onCheckedChange={(val) => setIsNoBrand(!!val)} />
-                                        <Label htmlFor="no-brand" className="text-xs whitespace-nowrap">브랜드 미지정 상품</Label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">판매가</div>
-                                <div className="flex-1 p-3 flex items-center gap-2">
-                                    <Input className="w-24 h-8" value={minPrice} onChange={e => setMinPrice(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">이상 ~</span>
-                                    <Input className="w-24 h-8" value={maxPrice} onChange={e => setMaxPrice(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">이하</span>
-                                </div>
-                            </div>
-                        </div>
-
-
-
-                        {/* Row 8: Stock & Option Use */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">상품 재고</div>
-                                <div className="flex-1 p-3 flex items-center gap-2">
-                                    <Input className="w-24 h-8" value={minStock} onChange={e => setMinStock(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">개 이상 ~</span>
-                                    <Input className="w-24 h-8" value={maxStock} onChange={e => setMaxStock(e.target.value)} />
-                                    <span className="text-xs whitespace-nowrap font-medium text-gray-600">개 이하</span>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">옵션 사용</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={useOption} onValueChange={setUseOption} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="option-all" />
-                                            <Label htmlFor="option-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="use" id="option-use" />
-                                            <Label htmlFor="option-use" className="text-xs">사용함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="option-no" />
-                                            <Label htmlFor="option-no" className="text-xs">사용안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Row 9: Text Option & Additional Product */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">텍스트옵션 사용</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={useTextOption} onValueChange={setUseTextOption} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="text-option-all" />
-                                            <Label htmlFor="text-option-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="use" id="text-option-use" />
-                                            <Label htmlFor="text-option-use" className="text-xs">사용함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="text-option-no" />
-                                            <Label htmlFor="text-option-no" className="text-xs">사용안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">추가상품 사용</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={useAdditionalProduct} onValueChange={setUseAdditionalProduct} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="additional-all" />
-                                            <Label htmlFor="additional-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="use" id="additional-use" />
-                                            <Label htmlFor="additional-use" className="text-xs">사용함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="no" id="additional-no" />
-                                            <Label htmlFor="additional-no" className="text-xs">사용안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Row 10: Product Display & Sale Status */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">상품노출 상태</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={displayStatus} onValueChange={setDisplayStatus} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="display-all" />
-                                            <Label htmlFor="display-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="display" id="display-yes" />
-                                            <Label htmlFor="display-yes" className="text-xs">노출함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="hidden" id="display-no" />
-                                            <Label htmlFor="display-no" className="text-xs">노출안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 leading-tight">상품판매 상태</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={saleStatus} onValueChange={setSaleStatus} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="sale-all" />
-                                            <Label htmlFor="sale-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="sale" id="sale-yes" />
-                                            <Label htmlFor="sale-yes" className="text-xs">판매함</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="stop" id="sale-no" />
-                                            <Label htmlFor="sale-no" className="text-xs">판매안함</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Row 12: Sale Stock & Sold Out Status */}
-                        <div className="flex border-b border-gray-200">
-                            <div className="flex-1 flex border-r border-gray-200">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">판매 재고</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={stockType} onValueChange={setStockType} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="stock-type-all" />
-                                            <Label htmlFor="stock-type-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="limitless" id="stock-type-limitless" />
-                                            <Label htmlFor="stock-type-limitless" className="text-xs">무한정 판매</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="limit" id="stock-type-limit" />
-                                            <Label htmlFor="stock-type-limit" className="text-xs">재고량에 따름</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex">
-                                <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">품절 상태</div>
-                                <div className="flex-1 p-3 flex items-center gap-4">
-                                    <RadioGroup value={soldOutStatus} onValueChange={setSoldOutStatus} className="flex gap-4">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="soldout-all" />
-                                            <Label htmlFor="soldout-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="soldout" id="soldout-yes" />
-                                            <Label htmlFor="soldout-yes" className="text-xs">품절</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="normal" id="soldout-no" />
-                                            <Label htmlFor="soldout-no" className="text-xs">정상</Label>
-                                        </div>
-                                    </RadioGroup>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Row 14: Shipping Condition */}
-                        <div className="flex border-b border-gray-200">
-                             <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center">배송비 조건</div>
-                             <div className="flex-1 p-3 space-y-2">
-                                 <div className="flex items-center gap-6">
-                                    <RadioGroup value={shippingFeeType} onValueChange={setShippingFeeType} className="flex items-center gap-6">
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="all" id="shipping-all" />
-                                            <Label htmlFor="shipping-all" className="text-xs">전체</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="condition" id="shipping-condition" />
-                                            <Label htmlFor="shipping-condition" className="text-xs">배송비조건별</Label>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <RadioGroupItem value="product" id="shipping-product" />
-                                            <Label htmlFor="shipping-product" className="text-xs">상품별</Label>
-                                        </div>
-                                    </RadioGroup>
-                                 </div>
-                                 <div className="flex items-center gap-6 pt-1 flex-wrap">
-                                      <div className="flex items-center space-x-2">
-                                            <Checkbox 
-                                                id="check-all" 
-                                                checked={shippingFeeDetails.length === 6}
-                                                onCheckedChange={(checked) => {
-                                                    if (checked) setShippingFeeDetails(["free", "price", "qty", "weight", "fixed", "all"]);
-                                                    else setShippingFeeDetails([]);
-                                                }}
-                                                className="bg-red-500 border-red-500"
-                                            />
-                                            <Label htmlFor="check-all" className="text-xs">전체</Label>
-                                      </div>
-                                     {[
-                                         { id: "free", label: "배송비무료" },
-                                         { id: "price", label: "금액별배송" },
-                                         { id: "qty", label: "수량별배송" },
-                                         { id: "weight", label: "무게별배송" },
-                                         { id: "fixed", label: "고정배송비" }
-                                     ].map(item => (
-                                         <div key={item.id} className="flex items-center space-x-2">
-                                            <Checkbox 
-                                                id={`check-${item.id}`} 
-                                                checked={shippingFeeDetails.includes(item.id)}
-                                                onCheckedChange={(checked) => {
-                                                    if (checked) setShippingFeeDetails(prev => [...prev, item.id]);
-                                                    else setShippingFeeDetails(prev => prev.filter(i => i !== item.id));
-                                                }}
-                                            />
-                                            <Label htmlFor={`check-${item.id}`} className="text-xs">{item.label}</Label>
-                                         </div>
-                                     ))}
-                                 </div>
-                             </div>
-                        </div>
-
-                    </div>
-                )}
-
-                 <div 
-                    className="mt-2 text-blue-500 text-xs flex items-center gap-1 cursor-pointer hover:underline"
-                    onClick={() => setIsAdvancedSearchOpen(!isAdvancedSearchOpen)}
-                 >
-                    {isAdvancedSearchOpen ? "상세검색 닫힘" : "상세검색 펼침"} 
-                    {isAdvancedSearchOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </div>
-
-                <div className="flex justify-center mt-6 mb-10">
-                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
-                </div>
             </div>
 
             {/* List Section */}

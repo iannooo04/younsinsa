@@ -1,6 +1,5 @@
 import { getProducts } from "@/lib/admin/products";
 import ProductTable from "@/components/admin/ProductTable";
-import ProductSearchForm from "@/components/admin/ProductSearchForm";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 
@@ -22,8 +21,8 @@ export default async function ProductsPage() {
                 </Link>
             </div>
             
-            <ProductSearchForm />
             
+
             <ProductTable initialProducts={products} />
         </div>
     );

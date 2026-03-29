@@ -310,18 +310,7 @@ export default function OrderStatusSettingsPage() {
 
 
                      
-                     {/* Group 3: Product Status */}
-                    <div className="bg-blue-50/50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <span className="text-blue-500 font-bold text-xs">상품 상태 설정</span>
-                            <Button variant="outline" size="sm" className="h-6 text-[10px] px-2 bg-white border-gray-300 text-gray-600"><Plus size={10} className="mr-1"/>추가</Button>
-                        </div>
-                    </div>
-
-                    {renderRow("product_prep", "상품준비중", "배송준비 단계로 상품여부를 확인하는 단계입니다.", true)}
-                    {renderRow("purchase_order", "구매발주", "배송준비 단계로 상품부족시 발주하는 단계입니다.", false)}
-                    {renderRow("product_in", "상품입고", "배송준비 단계로 부족상품이 입고된 상태입니다.", false)}
-                    {renderRow("product_out", "상품출고", "배송준비 완료 단계입니다.", false)}
+                     
 
                     {/* Group 4: Delivery Status */}
                      <div className="bg-gray-50 border-b border-gray-200 py-2 grid grid-cols-[120px_1fr_120px_120px_60px_120px_120px_90px]">
@@ -341,7 +330,6 @@ export default function OrderStatusSettingsPage() {
                         </div>
                     </div>
 
-                    {renderRow("delivering", "배송중", "상품이 출고되서 배송중인 상태입니다.", true)}
                     {renderRow("delivery_complete", "배송완료", "배송 완료된 상태입니다. (고객이 수취확인하거나, 관리자가 변경한 상태", true)}
 
                     {/* Group 5: Purchase Confirm */}
@@ -411,21 +399,11 @@ export default function OrderStatusSettingsPage() {
                         <div className="flex items-center justify-center"></div>
                     </div>
 
-                    {renderRow("auto_cancel", "자동취소", "주문접수 후 오랜동안 미입금 되거나, 가상계좌 만료된 상태입니다.", true)}
-                    {renderRow("soldout_cancel", "품절취소", "주문접수 후 상품재고가 없어 취소된 상태입니다.", true)}
                     {renderRow("admin_cancel", "관리자취소", "주문접수 후 관리자가 여러 원인에의해 임의 취소한 상태입니다.", true)}
                     {renderRow("customer_cancel_request", "고객취소요청", "주문접수 단계에서 고객이 취소요청을 한 상태입니다.", true)}
 
 
-                    {/* Group 2: Failure Status */}
-                    <div className="bg-blue-50/50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
-                         <div className="flex items-center gap-2">
-                            <span className="text-blue-500 font-bold text-xs">실패 상태 설정</span>
-                        </div>
-                    </div>
-                    {renderRow("customer_payment_stop", "고객결제중단", "고객이 결제완료 전 PG사 결제창을 닫거나 다른 페이지로 이동한 상태입니다.", true)}
-                    {renderRow("payment_fail", "결제실패", "고객결제 후 PG사에서 결제실패 결과값을 받은 상태입니다.", true)}
-                    {renderRow("pg_check_needed", "PG확인요망", "고객결제 후 PG사에서 결과값을 받지 못하여 PG사에서 확인이 필요한 상태입니다.", true)}
+
 
                     {/* Group 3: Return Status */}
                     <div className="bg-gray-50 border-b border-gray-200 py-2 px-4 flex items-center justify-between">
@@ -439,8 +417,6 @@ export default function OrderStatusSettingsPage() {
                         </div>
                     </div>
                     {renderRow("return_request", "반품접수", "배송후 환불/교환 목적으로 반품을 접수하는 단계입니다.", true)}
-                    {renderRow("returning", "반송중", "고객이 반품한 상품을 쇼핑몰에서 다시 고객에게 반송하는 단계입니다.", true, 'red')}
-                    {renderRow("return_hold", "반품보류", "고객이 접수한 반품요청을 보류처리한 상태입니다.", true, 'red')}
                     {renderRow("return_complete", "반품회수완료", "고객이 반품한 상품이 쇼핑몰에 회수완료 된 상태입니다.", true)}
 
                     {/* Group 4: Exchange Status */}
@@ -454,9 +430,6 @@ export default function OrderStatusSettingsPage() {
                         </div>
                     </div>
                     {renderRow("exchange_request", "교환접수", "반품 접수이후 상품 교환 접수 단계입니다.", true)}
-                    {renderRow("exchange_returning", "반송중", "고객이 상품교환을 위해 받은 상품을 다시 반송하는 단계입니다.", true, 'red')}
-                    {renderRow("exchange_reshipping", "재배송중", "반송된 상품을 확인하고 교환상품을 재발송하는 단계입니다.", true, 'red')}
-                    {renderRow("exchange_hold", "교환보류", "고객이 접수한 반품요청을 보류처리한 상태입니다.", true, 'red')}
                     {renderRow("exchange_complete", "교환완료", "교환상품이 배송완료된 상태입니다.", true)}
 
                     {/* Group 5: Refund Status */}
@@ -471,7 +444,6 @@ export default function OrderStatusSettingsPage() {
                         </div>
                     </div>
                     {renderRow("refund_request", "환불접수", "입금확인 또는 반품요청 이후 관리자가 환불 처리하는 단계입니다.", true, 'gray')}
-                    {renderRow("refund_hold", "환불보류", "고객이 접수한 환불요청을 보류처리한 상태입니다.", true, 'red')}
                     {renderRow("refund_complete", "환불완료", "환불이 완료된 상태로, 해당주문상품이 취소완료된 상태입니다.", true, 'gray')}
 
                  </div>

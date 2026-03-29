@@ -94,17 +94,12 @@ const menuItems: MenuItem[] = [
                 items: [
                     { name: "상품 리스트", href: "/admin/products" },
                     { name: "상품 등록", href: "/admin/products/create" },
-                    { name: "자주쓰는 옵션 관리", href: "/admin/options" },
-
                 ]
             },
             {
                 title: "상품 일괄 관리",
                 items: [
-
-                    { name: "상품 이동/복사/삭제 관리", href: "/admin/products/move-copy-delete" },
                     { name: "상품 배송 관리", href: "/admin/products/shipping" },
-
                 ]
             },
             {
@@ -112,9 +107,6 @@ const menuItems: MenuItem[] = [
                 items: [
                     { name: "메인 배너 관리", href: "/admin/products/banners" },
                     { name: "메인페이지 상품진열", href: "/admin/products/main-display" },
-                    { name: "카테고리페이지 상품진열", href: "/admin/products/category-display" },
-                    { name: "브랜드페이지 상품진열", href: "/admin/products/brand-display" },
-                    { name: "검색페이지 상품진열", href: "/admin/products/search-display" },
 
                 ]
             },
@@ -168,14 +160,9 @@ const menuItems: MenuItem[] = [
                 items: [
                     { name: "회원 리스트", href: "/admin/users" },
                     { name: "회원 등록", href: "/admin/users/create" },
-                    { name: "회원 엑셀 업로드", href: "/admin/users/excel-upload" },
                     { name: "회원 가입 정책 관리", href: "/admin/users/join-policy" },
-                    { name: "회원 가입 항목 관리", href: "/admin/users/join-items" },
                     { name: "회원 등급 관리", href: "/admin/users/grade" },
-                    { name: "회원등급 평가방법 설정", href: "/admin/users/grade/evaluation" },
                     { name: "가입승인/등급변경", href: "/admin/users/approval-change" },
-
-                    { name: "회원 탈퇴 / 삭제 관리", href: "/admin/users/withdrawal-management" },
                     { name: "✨ 외부 유저 관리 (신규)", href: "/admin/users/external-users" },
                 ]
             },

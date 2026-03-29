@@ -244,14 +244,9 @@ export default function CategoryProductDisplayPage() {
                             {displaySettings?.displayMethod || '-'}
                         </div>
                         
-                        <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200">PC쇼핑몰 테마</div>
+                        <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200">쇼핑몰 테마</div>
                         <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center text-gray-700">
                             {displaySettings?.pcTheme || '-'}
-                        </div>
-                        
-                        <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700 border-r border-gray-200">모바일쇼핑몰 테마</div>
-                        <div className="flex-1 bg-white p-3 border-r border-gray-200 flex items-center justify-center text-gray-700">
-                            {displaySettings?.mobileTheme || '-'}
                         </div>
                         
                         <div className="flex-1 bg-gray-50 p-3 font-bold text-gray-700">상품개수</div>

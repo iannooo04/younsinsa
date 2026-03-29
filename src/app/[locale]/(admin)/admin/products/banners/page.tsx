@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -36,9 +35,9 @@ export default function BannerListPage() {
     const [pageSize, setPageSize] = useState(10);
 
     // Filter State
-    const [keyword, setKeyword] = useState('');
-    const [targetGroup, setTargetGroup] = useState('all');
-    const [isActive, setIsActive] = useState('all');
+    const [keyword, _setKeyword] = useState('');
+    const [targetGroup, _setTargetGroup] = useState('all');
+    const [isActive, _setIsActive] = useState('all');
     const [sort, setSort] = useState('orderAsc');
     
     // Selection State
@@ -68,7 +67,7 @@ export default function BannerListPage() {
         fetchData();
     }, [fetchData, searchTrigger]);
 
-    const handleSearch = () => {
+    const _handleSearch = () => {
         setPage(1);
         setSearchTrigger(prev => prev + 1);
     };
@@ -113,67 +112,6 @@ export default function BannerListPage() {
                 <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 font-bold h-9 w-32 rounded-sm" onClick={() => window.location.href='/admin/products/banners/create'}>
                     <Plus size={16} className="mr-1" /> 배너 등록
                 </Button>
-            </div>
-
-            {/* Search Section */}
-            <div>
-                 <div className="flex items-center justify-between mb-2 mt-4">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold text-gray-800">배너 검색</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-xs cursor-help">?</span>
-                    </div>
-                </div>
-                
-                <div className="border border-gray-300 bg-white">
-                    {/* Row 1: Target Group & Status */}
-                    <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">노출 그룹</div>
-                        <div className="w-64 p-3 flex items-center">
-                            <Select value={targetGroup} onValueChange={setTargetGroup}>
-                                <SelectTrigger className="w-[180px] h-8 text-xs">
-                                    <SelectValue placeholder="전체 그룹" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">전체</SelectItem>
-                                    <SelectItem value="shoes">메인 (신발)</SelectItem>
-                                    <SelectItem value="bag">가방</SelectItem>
-                                    <SelectItem value="home">홈</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="w-40 border-l border-gray-200 bg-gray-50 p-3 pl-4 font-bold text-gray-700">노출 상태</div>
-                        <div className="flex-1 p-3 flex items-center">
-                            <Select value={isActive} onValueChange={setIsActive}>
-                                <SelectTrigger className="w-[180px] h-8 text-xs">
-                                    <SelectValue placeholder="전체" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">전체</SelectItem>
-                                    <SelectItem value="active">노출함</SelectItem>
-                                    <SelectItem value="inactive">노출안함</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    {/* Row 2: Search */}
-                    <div className="flex items-center">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">배너명 검색</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
-                            <Input 
-                                className="w-[400px] h-8 text-sm" 
-                                placeholder="배너 타이틀을 입력하세요"
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            />
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex justify-center mt-6 mb-10">
-                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
-                </div>
             </div>
 
             {/* List Section */}

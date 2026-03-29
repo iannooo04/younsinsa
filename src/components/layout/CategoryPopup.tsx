@@ -58,6 +58,7 @@ interface Category {
     slug?: string | null;
     imageUrl?: string | null;
     code?: string | null;
+    type?: string | null;
 }
 
 function buildCategoryHref(
@@ -183,7 +184,8 @@ export default function CategoryPopup({
         id: c.slug || c.id,
         icon: c.imageUrl || "📁", // Default icon
         gender: "common",
-        name: c.name
+        name: c.name,
+        type: c.type
     }));
 
     if (selectedGender === "all") return items;
@@ -407,28 +409,7 @@ export default function CategoryPopup({
             <div className="flex h-full">
               {/* 왼쪽 카테고리 리스트 (Brand 스타일 적용) */}
               <ul className="w-32 border-r border-gray-100 shrink-0 h-full overflow-y-auto bg-gray-50 text-sm font-medium text-gray-500 custom-scroll">
-                {/* 🛠️ 상단 고정 카테고리 (헤더와 동일하게 메뉴 추가) */}
-                <Link
-                  href="/main/golf/recommend"
-                  onClick={onClose}
-                  className="block w-full text-left px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors font-bold text-black"
-                >
-                  GOLF
-                </Link>
-                <Link
-                  href="/main/player/recommend"
-                  onClick={onClose}
-                  className="block w-full text-left px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors font-bold text-black"
-                >
-                  PLAYER
-                </Link>
-                <Link
-                  href="/main/women/recommend"
-                  onClick={onClose}
-                  className="block w-full text-left px-4 py-3 hover:bg-white hover:text-black hover:font-bold transition-colors font-bold text-black border-b border-gray-200 mb-2"
-                >
-                  WOMEN
-                </Link>
+                {/* 🛠️ 관리자 카테고리만 동적으로 렌더링되도록, 기존 하드코딩 메뉴(GOLF, PLAYER, WOMEN) 삭제 완료 */}
 
                 {rootCategories.length === 0 && (
                      <li className="text-gray-400 text-sm px-4 py-3">Loading...</li>
@@ -476,6 +457,33 @@ export default function CategoryPopup({
                       "A",
                       sub.id
                     );
+
+                    if (sub.type === "GROUP") {
+                      return (
+                        <div
+                          key={sub.id}
+                          className="flex flex-col items-center group cursor-default"
+                        >
+                          <div className="w-16 h-16 mb-3 flex items-center justify-center overflow-hidden transition-transform group-hover:scale-110 relative">
+                               {sub.icon.startsWith("http") || sub.icon.startsWith("/") ? (
+                                 <Image
+                                   src={sub.icon}
+                                   alt={sub.name || ""}
+                                   fill
+                                   className="object-contain"
+                                   sizes="64px"
+                                   unoptimized={sub.icon.startsWith("http")}
+                                 />
+                               ) : (
+                                 <span className="text-4xl text-gray-400 group-hover:text-black transition-colors">{sub.icon}</span>
+                               )}
+                          </div>
+                          <span className="text-xs font-medium text-gray-600 text-center group-hover:text-black group-hover:font-bold break-keep leading-tight px-1">
+                               {sub.name || t(`${activeCategory}Sub.${sub.id}`)}
+                          </span>
+                        </div>
+                      );
+                    }
 
                     return (
                       <Link

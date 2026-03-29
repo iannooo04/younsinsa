@@ -23,7 +23,6 @@ import {
   Printer,
 } from "lucide-react";
 import MemberGradeSelectPopup from '@/components/admin/MemberGradeSelectPopup';
-import BrandPopup from "@/components/admin/BrandPopup";
 import SearchConditionChangePopup from "@/components/admin/SearchConditionChangePopup";
 import SearchSettingSavePopup from "@/components/admin/SearchSettingSavePopup";
 import SearchConfigPopup from "@/components/admin/SearchConfigPopup";
@@ -75,22 +74,16 @@ export default function CustomerClaimsPage() {
   const [endDate, setEndDate] = useState("");
   const [mallId, setMallId] = useState('all');
   
-  // New Filter State
-  const [orderType, setOrderType] = useState({ all: true, pc: false, mobile: false, app: false, manual: false, subscription: false });
-  const [orderChannel, setOrderChannel] = useState({ all: true, shoppingMall: false, payco: false, naverPay: false, etc: false });
+  // Filter State
   const [paymentMethod, setPaymentMethod] = useState({
       all: true, creditCard: false, wechatPay: false, alipay: false
   });
   const [invoiceHas, setInvoiceHas] = useState("all");
   const [memberType, setMemberType] = useState("all");
-  const [receiptRequest, setReceiptRequest] = useState("all");
-  const [depositDelay, setDepositDelay] = useState("");
-  const [shippingDelay, setShippingDelay] = useState("");
   const [manualPayment, setManualPayment] = useState(false);
 
   // Popup State
   const [isMemberGradePopupOpen, setIsMemberGradePopupOpen] = useState(false);
-  const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
   const [isSearchConditionPopupOpen, setIsSearchConditionPopupOpen] = useState(false);
   const [searchConditionMode, setSearchConditionMode] = useState<"toMulti" | "toSingle">("toMulti");
   const [isSearchSettingSavePopupOpen, setIsSearchSettingSavePopupOpen] = useState(false);
@@ -116,11 +109,7 @@ export default function CustomerClaimsPage() {
       setIsMemberGradePopupOpen(false);
   }
 
-  const handleBrandConfirm = (selected: unknown) => {
-      console.log("Brand selected:", selected);
-      setIsBrandPopupOpen(false);
-  }
-  
+
   // Status Checkboxes
   const [statusFilters, setStatusFilters] = useState({
       request: true,
@@ -472,64 +461,6 @@ export default function CustomerClaimsPage() {
             {/* Expand Detailed Search Content */}
             {isDetailSearchOpen && (
                 <div className="border-t border-gray-200">
-                    {/* Order Type & Order Channel */}
-                    <div className="flex border-b border-gray-200">
-                        <div className="flex-1 flex items-center border-r border-gray-200">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                주문유형 <HelpCircle className="w-3.5 h-3.5 text-gray-400 ml-1" />
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-4">
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox 
-                                        id="orderType-all" 
-                                        checked={orderType.all}
-                                        onCheckedChange={(checked) => setOrderType(prev => ({ ...prev, all: !!checked }))}
-                                        className="rounded-[2px] border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500" 
-                                    />
-                                    <Label htmlFor="orderType-all" className="text-gray-700 font-normal">전체</Label>
-                                </div>
-                                
-                                
-                                
-                                 <div className="flex items-center gap-1.5 ml-2">
-                                    <Checkbox id="orderType-manual" checked={orderType.manual} onCheckedChange={(c) => setOrderType(p => ({...p, manual: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="orderType-manual" className="text-gray-700 font-normal">수기주문</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5 ml-2">
-                                    <Checkbox id="orderType-subscription" checked={orderType.subscription} onCheckedChange={(c) => setOrderType(p => ({...p, subscription: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="orderType-subscription" className="text-gray-700 font-normal">정기주문</Label>
-                                </div>
-                            </div>
-                        </div>
-                         <div className="flex-1 flex items-center">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                주문채널구분
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-4">
-                               <div className="flex items-center gap-1.5">
-                                    <Checkbox id="channel-all" checked={orderChannel.all} onCheckedChange={(c) => setOrderChannel(p => ({...p, all: !!c}))} className="rounded-[2px] border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"/>
-                                    <Label htmlFor="channel-all" className="text-gray-700 font-normal">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="channel-shop" checked={orderChannel.shoppingMall} onCheckedChange={(c) => setOrderChannel(p => ({...p, shoppingMall: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="channel-shop" className="text-gray-700 font-normal">쇼핑몰</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="channel-payco" checked={orderChannel.payco} onCheckedChange={(c) => setOrderChannel(p => ({...p, payco: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="channel-payco" className="text-gray-700 font-normal flex items-center gap-1"><span className="text-red-500 font-bold">P</span> 페이코</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="channel-naver" checked={orderChannel.naverPay} onCheckedChange={(c) => setOrderChannel(p => ({...p, naverPay: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="channel-naver" className="text-gray-700 font-normal flex items-center gap-1"><span className="text-green-500 font-bold">N</span> 네이버페이</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="channel-etc" checked={orderChannel.etc} onCheckedChange={(c) => setOrderChannel(p => ({...p, etc: !!c}))} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="channel-etc" className="text-gray-700 font-normal flex items-center gap-1"><div className="w-4 h-4 bg-gray-500 text-white rounded-full flex items-center justify-center text-[9px]">기</div> 기타</Label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     {/* Payment Method */}
                     <div className="flex border-b border-gray-200">
                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-start border-r border-gray-200 pt-5">
@@ -601,61 +532,42 @@ export default function CustomerClaimsPage() {
                         </div>
                     </div>
                     
-                    {/* Member Info & Shipping Info */}
-                    <div className="flex border-b border-gray-200">
-                        <div className="flex-1 flex items-center border-r border-gray-200">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                회원정보
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-4">
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="member-first" className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="member-first" className="text-gray-700 font-normal">첫주문</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="member-leave" defaultChecked className="rounded-[2px] border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:border-red-500"/>
-                                    <Label htmlFor="member-leave" className="text-gray-700 font-normal">탈퇴회원 주문</Label>
-                                </div>
-                            </div>
+                    {/* Shipping Info */}
+                    <div className="flex items-center text-xs border-b border-gray-200">
+                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
+                            배송정보
                         </div>
-                         <div className="flex-1 flex items-center">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                배송정보
+                        <div className="flex-1 p-3 flex items-center gap-4">
+                            <div className="flex items-center gap-1.5">
+                                <Checkbox id="ship-gift" className="rounded-[2px] border-gray-300"/>
+                                <Label htmlFor="ship-gift" className="text-gray-700 font-normal">사은품 포함</Label>
                             </div>
-                            <div className="flex-1 p-3 flex flex-col gap-2">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1.5">
-                                        <Checkbox id="ship-gift" className="rounded-[2px] border-gray-300"/>
-                                        <Label htmlFor="ship-gift" className="text-gray-700 font-normal">사은품 포함</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Checkbox id="ship-msg" className="rounded-[2px] border-gray-300"/>
-                                        <Label htmlFor="ship-msg" className="text-gray-700 font-normal">배송메세지 입력</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Checkbox id="ship-memo" className="rounded-[2px] border-gray-300"/>
-                                        <Label htmlFor="ship-memo" className="text-gray-700 font-normal">관리자메모 입력</Label>
-                                    </div>
-                                </div>
-                                <Select defaultValue="memo1">
-                                    <SelectTrigger className="w-full h-7 text-[11px] border-gray-300">
-                                        <SelectValue placeholder="=메모 구분=" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="memo1">=메모 구분=</SelectItem>
-                                        <SelectItem value="receipt">접수</SelectItem>
-                                        <SelectItem value="complete">완료</SelectItem>
-                                        <SelectItem value="deposit">입금</SelectItem>
-                                        <SelectItem value="delivery">배송</SelectItem>
-                                        <SelectItem value="out_of_stock">품절</SelectItem>
-                                        <SelectItem value="exchange">교환</SelectItem>
-                                        <SelectItem value="return">반품</SelectItem>
-                                        <SelectItem value="refund">환불</SelectItem>
-                                        <SelectItem value="as">A/S</SelectItem>
-                                        <SelectItem value="other">기타</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <div className="flex items-center gap-1.5">
+                                <Checkbox id="ship-msg" className="rounded-[2px] border-gray-300"/>
+                                <Label htmlFor="ship-msg" className="text-gray-700 font-normal">배송메세지 입력</Label>
                             </div>
+                            <div className="flex items-center gap-1.5">
+                                <Checkbox id="ship-memo" className="rounded-[2px] border-gray-300"/>
+                                <Label htmlFor="ship-memo" className="text-gray-700 font-normal">관리자메모 입력</Label>
+                            </div>
+                            <Select defaultValue="memo1">
+                                <SelectTrigger className="w-32 h-7 text-[11px] border-gray-300">
+                                    <SelectValue placeholder="=메모 구분=" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="memo1">=메모 구분=</SelectItem>
+                                    <SelectItem value="receipt">접수</SelectItem>
+                                    <SelectItem value="complete">완료</SelectItem>
+                                    <SelectItem value="deposit">입금</SelectItem>
+                                    <SelectItem value="delivery">배송</SelectItem>
+                                    <SelectItem value="out_of_stock">품절</SelectItem>
+                                    <SelectItem value="exchange">교환</SelectItem>
+                                    <SelectItem value="return">반품</SelectItem>
+                                    <SelectItem value="refund">환불</SelectItem>
+                                    <SelectItem value="as">A/S</SelectItem>
+                                    <SelectItem value="other">기타</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
@@ -701,94 +613,15 @@ export default function CustomerClaimsPage() {
                         </div>
                     </div>
 
-                    {/* Receipt Request */}
-                    <div className="flex items-center text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                            영수증 신청
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-4">
-                            <RadioGroup value={receiptRequest} onValueChange={setReceiptRequest} className="flex gap-4">
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="all" id="rec-all" className="border-red-500 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="rec-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="cash" id="rec-cash" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="rec-cash" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1"><span className="w-4 h-4 rounded bg-green-500 text-white flex items-center justify-center text-[9px]">현</span> 현금영수증</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="tax" id="rec-tax" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="rec-tax" className="text-gray-700 font-normal cursor-pointer flex items-center gap-1"><span className="w-4 h-4 rounded bg-gray-500 text-white flex items-center justify-center text-[9px]">세</span> 세금계산서</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                    </div>
-
-                    {/* Deposit Delay & Shipping Delay */}
-                    <div className="flex border-b border-gray-200">
-                        <div className="flex-1 flex items-center border-r border-gray-200">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                입금경과일
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-2">
-                                <Input className="w-full h-7 border-gray-300" value={depositDelay} onChange={(e) => setDepositDelay(e.target.value)} />
-                                <span className="whitespace-nowrap">일 이상 경과</span>
-                            </div>
-                        </div>
-                         <div className="flex-1 flex items-center">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                배송지연일
-                            </div>
-                            <div className="flex-1 p-3 flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                    <Input className="w-full h-7 border-gray-300" value={shippingDelay} onChange={(e) => setShippingDelay(e.target.value)} />
-                                    <span className="whitespace-nowrap">일 이상 지연</span>
-                                </div>
-                                <div className="flex items-center gap-1 text-[10px] text-gray-400">
-                                    <div className="w-3 h-3 bg-gray-500 rounded-full flex items-center justify-center text-white font-bold text-[8px]">!</div>
-                                    입력 시 배송 전 주문상태만 검색 가능합니다.
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                     {/* Promotion Info & Manual Payment */}
-                     <div className="flex border-b border-gray-200">
-                        <div className="flex-1 flex items-center border-r border-gray-200">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                프로모션 정보
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-2">
-                                <Button className="h-7 bg-[#555] hover:bg-[#444] text-white text-[11px] rounded-sm">쿠폰선택</Button>
-                                <div className="flex items-center gap-1.5 ml-2">
-                                    <Checkbox id="promo-coupon" className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="promo-coupon" className="text-gray-700 font-normal">쿠폰사용 주문 전체 검색</Label>
-                                </div>
-                            </div>
-                        </div>
-                         <div className="flex-1 flex items-center">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center h-full border-r border-gray-200">
-                                수동 결제완료 처리
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-2">
-                                <div className="flex items-center gap-1.5">
-                                    <Checkbox id="manual-pay-check" checked={manualPayment} onCheckedChange={(c) => setManualPayment(!!c)} className="rounded-[2px] border-gray-300"/>
-                                    <Label htmlFor="manual-pay-check" className="text-gray-700 font-normal">수동 결제완료 처리 주문만 보기</Label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Brand */}
+                    {/* Manual Payment */}
                     <div className="flex items-center text-xs">
                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                            브랜드
+                            수동 결제완료 처리
                         </div>
                         <div className="flex-1 p-3 flex items-center gap-2">
-                            <Button className="h-7 bg-[#555] hover:bg-[#444] text-white text-[11px] rounded-sm" onClick={() => setIsBrandPopupOpen(true)}>브랜드선택</Button>
-                            <div className="flex items-center gap-1.5 ml-2">
-                                <Checkbox id="brand-no" className="rounded-[2px] border-gray-300"/>
-                                <Label htmlFor="brand-no" className="text-gray-700 font-normal">브랜드 미지정 상품</Label>
+                            <div className="flex items-center gap-1.5">
+                                <Checkbox id="manual-pay-check" checked={manualPayment} onCheckedChange={(c) => setManualPayment(!!c)} className="rounded-[2px] border-gray-300"/>
+                                <Label htmlFor="manual-pay-check" className="text-gray-700 font-normal">수동 결제완료 처리 주문만 보기</Label>
                             </div>
                         </div>
                     </div>
@@ -1069,12 +902,6 @@ export default function CustomerClaimsPage() {
            isOpen={isMemberGradePopupOpen}
            onClose={() => setIsMemberGradePopupOpen(false)}
            onConfirm={handleMemberGradeConfirm}
-        />
-
-        <BrandPopup
-           isOpen={isBrandPopupOpen}
-           onClose={() => setIsBrandPopupOpen(false)}
-           onConfirm={handleBrandConfirm}
         />
 
         <SearchConditionChangePopup

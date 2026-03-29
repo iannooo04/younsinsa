@@ -38,10 +38,6 @@ export default function MemberListPage() {
   const lastLoginEndRef = useRef<HTMLInputElement>(null);
   const birthdayStartRef = useRef<HTMLInputElement>(null);
   const birthdayEndRef = useRef<HTMLInputElement>(null);
-  const anniversaryStartRef = useRef<HTMLInputElement>(null);
-  const anniversaryEndRef = useRef<HTMLInputElement>(null);
-  const dormantReleaseStartRef = useRef<HTMLInputElement>(null);
-  const dormantReleaseEndRef = useRef<HTMLInputElement>(null);
   
   const [searchType, setSearchType] = useState('id');
   const [keyword, setKeyword] = useState('');
@@ -64,23 +60,13 @@ export default function MemberListPage() {
   const [orderMax, setOrderMax] = useState('');
   const [amountMin, setAmountMin] = useState('');
   const [amountMax, setAmountMax] = useState('');
-  const [smsAgree, setSmsAgree] = useState('all');
   const [emailAgree, setEmailAgree] = useState('all');
-  const [longTermLoginDays, setLongTermLoginDays] = useState('');
   const [gender, setGender] = useState('all');
   const [birthdaySearch, setBirthdaySearch] = useState(false);
   const [birthdayType, setBirthdayType] = useState('all');
   const [birthdayStart, setBirthdayStart] = useState('');
   const [birthdayEnd, setBirthdayEnd] = useState('');
-  const [marriageStatus, setMarriageStatus] = useState('all');
-  const [anniversaryStart, setAnniversaryStart] = useState('');
-  const [anniversaryEnd, setAnniversaryEnd] = useState('');
-  const [privacyTerm, setPrivacyTerm] = useState('all');
-  const [dormantTarget, setDormantTarget] = useState(false);
-  const [dormantTargetDays, setDormantTargetDays] = useState('7');
-  const [snsType, setSnsType] = useState('all');
-  const [dormantReleaseStart, setDormantReleaseStart] = useState('');
-  const [dormantReleaseEnd, setDormantReleaseEnd] = useState('');
+  const [privacyTerm, setPrivacyTerm] = useState('withdrawal');
   
   // Data States
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -427,27 +413,8 @@ export default function MemberListPage() {
                         </div>
                     </div>
 
-                    {/* SMS and Email Agree */}
+                    {/* Mail Agree */}
                     <div className="flex text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[44px]">
-                            SMS수신동의
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-6 border-r border-gray-200 min-h-[44px] py-1.5">
-                            <RadioGroup value={smsAgree} onValueChange={setSmsAgree} className="flex items-center gap-6">
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="all" id="sms-all" className="border-gray-300 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="sms-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="agree" id="sms-agree" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sms-agree" className="text-gray-700 font-normal cursor-pointer">수신</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="reject" id="sms-reject" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sms-reject" className="text-gray-700 font-normal cursor-pointer">수신거부</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[44px]">
                             메일수신동의
                         </div>
@@ -467,19 +434,6 @@ export default function MemberListPage() {
                                 </div>
                             </RadioGroup>
                         </div>
-                    </div>
-
-                    {/* Long-term non-login */}
-                    <div className="flex text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-10">
-                            장기 미로그인
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-1 border-r border-gray-200 h-10 py-1.5 px-3">
-                            <Input value={longTermLoginDays} onChange={(e) => setLongTermLoginDays(e.target.value)} className="w-16 h-7 border-gray-300 text-center" />
-                            <span>일 이상 로그인하지 않은 회원</span>
-                        </div>
-                        <div className="w-36 bg-[#FBFBFB] p-3 border-r border-gray-200 h-10"></div>
-                        <div className="flex-1 p-3 h-10"></div>
                     </div>
 
                     {/* Gender and Birthday */}
@@ -537,146 +491,18 @@ export default function MemberListPage() {
                         </div>
                     </div>
 
-                    {/* Marriage Status and Anniversary */}
-                    <div className="flex text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-10">
-                            결혼여부
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-6 border-r border-gray-200 h-10 py-1.5">
-                            <RadioGroup value={marriageStatus} onValueChange={setMarriageStatus} className="flex items-center gap-6">
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="all" id="marriage-all" className="border-gray-300 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="marriage-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="single" id="marriage-single" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="marriage-single" className="text-gray-700 font-normal cursor-pointer">미혼</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="married" id="marriage-done" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="marriage-done" className="text-gray-700 font-normal cursor-pointer">기혼</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-10">
-                            결혼기념일
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-2 h-10 py-1.5 px-3">
-                             <div className="flex items-center gap-1">
-                                 <Input ref={anniversaryStartRef} type="date" value={anniversaryStart} onChange={(e) => setAnniversaryStart(e.target.value)} className="w-34 h-7 text-center border-gray-300 [&::-webkit-calendar-picker-indicator]:hidden" placeholder="YYYY-MM-DD" />
-                                 <Calendar onClick={() => anniversaryStartRef.current?.showPicker()} className="w-4 h-4 text-gray-500 cursor-pointer" />
-                             </div>
-                             <span>~</span>
-                             <div className="flex items-center gap-1">
-                                 <Input ref={anniversaryEndRef} type="date" value={anniversaryEnd} onChange={(e) => setAnniversaryEnd(e.target.value)} className="w-34 h-7 text-center border-gray-300 [&::-webkit-calendar-picker-indicator]:hidden" placeholder="YYYY-MM-DD" />
-                                 <Calendar onClick={() => anniversaryEndRef.current?.showPicker()} className="w-4 h-4 text-gray-500 cursor-pointer" />
-                             </div>
-                        </div>
-                    </div>
-
-                    {/* Privacy Retention Term and Dormant Upcoming */}
-                    <div className="flex text-xs border-b border-gray-200">
+                    {/* Privacy Retention Term */}
+                    <div className="flex text-xs">
                         <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[44px]">
                             개인정보보유효기간
                         </div>
-                        <div className="flex-1 p-3 flex flex-wrap items-center gap-6 border-r border-gray-200 min-h-[44px] py-1.5 text-[11px]">
+                        <div className="flex-1 p-3 flex flex-wrap items-center gap-6 min-h-[44px] py-1.5 text-[11px]">
                             <RadioGroup value={privacyTerm} onValueChange={setPrivacyTerm} className="flex flex-wrap items-center gap-6">
                                 <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="all" id="privacy-all" className="border-gray-300 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="privacy-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="1" id="privacy-1" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="privacy-1" className="text-gray-700 font-normal cursor-pointer">1년</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="3" id="privacy-3" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="privacy-3" className="text-gray-700 font-normal cursor-pointer">3년</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="5" id="privacy-5" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="privacy-5" className="text-gray-700 font-normal cursor-pointer">5년</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="withdrawal" id="privacy-out" className="border-gray-300 text-gray-600" />
+                                    <RadioGroupItem value="withdrawal" id="privacy-out" className="border-gray-300 text-red-500 focus:ring-red-500" />
                                     <Label htmlFor="privacy-out" className="text-gray-700 font-normal cursor-pointer">탈퇴 시</Label>
                                 </div>
                             </RadioGroup>
-                        </div>
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[44px]">
-                            휴면 전환 예정 회원
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-1.5 min-h-[44px] py-1.5 px-3">
-                            <Checkbox checked={dormantTarget} onCheckedChange={(checked) => setDormantTarget(!!checked)} id="dormant-check" className="rounded-[2px] border-gray-300" />
-                            <Label htmlFor="dormant-check" className="cursor-pointer whitespace-nowrap">휴면 전환</Label>
-                            <Select value={dormantTargetDays} onValueChange={setDormantTargetDays}>
-                                <SelectTrigger className="w-20 h-7 text-[11px] border-gray-300 bg-white">
-                                    <SelectValue placeholder="7" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="7">7</SelectItem>
-                                    <SelectItem value="30">30</SelectItem>
-                                    <SelectItem value="60">60</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <span className="whitespace-nowrap">일 전 회원</span>
-                        </div>
-                    </div>
-
-                    {/* SNS Linked Accounts and Dormancy Release Date */}
-                    <div className="flex text-xs border-b border-gray-200">
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[80px]">
-                            연결계정
-                        </div>
-                        <div className="flex-1 p-3 border-r border-gray-200 min-h-[80px] py-2">
-                            <RadioGroup value={snsType} onValueChange={setSnsType} className="flex flex-wrap gap-x-6 gap-y-2">
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="all" id="sns-all" className="border-gray-300 text-red-500 focus:ring-red-500" />
-                                    <Label htmlFor="sns-all" className="text-gray-700 font-normal cursor-pointer">전체</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="payco" id="sns-payco" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-payco" className="text-gray-700 font-normal cursor-pointer">페이코</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="facebook" id="sns-facebook" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-facebook" className="text-gray-700 font-normal cursor-pointer">페이스북</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="naver" id="sns-naver" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-naver" className="text-gray-700 font-normal cursor-pointer">네이버</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="kakao" id="sns-kakao" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-kakao" className="text-gray-700 font-normal cursor-pointer">카카오</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="wemep" id="sns-wemep" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-wemep" className="text-gray-700 font-normal cursor-pointer">위메프</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="apple" id="sns-apple" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-apple" className="text-gray-700 font-normal cursor-pointer">애플</Label>
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <RadioGroupItem value="google" id="sns-google" className="border-gray-300 text-gray-600" />
-                                    <Label htmlFor="sns-google" className="text-gray-700 font-normal cursor-pointer">구글</Label>
-                                </div>
-                            </RadioGroup>
-                        </div>
-                        <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 min-h-[80px]">
-                            휴면해제일
-                        </div>
-                        <div className="flex-1 p-3 flex items-center gap-2 px-3 py-1.5 min-h-[80px]">
-                             <div className="flex items-center gap-1">
-                                 <Input ref={dormantReleaseStartRef} type="date" value={dormantReleaseStart} onChange={(e) => setDormantReleaseStart(e.target.value)} className="w-34 h-7 text-center border-gray-300 [&::-webkit-calendar-picker-indicator]:hidden" placeholder="YYYY-MM-DD" />
-                                 <Calendar onClick={() => dormantReleaseStartRef.current?.showPicker()} className="w-4 h-4 text-gray-500 cursor-pointer" />
-                             </div>
-                             <span>~</span>
-                             <div className="flex items-center gap-1">
-                                 <Input ref={dormantReleaseEndRef} type="date" value={dormantReleaseEnd} onChange={(e) => setDormantReleaseEnd(e.target.value)} className="w-34 h-7 text-center border-gray-300 [&::-webkit-calendar-picker-indicator]:hidden" placeholder="YYYY-MM-DD" />
-                                 <Calendar onClick={() => dormantReleaseEndRef.current?.showPicker()} className="w-4 h-4 text-gray-500 cursor-pointer" />
-                             </div>
                         </div>
                     </div>
                 </>
@@ -715,8 +541,6 @@ export default function MemberListPage() {
                         <SelectItem value="date-asc">회원가입일 ↑</SelectItem>
                         <SelectItem value="last-login-desc">최종로그인 ↓</SelectItem>
                         <SelectItem value="last-login-asc">최종로그인 ↑</SelectItem>
-                        <SelectItem value="dormant-desc">휴면해제일 ↓</SelectItem>
-                        <SelectItem value="dormant-asc">휴면해제일 ↑</SelectItem>
                         <SelectItem value="visit-desc">방문횟수 ↓</SelectItem>
                         <SelectItem value="visit-asc">방문횟수 ↑</SelectItem>
                         <SelectItem value="name-desc">이름 ↓</SelectItem>
@@ -787,7 +611,6 @@ export default function MemberListPage() {
                       <th className="border-r border-[#CDCDCD] font-normal">주문금액</th>
                       <th className="border-r border-[#CDCDCD] font-normal">회원가입일</th>
                       <th className="border-r border-[#CDCDCD] font-normal">최종로그인</th>
-                       <th className="border-r border-[#CDCDCD] font-normal">휴면해제일</th>
                         <th className="border-r border-[#CDCDCD] font-normal">가입승인</th>
                          <th className="border-r border-[#CDCDCD] font-normal">메일/SMS 발송</th>
                       <th className="font-normal">정보수정</th>

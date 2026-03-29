@@ -81,13 +81,9 @@ export default function OrderIntegratedListPage() {
   
   const tabs = [
     "주문통합리스트",
-    "입금대기 리스트",
     "결제완료 리스트",
-    "상품준비중 리스트",
-    "배송중 리스트",
     "배송완료 리스트",
-    "구매확정 리스트",
-    "결제 중단/실패 리스트"
+    "구매확정 리스트"
   ];
 
   const fetchOrders = React.useCallback(async () => {
@@ -130,13 +126,9 @@ export default function OrderIntegratedListPage() {
   const getDescription = (tab: string) => {
       switch(tab) {
           case "주문통합리스트": return "취소/환불/반품/교환을 포함한 전체 주문리스트입니다.";
-          case "입금대기 리스트": return "무통장입금 주문 건 중 아직 입금확인이 되지 않은 주문리스트입니다.";
           case "결제완료 리스트": return "결제가 완료되어 배송을 위한 상품확인 전 단계의 주문리스트입니다.";
-          case "상품준비중 리스트": return "배송을 위해 상품을 준비하는 단계의 주문리스트입니다.";
-          case "배송중 리스트": return "상품이 발송되어 배송업체로 전달된 상태의 주문리스트입니다.";
           case "배송완료 리스트": return "고객이 상품을 수령한 상태의 주문리스트입니다.";
           case "구매확정 리스트": return "고객이 상품 수령 후 구매를 확정한 주문리스트입니다.";
-          case "결제 중단/실패 리스트": return "결제 과정에서 중단되거나 실패한 주문리스트입니다.";
           default: return "";
       }
   };

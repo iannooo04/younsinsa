@@ -10,10 +10,8 @@ import {
 } from "lucide-react";
 import * as XLSX from "xlsx";
 import { getProductsForExcelAction } from "@/actions/product-actions";
-import SearchProductDownloadForm from "@/components/admin/products/excel-download/SearchProductDownloadForm";
 
 export default function ProductExcelDownloadPage() {
-  const [tab, setTab] = useState<"all" | "search">("all");
   const [range, setRange] = useState<"all" | "partial">("all");
   const [start, setStart] = useState(1);
   const [qty, setQty] = useState(300);
@@ -80,30 +78,7 @@ export default function ProductExcelDownloadPage() {
         <h1 className="text-2xl font-bold text-gray-900">상품 엑셀 다운로드</h1>
       </div>
 
-      {/* Product Download Tabs Section */}
-      <div className="mb-6">
-         <div className="flex items-center gap-2 mb-2">
-            <h2 className="text-sm font-bold text-gray-700">상품 다운로드</h2>
-            <HelpCircle className="w-4 h-4 text-gray-400" />
-         </div>
-         <div className="flex border-b border-gray-300">
-             <div 
-                onClick={() => setTab("all")}
-                className={`border border-gray-300 border-b-0 px-6 py-2.5 text-xs font-bold cursor-pointer relative top-[1px] ${tab === "all" ? "bg-white text-gray-900" : "bg-[#F5F5F5] text-gray-500 hover:bg-gray-100"}`}
-             >
-                 전체 상품 다운로드
-             </div>
-             <div 
-                onClick={() => setTab("search")}
-                className={`border border-gray-300 border-l-0 border-b-0 px-6 py-2.5 text-xs cursor-pointer ${tab === "search" ? "bg-white text-gray-900 font-bold relative top-[1px]" : "bg-[#F5F5F5] text-gray-500 hover:bg-gray-100"}`}
-             >
-                 검색 상품 다운로드
-             </div>
-         </div>
-      </div>
-
       {/* Main Content Area */}
-      {tab === "all" ? (
         <div className="mb-8">
              <div className="flex items-center gap-2 mb-2">
                 <h3 className="text-sm font-bold text-gray-700">상품 전체를 다운로드 받습니다.</h3>
@@ -175,9 +150,6 @@ export default function ProductExcelDownloadPage() {
                  </div>
              </div>
         </div>
-      ) : (
-        <SearchProductDownloadForm />
-      )}
 
     </div>
   );

@@ -142,6 +142,7 @@ model Category {
 
   code String? @unique // e.g., "104002"
   slug String? // e.g., "sneakers"
+  customUrl String? // e.g., "https://example.com"
 
   type ClassifyType @default(GENERAL)
 

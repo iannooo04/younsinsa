@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -10,8 +9,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Table,
@@ -21,7 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/ui-table";
-import { CalendarIcon, Book, Plus } from "lucide-react";
+import { Book, Plus } from "lucide-react";
 import { getMainPageDisplayGroupsAction, deleteMainPageDisplayGroupsAction } from "@/actions/product-display-actions";
 import { format } from "date-fns";
 
@@ -46,14 +43,14 @@ export default function MainProductDisplayPage() {
     const [pageSize, setPageSize] = useState(10);
 
     // Filter State
-    const [searchType, setSearchType] = useState('all');
-    const [keyword, setKeyword] = useState('');
-    const [dateType, setDateType] = useState('regDate');
+    const [searchType, _setSearchType] = useState('all');
+    const [keyword, _setKeyword] = useState('');
+    const [dateType, _setDateType] = useState('regDate');
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
     
     // Advanced Search State
-    const [displayStatus, setDisplayStatus] = useState('all');
+    const [displayStatus, _setDisplayStatus] = useState('all');
     const [sort, setSort] = useState('regDesc');
     
     // Selection State
@@ -63,10 +60,10 @@ export default function MainProductDisplayPage() {
     const [searchTrigger, setSearchTrigger] = useState(0);
 
     // Date Picker Refs
-    const startDateRef = useRef<HTMLInputElement>(null);
-    const endDateRef = useRef<HTMLInputElement>(null);
+    const _startDateRef = useRef<HTMLInputElement>(null);
+    const _endDateRef = useRef<HTMLInputElement>(null);
 
-    const handleDateIconClick = (ref: React.RefObject<HTMLInputElement | null>) => {
+    const _handleDateIconClick = (ref: React.RefObject<HTMLInputElement | null>) => {
         try {
             ref.current?.showPicker();
         } catch {
@@ -99,7 +96,7 @@ export default function MainProductDisplayPage() {
          
     }, [fetchData, searchTrigger]);
 
-    const handleSearch = () => {
+    const _handleSearch = () => {
         setPage(1);
         setSearchTrigger(prev => prev + 1);
     };
@@ -135,7 +132,7 @@ export default function MainProductDisplayPage() {
     };
 
     // Date Helper
-    const setPeriod = (period: string) => {
+    const _setPeriod = (period: string) => {
         const end = new Date();
         const start = new Date();
         
@@ -177,134 +174,6 @@ export default function MainProductDisplayPage() {
                 <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 font-bold h-9 w-48 rounded-sm" onClick={() => window.location.href='/admin/products/main-display/create'}>
                     <Plus size={16} className="mr-1" /> 메인페이지 분류 등록
                 </Button>
-            </div>
-
-            {/* Search Section */}
-            <div>
-                 <div className="flex items-center justify-between mb-2 mt-4">
-                    <div className="flex items-center gap-2">
-                        <h2 className="text-lg font-bold text-gray-800">분류 검색</h2>
-                        <span className="text-gray-400 border border-gray-300 rounded-sm px-1 text-xs cursor-help">?</span>
-                    </div>
-                </div>
-                
-                <div className="border border-gray-300 bg-white">
-                    {/* Row 1: Category Name */}
-                    <div className="flex items-center border-b border-gray-200">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">분류명</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select value={searchType} onValueChange={setSearchType}>
-                                <SelectTrigger className="w-[120px] h-8 text-xs">
-                                    <SelectValue placeholder="=통합검색=" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">=통합검색=</SelectItem>
-                                    <SelectItem value="name">분류명</SelectItem>
-                                    <SelectItem value="desc">분류 설명</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Input 
-                                className="w-64 h-8" 
-                                value={keyword}
-                                onChange={(e) => setKeyword(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                            />
-                        </div>
-                    </div>
-
-                     {/* Row 2: Period Search */}
-                     <div className="flex items-center">
-                        <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">기간검색</div>
-                        <div className="flex-1 p-3 flex items-center gap-2">
-                            <Select value={dateType} onValueChange={setDateType}>
-                                <SelectTrigger className="w-[100px] h-8 text-xs">
-                                    <SelectValue placeholder="등록일" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="regDate">등록일</SelectItem>
-                                    <SelectItem value="modDate">수정일</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div className="relative">
-                                <Input 
-                                    className="w-32 h-8 pl-2 pr-8" 
-                                    value={startDate} 
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                    placeholder="YYYY-MM-DD"
-                                />
-                                <input 
-                                    type="date"
-                                    ref={startDateRef}
-                                    className="absolute opacity-0 pointer-events-none w-0 h-0"
-                                    onChange={(e) => setStartDate(e.target.value)}
-                                />
-                                <CalendarIcon 
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600 transition-colors" 
-                                    onClick={() => handleDateIconClick(startDateRef)}
-                                />
-                            </div>
-                            <span className="text-gray-500">~</span>
-                            <div className="relative">
-                                <Input 
-                                    className="w-32 h-8 pl-2 pr-8" 
-                                    value={endDate}
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                    placeholder="YYYY-MM-DD"
-                                />
-                                <input 
-                                    type="date"
-                                    ref={endDateRef}
-                                    className="absolute opacity-0 pointer-events-none w-0 h-0"
-                                    onChange={(e) => setEndDate(e.target.value)}
-                                />
-                                <CalendarIcon 
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 cursor-pointer hover:text-gray-600 transition-colors" 
-                                    onClick={() => handleDateIconClick(endDateRef)}
-                                />
-                            </div>
-                             <div className="flex gap-0.5 ml-2">
-                                {["오늘", "7일", "15일", "1개월", "3개월", "전체"].map((period) => (
-                                    <Button 
-                                        key={period} 
-                                        variant="outline" 
-                                        onClick={() => setPeriod(period)}
-                                        className="h-8 px-3 text-xs rounded-sm bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-                                    >
-                                        {period}
-                                    </Button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Row 3: Display Status */}
-                    <div className="flex border-t border-gray-200">
-                        <div className="flex-1 flex">
-                            <div className="w-40 bg-gray-50 p-3 pl-4 font-bold text-gray-700">노출상태</div>
-                            <div className="flex-1 p-3 flex items-center gap-4">
-                                <RadioGroup value={displayStatus} onValueChange={setDisplayStatus} className="flex gap-4">
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="all" id="display-all" />
-                                        <Label htmlFor="display-all" className="text-xs">전체</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="exposed" id="display-exposed" />
-                                        <Label htmlFor="display-exposed" className="text-xs">노출함</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="hidden" id="display-hidden" />
-                                        <Label htmlFor="display-hidden" className="text-xs">노출안함</Label>
-                                    </div>
-                                </RadioGroup>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <div className="flex justify-center mt-6 mb-10">
-                    <Button onClick={handleSearch} className="w-32 h-10 bg-gray-700 hover:bg-gray-800 text-white font-bold rounded-sm">검색</Button>
-                </div>
             </div>
 
             {/* List Section */}
