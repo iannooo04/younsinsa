@@ -1,4 +1,4 @@
-import { getProducts } from "@/lib/admin/products";
+import { getProductsAction } from "@/actions/product-actions";
 import ProductTable from "@/components/admin/ProductTable";
 import Link from "next/link";
 import { Plus } from "lucide-react";
@@ -6,7 +6,8 @@ import { Plus } from "lucide-react";
 export const dynamic = "force-dynamic";
 
 export default async function ProductsPage() {
-    const products = await getProducts();
+    const res = await getProductsAction(1, 100);
+    const products = res.items || [];
 
     return (
         <div className="p-6 bg-white min-h-screen">

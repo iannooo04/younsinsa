@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { FileSpreadsheet, Settings } from "lucide-react";
 import Image from "next/image";
 import Link from 'next/link';
+import { permanentlyDeleteProductsAction } from "@/actions/product-actions";
 
 interface Product {
     id: string;
@@ -27,10 +28,46 @@ interface Props {
 }
 
 export default function ProductTable({ initialProducts }: Props) {
-    const [products] = useState<Product[]>(initialProducts);
+    const [products, setProducts] = useState<Product[]>(initialProducts);
+    const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [isPending, startTransition] = useTransition();
 
     const soldOutCount = products.filter((p) => p.stockStatus === '품절').length;
     const displayedCount = products.filter((p) => p.displayStatus === '노출함').length;
+
+    const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.checked) {
+            setSelectedIds(products.map(p => p.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelect = (id: string) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    const handleDelete = () => {
+        if (selectedIds.length === 0) {
+            alert("삭제할 상품을 선택해주세요.");
+            return;
+        }
+
+        if (confirm("선택한 상품을 영구적으로 삭제하시겠습니까? (삭제 후 복구 불가능합니다)")) {
+            startTransition(async () => {
+                const res = await permanentlyDeleteProductsAction(selectedIds);
+                if (res.success) {
+                    alert("선택한 상품이 삭제되었습니다.");
+                    setProducts(products.filter(p => !selectedIds.includes(p.id)));
+                    setSelectedIds([]);
+                } else {
+                    alert(res.message || "상품 삭제 중 오류가 발생했습니다.");
+                }
+            });
+        }
+    };
 
     return (
         <div className="space-y-4">
@@ -54,8 +91,6 @@ export default function ProductTable({ initialProducts }: Props) {
                         <option>상품명 ↑</option>
                         <option>판매가 ↓</option>
                         <option>판매가 ↑</option>
-                        <option>공급사 ↓</option>
-                        <option>공급사 ↑</option>
                         <option>제조사 ↓</option>
                         <option>제조사 ↑</option>
                         <option>결제 ↑</option>
@@ -86,7 +121,14 @@ export default function ProductTable({ initialProducts }: Props) {
             {/* Action Toolbar */}
             <div className="bg-gray-50 border p-2 flex justify-end items-center">
                 <div className="flex items-center gap-1">
-                     <button className="btn btn-xs bg-green-600 text-white border-none rounded-sm flex items-center gap-1 h-8">
+                     <button 
+                        className="btn btn-xs bg-white text-gray-700 border-gray-300 hover:bg-gray-100 min-h-8 h-8 font-normal rounded-sm flex items-center gap-1 shadow-sm px-3"
+                        onClick={handleDelete}
+                        disabled={isPending}
+                    >
+                        {isPending ? "삭제중..." : "선택 삭제"}
+                    </button>
+                     <button className="btn btn-xs bg-green-600 hover:bg-green-700 text-white border-none rounded-sm flex items-center gap-1 h-8 px-3">
                         <FileSpreadsheet size={12} /> 엑셀다운로드
                     </button>
                 </div>
@@ -97,13 +139,19 @@ export default function ProductTable({ initialProducts }: Props) {
                 <table className="table table-sm w-full text-center border-l border-r border-b">
                     <thead className="bg-gray-100 text-gray-700 border-b border-gray-300">
                         <tr>
-                            <th className="w-10"></th>
+                            <th className="w-10">
+                                <input 
+                                    type="checkbox" 
+                                    className="checkbox checkbox-sm rounded-sm"
+                                    checked={products.length > 0 && selectedIds.length === products.length}
+                                    onChange={handleSelectAll}
+                                />
+                            </th>
                             <th className="w-16">번호</th>
                             <th>상품코드</th>
                             <th>이미지</th>
                             <th className="min-w-[200px]">상품명</th>
                             <th>판매가</th>
-                            <th>공급사</th>
                             <th>노출상태</th>
                             <th>판매상태</th>
                             <th>재고</th>
@@ -114,8 +162,14 @@ export default function ProductTable({ initialProducts }: Props) {
                     <tbody className="text-xs">
                         {products.map((product, index: number) => (
                             <tr key={product.id} className="hover:bg-gray-50 border-b border-gray-200">
-                                <td></td>
-                                <td>{products.length - index}</td>
+                                <td>
+                                    <input 
+                                        type="checkbox" 
+                                        className="checkbox checkbox-sm rounded-sm"
+                                        checked={selectedIds.includes(product.id)}
+                                        onChange={() => handleSelect(product.id)}
+                                    />
+                                </td>
                                 <td>{products.length - index}</td>
                                 <td className="font-mono text-gray-500">{product.productCode}</td>
                                 <td>
@@ -144,7 +198,6 @@ export default function ProductTable({ initialProducts }: Props) {
                                     </div>
                                 </td>
                                 <td className="font-bold text-gray-800 whitespace-nowrap align-middle">{product.price?.toLocaleString()}원</td>
-                                <td className="text-gray-500">{product.supplier}</td>
                                 <td>
                                     <span className={product.displayStatus === '노출함' ? "text-blue-600" : "text-gray-400"}>
                                         {product.displayStatus}
@@ -153,6 +206,11 @@ export default function ProductTable({ initialProducts }: Props) {
                                 <td>
                                     <span className={product.saleStatus === '판매함' ? "text-blue-600" : "text-gray-400"}>
                                         {product.saleStatus}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span className="text-gray-600 font-medium">
+                                        {product.stock}
                                     </span>
                                 </td>
                                 <td className="text-gray-500 text-[11px] whitespace-nowrap align-middle">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useRef } from "react";
+import { useState, useActionState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { HelpCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { createProductAction, updateProductAction, uploadImageAction } from "@/actions/product-actions";
@@ -56,6 +56,29 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     const [selectedCategoriesList, setSelectedCategoriesList] = useState<Category[]>(
         initialProduct?.category ? [initialProduct.category] : []
     );
+    const [selectedDepths, setSelectedDepths] = useState<string[]>([]);
+
+
+    useEffect(() => {
+        if (initialProduct?.categoryId && categories && selectedDepths.length === 0) {
+            const path: string[] = [];
+            let current = categories.find(c => c.id === initialProduct.categoryId);
+            while (current) {
+                path.unshift(current.id);
+                current = categories.find(c => c.id === current?.parentId);
+            }
+            if (path.length > 0) {
+                setSelectedDepths(path);
+            }
+        }
+    }, [initialProduct?.categoryId, categories, selectedDepths.length]);
+
+
+    const handleSelectDepth = (depthIndex: number, categoryId: string) => {
+        const newDepths = [...selectedDepths.slice(0, depthIndex), categoryId];
+        setSelectedDepths(newDepths);
+        setSelectedCategoryId(categoryId);
+    };
     
     // Editor State
     const [descContent, setDescContent] = useState(initialProduct?.descriptionPC || "");
@@ -309,31 +332,64 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                     <div className="p-4 bg-white">
                         <div className="flex gap-2 h-48 mb-4">
                              {/* Category Depth 1 */}
-                             <div className="flex-1 border border-gray-300 overflow-y-auto">
-                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             <div className="flex-1 border border-gray-300 overflow-y-auto bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700 sticky top-0">=카테고리선택=</div>
                                 <ul className="text-sm">
-                                    {categories.map(cat => (
+                                    {categories.filter(c => !c.parentId).map(cat => (
                                         <li 
                                             key={cat.id} 
-                                            onClick={() => setSelectedCategoryId(cat.id)}
-                                            className={`cursor-pointer px-3 py-1.5 hover:bg-blue-50 ${selectedCategoryId === cat.id ? 'bg-[#516d99] text-white' : 'text-gray-600'}`}
+                                            onClick={() => handleSelectDepth(0, cat.id)}
+                                            className={`cursor-pointer px-3 py-1.5 hover:bg-blue-50 ${selectedDepths[0] === cat.id ? 'bg-[#516d99] text-white font-bold' : 'text-gray-600'}`}
                                         >
-                                            {cat.name}
+                                            {cat.name} {categories.some(child => child.parentId === cat.id) && <span className="float-right text-[10px] text-gray-400 mt-1">&gt;</span>}
                                         </li>
                                     ))}
                                 </ul>
                              </div>
-                             {/* Category Depth 2 (Mock) */}
-                             <div className="flex-1 border border-gray-300 bg-white">
-                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             {/* Category Depth 2 */}
+                             <div className="flex-1 border border-gray-300 overflow-y-auto bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700 sticky top-0">=카테고리선택=</div>
+                                <ul className="text-sm">
+                                    {selectedDepths[0] ? categories.filter(c => c.parentId === selectedDepths[0]).map(cat => (
+                                        <li 
+                                            key={cat.id} 
+                                            onClick={() => handleSelectDepth(1, cat.id)}
+                                            className={`cursor-pointer px-3 py-1.5 hover:bg-blue-50 ${selectedDepths[1] === cat.id ? 'bg-[#516d99] text-white font-bold' : 'text-gray-600'}`}
+                                        >
+                                            {cat.name} {categories.some(child => child.parentId === cat.id) && <span className="float-right text-[10px] text-gray-400 mt-1">&gt;</span>}
+                                        </li>
+                                    )) : null}
+                                </ul>
                              </div>
-                             {/* Category Depth 3 (Mock) */}
-                             <div className="flex-1 border border-gray-300 bg-white">
-                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             {/* Category Depth 3 */}
+                             <div className="flex-1 border border-gray-300 overflow-y-auto bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700 sticky top-0">=카테고리선택=</div>
+                                <ul className="text-sm">
+                                    {selectedDepths[1] ? categories.filter(c => c.parentId === selectedDepths[1]).map(cat => (
+                                        <li 
+                                            key={cat.id} 
+                                            onClick={() => handleSelectDepth(2, cat.id)}
+                                            className={`cursor-pointer px-3 py-1.5 hover:bg-blue-50 ${selectedDepths[2] === cat.id ? 'bg-[#516d99] text-white font-bold' : 'text-gray-600'}`}
+                                        >
+                                            {cat.name} {categories.some(child => child.parentId === cat.id) && <span className="float-right text-[10px] text-gray-400 mt-1">&gt;</span>}
+                                        </li>
+                                    )) : null}
+                                </ul>
                              </div>
-                             {/* Category Depth 4 (Mock) */}
-                             <div className="flex-1 border border-gray-300 bg-white">
-                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700">=카테고리선택=</div>
+                             {/* Category Depth 4 */}
+                             <div className="flex-1 border border-gray-300 overflow-y-auto bg-white">
+                                <div className="p-2 border-b bg-gray-50 text-xs font-bold text-gray-700 sticky top-0">=카테고리선택=</div>
+                                <ul className="text-sm">
+                                    {selectedDepths[2] ? categories.filter(c => c.parentId === selectedDepths[2]).map(cat => (
+                                        <li 
+                                            key={cat.id} 
+                                            onClick={() => handleSelectDepth(3, cat.id)}
+                                            className={`cursor-pointer px-3 py-1.5 hover:bg-blue-50 ${selectedDepths[3] === cat.id ? 'bg-[#516d99] text-white font-bold' : 'text-gray-600'}`}
+                                        >
+                                            {cat.name}
+                                        </li>
+                                    )) : null}
+                                </ul>
                              </div>
                              
                              {/* Select Button */}
@@ -618,11 +674,6 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                                 <input type="text" name="price" defaultValue={initialProduct?.price || ''} className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
                                 <span className="ml-1 text-sm text-gray-600">원</span>
                             </div>
-                            <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">공급가</div>
-                            <div className="flex-1 p-2 flex items-center border-r border-gray-200">
-                                <input type="text" className="input input-sm h-8 w-32 border-gray-300 rounded-sm text-right" placeholder="0" />
-                                <span className="ml-1 text-sm text-gray-600">원</span>
-                            </div>
                              <div className="w-[120px] bg-[#f9f9f9] p-3 text-sm font-bold text-gray-700 border-r border-gray-200 flex items-center shrink-0">
                                 수수료율 <HelpCircle size={14} className="ml-1 text-gray-400" />
                             </div>
@@ -669,6 +720,19 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                                 <input type="checkbox" className="checkbox checkbox-xs rounded-sm border-gray-400 checked:bg-[#ff4d4f]" defaultChecked />
                                 <span className="text-sm">체크시 개별이미지의 선택된 사이즈로 자동 리사이즈되어 등록됩니다.</span>
                             </label>
+                            {initialProduct?.images && initialProduct.images.length > 0 && (
+                                <div className="mb-4">
+                                    <div className="text-sm font-bold text-gray-700 mb-2">기존 등록된 이미지:</div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {initialProduct.images.map((img: { id: string; url: string }) => (
+                                            <div key={img.id} className="relative w-20 h-20 border border-gray-200 rounded-sm overflow-hidden bg-white">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={img.url} alt="product image" className="object-cover w-full h-full" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
                             <div className="space-y-1.5 mb-2">
                                 {originImages.map((img, index) => (
                                     <div key={img.id} className="flex gap-1">

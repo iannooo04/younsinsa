@@ -266,19 +266,16 @@ export default function CategoryManagementPage() {
   const [mode, setMode] = useState<"create_root" | "create_sub" | "edit" | null>(null);
 
   // File Upload State & Refs
-  const [pcHoverImageName, setPcHoverImageName] = useState("");
   const [pcImageName, setPcImageName] = useState("");
   const [_mobileImageName, _setMobileImageName] = useState("");
 
-  const pcHoverImageInputRef = useRef<HTMLInputElement>(null);
   const pcImageInputRef = useRef<HTMLInputElement>(null);
   const _mobileImageInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>, type: 'pcHover' | 'pc' | 'mobile') => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>, type: 'pc' | 'mobile') => {
       const file = e.target.files?.[0];
       if (file) {
-          if (type === 'pcHover') setPcHoverImageName(file.name);
-          else if (type === 'pc') setPcImageName(file.name);
+          if (type === 'pc') setPcImageName(file.name);
           else if (type === 'mobile') _setMobileImageName(file.name);
       }
   };
@@ -346,7 +343,6 @@ export default function CategoryManagementPage() {
       // Because we await image uploads, we cannot place them inside startTransition.
       // We will do the async work first, then wrap the action calls in startTransition.
       let uploadedImageUrl: string | undefined = undefined;
-      let uploadedPcHoverUrl: string | undefined = undefined;
 
       try {
           if (pcImageInputRef.current?.files?.[0]) {
@@ -354,12 +350,6 @@ export default function CategoryManagementPage() {
               uploadData.append("file", pcImageInputRef.current.files[0]);
               const res = await uploadImageAction(uploadData);
               if (res.success) uploadedImageUrl = res.url;
-          }
-          if (pcHoverImageInputRef.current?.files?.[0]) {
-              const uploadData = new FormData();
-              uploadData.append("file", pcHoverImageInputRef.current.files[0]);
-              const res = await uploadImageAction(uploadData);
-              if (res.success) uploadedPcHoverUrl = res.url;
           }
       } catch (e) {
           console.error("Image upload failed:", e);
@@ -381,7 +371,6 @@ export default function CategoryManagementPage() {
                  code: formData.code,
                  customUrl: formData.customUrl,
                  imageUrl: uploadedImageUrl,
-                 pcHoverImageUrl: uploadedPcHoverUrl,
              });
           } else {
              result = await createCategoryAction({
@@ -396,7 +385,6 @@ export default function CategoryManagementPage() {
                  code: formData.code,
                  customUrl: formData.customUrl,
                  imageUrl: uploadedImageUrl,
-                 pcHoverImageUrl: uploadedPcHoverUrl,
              });
           }
 
@@ -405,9 +393,7 @@ export default function CategoryManagementPage() {
               
               // 폼 리셋 (이미지 파일)
               if (pcImageInputRef.current) pcImageInputRef.current.value = "";
-              if (pcHoverImageInputRef.current) pcHoverImageInputRef.current.value = "";
               setPcImageName("");
-              setPcHoverImageName("");
 
               fetchCategories();
           } else {
@@ -473,8 +459,22 @@ export default function CategoryManagementPage() {
         {/* Left Sidebar: Category Tree */}
         <div className="w-[250px] flex-shrink-0 min-h-[800px]">
           <div className="flex gap-1 mb-2">
-            <Button variant="outline" size="sm" className="h-7 text-xs px-2 rounded-sm border-gray-300 bg-white hover:bg-gray-50 text-gray-700" onClick={handleCreateRoot}>1차 카테고리 생성</Button>
-            <Button variant="outline" size="sm" className="h-7 text-xs px-2 rounded-sm border-gray-300 bg-white hover:bg-gray-50 text-gray-700" onClick={handleCreateSub}>하위 카테고리 생성</Button>
+            <Button 
+                variant={mode === 'create_root' ? 'default' : 'outline'}
+                size="sm" 
+                className={`h-7 text-xs px-3 rounded-sm transition-colors ${mode === 'create_root' ? 'bg-[#FF424D] hover:bg-[#FF424D]/90 text-white border-0' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'}`} 
+                onClick={handleCreateRoot}
+            >
+                1차 카테고리 생성
+            </Button>
+            <Button 
+                variant={mode === 'create_sub' ? 'default' : 'outline'}
+                size="sm" 
+                className={`h-7 text-xs px-3 rounded-sm transition-colors ${mode === 'create_sub' ? 'bg-[#FF424D] hover:bg-[#FF424D]/90 text-white border-0' : 'border-gray-300 text-gray-700 bg-white hover:bg-gray-50'}`} 
+                onClick={handleCreateSub}
+            >
+                하위 카테고리 생성
+            </Button>
 
           </div>
           
@@ -632,24 +632,6 @@ export default function CategoryManagementPage() {
                                </Button>
                                <div className="w-32 h-7 bg-gray-100 border border-gray-300 flex items-center px-2 text-xs text-gray-600 overflow-hidden whitespace-nowrap">
                                    {pcImageName}
-                               </div>
-                           </div>
-                           <div className="flex items-center gap-2 ml-4">
-                               <span className="font-bold border-l border-gray-300 pl-4 text-gray-700">마우스오버 이미지 등록</span>
-                               <input 
-                                   type="file" 
-                                   className="hidden" 
-                                   ref={pcHoverImageInputRef} 
-                                   onChange={(e) => handleFileChange(e, 'pcHover')}
-                               />
-                               <Button 
-                                   className="h-7 text-xs px-2 bg-gray-400 text-white border-0 hover:bg-gray-500 rounded-sm"
-                                   onClick={() => pcHoverImageInputRef.current?.click()}
-                               >
-                                   찾아보기
-                               </Button>
-                               <div className="w-32 h-7 bg-gray-100 border border-gray-300 flex items-center px-2 text-xs text-gray-600 overflow-hidden whitespace-nowrap">
-                                   {pcHoverImageName}
                                </div>
                            </div>
                        </div>

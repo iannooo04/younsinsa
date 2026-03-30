@@ -2,9 +2,10 @@
 
 import { useState, useMemo } from "react";
 import Image from "next/image";
-import { Link, useRouter } from "@/i18n/routing";
+import { useRouter } from "@/i18n/routing";
 import { useSession } from "next-auth/react";
 import { addToCartAction } from "@/actions/cart-actions";
+import { Heart, ChevronRight, Star } from "lucide-react";
 
 import ReviewList from "@/components/review/ReviewList";
 import QnaList from "@/components/qna/QnaList";
@@ -38,20 +39,16 @@ interface ProductDetailClientProps {
 
 export default function ProductDetailClient({ product, userId }: ProductDetailClientProps) {
   const router = useRouter();
-  const { data: session } = useSession(); // Still use session for client-side checks if needed, but props.userId is prioritized
+  const { data: session } = useSession(); 
   const currentUserId = userId || session?.user?.id;
 
   const [selectedImage, setSelectedImage] = useState(product.images[0] || null);
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, _setQuantity] = useState(1);
   const [isAddingRequest, setIsAddingRequest] = useState(false);
   
-  // Tabs State
   const [activeTab, setActiveTab] = useState<"info" | "review" | "qna" | "delivery">("info");
-  
-  // Selection state: { [optionId]: valueId }
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
 
-  // ... (currentVariant and other logic remains same)
   const currentVariant = useMemo(() => {
     if (product.options.length === 0) return null;
     const allSelected = product.options.every(opt => selectedOptions[opt.id]);
@@ -110,25 +107,20 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumbs */}
-      <div className="mb-4">
-        <Link href="/" className="text-sm text-gray-500 hover:text-black">Home</Link>
-        <span className="mx-2 text-gray-300">/</span>
-        <span className="text-sm text-gray-900">{product.name}</span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+    <div className="container mx-auto px-4 pt-0 pb-0">
+      <div className="flex flex-col lg:flex-row justify-between items-start gap-10 lg:gap-[3%]">
         {/* Left: Images */}
-        <div className="flex flex-col gap-4">
-          <div className="relative aspect-square bg-gray-100 rounded-md overflow-hidden">
+        <div className="w-full lg:w-[67%] flex flex-col gap-4">
+          <div className="mb-1.5 mt-2">
+              <div className="text-[13px] text-gray-500 hover:text-black">Home &gt; 상의 &gt; {product.name} ({product.brandName})</div>
+          </div>
+          <div className="relative w-full h-[calc(100vh-120px)] bg-gray-50 overflow-hidden rounded-lg">
             {selectedImage ? (
-              <Image src={selectedImage} alt={product.name} fill className="object-cover" priority />
+              <Image src={selectedImage} alt={product.name} fill className="object-contain" priority />
             ) : (
                <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
             )}
           </div>
-          {/* Thumbnails */}
           {product.images.length > 1 && (
             <div className="flex gap-2 overflow-x-auto">
               {product.images.map((img, idx) => (
@@ -144,67 +136,133 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
           )}
         </div>
 
+        {/* Spacer for fixed right box to prevent layout shift */}
+        <div className="shrink-0 hidden lg:block" style={{ width: "calc(30% + 0.75 * (50vw - 50%))" }}></div>
+
         {/* Right: Product Info */}
-        <div className="py-2">
-            <div className="text-sm font-bold text-gray-900 mb-1">{product.brandName}</div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-4 break-keep leading-snug">{product.name}</h1>
-            <div className="flex items-center gap-2 mb-6 border-b pb-6">
-                <span className="text-2xl font-bold">{currentPrice.toLocaleString()}원</span>
-                {product.consumerPrice > currentPrice && (
-                    <span className="text-gray-400 line-through text-sm">{product.consumerPrice.toLocaleString()}원</span>
-                )}
-            </div>
+        <div 
+          className="shrink-0 bg-white border-t lg:border-t-0 lg:border-l border-gray-200 shadow-sm p-6 xl:p-7 flex flex-col gap-4 relative lg:fixed lg:top-[73px] lg:right-0 lg:z-[50] w-full lg:w-[32%] xl:w-[30%] lg:h-[calc(100vh-73px)] overflow-y-auto"
+        >
+          <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                   <div className="w-9 h-9 rounded-full border border-gray-200 flex flex-col items-center justify-center text-[7px] bg-white text-gray-500 overflow-hidden text-center leading-[1.1] font-medium tracking-tight whitespace-nowrap px-1">
+                       {product.brandName.length <= 4 ? product.brandName : product.brandName.split(" ").slice(0, 3).map((w, i) => <span key={i}>{w}</span>)}
+                   </div>
+                   <span className="font-bold text-gray-900 text-[15px]">{product.brandName}</span>
+                   <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-[2px] font-bold">단독</span>
+              </div>
+              <button className="flex items-center gap-1 border border-gray-200 rounded-[4px] px-3 py-1.5 hover:bg-gray-50">
+                   <Heart size={15} /> <span className="font-bold text-[13px]">13만</span>
+              </button>
+          </div>
 
-            {/* Options */}
-            <div className="space-y-6 mb-8">
-                {product.options.map(opt => (
-                    <div key={opt.id}>
-                        <label className="block text-sm font-bold mb-2">{opt.name}</label>
-                        <div className="flex flex-wrap gap-2">
-                            {opt.values.map(val => (
-                                <button
-                                    key={val.id}
-                                    onClick={() => handleOptionSelect(opt.id, val.id)}
-                                    className={`px-4 py-2 text-sm border rounded-sm transition-colors ${selectedOptions[opt.id] === val.id ? 'border-black bg-black text-white' : 'border-gray-200 hover:border-black'}`}
-                                >
-                                    {val.name}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-                {/* Quantity */}
-                <div>
-                     <label className="block text-sm font-bold mb-2">수량</label>
-                     <div className="flex items-center border w-max rounded-sm">
-                         <button className="px-3 py-1 hover:bg-gray-100" onClick={() => setQuantity(q => Math.max(1, q - 1))}>-</button>
-                         <span className="px-3 py-1 border-x min-w-[3rem] text-center">{quantity}</span>
-                         <button className="px-3 py-1 hover:bg-gray-100" onClick={() => setQuantity(q => q + 1)}>+</button>
-                     </div>
-                </div>
-            </div>
+          <div>
+              <div className="text-[13px] text-gray-500 mb-2 truncate">
+                  스포츠/레저 &gt; 상의 &gt; {product.name} ({product.brandName})
+              </div>
+              <h1 className="text-[22px] font-bold text-gray-900 leading-[1.3] mb-2 break-keep">{product.name}</h1>
+              <div className="flex gap-1.5 flex-wrap">
+                  <span className="text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-[2px]">무신사단독</span>
+                  <span className="text-[11px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-[2px]">아울렛</span>
+              </div>
+          </div>
 
-            {/* Actions */}
-            <div className="flex gap-3">
-                <button 
-                    disabled={isSoldOut || isAddingRequest}
-                    className={`flex-1 py-4 font-bold text-lg rounded-sm transition-colors ${isSoldOut ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-black text-white hover:bg-gray-800'}`}
-                >
-                    {isSoldOut ? '품절' : '바로 구매하기'}
-                </button>
-                <button 
-                    onClick={handleAddToCart}
-                    disabled={isSoldOut || isAddingRequest}
-                    className="flex-1 border border-gray-300 py-4 font-bold text-lg rounded-sm hover:border-black transition-colors"
-                >
-                    {isAddingRequest ? '담는 중...' : '장바구니'}
-                </button>
-            </div>
+          <div className="flex items-center gap-2">
+              <div className="flex items-center text-[15px] font-bold text-gray-900">
+                  <Star className="text-orange-400 fill-orange-400 w-[15px] h-[15px] mr-1" /> 4.8
+              </div>
+              <span className="text-[13px] text-gray-500 border-b border-gray-500 leading-none pb-[1px] cursor-pointer">후기 236개</span>
+              <span className="text-[11px] border border-[#aeb6fa] text-[#6d7bff] bg-[#f4f5ff] px-2 py-[2px] rounded-full flex items-center gap-1 ml-1 cursor-pointer">
+                  <span className="font-extrabold text-[10px] text-white bg-[#6d7bff] rounded-full px-1.5 py-[1px] leading-tight">AI</span> AI 요약 보기
+              </span>
+          </div>
+
+          <div className="mt-2">
+              {product.consumerPrice > currentPrice && (
+                  <div className="text-gray-400 line-through text-[15px] font-medium">{product.consumerPrice.toLocaleString()}원</div>
+              )}
+              <div className="flex items-baseline gap-2">
+                  {product.consumerPrice > currentPrice && (
+                      <span className="text-[26px] font-extrabold text-[#ff1414]">{Math.round(((product.consumerPrice - currentPrice) / product.consumerPrice) * 100)}%</span>
+                  )}
+                  <span className="text-[26px] font-bold text-gray-900">{currentPrice.toLocaleString()}원</span>
+              </div>
+          </div>
+
+          <div className="bg-[#f4f8ff] flex items-center justify-between p-4 rounded-[4px] mt-2 cursor-pointer transition-colors hover:bg-[#eef4ff]">
+              <span className="text-[#3b82f6] font-bold text-[14px]">첫 구매 20% 쿠폰 받으러 가기</span>
+              <ChevronRight className="text-[#3b82f6] w-4 h-4" />
+          </div>
+
+          <div className="mt-2 space-y-3">
+              {product.options.length > 0 ? (
+                  product.options.map(opt => (
+                      <div key={opt.id} className="relative">
+                          <select 
+                              onChange={(e) => handleOptionSelect(opt.id, e.target.value)} 
+                              value={selectedOptions[opt.id] || ""}
+                              className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-white cursor-pointer hover:border-black focus:outline-none focus:border-black font-medium transition-colors mb-1"
+                          >
+                              <option value="" disabled>{opt.name}</option>
+                              {opt.values.map(val => (
+                                  <option key={val.id} value={val.id}>{val.name}</option>
+                              ))}
+                          </select>
+                          <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
+                      </div>
+                  ))
+              ) : (
+                  <>
+                      <div className="relative">
+                          <select disabled className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
+                              <option value="" disabled selected>컬러</option>
+                          </select>
+                          <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
+                      </div>
+                      <div className="relative">
+                          <select disabled className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
+                              <option value="" disabled selected>사이즈</option>
+                          </select>
+                          <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
+                      </div>
+                  </>
+              )}
+          </div>
+
+          <div className="bg-[#f8f9fa] p-[10px] rounded-[4px] flex items-center justify-between mt-1 mb-2 cursor-pointer hover:bg-gray-100 transition-colors">
+              <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-sm overflow-hidden relative border border-gray-200 shrink-0">
+                       {selectedImage && <Image src={selectedImage} alt="selected" fill className="object-cover" />}
+                  </div>
+                  <span className="text-[13px] font-bold text-gray-900 tracking-tight">품절된 상품을 솔드아웃에서 구매해보세요.</span>
+              </div>
+              <ChevronRight className="text-gray-400 w-4 h-4 ml-2 shrink-0" />
+          </div>
+
+          <div className="flex gap-[6px] mt-1 mb-10 lg:mb-0">
+              <div className="flex flex-col items-center justify-center border border-gray-200 rounded-[4px] px-3 py-1 hover:bg-gray-50 cursor-pointer w-14 shrink-0 transition-colors">
+                  <Heart size={20} className="text-gray-800" strokeWidth={1.5} />
+                  <span className="text-[11px] font-bold mt-[2px] text-gray-800">829</span>
+              </div>
+              <button 
+                  onClick={handleAddToCart}
+                  disabled={isSoldOut || isAddingRequest}
+                  className="flex-1 border border-gray-300 py-3.5 font-bold text-[15px] rounded-[4px] hover:border-black transition-colors text-gray-900 bg-white"
+              >
+                  {isAddingRequest ? '담는 중...' : '장바구니'}
+              </button>
+              <button 
+                  disabled={isSoldOut || isAddingRequest}
+                  className="flex-1 py-3.5 font-bold text-[15px] rounded-[4px] transition-colors bg-black text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500"
+              >
+                  {isSoldOut ? '품절' : '구매하기'}
+              </button>
+          </div>
         </div>
       </div>
 
       {/* Tabs & Content */}
-      <div className="mt-20">
+      <div className="mt-20 w-full lg:w-[67%]">
         <div className="flex border-b border-gray-200 mb-8 sticky top-0 bg-white z-10">
             {[{ id: "info", label: "상세정보" }, { id: "review", label: "상품후기" }, { id: "qna", label: "상품문의" }, { id: "delivery", label: "배송/교환/반품" }].map((tab) => (
                 <button
@@ -219,7 +277,7 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
 
         <div className="min-h-[400px]">
             {activeTab === "info" && (
-                <div className="prose max-w-none text-gray-600 whitespace-wrap text-center overflow-hidden">
+                <div className="prose max-w-none text-gray-600 whitespace-wrap text-left overflow-hidden">
                     {product.description ? (
                          <div dangerouslySetInnerHTML={{ __html: product.description }} />
                     ) : (

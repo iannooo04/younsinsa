@@ -10,6 +10,7 @@ import {
   updateBrandAction, 
   deleteBrandAction 
 } from "@/actions/brand-actions";
+import { uploadImageAction } from "@/actions/product-actions";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -30,8 +31,6 @@ import {
   File,
 } from "lucide-react";
 import MemberGradeSelectPopup from "@/components/admin/MemberGradeSelectPopup";
-import RecommendProductSelectPopup from "@/components/admin/RecommendProductSelectPopup";
-import DecorationEditor from "@/components/admin/DecorationEditor";
 
 interface BrandWithChildren extends Brand {
   children?: BrandWithChildren[];
@@ -70,7 +69,7 @@ const buildTree = (items: BrandWithChildren[]) => {
 };
 
 export default function BrandManagementPage() {
-  const router = useRouter();
+  const _router = useRouter();
   // const [brands, setBrands] = useState<BrandWithChildren[]>([]); // Unused
   const [brandTree, setBrandTree] = useState<BrandWithChildren[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<BrandWithChildren | null>(null);
@@ -78,24 +77,28 @@ export default function BrandManagementPage() {
   const [mode, setMode] = useState<"edit" | "create_root" | "create_sub" | null>(null);
   // File Input Refs
   const imageInputRef = React.useRef<HTMLInputElement>(null);
-  const mouseoverImageInputRef = React.useRef<HTMLInputElement>(null);
 
   // Selected Files State
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [mouseoverImageFile, setMouseoverImageFile] = useState<File | null>(null);
+
+  const resetUploadState = () => {
+      setImageFile(null);
+      if (imageInputRef.current) imageInputRef.current.value = "";
+  };
 
   // Member Grade Popup State
   const [isMemberGradePopupOpen, setIsMemberGradePopupOpen] = useState(false);
   // const [selectedMemberGrades, setSelectedMemberGrades] = useState<any[]>([]); // Unused
 
   // Product Select Popup State
-  const [isProductSelectPopupOpen, setIsProductSelectPopupOpen] = useState(false);
+  const [_isProductSelectPopupOpen, setIsProductSelectPopupOpen] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
       name: "",
       nameCN: "",
       nameEN: "",
+      customUrl: "",
       type: "GENERAL",
       isExposedKR: true,
       isExposedCN: true,
@@ -174,6 +177,7 @@ export default function BrandManagementPage() {
 
         setSelectedBrand(fullBrand as unknown as BrandWithChildren);
         setMode("edit");
+        resetUploadState();
 
         const htmlContents = (fullBrand.htmlContents as unknown as BrandHtmlContents) || {
             navTopPC: "",
@@ -188,6 +192,8 @@ export default function BrandManagementPage() {
             name: fullBrand.name,
             nameCN: fullBrand.nameCN || "",
             nameEN: fullBrand.nameEN || "",
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            customUrl: (fullBrand as any).customUrl || "",
             type: fullBrand.type,
             isExposedKR: fullBrand.isExposedKR,
             isExposedCN: fullBrand.isExposedCN,
@@ -234,10 +240,12 @@ export default function BrandManagementPage() {
   const handleCreateRoot = () => {
     setSelectedBrand(null);
     setMode("create_root");
+    resetUploadState();
     setFormData({
       name: "",
       nameCN: "",
       nameEN: "",
+      customUrl: "",
       type: "GENERAL",
       isExposedKR: true,
       isExposedCN: true,
@@ -285,10 +293,12 @@ export default function BrandManagementPage() {
       return;
     }
     setMode("create_sub");
+    resetUploadState();
     setFormData({
       name: "",
       nameCN: "",
       nameEN: "",
+      customUrl: "",
       type: "GENERAL",
       isExposedKR: true,
       isExposedCN: true,
@@ -331,10 +341,30 @@ export default function BrandManagementPage() {
   };
 
   const handleSave = async () => {
+      let uploadedLogoUrl = formData.logoUrl;
+
+      // Handle image uploads before starting transition
+      if (imageFile) {
+          const uploadData = new FormData();
+          uploadData.append("file", imageFile);
+          try {
+              const res = await uploadImageAction(uploadData);
+              if (res.success && res.url) {
+                  uploadedLogoUrl = res.url;
+              }
+          } catch (e) {
+              console.error("Failed to upload brand image:", e);
+          }
+      }
+
     startTransition(async () => {
       let result;
       const payload = {
           ...formData,
+          logoUrl: uploadedLogoUrl,
+          pcImageUrl: uploadedLogoUrl,
+          mobileImageUrl: uploadedLogoUrl,
+          pcMouseoverImageUrl: formData.pcMouseoverImageUrl,
           nameCN: formData.name, // Ensure CN name is same
           displayStatusMobile: formData.displayStatusPC, // Sync display status
           mobileTheme: formData.pcTheme, // Sync theme
@@ -360,6 +390,7 @@ export default function BrandManagementPage() {
 
       if (result.success) {
         alert("저장되었습니다.");
+        resetUploadState();
         fetchBrands();
       } else {
         alert(result.error || "실패했습니다.");
@@ -367,12 +398,12 @@ export default function BrandManagementPage() {
     });
   };
 
-  const handleSelectProducts = async () => {
+  const _handleSelectProducts = async () => {
       setIsProductSelectPopupOpen(true);
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const handleProductSelectConfirm = (selectedProducts: { id: number | string; [key: string]: any }[]) => {
+  const _handleProductSelectConfirm = (selectedProducts: { id: number | string; [key: string]: any }[]) => {
       const newProducts = selectedProducts.map(p => ({
           productId: String(p.id),
           product: p
@@ -396,7 +427,7 @@ export default function BrandManagementPage() {
       setIsProductSelectPopupOpen(false);
   };
 
-  const handleRemoveSelectedProducts = () => {
+  const _handleRemoveSelectedProducts = () => {
       // For simplicity, let's just remove all for now or implement selection state
       setFormData({
           ...formData,
@@ -610,7 +641,7 @@ export default function BrandManagementPage() {
                         <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
                           브랜드 이미지 등록
                       </div>
-                      <div className="flex-1 p-3 flex flex-col justify-center gap-2 border-r border-gray-200">
+                      <div className="flex-1 p-3 flex flex-col justify-center gap-2">
                           <div className="flex items-center gap-1">
                                <input 
                                   type="file" 
@@ -621,23 +652,6 @@ export default function BrandManagementPage() {
                                <Button variant="secondary" size="sm" onClick={() => imageInputRef.current?.click()} className="h-7 text-xs !bg-[#333333] text-white !hover:bg-[#222222] rounded-none px-3">찾아보기</Button>
                                <div className="w-[180px] h-7 border border-gray-300 bg-[#F1F1F1] flex items-center px-2 text-xs text-gray-600 truncate">
                                    {imageFile ? imageFile.name : ""}
-                               </div>
-                          </div>
-                      </div>
-                      <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          마우스오버 이미지 등록
-                      </div>
-                       <div className="flex-1 p-3 flex flex-col justify-center gap-2">
-                           <div className="flex items-center gap-1">
-                               <input 
-                                  type="file" 
-                                  className="hidden" 
-                                  ref={mouseoverImageInputRef} 
-                                  onChange={(e) => handleFileChange(e, setMouseoverImageFile)}
-                               />
-                               <Button variant="secondary" size="sm" onClick={() => mouseoverImageInputRef.current?.click()} className="h-7 text-xs !bg-[#333333] text-white !hover:bg-[#222222] rounded-none px-3">찾아보기</Button>
-                               <div className="w-[180px] h-7 border border-gray-300 bg-[#F1F1F1] flex items-center px-2 text-xs text-gray-600 truncate">
-                                   {mouseoverImageFile ? mouseoverImageFile.name : ""}
                                </div>
                           </div>
                       </div>
@@ -753,368 +767,10 @@ export default function BrandManagementPage() {
                       </div>
                   </div>
 
-                  {/* Row: Theme Selection */}
-                    <div className="flex border-b border-gray-200">
-                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          쇼핑몰 테마선택
-                      </div>
-                      <div className="flex-1 p-3 flex items-center gap-2">
-                           <Select 
-                            value={formData.pcTheme} 
-                            onValueChange={(val: string) => setFormData({...formData, pcTheme: val, mobileTheme: val})}
-                           >
-                                <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
-                                    <SelectValue placeholder="브랜드테마" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="브랜드테마">브랜드테마</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
-                                onClick={() => router.push('/admin/products/main-display/theme/register')}
-                            >테마 등록</Button>
-                      </div>
-                  </div>
+
               </div>
           </div>
 
-           {/* Section 2: Selected Theme Info */}
-          <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-300">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-gray-800">선택된 테마 정보</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-              <div className="border-t border-gray-400 text-xs">
-                   {/* Table Rows for Theme Info - PC */}
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">테마명</div>
-                       <div className="p-3 flex items-center gap-2">
-                           <span>브랜드테마</span>
-                           <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-5 text-[10px] px-2 border-gray-300 bg-white"
-                                onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
-                            >수정</Button>
-                       </div>
-                   </div>
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">이미지 설정</div>
-                       <div className="p-3">추가리스트2 280pixel</div>
-                   </div>
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">상품 노출 개수</div>
-                       <div className="p-3">가로 : 4 X 세로 : 5</div>
-                   </div>
-                   <div className="grid grid-cols-[176px_1fr_176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">품절상품 노출</div>
-                       <div className="p-3 border-r border-gray-200">예</div>
-                        <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">품절상품 진열</div>
-                       <div className="p-3">정렬 순서대로 보여주기</div>
-                   </div>
-                    <div className="grid grid-cols-[176px_1fr_176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">품절 아이콘 노출</div>
-                       <div className="p-3 border-r border-gray-200">예</div>
-                        <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">아이콘 노출</div>
-                       <div className="p-3">예</div>
-                   </div>
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">노출항목 설정</div>
-                       <div className="p-3">이미지,상품명,이미지,상품명,판매가</div>
-                   </div>
-                    <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">디스플레이 유형</div>
-                       <div className="p-3">갤러리형</div>
-                   </div>
-              </div>
-          </div>
-
-
-          {/* Section 4: Recommended Products Info */}
-          <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-black">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">추천상품 정보</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-
-               <div className="border-t border-gray-200 text-xs">
-                  {/* Row: Scope */}
-                  <div className="flex border-b border-gray-200">
-                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          적용범위
-                      </div>
-                      <div className="flex-1 p-3">
-                           <div className="flex items-center gap-2">
-                                  <Checkbox 
-                                    className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" 
-                                    id="rec-scope" 
-                                    checked={formData.isRecApplyToChildren}
-                                    onCheckedChange={(checked) => setFormData({...formData, isRecApplyToChildren: !!checked})}
-                                  />
-                                  <Label htmlFor="rec-scope" className="text-gray-700 font-normal cursor-pointer">하위 브랜드 동일 적용</Label>
-                            </div>
-                      </div>
-                  </div>
-                   {/* Row: Display */}
-                  <div className="flex border-b border-gray-200">
-                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          쇼핑몰 노출상태
-                      </div>
-                      <div className="flex-1 p-3">
-                           <RadioGroup 
-                            value={formData.isRecExposedPC ? "visible" : "hidden"} 
-                            onValueChange={(val) => setFormData({...formData, isRecExposedPC: val === "visible", isRecExposedMobile: val === "visible"})}
-                            className="flex gap-6"
-                           >
-                              <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="visible" id="rec-visible" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
-                                  <Label htmlFor="rec-visible" className="text-gray-700 font-normal cursor-pointer">노출함</Label>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                  <RadioGroupItem value="hidden" id="rec-hidden" className="rounded-full border-gray-300 text-gray-600" />
-                                  <Label htmlFor="rec-hidden" className="text-gray-700 font-normal cursor-pointer">노출안함</Label>
-                              </div>
-                          </RadioGroup>
-                      </div>
-                  </div>
-                   {/* Row: Display Type */}
-                   <div className="flex border-b border-gray-200">
-                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          상품진열 타입
-                      </div>
-                      <div className="flex-1 p-3">
-                           <div className="flex items-center gap-2">
-                                 <RadioGroup 
-                                  value={formData.recProductDisplayType.toLowerCase()} 
-                                  onValueChange={(val) => setFormData({...formData, recProductDisplayType: val.toUpperCase()})}
-                                  className="flex flex-col gap-1.5"
-                                 >
-                                     <div className="flex items-center gap-2">
-                                         <RadioGroupItem value="auto" id="rec-disp-auto" className="rounded-full border-red-500 text-red-500 focus:ring-red-500" />
-                                         <Label htmlFor="rec-disp-auto" className="text-gray-700 font-normal cursor-pointer">자동진열</Label>
-                                          <Select defaultValue="recent">
-                                             <SelectTrigger className="w-40 h-6 text-xs border-gray-300 rounded-sm ml-2">
-                                                 <SelectValue placeholder="최근 등록 상품 위로" />
-                                             </SelectTrigger>
-                                             <SelectContent>
-                                                <SelectItem value="recent">최근 등록 상품 위로</SelectItem>
-                                                <SelectItem value="recent_asc">최근 등록 상품 아래로</SelectItem>
-                                                <SelectItem value="mod_desc">최근 수정 상품 위로</SelectItem>
-                                                <SelectItem value="mod_asc">최근 수정 상품 아래로</SelectItem>
-                                                <SelectItem value="name_asc">상품명 가나다순</SelectItem>
-                                                <SelectItem value="name_desc">상품명 가나다역순</SelectItem>
-                                                <SelectItem value="price_desc">판매가 높은 상품 위로</SelectItem>
-                                                <SelectItem value="price_asc">판매가 높은 상품 아래로</SelectItem>
-                                                <SelectItem value="sales_desc">판매량 높은 상품 위로</SelectItem>
-                                                <SelectItem value="sales_asc">판매량 높은 상품 아래로</SelectItem>
-                                                <SelectItem value="view_desc">조회수 높은 상품 위로</SelectItem>
-                                                <SelectItem value="view_asc">조회수 높은 상품 아래로</SelectItem>
-                                            </SelectContent>
-                                         </Select>
-                                     </div>
-                                     <div className="flex items-center gap-2">
-                                         <RadioGroupItem value="manual" id="rec-disp-manual" className="rounded-full border-gray-300 text-gray-600" />
-                                         <Label htmlFor="rec-disp-manual" className="text-gray-700 font-normal cursor-pointer">수동진열</Label>
-                                     </div>
-                                 </RadioGroup>
-                           </div>
-                      </div>
-                  </div>
-                   {/* Row: Theme Selection */}
-                   <div className="flex border-b border-gray-200">
-                       <div className="w-[220px] bg-gray-50 p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200">
-                          쇼핑몰 테마선택
-                      </div>
-                      <div className="flex-1 p-3 flex items-center gap-2">
-                           <Select 
-                            value={formData.recPcTheme} 
-                            onValueChange={(val) => setFormData({...formData, recPcTheme: val, recMobileTheme: val})}
-                           >
-                                <SelectTrigger className="w-32 h-7 text-xs border-gray-300 rounded-sm">
-                                    <SelectValue placeholder="추천상품테마" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="추천상품테마">추천상품테마</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <Button 
-                                variant="secondary" 
-                                size="sm" 
-                                className="h-7 text-xs bg-gray-600 text-white hover:bg-gray-700 rounded-sm px-3"
-                                onClick={() => router.push('/admin/products/main-display/theme/register')}
-                            >테마 등록</Button>
-                      </div>
-                  </div>
-               </div>
-          </div>
-          
-           {/* Section 5: Selected Rec Theme Info */}
-           <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-gray-300">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-gray-800">선택된 쇼핑몰 추천상품 테마 정보</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-              {/* Reuse structure from Section 2 but with Rec Theme Data */}
-              <div className="border-t border-gray-400 text-xs">
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">테마명</div>
-                       <div className="p-3 flex items-center gap-2">
-                           <span>추천상품테마</span>
-                           <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-5 text-[10px] px-2 border-gray-300 bg-white"
-                                onClick={() => router.push('/admin/products/main-display/theme/edit/1')}
-                            >수정</Button>
-                       </div>
-                   </div>
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">이미지 설정</div>
-                       <div className="p-3">추가리스트2 280pixel</div>
-                   </div>
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">상품 노출 개수</div>
-                       <div className="p-3">가로 : 4 X 세로 : 5</div>
-                   </div>
-                    {/* ... */}
-                   <div className="grid grid-cols-[176px_1fr] border-b border-gray-200">
-                       <div className="bg-gray-50 p-3 pl-4 font-bold text-gray-700 border-r border-gray-200">디스플레이 유형</div>
-                       <div className="p-3">갤러리형</div>
-                   </div>
-              </div>
-           </div>
-
-
-           {/* Section 7: Selected Products */}
-           <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-black">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">선택된 추천상품</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-
-                <div className="border-t border-gray-400 text-xs">
-                     {/* Header */}
-                    <div className="bg-[#BFBFBF] text-white flex text-center font-bold">
-                        <div className="w-10 py-3 border-r border-gray-300 flex items-center justify-center"><Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" /></div>
-                        <div className="w-12 py-3 border-r border-gray-300">번호</div>
-                        <div className="w-16 py-3 border-r border-gray-300">이미지</div>
-                        <div className="flex-1 py-3 border-r border-gray-300">상품명</div>
-                        <div className="w-24 py-3 border-r border-gray-300">판매가</div>
-                        <div className="w-20 py-3 border-r border-gray-300">재고</div>
-                        <div className="w-16 py-3 border-r border-gray-300">품절상태</div>
-                        <div className="w-32 py-3 leading-tight flex items-center justify-center">상품 노출상태</div>
-                    </div>
-                    {/* Items */}
-                    {formData.recommendedProducts.length > 0 ? (
-                        formData.recommendedProducts.map((rp, index) => {
-                            const p = rp.product;
-                            return (
-                                <div key={rp.productId} className="flex text-center border-b border-gray-200 h-12 items-center">
-                                    <div className="w-10 flex items-center justify-center"><Checkbox className="w-3.5 h-3.5 border-gray-300 rounded-[2px]" /></div>
-                                    <div className="w-12">{index + 1}</div>
-                                    <div className="w-16 h-10 flex items-center justify-center bg-gray-50 m-1 border border-gray-100 italic text-[10px] text-gray-300">IMG</div>
-                                    <div className="flex-1 text-left px-2 font-medium line-clamp-1">{p?.name || rp.productId}</div>
-                                    <div className="w-24 px-1">{(p?.price || 0).toLocaleString()}원</div>
-                                    <div className="w-20 px-1">{p?.stock || '0'}</div>
-                                    <div className="w-16 px-1">{p?.stockStatus || '-'}</div>
-                                    <div className="w-32 px-1 text-blue-500 font-bold">{p?.displayStatus || '노출함'}</div>
-                                </div>
-                            );
-                        })
-                    ) : (
-                        <div className="h-24 flex items-center justify-center border-b border-gray-200 text-gray-500">
-                             등록된 상품이 없습니다.
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex justify-between mt-2">
-                     <Button
-                        variant="outline" size="sm"
-                        className="h-7 text-xs px-3 border-gray-300 bg-white hover:bg-gray-50 text-gray-600"
-                        onClick={handleRemoveSelectedProducts}
-                     >선택 삭제</Button>
-                     <Button
-                        variant="outline" size="sm"
-                        className="h-7 text-xs px-3 border-gray-300 bg-white hover:bg-gray-50 text-gray-600"
-                        onClick={handleSelectProducts}
-                     >상품 선택</Button>
-                </div>
-           </div>
-
-            {/* Section 8: Decoration */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between pb-2 border-b border-black">
-                  <div className="flex items-center gap-2">
-                      <h2 className="text-lg font-bold text-gray-800">브랜드 네비게이션 상단 영역 꾸미기</h2>
-                      <HelpCircle className="w-4 h-4 text-gray-400" />
-                  </div>
-                  <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-              </div>
-
-                {/* Editor */}
-                <DecorationEditor 
-                    value={formData.htmlContents.navTopPC}
-                    onChange={(val) => {
-                        setFormData({...formData, htmlContents: {...formData.htmlContents, navTopPC: val}});
-                    }}
-                />
-            </div>
-
-             {/* Section 9: Brand Recommended Products Top Decoration */}
-             <div className="space-y-2">
-               <div className="flex items-center justify-between pb-2 border-b border-black">
-                   <div className="flex items-center gap-2">
-                       <h2 className="text-lg font-bold text-gray-800">브랜드 추천 상품 상단 영역 꾸미기</h2>
-                       <HelpCircle className="w-4 h-4 text-gray-400" />
-                   </div>
-                   <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-               </div>
- 
-                 {/* Editor */}
-                 <DecorationEditor 
-                    simpleToolbar
-                    value={formData.htmlContents.recTopPC}
-                    onChange={(val) => {
-                        setFormData({...formData, htmlContents: {...formData.htmlContents, recTopPC: val}});
-                    }}
-                 />
-             </div>
-
-              {/* Section 10: Brand List Top Decoration */}
-             <div className="space-y-2">
-               <div className="flex items-center justify-between pb-2 border-b border-black">
-                   <div className="flex items-center gap-2">
-                       <h2 className="text-lg font-bold text-gray-800">브랜드 리스트 상단 영역 꾸미기</h2>
-                       <HelpCircle className="w-4 h-4 text-gray-400" />
-                   </div>
-                   <button className="flex items-center text-xs text-blue-600 font-bold">닫힘 <ChevronUp className="w-3 h-3 ml-1"/></button>
-               </div>
- 
-                 {/* Editor */}
-                 <DecorationEditor 
-                    simpleToolbar
-                    value={formData.htmlContents.listTopPC}
-                    onChange={(val) => {
-                        setFormData({...formData, htmlContents: {...formData.htmlContents, listTopPC: val}});
-                    }}
-                 />
-             </div>
 
 
             {/* Section 12: Guide/Info */}
@@ -1256,11 +912,7 @@ export default function BrandManagementPage() {
         onClose={() => setIsMemberGradePopupOpen(false)} 
         onConfirm={handleMemberGradeConfirm} 
       />
-      <RecommendProductSelectPopup
-        isOpen={isProductSelectPopupOpen}
-        onClose={() => setIsProductSelectPopupOpen(false)}
-        onConfirm={handleProductSelectConfirm}
-      />
+
     </div>
   );
 }

@@ -96,7 +96,8 @@ export default function MainHeader({
     pathname.includes("/offline") ||
     pathname.includes("/like") ||
     pathname.includes("/alerts") ||
-    pathname.includes("/settings");
+    pathname.includes("/settings") ||
+    pathname.includes("/product/");
 
   // 우측 메뉴 공통 렌더링 함수
   const renderRightMenu = () => (

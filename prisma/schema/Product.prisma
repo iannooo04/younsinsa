@@ -57,7 +57,8 @@ model Brand {
   nameCN String? // 중문 브랜드명
   nameEN String? // 영문 브랜드명 (slug 대용 가능)
 
-  slug     String? @unique
+  slug      String? @unique
+  customUrl String? // e.g., "https://example.com"
   category String? // Main category name for filtering (Legacy or specific usage)
 
   description String?

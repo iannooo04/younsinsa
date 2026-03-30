@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { DisplayStatus, ProductImageType, Prisma } from "@/generated/prisma";
 import * as XLSX from "xlsx";
-import { uploadFile } from "@/lib/s3";
+import { uploadFile, deleteFolder } from "@/lib/s3";
 
 // Helper: Save Image to R2
 async function saveImage(file: File, folderPrefix: string = "products/general"): Promise<string | null> {
@@ -519,11 +519,25 @@ export async function restoreProductsAction(ids: string[]) {
 // --- Bulk Action: Permanent Delete ---
 export async function permanentlyDeleteProductsAction(ids: string[]) {
     try {
+        // Fetch products to get their codes for S3 folder deletion
+        const productsToDelete = await prisma.product.findMany({
+            where: { id: { in: ids } },
+            select: { id: true, code: true }
+        });
+
+        // 1. Delete image folders from S3/R2
+        for (const product of productsToDelete) {
+            const folderPrefix = `products/${product.code || product.id}`;
+            await deleteFolder(folderPrefix);
+        }
+
+        // 2. Delete products from DB
         await prisma.product.deleteMany({
             where: { id: { in: ids } }
         });
+        
         revalidatePath('/admin/products');
-        return { success: true, message: "선택한 상품이 완전 삭제되었습니다." };
+        return { success: true, message: "선택한 상품과 이미지가 완전 삭제되었습니다." };
     } catch (error) {
         console.error("Error permanently deleting products:", error);
         return { success: false, message: "완전 삭제 중 오류가 발생했습니다." };

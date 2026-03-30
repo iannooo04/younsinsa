@@ -348,12 +348,7 @@ export default function CategoryPopup({
             >
               {t("tabs.brand")}
             </button>
-            <button
-              className={`pb-3 relative text-gray-400 hover:text-black`}
-              type="button"
-            >
-              팬 스토어<span className="absolute top-1 -right-1.5 w-[5px] h-[5px] bg-[#4C6AD2] rounded-full"></span>
-            </button>
+
             <button
               onClick={() => setSelectedTab("service")}
               className={`pb-3 relative ${
