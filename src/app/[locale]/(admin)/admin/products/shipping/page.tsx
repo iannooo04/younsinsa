@@ -1,4 +1,4 @@
-
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
@@ -31,6 +31,7 @@ import ShippingPolicyPopup from "@/components/admin/ShippingPolicyPopup";
 interface Product {
     id: string;
     productCode: string;
+    image: string | null;
     name: string;
     supplier: string;
     displayStatus: string;
@@ -274,11 +275,10 @@ export default function ProductShippingManagementPage() {
                                         onCheckedChange={handleSelectPage}
                                     />
                                 </TableHead>
-                                <TableHead className="w-16 text-center text-white bg font-bold">번호</TableHead>
+                                <TableHead className="w-16 text-center font-bold">번호</TableHead>
                                 <TableHead className="text-center font-bold">상품코드</TableHead>
                                 <TableHead className="text-center font-bold">이미지</TableHead>
                                 <TableHead className="text-center font-bold w-[300px]">상품명</TableHead>
-                                <TableHead className="text-center font-bold">공급사</TableHead>
                                 <TableHead className="text-center font-bold">노출상태</TableHead>
                                 <TableHead className="text-center font-bold">판매상태</TableHead>
                                 <TableHead className="text-center font-bold">판매가</TableHead>
@@ -308,11 +308,14 @@ export default function ProductShippingManagementPage() {
                                         <TableCell>{item.productCode}</TableCell>
                                         <TableCell className="py-1">
                                             <div className="flex justify-center">
-                                                <div className="w-10 h-10 bg-gray-100 object-cover flex items-center justify-center text-[10px] text-gray-400">img</div> 
+                                                {item.image ? (
+                                                    <img src={item.image} alt={item.name} className="w-10 h-10 object-cover border border-gray-200" />
+                                                ) : (
+                                                    <div className="w-10 h-10 bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">img</div>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-left pl-4 font-normal text-gray-800">{item.name}</TableCell>
-                                        <TableCell>{item.supplier}</TableCell>
                                         <TableCell>{item.displayStatus}</TableCell>
                                         <TableCell>{item.saleStatus}</TableCell>
                                         <TableCell>{item.price?.toLocaleString()}원</TableCell>

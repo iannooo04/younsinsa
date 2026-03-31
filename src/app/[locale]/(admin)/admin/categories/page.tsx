@@ -8,9 +8,7 @@ import {
   ChevronUp,
   Folder,
   HelpCircle,
-  Play,
-  File,
-  Lock
+  Play
 } from "lucide-react";
 import React, { useEffect, useState, useTransition, useRef, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -56,175 +54,6 @@ const buildTree = (items: CategoryWithChildren[]) => {
     return rootItems;
 };
 
-
-const CategoryGuideSection = () => {
-    return (
-        <div className="border-t border-gray-900 pt-4 mt-8">
-            <div className="flex items-center gap-2 mb-4">
-                <File className="w-4 h-4 text-blue-500" />
-                <h3 className="text-lg font-bold text-blue-500">안내</h3>
-            </div>
-            
-            <div className="space-y-8 text-sm text-gray-600">
-                {/* Group Category Info */}
-                <div>
-                    <h4 className="font-bold mb-2">[카테고리 정보] 그룹(구분) 카테고리는 무엇인가요?</h4>
-                    <ul className="list-disc pl-5 space-y-1 mb-4">
-                        <li>카테고리 페이지가 없고, 상품연결이 되지 않는 카테고리입니다.</li>
-                        <li>상품 연결이 필요 없는 대표성이 있는 카테고리를 만들고 싶을 때 사용합니다.</li>
-                        <li>디자인적으로 카테고리 사이에 구분선을 삽입하고 싶을 때 사용합니다.</li>
-                        <li>그룹(구분) 카테고리는 하위 카테고리가 존재할 수 없으며, 1차 카테고리만 생성할 수 있습니다.</li>
-                    </ul>
-                    <div className="flex gap-8 border border-red-400 p-2 inline-block">
-                        <div className="text-center">
-                            <div className="border border-gray-300 p-2 mb-1 bg-white">
-                                <div className="text-left text-xs font-mono">
-                                    <div>- 카테고리</div>
-                                    <div className="pl-2">├ 상의</div>
-                                    <div className="pl-4">│ └ 자켓</div>
-                                    <div className="pl-4">│ └ 코트</div>
-                                    <div className="pl-2">├ 하의</div>
-                                </div>
-                            </div>
-                            <span className="text-xs font-bold text-gray-500">[관리자 화면]</span>
-                        </div>
-                        <div className="flex items-center text-blue-300">▶</div>
-                        <div className="text-center">
-                            <div className="border border-gray-300 p-2 mb-1 bg-white min-w-[100px] text-left">
-                                <div className="font-bold underline mb-2">상의</div>
-                                <div className="text-xs text-gray-500 pl-2">자켓</div>
-                                <div className="text-xs text-gray-500 pl-2">코트</div>
-                                <div className="border-b border-dashed border-gray-300 my-2"></div>
-                                <div className="font-bold underline mb-2">하의</div>
-                            </div>
-                            <span className="text-xs font-bold text-gray-500">[쇼핑몰 화면]</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Category Order/Move */}
-                <div>
-                    <h4 className="font-bold mb-2">[카테고리 정보] 카테고리 순서를 변경할 수 있나요?</h4>
-                    <p className="mb-4">· 카테고리를 선택(클릭)하고 마우스 드래그하여 원하는 위치에 끌어다 놓으면 순서 변경이 가능합니다.</p>
-
-                    <h4 className="font-bold mb-2">[카테고리 정보] 카테고리를 이동할 수 있나요?</h4>
-                    <ul className="list-disc pl-5 space-y-1 mb-4">
-                        <li>카테고리를 선택(클릭)하고 마우스 드래그하여 원하는 위치에 끌어다 놓으면 이동이 가능합니다.</li>
-                        <li>카테고리 이동 시 4차(세분류) 카테고리 이상이 될 경우에는 이동이 되지 않습니다.</li>
-                        <li>선택된 카테고리의 바로 아래 하위 카테고리로 이동은 불가능 합니다. (상위 카테고리로는 제한없이 이동 가능합니다.)</li>
-                    </ul>
-                    
-                    <div className="flex gap-8">
-                        <div>
-                            <div className="text-red-500 font-bold mb-1 text-xs">• 이동 가능한 경우</div>
-                            <div className="border border-red-400 p-2 bg-white">
-                                <div className="text-xs font-mono">
-                                    <div>- 의류</div>
-                                    <div className="pl-2 bg-blue-50">└ 패션잡화</div>
-                                    <div className="pl-4">└ 지갑</div>
-                                    <div className="pl-4">└ 벨트</div>
-                                    <div className="pl-2">└ 소품</div>
-                                    <div className="pl-4 text-blue-500 font-bold">↳ 쿠션</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div>
-                             <div className="text-red-500 font-bold mb-1 text-xs">• 이동 불가능한 경우</div>
-                             <div className="border border-red-400 p-2 bg-white">
-                                <div className="text-xs font-mono">
-                                    <div>- 의류</div>
-                                    <div className="pl-2">└ 패션잡화</div>
-                                    <div className="pl-4">└ 지갑</div>
-                                    <div className="pl-4 bg-gray-100">└ 벨트 <span className="text-red-500 font-bold">X 패션잡화</span></div>
-                                    <div className="pl-2">└ 소품 <span className="text-red-500 font-bold">X 지갑</span></div>
-                                    <div className="pl-4">└ 쿠션 <span className="text-red-500 font-bold">X 벨트</span></div>
-                                </div>
-                            </div>
-                            <div className="text-center text-xs font-bold text-gray-500 mt-1">[관리자 화면]</div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Icons Legend */}
-                 <div>
-                    <h4 className="font-bold mb-2">[카테고리 정보] 카테고리 폴더 이미지가 달라요.</h4>
-                    <p className="mb-2">· 카테고리 폴더 이미지는 카테고리의 "타입, 노출상태, 접근권한"에 따라 다르게 노출됩니다.</p>
-                    <div className="flex gap-2 mb-2">
-                        <Folder className="w-5 h-5 text-sky-400 fill-sky-400" /> <span className="font-bold text-white bg-blue-400 rounded-sm px-1 text-xs mr-2">1</span>
-                        <Folder className="w-5 h-5 text-orange-400 fill-orange-400" /> <span className="font-bold text-white bg-blue-400 rounded-sm px-1 text-xs mr-2">2</span>
-                        <Folder className="w-5 h-5 text-gray-400 fill-gray-400" /> <span className="font-bold text-white bg-blue-400 rounded-sm px-1 text-xs mr-2">3</span>
-                        <Folder className="w-5 h-5 text-sky-400 fill-sky-400 relative"><Lock className="absolute -bottom-1 -right-1 bg-white rounded-full border border-gray-300 w-3 h-3 p-0.5 text-gray-600" /></Folder> <span className="font-bold text-white bg-blue-400 rounded-sm px-1 text-xs">4</span>
-                    </div>
-                    <div className="text-xs space-y-2 text-gray-500">
-                        <p>① <span className="font-bold text-gray-700">일반 카테고리 :</span> 접근 권한에 제한이 없고, PC / 모바일쇼핑몰 모두 노출된 상태의 일반 카테고리로 등록된 카테고리 입니다.</p>
-                        <p className="pl-3">- 카테고리 타입 : 일반 카테고리, PC / 모바일쇼핑몰 노출상태 : 노출함, 접근 권한 : 전체(회원+비회원)</p>
-                        
-                        <p>② <span className="font-bold text-gray-700">그룹(구분) 카테고리 :</span> 접근 권한에 제한이 없고, PC / 모바일쇼핑몰 모두 노출된 상태의 그룹(구분) 카테고리로 등록된 카테고리 입니다.</p>
-                        <p className="pl-3">- 카테고리 타입 : 그룹(구분) 카테고리, PC / 모바일쇼핑몰 노출상태 : 노출함, 접근 권한 : 전체(회원+비회원)</p>
-                        
-                        <p>③ <span className="font-bold text-gray-700">노출안함 카테고리 :</span> 접근 권한에 제한이 없고, PC쇼핑몰 또는 모바일쇼핑몰 노출안함 상태의 일반 카테고리로 등록된 카테고리 입니다.</p>
-                        <p className="pl-3">- 카테고리 타입 : 일반 카테고리, PC / 모바일쇼핑몰 노출상태 : 노출안함, 접근 권한 : 전체(회원+비회원)</p>
-
-                         <p>④ <span className="font-bold text-gray-700">접근 제한 카테고리 :</span> 접근 권한에 제한이 있고, PC / 모바일쇼핑몰 모두 노출된 상태의 일반 카테고리로 등록된 카테고리 입니다.</p>
-                        <p className="pl-3">- 카테고리 타입 : 일반 카테고리, PC / 모바일쇼핑몰 노출상태 : 노출함, 접근 권한 : 회원전용(비회원제외) 또는 특정 회원등급</p>
-                    </div>
-                </div>
-
-                {/* Product Count */}
-                <div>
-                    <h4 className="font-bold mb-2">[카테고리 정보] 등록 상품수는 무엇인가요?</h4>
-                    <ul className="list-disc pl-5 space-y-1 mb-4">
-                        <li>"등록 상품수"란 현재 선택된 카테고리에 연결된 상품의 총 수량입니다.</li>
-                        <li>카테고리 트리 내 카테고리 선택(클릭) 시 "카테고리 정보" 영역에 "등록 상품수" 항목으로 노출됩니다.</li>
-                        <li>선택된 카테고리에 하위 카테고리가 있는 경우 하위 카테고리에 연결된 상품을 포함하여 노출됩니다.</li>
-                    </ul>
-                    <div className="border border-red-400 p-1 inline-block bg-white relative">
-                        <div className="flex gap-4 p-2 border border-gray-200">
-                             <div className="w-40 border-r border-gray-200 pr-2">
-                                 <div className="text-xs bg-blue-100 p-1 border border-blue-200 mb-1">카테고리</div>
-                                 <div className="pl-2">📂 의류</div>
-                                 <div className="pl-4">📂 패션잡화</div>
-                             </div>
-                             <div className="flex-1 space-y-2">
-                                 <div className="border border-gray-200 p-2 bg-gray-50 flex items-center justify-between gap-4">
-                                     <span className="font-bold">현재 카테고리</span>
-                                     <div className="flex gap-1">
-                                         <span className="border border-gray-300 bg-white px-2 py-0.5 text-xs">의류</span>
-                                         <Button size="sm" className="h-5 text-[10px] bg-red-500 text-white">주소복사</Button>
-                                     </div>
-                                 </div>
-                                  <div className="border border-gray-200 p-2 flex items-center gap-4">
-                                     <span className="font-bold">등록 상품수</span>
-                                     <span className="text-blue-500 font-bold">5 개가 등록되어 있습니다. <span className="text-xs font-normal text-blue-400">(하위 카테고리까지 포함)</span></span>
-                                  </div>
-                                  <div className="border border-gray-200 p-2 bg-gray-50 flex items-center justify-between gap-4">
-                                     <span className="font-bold text-red-500">• 카테고리명</span>
-                                      <div className="flex-1 border border-gray-300 bg-white p-1 text-xs flex justify-between">
-                                         <span>의류</span>
-                                         <span className="text-gray-400">2 / 30</span>
-                                     </div>
-                                  </div>
-                                  <div className="text-right text-gray-500 text-xs">현재 카테고리 코드 : 001</div>
-                             </div>
-                        </div>
-                         <div className="absolute top-0 right-0 bg-blue-500 text-white w-4 h-4 flex items-center justify-center text-[10px] font-bold">1</div>
-                         <div className="absolute bottom-16 left-60 bg-blue-500 text-white w-4 h-4 flex items-center justify-center text-[10px] font-bold">2</div>
-                        <div className="text-right text-xs font-bold text-gray-500 mt-1">[관리자 화면]</div>
-                    </div>
-                     <div className="text-xs space-y-2 text-gray-500 mt-2">
-                        <p>① 카테고리 트리 내에서 등록된 카테고리를 선택(클릭)하면 우측 "카테고리 정보" 영역에 "현재 카테고리"와 "등록 상품수" 항목 및 카테고리명 항목 내 "카테고리 코드"가 추가 노출됩니다.</p>
-                        <p>- 현재 카테고리 : 운영자가 선택한 카테고리의 "카테고리명"이 노출되며, "화면바로보기 / 주소복사 / 삭제" 버튼이 제공됩니다.</p>
-                        <p>- [화면바로보기] 버튼 클릭 시 해당 카테고리의 쇼핑몰 카테고리페이지가 새탭으로 노출됩니다.</p>
-                        <p>- [주소복사] 버튼 클릭 시 해당 카테고리의 쇼핑몰 카테고리페이지 주소가 클립보드에 복사됩니다.</p>
-                        <p>- [삭제] 버튼 클릭 시 해당 카테고리가 삭제됩니다.</p>
-                        <p>② 운영자가 선택한 카테고리의 "코드"가 노출됩니다.</p>
-                        <p>- 카테고리 코드는 "상품 &gt; 상품 엑셀 관리 &gt; 상품 업로드"에서 엑셀파일을 통해 상품 등록 시 이용됩니다.</p>
-                     </div>
-                </div>
-            </div>
-        </div>
-    );
-}
 
 export default function CategoryManagementPage() {
   const router = useRouter();
@@ -729,16 +558,11 @@ export default function CategoryManagementPage() {
             onClose={() => setIsGradePopupOpen(false)} 
             onConfirm={(selected) => {
                 console.log("Selected grades:", selected);
-                // Here you would typically update the form data with selected grades
             }} 
           />
-
-
-          {/* Guide Section */}
-          <CategoryGuideSection />
         </div>
       </div>
-          </div>
+    </div>
   );
 }
 

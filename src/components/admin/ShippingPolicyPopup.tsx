@@ -11,7 +11,6 @@ import ShippingFeeDetailPopup from "./ShippingFeeDetailPopup";
 interface ShippingPolicy {
     id: number;
     name: string;
-    supplierType: string;
     shippingMethod: string;
     shippingFeeType: string;
     feeSetting: string;
@@ -58,7 +57,6 @@ export default function ShippingPolicyPopup({ isOpen, onClose, onConfirm }: Prop
                 const formatted = (res.items || []).map((item: any) => ({
                     id: item.id,
                     name: item.name,
-                    supplierType: "니아인터내셔널", // Mock or from data
                     shippingMethod: "택배",
                     shippingFeeType: item.feeType === 'free' ? '배송비무료' : 
                                     item.feeType === 'fixed' ? '고정배송비' : 
@@ -220,7 +218,6 @@ export default function ShippingPolicyPopup({ isOpen, onClose, onConfirm }: Prop
                                     <th className="w-12 border-r border-gray-400 font-normal">선택</th>
                                     <th className="w-12 border-r border-gray-400 font-normal">번호</th>
                                     <th className="border-r border-gray-400 font-normal px-2">배송비조건명</th>
-                                    <th className="w-28 border-r border-gray-400 font-normal">공급사구분</th>
                                     <th className="w-20 border-r border-gray-400 font-normal">배송방식</th>
                                     <th className="w-24 border-r border-gray-400 font-normal">배송비유형</th>
                                     <th className="w-24 border-r border-gray-400 font-normal">배송비설정</th>
@@ -232,9 +229,9 @@ export default function ShippingPolicyPopup({ isOpen, onClose, onConfirm }: Prop
                             </thead>
                             <tbody className="text-gray-600">
                                 {loading ? (
-                                    <tr><td colSpan={11} className="py-10 border-b border-gray-300">Loading...</td></tr>
+                                    <tr><td colSpan={10} className="py-10 border-b border-gray-300">Loading...</td></tr>
                                 ) : policies.length === 0 ? (
-                                    <tr><td colSpan={11} className="py-10 border-b border-gray-300 text-gray-400">등록된 배송 정책이 없습니다.</td></tr>
+                                    <tr><td colSpan={10} className="py-10 border-b border-gray-300 text-gray-400">등록된 배송 정책이 없습니다.</td></tr>
                                 ) : (
                                     policies.map((p, index) => (
                                         <tr key={index} className="h-12 border-b border-gray-300 hover:bg-gray-50">
@@ -251,7 +248,6 @@ export default function ShippingPolicyPopup({ isOpen, onClose, onConfirm }: Prop
                                             </td>
                                             <td className="border-r border-gray-300">{policies.length - index}</td>
                                             <td className="border-r border-gray-300 text-left px-3 text-gray-800 font-normal">{p.name}</td>
-                                            <td className="border-r border-gray-300">{p.supplierType}</td>
                                             <td className="border-r border-gray-300">{p.shippingMethod}</td>
                                             <td className="border-r border-gray-300">{p.shippingFeeType}</td>
                                             <td className="border-r border-gray-300">

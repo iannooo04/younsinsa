@@ -432,31 +432,7 @@ export default function OrderIntegratedListPage() {
                                 </div>
                             </div>
                             
-                            <div className="flex items-center gap-4 border-l border-gray-200 pl-8">
-                                <div className="font-bold w-24">주문채널구분</div>
-                                <div className="flex items-center gap-4">
-                                     <div className="flex items-center gap-1.5">
-                                        <Checkbox id="channel-all" className="rounded-[2px] border-red-500 text-red-500" defaultChecked />
-                                        <Label htmlFor="channel-all" className="font-normal cursor-pointer">전체</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Checkbox id="channel-mall" className="rounded-[2px] border-gray-300" />
-                                        <Label htmlFor="channel-mall" className="font-normal cursor-pointer">쇼핑몰</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Checkbox id="channel-payco" className="rounded-[2px] border-gray-300 bg-red-500 text-white border-none" checked />
-                                        <Label htmlFor="channel-payco" className="font-normal cursor-pointer">페이코</Label>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        <Checkbox id="channel-naver" className="rounded-[2px] border-gray-300 bg-green-500 text-white border-none" checked />
-                                        <Label htmlFor="channel-naver" className="font-normal cursor-pointer">네이버페이</Label>
-                                    </div>
-                                     <div className="flex items-center gap-1.5">
-                                        <Checkbox id="channel-etc" className="rounded-[2px] border-gray-300 bg-gray-400 text-white border-none" checked />
-                                        <Label htmlFor="channel-etc" className="font-normal cursor-pointer">기타</Label>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
                     </div>
 

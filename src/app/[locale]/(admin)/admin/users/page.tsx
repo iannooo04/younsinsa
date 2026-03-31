@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,7 +28,6 @@ import { getUserGradesAction } from "@/actions/user-grade-actions";
 import { PrivacyConsentHistoryPopup } from "@/components/popups/privacy-consent-history-popup";
 
 export default function MemberListPage() {
-  const router = useRouter();
   // Filter States
   const [mallId, setMallId] = useState('all');
   const startDateRef = useRef<HTMLInputElement>(null);
@@ -161,13 +159,6 @@ export default function MemberListPage() {
       `}</style>
       <div className="flex items-center justify-between pb-4 border-b border-gray-400 mb-6">
         <h1 className="text-2xl font-bold text-gray-900">회원 리스트</h1>
-        <Button 
-          variant="outline" 
-          className="border-red-500 text-red-500 hover:bg-red-50 h-8"
-          onClick={() => router.push('/admin/users/create')}
-        >
-          + 회원 등록
-        </Button>
       </div>
 
        {/* Search Section */}

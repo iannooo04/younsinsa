@@ -11,7 +11,6 @@ import {
     ChevronLeft,
     ChevronRight,
     Image,
-    Layers,
     Minus,
     Plus,
     BarChart
@@ -82,22 +81,9 @@ const menuItems: MenuItem[] = [
         icon: Users,
         subItems: [
             { name: "회원 리스트", href: "/admin/users" },
-            { name: "회원 등록", href: "/admin/users/create" },
             { name: "회원 가입 정책 관리", href: "/admin/users/join-policy" },
             { name: "회원 등급 관리", href: "/admin/users/grade" },
-            { name: "가입승인/등급변경", href: "/admin/users/approval-change" },
             { name: "✨ 외부 유저 관리 (신규)", href: "/admin/users/external-users" },
-        ]
-    },
-    {
-        name: "게시판",
-        href: "/admin/boards",
-        icon: Layers,
-        subItems: [
-            { name: "게시판 리스트", href: "/admin/boards" },
-            { name: "게시판 등록", href: "/admin/boards/create" },
-            { name: "게시글 관리", href: "/admin/boards/posts" },
-            { name: "FAQ 관리", href: "/admin/boards/faq" },
         ]
     },
     {

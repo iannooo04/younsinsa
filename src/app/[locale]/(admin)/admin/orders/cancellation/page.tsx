@@ -332,33 +332,7 @@ export default function OrderCancellationPage() {
                                 </div>
                             </div>
                         </div>
-                        <div className="flex-1 flex items-center border-l border-gray-200">
-                             <div className="w-36 bg-[#FBFBFB] p-3 pl-4 font-bold text-gray-700 flex items-center border-r border-gray-200 h-full">
-                                주문채널구분
-                            </div>
-                            <div className="flex-1 p-3 flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="channel-all" className="rounded-[2px] border-red-500 data-[state=checked]:bg-red-500 data-[state=checked]:text-white" defaultChecked/>
-                                     <Label htmlFor="channel-all" className="font-normal text-gray-700">전체</Label>
-                                </div>
-                                 <div className="flex items-center gap-2">
-                                    <Checkbox id="channel-shopping" className="rounded-[2px]"/>
-                                     <Label htmlFor="channel-shopping" className="font-normal text-gray-700">쇼핑몰</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="channel-payco" className="rounded-[2px]"/>
-                                     <Label htmlFor="channel-payco" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-red-500 text-white flex justify-center items-center text-[9px] rounded-sm">P</span> 페이코</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="channel-naver" className="rounded-[2px]"/>
-                                     <Label htmlFor="channel-naver" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-green-500 text-white flex justify-center items-center text-[9px] rounded-sm">N</span> 네이버페이</Label>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Checkbox id="channel-etc" className="rounded-[2px]"/>
-                                     <Label htmlFor="channel-etc" className="font-normal text-gray-700 flex items-center gap-1"><span className="w-4 h-4 bg-gray-500 text-white flex justify-center items-center text-[9px] rounded-sm">기</span> 기타</Label>
-                                </div>
-                            </div>
-                        </div>
+
                     </div>
 
                     {/* Row 2: Payment Method */}
