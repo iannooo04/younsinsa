@@ -240,7 +240,12 @@ const menuItems: MenuItem[] = [
                     { name: "주문통계", href: "/admin/statistics/orders" },
                 ]
             },
-
+            {
+                title: "시스템 모니터링",
+                items: [
+                    { name: "에러 로그", href: "/admin/statistics/error-logs" }
+                ]
+            },
         ]
     },
 ];

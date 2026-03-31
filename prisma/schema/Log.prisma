@@ -1,0 +1,10 @@
+model ErrorLog {
+  id        String   @id @default(cuid())
+  level     String   @default("ERROR") // ERROR, WARN, INFO, DEBUG
+  message   String
+  stack     String?  @db.Text
+  path      String?
+  userId    String?  // No hard relation to User to prevent cascade issues. Store user ID contextually.
+  details   Json?    // Optional JSON payload for logging headers, body, or any other meta-data.
+  createdAt DateTime @default(now())
+}
