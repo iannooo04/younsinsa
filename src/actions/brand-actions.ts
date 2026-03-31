@@ -23,6 +23,9 @@ export async function getFeaturedBrandsAction() {
     const brands = await prisma.brand.findMany({
       where: {
         isExposedKR: true,
+        parentId: {
+          not: null, // Exclude 1st-level category brands
+        },
         logoUrl: {
           not: null, // Only fetch brands that have a logo
         },

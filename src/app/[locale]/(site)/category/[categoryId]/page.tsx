@@ -83,7 +83,7 @@ export default async function CategoryPage(props: PageProps) {
                 <div className="text-[11px] font-bold text-black mb-1 truncate">
                   {product.brandName || "Brand"}
                 </div>
-                <div className="text-[13px] text-gray-700 leading-tight mb-2 line-clamp-2 h-[2.4em]">
+                <div className="text-[13px] text-black leading-tight mb-2 line-clamp-2 h-[2.4em]">
                   {product.name}
                 </div>
                 <div className="flex items-center gap-1.5 text-sm">

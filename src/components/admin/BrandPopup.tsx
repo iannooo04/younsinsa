@@ -98,6 +98,9 @@ export default function BrandPopup({ isOpen, onClose, onConfirm }: Props) {
 
     // Filter logic
     const filteredBrands = allBrands.filter(b => {
+        // 1차 브랜드는 선택 목록에 노출하지 않음
+        if (b.depth === 1) return false;
+
         // 1. Text Search Filter
         const matchesName = b.name.toLowerCase().includes(searchName.toLowerCase());
         

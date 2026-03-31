@@ -139,18 +139,20 @@ export default function MainHeader({
 
       {/* 로그인 버튼 (비로그인 시 노출) */}
       {!authed ? (
-        <Link href="/member/login">
-          <button className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer">
-            {t("menu.loginSignup")}
-          </button>
+        <Link 
+          href="/member/login"
+          className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer flex items-center justify-center"
+        >
+          {t("menu.loginSignup")}
         </Link>
       ) : (
         <div className="flex items-center gap-1 ml-1">
           {userLevel >= 21 && (
-            <Link href="/admin">
-              <button className="border border-orange-500 bg-[#1A1A1A] text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-orange-950 transition-colors tracking-tight cursor-pointer">
+            <Link 
+              href="/admin"
+              className="border border-orange-500 bg-[#1A1A1A] text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-orange-950 transition-colors tracking-tight cursor-pointer flex items-center justify-center"
+            >
                 관리
-              </button>
             </Link>
           )}
           <button

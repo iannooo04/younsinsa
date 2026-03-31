@@ -37,160 +37,67 @@ const menuItems: MenuItem[] = [
         name: "설정",
         href: "#",
         icon: Settings,
-        groups: [
-            {
-                title: "기본정책",
-                items: [
-
-                    { name: "부가세율 설정", href: "/admin/settings/vat" },
-
-                ]
-            },
-            {
-                title: "관리 정책",
-                items: [
-                    { name: "운영자 관리", href: "/admin/settings/manager" },
-                    { name: "운영자 권한 설정", href: "/admin/settings/manager-permission" },
-
-                    { name: "쇼핑몰 이용 설정", href: "/admin/settings/mall-usage" },
-
-                ]
-            },
-            {
-                title: "해외상점",
-                items: [
-
-                    { name: "환율 설정", href: "/admin/settings/exchange-rate" },
-
-                ]
-            },
-            {
-                title: "상품 정책",
-                items: [
-                    { name: "상품 상세 이용안내 관리", href: "/admin/settings/product-usage-guide" },
-                    { name: "최근 본 상품 설정", href: "/admin/settings/recent-products" },
-                ]
-            },
-
-            {
-                title: "주문 정책",
-                items: [
-
-                    { name: "주문 상태 설정", href: "/admin/settings/order-status" },
-                    { name: "장바구니 / 관심상품 설정", href: "/admin/settings/cart-wishlist" },
-
-                ]
-            },
-
+        subItems: [
+            { name: "부가세율 설정", href: "/admin/settings/vat" },
+            { name: "운영자 관리", href: "/admin/settings/manager" },
+            { name: "운영자 권한 설정", href: "/admin/settings/manager-permission" },
+            { name: "쇼핑몰 이용 설정", href: "/admin/settings/mall-usage" },
+            { name: "환율 설정", href: "/admin/settings/exchange-rate" },
+            { name: "상품 상세 이용안내 관리", href: "/admin/settings/product-usage-guide" },
+            { name: "최근 본 상품 설정", href: "/admin/settings/recent-products" },
+            { name: "주문 상태 설정", href: "/admin/settings/order-status" },
+            { name: "장바구니 / 관심상품 설정", href: "/admin/settings/cart-wishlist" },
         ]
     },
     {
         name: "상품",
         href: "/admin/products",
         icon: ShoppingBag,
-        groups: [
-            {
-                title: "상품 관리",
-                items: [
-                    { name: "상품 리스트", href: "/admin/products" },
-                    { name: "상품 등록", href: "/admin/products/create" },
-                ]
-            },
-            {
-                title: "상품 일괄 관리",
-                items: [
-                    { name: "상품 배송 관리", href: "/admin/products/shipping" },
-                ]
-            },
-            {
-                title: "상품 진열 관리",
-                items: [
-                    { name: "메인 배너 관리", href: "/admin/products/banners" },
-                    { name: "메인페이지 상품진열", href: "/admin/products/main-display" },
-
-                ]
-            },
-            {
-                title: "상품 분류 관리",
-                items: [
-
-                    { name: "카테고리 관리", href: "/admin/categories" },
-                    { name: "브랜드 관리", href: "/admin/brands" },
-                ]
-            },
-
-            {
-                title: "상품 엑셀 관리",
-                items: [
-                    { name: "상품 다운로드", href: "/admin/products/excel-download" },
-                    { name: "상품 업로드", href: "/admin/products/excel-upload" },
-                ]
-            }
+        subItems: [
+            { name: "상품 리스트", href: "/admin/products" },
+            { name: "상품 등록", href: "/admin/products/create" },
+            { name: "상품 배송 관리", href: "/admin/products/shipping" },
+            { name: "메인 배너 관리", href: "/admin/products/banners" },
+            { name: "메인페이지 상품진열", href: "/admin/products/main-display" },
+            { name: "카테고리 관리", href: "/admin/categories" },
+            { name: "브랜드 관리", href: "/admin/brands" },
+            { name: "상품 다운로드", href: "/admin/products/excel-download" },
+            { name: "상품 업로드", href: "/admin/products/excel-upload" },
         ]
     },
     {
         name: "주문/배송",
         href: "/admin/orders",
         icon: ListOrdered,
-        groups: [
-            {
-                title: "주문 관리",
-                items: [
-                    { name: "주문통합리스트", href: "/admin/orders" },
-                    { name: "송장일괄등록", href: "/admin/orders/invoice-bulk" },
-                ]
-            },
-            {
-                title: "취소/교환/반품/환불 관리",
-                items: [
-                    { name: "취소/교환/반품/환불 리스트", href: "/admin/orders/integrated-management" },
-                    { name: "고객 교환/반품/환불신청 관리", href: "/admin/orders/customer-claims" },
-                ]
-            },
-
+        subItems: [
+            { name: "주문통합리스트", href: "/admin/orders" },
+            { name: "송장일괄등록", href: "/admin/orders/invoice-bulk" },
+            { name: "취소/교환/반품/환불 리스트", href: "/admin/orders/integrated-management" },
+            { name: "고객 교환/반품/환불신청 관리", href: "/admin/orders/customer-claims" },
         ]
     },
     {
         name: "회원",
         href: "/admin/users",
         icon: Users,
-        groups: [
-            {
-                title: "회원 관리",
-                items: [
-                    { name: "회원 리스트", href: "/admin/users" },
-                    { name: "회원 등록", href: "/admin/users/create" },
-                    { name: "회원 가입 정책 관리", href: "/admin/users/join-policy" },
-                    { name: "회원 등급 관리", href: "/admin/users/grade" },
-                    { name: "가입승인/등급변경", href: "/admin/users/approval-change" },
-                    { name: "✨ 외부 유저 관리 (신규)", href: "/admin/users/external-users" },
-                ]
-            },
-
-
-
-
-            {
-                title: "간편 로그인",
-                items: []
-            }
+        subItems: [
+            { name: "회원 리스트", href: "/admin/users" },
+            { name: "회원 등록", href: "/admin/users/create" },
+            { name: "회원 가입 정책 관리", href: "/admin/users/join-policy" },
+            { name: "회원 등급 관리", href: "/admin/users/grade" },
+            { name: "가입승인/등급변경", href: "/admin/users/approval-change" },
+            { name: "✨ 외부 유저 관리 (신규)", href: "/admin/users/external-users" },
         ]
     },
     {
         name: "게시판",
         href: "/admin/boards",
         icon: Layers,
-        groups: [
-            {
-                title: "게시판 관리",
-                items: [
-                    { name: "게시판 리스트", href: "/admin/boards" },
-                    { name: "게시판 등록", href: "/admin/boards/create" },
-                    { name: "게시글 관리", href: "/admin/boards/posts" },
-
-                    { name: "FAQ 관리", href: "/admin/boards/faq" },
-                ]
-            }
+        subItems: [
+            { name: "게시판 리스트", href: "/admin/boards" },
+            { name: "게시판 등록", href: "/admin/boards/create" },
+            { name: "게시글 관리", href: "/admin/boards/posts" },
+            { name: "FAQ 관리", href: "/admin/boards/faq" },
         ]
     },
     {

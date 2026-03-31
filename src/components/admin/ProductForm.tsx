@@ -161,6 +161,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
     // Brand Popup State
     const [isBrandPopupOpen, setIsBrandPopupOpen] = useState(false);
     const [selectedBrandName, setSelectedBrandName] = useState<string>(initialProduct?.brand?.name || "");
+    const [selectedBrandId, setSelectedBrandId] = useState<string>(initialProduct?.brandId || "");
 
     // Essential Info Popup State
     const [isEssentialInfoPopupOpen, setIsEssentialInfoPopupOpen] = useState(false);
@@ -317,6 +318,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
             <form ref={formRef} action={formAction} className="space-y-8 px-4">
                 {initialProduct && <input type="hidden" name="id" value={initialProduct.id} />}
                 <input type="hidden" name="categoryId" value={selectedCategoryId} />
+                <input type="hidden" name="brandId" value={selectedBrandId} />
                 
                 {state.message && (
                     <div className={`p-4 rounded-md ${state.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
@@ -1115,13 +1117,11 @@ export default function ProductForm({ categories, initialProduct }: Props) {
                 onClose={() => setIsBrandPopupOpen(false)}
                 onConfirm={(brand) => {
                     if (brand) {
-                        // The brand.name in dummy data includes category path (e.g. Malbon Golf > Men...), 
-                        // matching the user request to just "show popup like photo", but typically we might just want the brand name.
-                        // For now we'll use the full string as user might expect.
-                        // Or maybe just split ' > ' and take first part? 
-                        // The screenshot shows 'brand name' column has 'Malbon Golf > ...'.
-                        // I'll assume the input should show this selected Name.
                         setSelectedBrandName(brand.name);
+                        setSelectedBrandId(brand.id);
+                    } else {
+                        setSelectedBrandName("");
+                        setSelectedBrandId("");
                     }
                 }}
             />

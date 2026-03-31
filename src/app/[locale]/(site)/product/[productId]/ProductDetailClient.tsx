@@ -20,6 +20,8 @@ interface ProductDetailClientProps {
     description: string | null;
     images: string[];
     brandName: string;
+    brandLogoUrl: string | null;
+    categoryName: string;
     options: {
       id: string;
       name: string;
@@ -145,8 +147,12 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
         >
           <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                   <div className="w-9 h-9 rounded-full border border-gray-200 flex flex-col items-center justify-center text-[7px] bg-white text-gray-500 overflow-hidden text-center leading-[1.1] font-medium tracking-tight whitespace-nowrap px-1">
-                       {product.brandName.length <= 4 ? product.brandName : product.brandName.split(" ").slice(0, 3).map((w, i) => <span key={i}>{w}</span>)}
+                   <div className="w-9 h-9 rounded-full border border-gray-200 flex flex-col items-center justify-center text-[7px] bg-white text-gray-500 overflow-hidden text-center leading-[1.1] font-medium tracking-tight whitespace-nowrap px-1 relative">
+                       {product.brandLogoUrl ? (
+                           <Image src={product.brandLogoUrl} alt={product.brandName} fill className="object-contain p-1" />
+                       ) : (
+                           product.brandName.length <= 4 ? product.brandName : product.brandName.split(" ").slice(0, 3).map((w, i) => <span key={i}>{w}</span>)
+                       )}
                    </div>
                    <span className="font-bold text-gray-900 text-[15px]">{product.brandName}</span>
                    <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-[2px] font-bold">단독</span>
@@ -158,7 +164,7 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
 
           <div>
               <div className="text-[13px] text-gray-500 mb-2 truncate">
-                  스포츠/레저 &gt; 상의 &gt; {product.name} ({product.brandName})
+                  {product.categoryName} &gt; {product.name} ({product.brandName})
               </div>
               <h1 className="text-[22px] font-bold text-gray-900 leading-[1.3] mb-2 break-keep">{product.name}</h1>
               <div className="flex gap-1.5 flex-wrap">
@@ -214,14 +220,14 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
               ) : (
                   <>
                       <div className="relative">
-                          <select disabled className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
-                              <option value="" disabled selected>컬러</option>
+                          <select disabled defaultValue="" className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
+                              <option value="" disabled>컬러</option>
                           </select>
                           <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
                       </div>
                       <div className="relative">
-                          <select disabled className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
-                              <option value="" disabled selected>사이즈</option>
+                          <select disabled defaultValue="" className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
+                              <option value="" disabled>사이즈</option>
                           </select>
                           <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
                       </div>

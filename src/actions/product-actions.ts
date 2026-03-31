@@ -49,6 +49,7 @@ export async function createProductAction(prevState: unknown, formData: FormData
     const consumerPrice = parseInt(rawFormData.consumerPrice as string) || 0;
     const stockQuantity = parseInt(rawFormData.stockQuantity as string) || 0;
     const categoryId = rawFormData.categoryId as string;
+    const brandId = rawFormData.brandId as string;
     
     // Status mapping
     const unifiedDisplayStatus = rawFormData.display_status === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
@@ -88,6 +89,7 @@ export async function createProductAction(prevState: unknown, formData: FormData
                 stockQuantity,
                 code,
                 categoryId,
+                brandId: brandId || undefined,
                 displayStatusPC,
                 displayStatusMobile,
                 descriptionPC,
@@ -136,6 +138,7 @@ export async function updateProductAction(prevState: unknown, formData: FormData
     const consumerPrice = parseInt(rawFormData.consumerPrice as string) || 0;
     const stockQuantity = parseInt(rawFormData.stockQuantity as string) || 0;
     const categoryId = rawFormData.categoryId as string;
+    const brandId = rawFormData.brandId as string;
     
     // Status mapping
     const unifiedDisplayStatus = rawFormData.display_status === '노출함' ? DisplayStatus.DISPLAY : DisplayStatus.HIDDEN;
@@ -158,6 +161,7 @@ export async function updateProductAction(prevState: unknown, formData: FormData
                 consumerPrice,
                 stockQuantity,
                 categoryId,
+                brandId: brandId || null,
                 displayStatusPC,
                 displayStatusMobile,
                 descriptionPC,
@@ -308,6 +312,7 @@ export async function getPublicProductsAction(
     sort: 'newest' | 'priceAsc' | 'priceDesc' | 'name' = 'newest',
     filters?: {
         categoryId?: string;
+        brandSlugOrId?: string;
         keyword?: string;
         gender?: 'M' | 'W' | 'A';
         isBest?: boolean;
@@ -322,7 +327,31 @@ export async function getPublicProductsAction(
         };
 
         if (filters?.categoryId) {
-            where.categoryId = filters.categoryId;
+            // Find all descendant categories to ensure hierarchical fetching
+            const categoryIds = [filters.categoryId];
+            let currentIds = [filters.categoryId];
+            
+            // Limit loops to prevent infinite tree loops (assuming max 5 levels deep)
+            for (let i = 0; i < 5; i++) {
+                if (currentIds.length === 0) break;
+                const children = await prisma.category.findMany({
+                    where: { parentId: { in: currentIds } },
+                    select: { id: true }
+                });
+                if (children.length === 0) break;
+                currentIds = children.map(c => c.id);
+                categoryIds.push(...currentIds);
+            }
+            where.categoryId = { in: categoryIds };
+        }
+
+        if (filters?.brandSlugOrId) {
+            where.brand = {
+                OR: [
+                    { slug: filters.brandSlugOrId },
+                    { id: filters.brandSlugOrId }
+                ]
+            };
         }
 
         if (filters?.keyword) {
@@ -418,6 +447,8 @@ export async function getPublicProductDetailAction(id: string) {
             description: product.descriptionPC,
             images: product.images.map(img => img.url),
             brandName: product.brand?.name || '',
+            brandLogoUrl: product.brand?.logoUrl || null,
+            categoryName: product.category?.name || '',
             options: product.options.map(opt => ({
                 id: opt.id,
                 name: opt.name,
