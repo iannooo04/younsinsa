@@ -30,7 +30,15 @@ export async function getProduct(id: string) {
                     values: true
                 }
             },
-            variants: true,
+            variants: {
+                include: {
+                    optionValues: {
+                        include: {
+                            option: true
+                        }
+                    }
+                }
+            },
         },
     });
     return JSON.parse(JSON.stringify(product));

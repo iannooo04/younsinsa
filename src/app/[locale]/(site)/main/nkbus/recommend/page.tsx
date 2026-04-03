@@ -141,42 +141,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, [bannerSlides.length]);
 
-  // 🛠️ [신규] 상단 배너 바로가기 데이터 (가로 9칸 x 2줄 그리드)
-  const topShortcutBanners = [
-    { id: 1, title: "아디다스 와플 컬렉션", brandLogo: "adidas", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 2, title: "아디다스 × 띠그클럽", brandLogo: "adidas", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 3, title: "캘빈클라인 인더 시티", brandLogo: "CalvinKlein", bg: "bg-[#EFEAE2]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 4, title: "산리오 캐릭터즈 × 뚜오미오", brandLogo: "Sanrio", bg: "bg-[#F6E8EF]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 5, title: "팀버랜드 × 메타마운드", brandLogo: "Timberland", bg: "bg-[#EFEAE2]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 6, title: "KBO + 스타벅스", brandLogo: "STARBUCKS", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 7, title: "푸마 스프린트 매쉬", brandLogo: "PUMA", bg: "bg-[#EFEAE2]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 8, title: "팀버랜드 × 와코마리아", brandLogo: "Timberland", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 9, title: "수아레 × 패션플래닛", brandLogo: "SUARE", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 10, title: "탄산마그네슘 × 송이송이", brandLogo: "", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 11, title: "스탠리1913 × 유벤투스", brandLogo: "STANLEY", bg: "bg-[#E8F0EA]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 12, title: "인더스트 × 후디진호", brandLogo: "INDUST", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 13, title: "에어맥스 데이", brandLogo: "NIKE", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 14, title: "쿠빈 굿즈 컬렉션", brandLogo: "COSMOPOL", bg: "bg-[#EAEAEA]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 15, title: "이슬쌤의 아이 팔레트", brandLogo: "LUVUM", bg: "bg-[#E6ECEE]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 16, title: "르아브 크리에이터 컬렉션", brandLogo: "LEARVE", bg: "bg-[#EAEAEA]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 17, title: "반스 컬러이즈드 슬립온", brandLogo: "VANS", bg: "bg-[#F3F3F3]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-    { id: 18, title: "리복 클럽 C 로머", brandLogo: "Reebok", bg: "bg-[#F2E5E5]", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" },
-  ];
 
-  // 🛠️ [신규] 하단 아이콘 바로가기 데이터 (가로 11칸 그리드)
-  const bottomShortcutIcons = [
-    { id: 1, title: "유즈드 수수료 ↓", icon: "🍋" },
-    { id: 2, title: "브랜드위크", icon: "🛍️" },
-    { id: 3, title: "최대 8%적립", icon: "M" },
-    { id: 4, title: "무퀴즈", icon: "🧩" },
-    { id: 5, title: "무신사 월간 랭킹", icon: "👟" },
-    { id: 6, title: "최저가 보상제", icon: "💰" },
-    { id: 7, title: "매일 아울렛 입고", icon: "🧥" },
-    { id: 8, title: "타임세일", icon: "⏰" },
-    { id: 9, title: "라이브", icon: "📺" },
-    { id: 10, title: "체험단", icon: "🧢" },
-    { id: 11, title: "서비스 전체보기", icon: "≡" },
-  ];
 
   // 🛠️ [신규] 나의 관심 기반 상품 추천 데이터 
   const interestBasedProducts = [
@@ -386,53 +351,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 3. Shortcut Banners & Icons (Menu) - 그리드 사진 디자인 적용 */}
-      <section className="container mx-auto px-4 py-8 border-b border-gray-100">
-        {/* 상단 18개 배너 그리드 (9열 2행) - 스크롤 없음 */}
-        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-9 gap-2 mb-3">
-          {topShortcutBanners.map((banner) => (
-            <div
-              key={banner.id}
-              className={`relative ${banner.bg} rounded-md h-[90px] flex flex-col items-center justify-end pb-2 cursor-pointer hover:opacity-90 transition-opacity`}
-            >
-              {banner.brandLogo && (
-                <div className="absolute top-1.5 right-1.5 text-[8px] font-bold opacity-60 uppercase tracking-tighter max-w-[50%] truncate text-right">
-                  {banner.brandLogo}
-                </div>
-              )}
-              <div className="absolute top-3 left-1/2 -translate-x-1/2 w-10 h-10">
-                <Image
-                  src={banner.img}
-                  alt={banner.title}
-                  fill
-                  className="object-contain drop-shadow-sm mix-blend-multiply"
-                />
-              </div>
-              <div className="text-[10px] sm:text-[11px] font-bold text-center leading-tight px-1 z-10 whitespace-nowrap overflow-hidden text-ellipsis w-[95%]">
-                {banner.title}
-              </div>
-            </div>
-          ))}
-        </div>
 
-        {/* 하단 11개 아이콘 그리드 (11열 1행) - 스크롤 없음 */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 gap-1.5">
-          {bottomShortcutIcons.map((item) => (
-            <div
-              key={item.id}
-              className="border border-gray-200 bg-white rounded flex items-center justify-center gap-1.5 h-10 cursor-pointer hover:border-gray-800 transition-colors px-1"
-            >
-              <div className={`w-4 h-4 flex items-center justify-center text-[10px] font-extrabold rounded-full ${item.icon === "M" ? "bg-black text-white" : ""}`}>
-                {item.icon !== "M" && item.icon}
-                {item.icon === "M" && "M"}
-              </div>
-              <span className="text-[10px] sm:text-[11px] font-medium text-gray-800 tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
-                {item.title}
-              </span>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* 4. Featured Brands Grid */}
       <section className="container mx-auto px-4 py-8 border-b border-gray-100">

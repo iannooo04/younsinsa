@@ -247,7 +247,7 @@ export async function createOrderAction(params: CreateOrderParams) {
                 };
             }
 
-            const price = item.variant?.price || item.product.price;
+            const price = item.product.price + (item.variant?.price || 0);
             totalItemPrice += price * item.quantity;
         }
 
@@ -331,9 +331,9 @@ export async function createOrderAction(params: CreateOrderParams) {
                                 variantId: item.variantId,
                                 productName: item.product.name,
                                 optionName: optionNameSnapshot,
-                                price: item.variant?.price || item.product.price,
+                                price: item.product.price + (item.variant?.price || 0),
                                 quantity: item.quantity,
-                                totalPrice: (item.variant?.price || item.product.price) * item.quantity,
+                                totalPrice: (item.product.price + (item.variant?.price || 0)) * item.quantity,
                                 status: OrderStatus.DEPOSIT_WAIT
                             };
                         }))

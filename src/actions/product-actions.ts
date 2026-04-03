@@ -117,6 +117,66 @@ export async function createProductAction(prevState: unknown, formData: FormData
             });
         }
 
+        // Handle Options and Variants
+        const optionsDataRaw = rawFormData.optionsData as string;
+        if (optionsDataRaw) {
+            try {
+                const { options, variants } = JSON.parse(optionsDataRaw);
+
+                // Filter valid options
+                const validOptions = options.filter((o: { name: string; values: string[] }) => o.name && o.values && o.values.length > 0);
+
+                if (validOptions.length > 0) {
+                    const valueIdMap: Record<string, string> = {}; // { "optName:valName": valId }
+
+                    for (const opt of validOptions) {
+                        const createdOpt = await prisma.productOption.create({
+                            data: {
+                                productId: product.id,
+                                name: opt.name,
+                            }
+                        });
+
+                        for (const val of opt.values) {
+                            const createdVal = await prisma.productOptionValue.create({
+                                data: {
+                                    optionId: createdOpt.id,
+                                    name: val
+                                }
+                            });
+                            valueIdMap[`${opt.name}:${val}`] = createdVal.id;
+                        }
+                    }
+
+                    for (const v of variants) {
+                        const optionValueIds: { id: string }[] = [];
+                        // v.optionValues is an object like {"Color":"Red", "Size":"M"}
+                        for (const [optName, valName] of Object.entries(v.optionValues)) {
+                            const key = `${optName}:${valName}`;
+                            if (valueIdMap[key]) {
+                                optionValueIds.push({ id: valueIdMap[key] });
+                            }
+                        }
+
+                        if (optionValueIds.length > 0) {
+                            await prisma.productVariant.create({
+                                data: {
+                                    productId: product.id,
+                                    price: Number(v.price) > 0 ? Number(v.price) : undefined,
+                                    stock: Number(v.stock) || 0,
+                                    optionValues: {
+                                        connect: optionValueIds
+                                    }
+                                }
+                            });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to parse or create options:", err);
+            }
+        }
+
         revalidatePath('/admin/products');
         return { success: true, message: "상품이 등록되었습니다." };
     } catch (e) {
@@ -459,7 +519,7 @@ export async function getPublicProductDetailAction(id: string) {
             })),
             variants: product.variants.map(v => ({
                 id: v.id,
-                price: v.price || product.price, // Override or default
+                price: product.price + (v.price || 0), // Additional price on top of base
                 stock: v.stock,
                 optionValues: v.optionValues.map(ov => ov.id) // Client needs to match this with selected values
             }))

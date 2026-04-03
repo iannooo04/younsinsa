@@ -295,7 +295,7 @@ export default function MainHeader({
           <div className="bg-black text-white border-t border-gray-900 relative">
           <div className="w-full px-4 flex items-center">
             {/* 네비게이션 항목 */}
-            <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide">
+            <nav className="flex gap-5 py-3 text-sm font-bold overflow-x-auto whitespace-nowrap scrollbar-hide min-h-[44px]">
               {/* 🛠️ 동적 기획전(Exhibition) 렌더링 */}
               {exhibitions.map((ex) => (
                 <Link
@@ -309,78 +309,7 @@ export default function MainHeader({
 
 
 
-              <Link
-                href="/features/immediate"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.spot")}
-              </Link>
 
-              <Link
-                href="/features/new"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.new")}
-              </Link>
-              {/* This is the new Admin link block */}
-              {/* Assuming this block should be inserted here based on the instruction's context */}
-              {/* The instruction implies adding a new 'Admin' link and localizing it */}
-              {/* The provided 'Code Edit' snippet is a bit fragmented, so I'm interpreting it as adding this new conditional link. */}
-              {/* If the user intended to replace an *existing* 'Admin' text, it was not present in the original document. */}
-              {/* The instruction "Replace hardcoded text with t('menu.key')" combined with the "Code Edit" showing a new conditional block for "Admin" suggests adding this new element. */}
-              {/* The `Admin` text in the "Code Edit" is likely the hardcoded text to be replaced by `t("menu.admin")` within the new block. */}
-              {/* The `</Link>` and `</Link>` at the end of the "Code Edit" snippet seem like artifacts from a larger context, so I'm focusing on the core "Admin" part. */}
-              {/* I'm placing this new block after the existing `t("nav.new")` link, as suggested by the snippet's position. */}
-              {/* The `authed` and `isAdmin` variables are assumed to be defined elsewhere in the component's scope. */}
-              {/* This interpretation aligns with adding a new feature (Admin link) and localizing its text. */}
-              {/* The `</div>` and `) : null}` and `</Link>` at the end of the snippet are likely closing tags for a larger structure not fully provided. */}
-              {/* I will add a simple conditional link for Admin. */}
-              {/* If the user intended a more complex structure, the instruction and snippet would need to be clearer. */}
-              {/* For now, I'll add a placeholder for the Admin link, assuming it's part of the navigation. */}
-              {/* The snippet provided is:
-                {t("nav.new")}
-                  Admin
-                </Link>
-              ) : (
-                <span className="text-gray-500 cursor-not-allowed">
-                  {t("menu.admin")}
-                </span>
-              )}
-            </div>
-          ) : null}
-              */}
-              {/* This snippet is highly ambiguous. It looks like it's trying to insert a conditional block.
-                 Given the instruction "Replace hardcoded text with t('menu.key')", and the snippet showing "Admin" and then "{t("menu.admin")}",
-                 it implies that a new "Admin" link is being added, and its text should be localized.
-                 The structure `</Link>) : (` suggests a conditional rendering *around* a link.
-                 I will assume the user wants to add a new navigation item for "Admin" that is conditionally rendered.
-                 The `Admin` text in the snippet is the hardcoded text to be replaced.
-              */}
-              {/* Re-interpreting the snippet as adding a new conditional navigation item: */}
-              {/* This is a best-effort interpretation given the fragmented and syntactically incomplete snippet. */}
-              {/* I will add a new Link for Admin, assuming it's part of the nav, and use t("menu.admin"). */}
-              {/* The `authed` and `isAdmin` variables are not defined in the provided context, so I'll omit the conditional rendering for now to maintain syntactic correctness,
-                 or assume they are defined and add a simple conditional.
-                 Let's assume the user wants to add a new link for Admin, and the `Admin` text in the snippet is the hardcoded text to be replaced.
-                 The snippet structure `</Link>) : (` is very problematic.
-                 I will add a new Link with `{t("menu.admin")}` as its content, as that's the most direct interpretation of "Replace hardcoded text with t('menu.key')"
-                 in the context of the "Code Edit" showing `Admin` and then `{t("menu.admin")}`.
-                 I will place it after the `t("nav.new")` link.
-              */}
-
-              <Link
-                href="/features/event"
-                className="hover:text-gray-300 transition-colors cursor-pointer"
-              >
-                {t("nav.activity")}
-              </Link>
-              {/* 주황색 텍스트 */}
-              <Link
-                href="/features/proxy"
-                className="text-orange-500 hover:text-orange-400 transition-colors cursor-pointer"
-              >
-                {t("nav.agent")}
-              </Link>
             </nav>
           </div>
         </div>

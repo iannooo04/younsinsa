@@ -10,19 +10,34 @@ export type CartItemDTO = {
     name: string;
     image: string;
     optionName: string | null;
+    originalPrice: number;
     price: number;
     quantity: number;
     stock: number;
     isSoldOut: boolean;
     variantId: string | null;
+    brandName: string;
 };
 
 // Helper to get UserInfo ID from User ID
 async function getUserInfoId(userId: string): Promise<string | null> {
-    const userInfo = await prisma.userInfo.findUnique({
+    let userInfo = await prisma.userInfo.findUnique({
         where: { userId: userId },
         select: { id: true }
     });
+
+    if (!userInfo) {
+        try {
+            userInfo = await prisma.userInfo.create({
+                data: { userId },
+                select: { id: true }
+            });
+        } catch (error) {
+            console.error("Failed to auto-create UserInfo:", error);
+            return null;
+        }
+    }
+
     return userInfo?.id || null;
 }
 
@@ -122,9 +137,14 @@ export async function getCartItemsAction(userId: string | undefined) {
             let stock = product.stockQuantity;
             let optionName: string | null = null;
             const name = product.name;
+            let originalPrice = product.consumerPrice || product.price;
+            const brandName = product.brand?.name || "일반브랜드";
 
             if (item.variant) {
-                if (item.variant.price) price = item.variant.price;
+                if (item.variant.price) {
+                    price = product.price + item.variant.price;
+                    originalPrice = originalPrice + item.variant.price;
+                }
                 stock = item.variant.stock;
                 
                 
@@ -146,11 +166,13 @@ export async function getCartItemsAction(userId: string | undefined) {
                 name: name,
                 image: mainImage,
                 optionName: optionName, 
+                originalPrice: originalPrice,
                 price: price,
                 quantity: item.quantity,
                 stock: stock,
                 isSoldOut: stock <= 0,
-                variantId: item.variantId
+                variantId: item.variantId,
+                brandName
             };
         });
 

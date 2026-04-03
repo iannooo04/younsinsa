@@ -23,8 +23,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 }
 
                 // 1. Try to find user in User table
-                const user = await prisma.user.findUnique({
-                    where: { email: credentials.email as string },
+                const user = await prisma.user.findFirst({
+                    where: {
+                        OR: [
+                            { username: credentials.email as string },
+                            { email: credentials.email as string },
+                        ],
+                    },
                     include: { info: true },
                 });
 

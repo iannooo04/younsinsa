@@ -1,14 +1,16 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { useRouter } from "@/i18n/routing";
 import { useSession } from "next-auth/react";
 import { addToCartAction } from "@/actions/cart-actions";
-import { Heart, ChevronRight, Star } from "lucide-react";
+import { useEffect } from "react";
+import { Heart, ChevronRight, ChevronLeft, Star, X, Plus, Minus } from "lucide-react";
 
 import ReviewList from "@/components/review/ReviewList";
 import QnaList from "@/components/qna/QnaList";
+import AddToCartModal from "@/components/cart/AddToCartModal";
 
 interface ProductDetailClientProps {
   userId?: string;
@@ -45,26 +47,90 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
   const currentUserId = userId || session?.user?.id;
 
   const [selectedImage, setSelectedImage] = useState(product.images[0] || null);
-  const [quantity, _setQuantity] = useState(1);
   const [isAddingRequest, setIsAddingRequest] = useState(false);
+  const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   
   const [activeTab, setActiveTab] = useState<"info" | "review" | "qna" | "delivery">("info");
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+  
+  // -- Multiple Items State --
+  interface SelectedItem {
+    id: string; // variant.id or 'default'
+    name: string;
+    price: number;
+    quantity: number;
+  }
+  const [selectedItems, setSelectedItems] = useState<SelectedItem[]>([]);
 
-  const currentVariant = useMemo(() => {
-    if (product.options.length === 0) return null;
-    const allSelected = product.options.every(opt => selectedOptions[opt.id]);
-    if (!allSelected) return null;
-    return product.variants.find(v => {
-        return Object.values(selectedOptions).every(valId => v.optionValues.includes(valId));
-    });
-  }, [product.options, product.variants, selectedOptions]);
-
-  const currentPrice = currentVariant ? currentVariant.price : product.price;
-  const isSoldOut = currentVariant ? currentVariant.stock <= 0 : false;
+  // If product has no options, auto-add the default product to the list
+  useEffect(() => {
+    if (product.options.length === 0 && selectedItems.length === 0) {
+      setSelectedItems([{
+        id: 'default',
+        name: product.name,
+        price: product.price,
+        quantity: 1
+      }]);
+    }
+  }, [product, selectedItems.length]);
 
   const handleOptionSelect = (optionId: string, valueId: string) => {
-      setSelectedOptions(prev => ({ ...prev, [optionId]: valueId }));
+      const newOptions = { ...selectedOptions, [optionId]: valueId };
+      setSelectedOptions(newOptions);
+
+      // Check if all options are selected
+      const allSelected = product.options.every(opt => newOptions[opt.id]);
+      if (allSelected) {
+          const variant = product.variants.find(v => {
+              return Object.values(newOptions).every(valId => v.optionValues.includes(valId));
+          });
+
+          if (variant) {
+              if (variant.stock <= 0) {
+                  alert("품절된 옵션입니다.");
+                  setSelectedOptions({});
+                  return;
+              }
+
+              // Create human-readable option string
+              const optionNames = product.options.map(opt => {
+                 const selectedValId = newOptions[opt.id];
+                 const val = opt.values.find(v => v.id === selectedValId);
+                 return val?.name;
+              }).join(" · ");
+
+              setSelectedItems(prev => {
+                 const existing = prev.find(p => p.id === variant.id);
+                 if (existing) {
+                     alert("이미 선택된 옵션입니다.");
+                     return prev; // don't add duplicate, user can change quantity below
+                 }
+                 return [...prev, {
+                     id: variant.id,
+                     name: optionNames,
+                     price: variant.price,
+                     quantity: 1
+                 }];
+              });
+
+              // Reset dropdowns for next selection
+              setSelectedOptions({});
+          }
+      }
+  };
+
+  const handleQtyChange = (id: string, delta: number) => {
+      setSelectedItems(prev => prev.map(item => {
+          if (item.id === id) {
+             const newQty = item.quantity + delta;
+             return { ...item, quantity: newQty < 1 ? 1 : newQty };
+          }
+          return item;
+      }));
+  };
+
+  const handleRemoveItem = (id: string) => {
+      setSelectedItems(prev => prev.filter(item => item.id !== id));
   };
 
   const handleAddToCart = async () => {
@@ -75,30 +141,32 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
         return;
     }
 
-    if (product.options.length > 0 && !currentVariant) {
-        alert("필수 옵션을 선택해주세요.");
-        return;
-    }
-    if (isSoldOut) {
-        alert("품절된 상품입니다.");
+    if (selectedItems.length === 0) {
+        alert("상품 옵션을 선택해주세요.");
         return;
     }
 
     setIsAddingRequest(true);
     try {
-        const result = await addToCartAction(
-            currentUserId,
-            product.id,
-            currentVariant?.id,
-            quantity
-        );
+        let hasError = false;
+        // submit each item line sequentially or in parallel
+        for (const item of selectedItems) {
+            const result = await addToCartAction(
+                currentUserId,
+                product.id,
+                item.id === 'default' ? undefined : item.id,
+                item.quantity
+            );
+            if (!result.success) hasError = true;
+        }
 
-        if (result.success) {
-            if (confirm("장바구니에 담겼습니다. 장바구니로 이동하시겠습니까?")) {
-                router.push("/orders/cart");
-            }
+        if (!hasError) {
+            // Show modal instead of native confirm
+            setIsCartModalOpen(true);
+            // reset list after adding to cart
+            setSelectedItems([]);
         } else {
-            alert(result.message || "장바구니 담기에 실패했습니다.");
+            alert("일부 상품을 장바구니에 담는데 실패했습니다.");
         }
     } catch (error) {
         console.error("Add to cart error:", error);
@@ -108,6 +176,11 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
     }
   };
 
+  const totalQuantity = selectedItems.reduce((acc, curr) => acc + curr.quantity, 0);
+  const totalPrice = selectedItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+  const isSoldOut = product.options.length === 0 && false; // Assuming base product stock isn't fully tracked here unless using variants
+
+
   return (
     <div className="container mx-auto px-4 pt-0 pb-0">
       <div className="flex flex-col lg:flex-row justify-between items-start gap-10 lg:gap-[3%]">
@@ -116,26 +189,52 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
           <div className="mb-1.5 mt-2">
               <div className="text-[13px] text-gray-500 hover:text-black">Home &gt; 상의 &gt; {product.name} ({product.brandName})</div>
           </div>
-          <div className="relative w-full h-[calc(100vh-120px)] bg-gray-50 overflow-hidden rounded-lg">
-            {selectedImage ? (
-              <Image src={selectedImage} alt={product.name} fill className="object-contain" priority />
-            ) : (
-               <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
-            )}
+          <div className="flex flex-row gap-4 h-[calc(100vh-120px)]">
+              {product.images.length > 1 && (
+                  <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar w-20 shrink-0">
+                      {product.images.map((img, idx) => (
+                          <div 
+                              key={idx} 
+                              className={`relative w-20 h-20 bg-gray-100 overflow-hidden flex-shrink-0 cursor-pointer border-2 transition-colors ${selectedImage === img ? 'border-black' : 'border-transparent hover:border-gray-300'}`}
+                              onClick={() => setSelectedImage(img)}
+                          >
+                               <Image src={img} alt={`${product.name} ${idx}`} fill className="object-cover" />
+                          </div>
+                      ))}
+                  </div>
+              )}
+              
+              <div className="relative flex-1 bg-gray-50 overflow-hidden group">
+                  {selectedImage ? (
+                      <Image src={selectedImage} alt={product.name} fill className="object-contain" priority />
+                  ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400">No Image</div>
+                  )}
+
+                  {product.images.length > 1 && (
+                      <>
+                          <button 
+                              onClick={() => {
+                                  const idx = product.images.indexOf(selectedImage || "");
+                                  if (idx > 0) setSelectedImage(product.images[idx - 1]);
+                              }}
+                              className={`absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-gray-600 hover:text-black transition-opacity duration-200 opacity-0 group-hover:opacity-100 ${product.images.indexOf(selectedImage || "") === 0 ? 'hidden' : ''}`}
+                          >
+                              <ChevronLeft size={24} />
+                          </button>
+                          <button 
+                              onClick={() => {
+                                  const idx = product.images.indexOf(selectedImage || "");
+                                  if (idx < product.images.length - 1) setSelectedImage(product.images[idx + 1]);
+                              }}
+                              className={`absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white shadow-md rounded-full flex items-center justify-center text-gray-600 hover:text-black transition-opacity duration-200 opacity-0 group-hover:opacity-100 ${product.images.indexOf(selectedImage || "") === product.images.length - 1 ? 'hidden' : ''}`}
+                          >
+                              <ChevronRight size={24} />
+                          </button>
+                      </>
+                  )}
+              </div>
           </div>
-          {product.images.length > 1 && (
-            <div className="flex gap-2 overflow-x-auto">
-              {product.images.map((img, idx) => (
-                <div 
-                    key={idx} 
-                    className={`relative w-20 h-20 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 cursor-pointer border ${selectedImage === img ? 'border-black' : 'border-transparent hover:border-gray-300'}`}
-                    onClick={() => setSelectedImage(img)}
-                >
-                  <Image src={img} alt={`${product.name} ${idx}`} fill className="object-cover" />
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Spacer for fixed right box to prevent layout shift */}
@@ -184,14 +283,14 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
           </div>
 
           <div className="mt-2">
-              {product.consumerPrice > currentPrice && (
+              {product.consumerPrice > product.price && (
                   <div className="text-gray-400 line-through text-[15px] font-medium">{product.consumerPrice.toLocaleString()}원</div>
               )}
               <div className="flex items-baseline gap-2">
-                  {product.consumerPrice > currentPrice && (
-                      <span className="text-[26px] font-extrabold text-[#ff1414]">{Math.round(((product.consumerPrice - currentPrice) / product.consumerPrice) * 100)}%</span>
+                  {product.consumerPrice > product.price && (
+                      <span className="text-[26px] font-extrabold text-[#ff1414]">{Math.round(((product.consumerPrice - product.price) / product.consumerPrice) * 100)}%</span>
                   )}
-                  <span className="text-[26px] font-bold text-gray-900">{currentPrice.toLocaleString()}원</span>
+                  <span className="text-[26px] font-bold text-gray-900">{product.price.toLocaleString()}원</span>
               </div>
           </div>
 
@@ -201,7 +300,7 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
           </div>
 
           <div className="mt-2 space-y-3">
-              {product.options.length > 0 ? (
+              {product.options.length > 0 && (
                   product.options.map(opt => (
                       <div key={opt.id} className="relative">
                           <select 
@@ -217,30 +316,70 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
                           <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
                       </div>
                   ))
-              ) : (
-                  <>
-                      <div className="relative">
-                          <select disabled defaultValue="" className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
-                              <option value="" disabled>컬러</option>
-                          </select>
-                          <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
-                      </div>
-                      <div className="relative">
-                          <select disabled defaultValue="" className="w-full border border-gray-200 rounded-[4px] py-3.5 px-4 text-[15px] text-gray-500 appearance-none bg-gray-50 cursor-not-allowed mb-1">
-                              <option value="" disabled>사이즈</option>
-                          </select>
-                          <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 rotate-90 pointer-events-none" />
-                      </div>
-                  </>
               )}
           </div>
+
+          {/* Selected Variant Boxes */}
+          {selectedItems.length > 0 && (
+              <div className="mt-4 space-y-2">
+                  {selectedItems.map(item => (
+                      <div key={item.id} className="bg-[#f5f5f5] p-4 rounded-[6px] relative">
+                          {/* Top: Name & Remove */}
+                          <div className="flex justify-between items-start mb-2 pr-6">
+                              <span className="text-[15px] text-gray-900 leading-tight font-medium break-keep">{item.name}</span>
+                              <button onClick={() => handleRemoveItem(item.id)} className="absolute right-4 top-4">
+                                  <X className="w-[18px] h-[18px] text-gray-500 hover:text-black" />
+                              </button>
+                          </div>
+                          
+                          {/* Middle: Delivery Expected Badge (Mocked based on user image) */}
+                          <div className="flex items-center gap-1.5 mb-4">
+                              <span className="text-[13px] text-gray-600 font-medium tracking-tight">05.28(목) 이내 발송 예정</span>
+                              <span className="text-[11px] bg-gray-200 text-gray-600 px-[5px] py-[2px] rounded-[3px] font-semibold tracking-tighter">주문제작</span>
+                          </div>
+
+                          {/* Bottom: Quantity & Price */}
+                          <div className="flex items-center justify-between">
+                              {/* Qty Selector */}
+                              <div className="flex items-center border border-gray-300 rounded-[3px] bg-white h-[36px]">
+                                  <button onClick={() => handleQtyChange(item.id, -1)} disabled={item.quantity <= 1} className="w-9 h-full flex items-center justify-center text-gray-400 hover:text-black disabled:opacity-30">
+                                      <Minus size={16} />
+                                  </button>
+                                  <div className="w-10 h-full flex items-center justify-center text-[14px] text-black font-medium border-x border-gray-100">
+                                      {item.quantity}
+                                  </div>
+                                  <button onClick={() => handleQtyChange(item.id, 1)} className="w-9 h-full flex items-center justify-center text-gray-400 hover:text-black">
+                                      <Plus size={16} />
+                                  </button>
+                              </div>
+                              {/* Price */}
+                              <div className="text-[18px] font-bold text-gray-900 font-sans tracking-tight">
+                                  {(item.price * item.quantity).toLocaleString()}원
+                              </div>
+                          </div>
+                      </div>
+                  ))}
+              </div>
+          )}
+
+          {/* Total Summary */}
+          {selectedItems.length > 0 && (
+              <div className="mt-4 flex justify-between items-end border-t border-gray-200 pt-5 pb-2">
+                  <div className="text-[15px] font-bold text-gray-900">
+                      총 {totalQuantity}개
+                  </div>
+                  <div className="text-[22px] font-bold text-gray-900 tracking-tight">
+                      {totalPrice.toLocaleString()}원
+                  </div>
+              </div>
+          )}
 
           <div className="bg-[#f8f9fa] p-[10px] rounded-[4px] flex items-center justify-between mt-1 mb-2 cursor-pointer hover:bg-gray-100 transition-colors">
               <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gray-200 rounded-sm overflow-hidden relative border border-gray-200 shrink-0">
-                       {selectedImage && <Image src={selectedImage} alt="selected" fill className="object-cover" />}
+                       {product.images[0] && <Image src={product.images[0]} alt="product minature" fill className="object-cover" />}
                   </div>
-                  <span className="text-[13px] font-bold text-gray-900 tracking-tight">품절된 상품을 솔드아웃에서 구매해보세요.</span>
+                  <span className="text-[13px] font-bold text-gray-900 tracking-tight">품절된 상품을 관리자에게 문의해보세요.</span>
               </div>
               <ChevronRight className="text-gray-400 w-4 h-4 ml-2 shrink-0" />
           </div>
@@ -252,13 +391,13 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
               </div>
               <button 
                   onClick={handleAddToCart}
-                  disabled={isSoldOut || isAddingRequest}
-                  className="flex-1 border border-gray-300 py-3.5 font-bold text-[15px] rounded-[4px] hover:border-black transition-colors text-gray-900 bg-white"
+                  disabled={isSoldOut || isAddingRequest || selectedItems.length === 0}
+                  className="flex-1 border border-gray-300 py-3.5 font-bold text-[15px] rounded-[4px] hover:border-black transition-colors text-gray-900 bg-white disabled:opacity-50"
               >
                   {isAddingRequest ? '담는 중...' : '장바구니'}
               </button>
               <button 
-                  disabled={isSoldOut || isAddingRequest}
+                  disabled={isSoldOut || isAddingRequest || selectedItems.length === 0}
                   className="flex-1 py-3.5 font-bold text-[15px] rounded-[4px] transition-colors bg-black text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500"
               >
                   {isSoldOut ? '품절' : '구매하기'}
@@ -318,6 +457,13 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
             )}
         </div>
       </div>
+
+      {/* Cart Modal Overlay */}
+      <AddToCartModal 
+         isOpen={isCartModalOpen} 
+         onClose={() => setIsCartModalOpen(false)} 
+         productImage={product.images[0]} 
+      />
     </div>
   );
 }

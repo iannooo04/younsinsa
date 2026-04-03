@@ -173,18 +173,7 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          {/* 최하단 비회원 주문 조회 (하단 여백 확보) */}
-          <div className="mt-20 flex justify-between items-center text-[13px]">
-            <span className="text-black font-bold tracking-tight">
-              비회원으로 주문하셨나요?
-            </span>
-            <Link
-              href="#"
-              className="text-black font-bold border-b border-black pb-[1px] hover:opacity-70 leading-tight"
-            >
-              비회원 주문 조회
-            </Link>
-          </div>
+
         </div>
       </div>
     </div>

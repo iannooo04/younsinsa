@@ -2,63 +2,47 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import { Link } from "@/i18n/routing";
+import { useSession } from "next-auth/react";
+import { getLikeCountsAction } from "@/actions/like-actions";
 
 
 // ----------------------------------------------------------------------
 // 1. 더미 데이터
 // ----------------------------------------------------------------------
-const LIKED_ITEMS = [
-  {
-    id: 1,
-    brand: "노매뉴얼",
-    name: "COWICHAN HOODED ZIP-UP - BLACK",
-    price: 125600,
-    originalPrice: 157000,
-    discount: 20,
-    likes: "4.6천",
-    rating: 4.8,
-    reviews: 138,
-    image:
-      "https://image.msscdn.net/images/goods_img/20230823/3476831/3476831_16927598863674_500.jpg",
-    badges: [],
-  },
-  {
-    id: 2,
-    brand: "폴로 랄프 로렌",
-    name: "[적립금 7%] 케이블니트 코튼 스웨터 - 네이비",
-    price: 259000,
-    originalPrice: 0,
-    discount: 0,
-    likes: "7.9천",
-    rating: 4.9,
-    reviews: "1천+",
-    image:
-      "https://image.msscdn.net/images/goods_img/20230906/3534597/3534597_16939634720973_500.jpg",
-    badges: ["무배", "내일(월) 도착보장"],
-  },
-  {
-    id: 3,
-    brand: "본투원",
-    name: "BRN ECLIPSE SEAMLESS HALF ZIP UP LONG SLEEVE [BLACK]",
-    price: 105000,
-    originalPrice: 0,
-    discount: 0,
-    likes: 352,
-    rating: 4.8,
-    reviews: 19,
-    image:
-      "https://image.msscdn.net/images/goods_img/20230906/3534608/3534608_16939639735998_500.jpg",
-    badges: [],
-  },
-];
+interface LikedItem {
+  id: number;
+  brand: string;
+  name: string;
+  price: number;
+  originalPrice: number;
+  discount: number;
+  likes: string | number;
+  rating: number;
+  reviews: number | string;
+  image: string;
+  badges: string[];
+}
+
+const LIKED_ITEMS: LikedItem[] = [];
 
 // ----------------------------------------------------------------------
 // 2. 메인 페이지 컴포넌트
 // ----------------------------------------------------------------------
 export default function LikeGoodsPage() {
+  const { data: session } = useSession();
+  const [counts, setCounts] = useState({ items: 0, brands: 0 });
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      getLikeCountsAction(session.user.id).then(res => {
+        setCounts({ items: res.itemsCount, brands: res.brandsCount });
+      });
+    }
+  }, [session?.user?.id]);
+
   // 토글 상태 관리
   const [isSaleOnly, setIsSaleOnly] = useState(false);
   const [isSellingOnly, setIsSellingOnly] = useState(false);
@@ -78,13 +62,13 @@ export default function LikeGoodsPage() {
         {/* ================= 2. Tabs ================= */}
         <div className="flex items-center gap-6 border-b border-gray-200 mb-0 relative z-20 bg-white">
           <button className="pb-3 border-b-2 border-black text-black font-bold text-[14px]">
-            상품 <span className="ml-1">3</span>
+            상품 <span className="ml-1">{counts.items}</span>
           </button>
           <Link 
             href="/like/brands"
             className="pb-3 border-b-2 border-transparent text-gray-400 hover:text-black font-medium text-[14px]"
           >
-            브랜드 <span className="ml-1">13</span>
+            브랜드 <span className="ml-1">{counts.brands}</span>
           </Link>
           <Link 
             href="/like/snaps"
@@ -286,17 +270,7 @@ export default function LikeGoodsPage() {
           ))}
         </div>
 
-        {/* ================= 6. Bottom Banner (Dummy) ================= */}
-        <div className="mt-20 w-full h-[120px] bg-gray-100 flex items-center justify-between px-10 rounded-sm relative overflow-hidden">
-          <div className="z-10">
-            <p className="font-bold text-[14px]">단 일주일 브랜드위크</p>
-            <p className="text-[12px] text-gray-600 mt-1">
-              위캔더스 외 최대 80% 할인
-            </p>
-          </div>
-          {/* Banner Image Placeholder */}
-          <div className="w-[100px] h-[100px] bg-gray-300 rounded-full"></div>
-        </div>
+        {/* 6. Bottom Banner (Dummy) - 제거됨 */}
       </div>
     </div>
   );

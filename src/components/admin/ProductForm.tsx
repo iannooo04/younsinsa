@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useActionState, useRef, useEffect } from "react";
+import { useState, useActionState, useRef, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { HelpCircle, ChevronUp, ChevronDown } from "lucide-react";
 import { createProductAction, updateProductAction, uploadImageAction } from "@/actions/product-actions";
@@ -15,6 +15,7 @@ import PhotoAttachmentPopup from "./PhotoAttachmentPopup";
 import TipTapEditor from "@/components/ui/TipTapEditor";
 import GuideEditor from "./GuideEditor";
 import GuidePopup from "./GuidePopup";
+import ProductOptionBuilder, { OptionType, VariantType } from "./ProductOptionBuilder";
 
 interface Props {
     brands: Brand[];
@@ -44,6 +45,7 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         sales: true,
         mileage: true,
         price: true,
+        options: true,
 
         product_image: true,
         detail: true,
@@ -57,7 +59,34 @@ export default function ProductForm({ categories, initialProduct }: Props) {
         initialProduct?.category ? [initialProduct.category] : []
     );
     const [selectedDepths, setSelectedDepths] = useState<string[]>([]);
+    
+    // Options Data
+    const initialOptionsData = useMemo(() => {
+        if (!initialProduct || !initialProduct.options || initialProduct.options.length === 0) return undefined;
+        
+        const options: OptionType[] = initialProduct.options.map((o: { name: string; values: { name: string }[] }) => ({
+            name: o.name,
+            values: o.values.map((v: { name: string }) => v.name)
+        }));
+        
+        const variants: VariantType[] = (initialProduct.variants || []).map((v: { optionValues: { option: { name: string }, name: string }[], price?: number, stock?: number }) => {
+            const optionValues: Record<string, string> = {};
+            if (v.optionValues) {
+                v.optionValues.forEach((ov: { option: { name: string }, name: string }) => {
+                    optionValues[ov.option.name] = ov.name;
+                });
+            }
+            return {
+                optionValues,
+                price: v.price || 0,
+                stock: v.stock || 0
+            };
+        });
 
+        return { options, variants };
+    }, [initialProduct]);
+
+    const [optionsData, setOptionsData] = useState<{options: OptionType[], variants: VariantType[]}>(initialOptionsData || {options: [], variants: []});
 
     useEffect(() => {
         if (initialProduct?.categoryId && categories && selectedDepths.length === 0) {
@@ -532,7 +561,11 @@ export default function ProductForm({ categories, initialProduct }: Props) {
 
                 </Section>
 
-
+                {/* 상품 옵션 및 품목 */}
+                <Section title="옵션 설정" isOpen={sections.options} onToggle={() => toggleSection('options')}>
+                    <input type="hidden" name="optionsData" value={JSON.stringify(optionsData)} />
+                    <ProductOptionBuilder onChange={setOptionsData} initialData={initialOptionsData} />
+                </Section>
 
                 <Section title="추가 정보" helpText="help" isOpen={sections.additional} onToggle={() => toggleSection('additional')}>
 
