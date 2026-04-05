@@ -10,7 +10,9 @@ import { getPublicMainDisplayGroupsAction, getDisplayGroupProductsAction } from 
 import BrandLogoGrid from "@/components/common/BrandLogoGrid";
 import { getFeaturedBrandsAction } from "@/actions/brand-actions";
 import { getActiveBannersAction } from "@/actions/banner-actions";
-
+import LikeButton from "@/components/common/LikeButton";
+import { getUserLikedProductsAction } from "@/actions/like-actions";
+import HeroBannerSlider from "@/components/common/HeroBannerSlider";
 interface ProductItem {
   id: string;
   image: string;
@@ -35,6 +37,9 @@ export default function HomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [dynamicBanners, setDynamicBanners] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [interestBasedProducts, setInterestBasedProducts] = useState<any[]>([]);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -69,131 +74,23 @@ export default function HomePage() {
             // Removed fallback that generated "실시간 랭킹"
             setDisplayGroups([]);
         }
+
+        // Fetch Liked Products
+        const likesRes = await getUserLikedProductsAction();
+        if (likesRes.success) {
+            setInterestBasedProducts(likesRes.items);
+        }
+
         setLoading(false);
     }
     fetchData();
   }, [t]);
 
-  // 1. 배너 슬라이드 데이터
-  const bannerSlides = useMemo(() => {
-    if (dynamicBanners.length === 0) return [];
-    
-    const chunks = [];
-    for (let i = 0; i < dynamicBanners.length; i += 3) {
-      const left = dynamicBanners[i];
-      const center = dynamicBanners[i + 1];
-      const right = dynamicBanners[i + 2];
-      
-      chunks.push({
-        id: i,
-        left: left ? { img: left.pcImage, title: left.title, desc: left.description || '', link: left.linkUrl || '', bgColor: "bg-gray-800" } : { img: "", title: "", desc: "", link: "", bgColor: "bg-gray-200" },
-        center: center ? { img: center.pcImage, title: center.title, subTitle: "", desc: center.description || '', link: center.linkUrl || '', bgColor: "bg-black", overlayColor: "bg-black/20" } : { img: "", title: "", subTitle: "", desc: "", link: "", bgColor: "bg-gray-200", overlayColor: "" },
-        right: right ? { img: right.pcImage, title: right.title, subTitle: "", desc: right.description || '', link: right.linkUrl || '', bgColor: "bg-pink-600", overlayColor: "bg-pink-600/20" } : { img: "", title: "", subTitle: "", desc: "", link: "", bgColor: "bg-gray-200", overlayColor: "" },
-      });
-    }
-    return chunks;
-  }, [dynamicBanners]);
-
-  // 2. 슬라이드 상태 관리
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const [isTransitioning, setIsTransitioning] = useState(true);
-
-  const prevSlide = () => {
-    if (bannerSlides.length <= 1) return;
-    if (currentSlide <= 0) {
-      setIsTransitioning(false);
-      setCurrentSlide(bannerSlides.length - 1);
-    } else {
-      setIsTransitioning(true);
-      setCurrentSlide((prev) => prev - 1);
-    }
-  };
-
-  const nextSlide = () => {
-    if (bannerSlides.length <= 1) return;
-    if (currentSlide >= bannerSlides.length) return;
-    setIsTransitioning(true);
-    setCurrentSlide((prev) => prev + 1);
-  };
-
-  useEffect(() => {
-    if (bannerSlides.length <= 1) return;
-    if (currentSlide === bannerSlides.length) {
-      // 복제된 첫 번째 슬라이드에 도달하면 애니메이션 대기 후 실제로 0번(첫 번째)으로 눈속임 이동
-      const timeout = setTimeout(() => {
-        setIsTransitioning(false);
-        setCurrentSlide(0);
-      }, 500); // Tailwind duration-500 과 동일한 시간
-      return () => clearTimeout(timeout);
-    }
-  }, [currentSlide, bannerSlides.length]);
-
-  // 🛠️ [신규] 배너 3초 자동 슬라이드 (오른쪽에서 왼쪽으로 무조건 한 방향 롤링)
-  useEffect(() => {
-    if (bannerSlides.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => {
-        if (prev >= bannerSlides.length) return prev;
-        setIsTransitioning(true);
-        return prev + 1;
-      });
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [bannerSlides.length]);
 
 
 
-  // 🛠️ [신규] 나의 관심 기반 상품 추천 데이터 
-  const interestBasedProducts = [
-    {
-      id: 1,
-      brand: "디미트리블랙",
-      name: "[10주년기획] ⊗ 모두의 커브드 치노 팬츠_4 COLOR",
-      price: 34900,
-      discount: 30,
-      image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: 2,
-      brand: "트릴리온",
-      name: "[기획] 커브드 와이드 절개 코튼 팬츠_5color",
-      price: 29800,
-      discount: 31,
-      image: "https://images.unsplash.com/photo-1542272604-780c96850d76?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: 3,
-      brand: "시그니처",
-      name: "와이드 커브드 다트 코튼 팬츠[베이지]",
-      price: 34900,
-      discount: 34,
-      image: "https://images.unsplash.com/photo-1584865288642-42078afe6942?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: 4,
-      brand: "키유어",
-      name: "커브드 와이드 코튼 팬츠_베이지 [벨트/키링 선택]",
-      price: 43450,
-      discount: 45,
-      image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: 5,
-      brand: "르아르",
-      name: "커브드 코튼 치노 팬츠 [베이지]",
-      price: 39900,
-      discount: 5,
-      image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=400&q=80",
-    },
-    {
-      id: 6,
-      brand: "인템포무드",
-      name: "코튼 레이온 파라슈트 팬츠",
-      price: 49900,
-      discount: 32,
-      image: "https://images.unsplash.com/photo-1542272604-780c96850d76?auto=format&fit=crop&w=400&q=80",
-    },
-  ];
+
+  // 🛠️ 나의 관심 기반(찜) 상품 데이터는 서버에서 가져옵니다.
 
   // 3. 필터링 로직
   const searchParams = useSearchParams();
@@ -214,142 +111,7 @@ export default function HomePage() {
 
   return (
     <div className="bg-white min-h-screen text-black">
-      {/* 2. Hero Section (Slider) */}
-      <section className="relative group bg-gray-100 overflow-hidden h-100 md:h-125">
-        {/* 화살표 버튼 */}
-        <button
-          onClick={prevSlide}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5 text-black"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M15.75 19.5 8.25 12l7.5-7.5"
-            />
-          </svg>
-        </button>
-        <button
-          onClick={nextSlide}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-white cursor-pointer"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5 text-black"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="m8.25 4.5 7.5 7.5-7.5 7.5"
-            />
-          </svg>
-        </button>
-
-        {/* 슬라이드 컨테이너 */}
-        <div
-          className={`h-full flex ${isTransitioning ? "transition-transform duration-500 ease-in-out" : ""}`}
-          style={{ transform: `translateX(-${currentSlide * 100}%)` }}
-        >
-          {/* 심리스(Seamless) 무한 롤링을 위해 1번 슬라이드를 맨 끝에 복제해서 붙입니다 */}
-          {[...bannerSlides, ...(bannerSlides.length > 1 ? [bannerSlides[0]] : [])].map((slide, index) => (
-            <div
-              key={`${slide.id}-${index}`}
-              className="min-w-full h-full grid grid-cols-1 md:grid-cols-4"
-            >
-              {/* 왼쪽 */}
-              <div
-                className={`md:col-span-2 relative ${slide.left.bgColor} overflow-hidden cursor-pointer group/item`}
-                onClick={() => {
-                  if (slide.left.link) window.open(slide.left.link, "_self");
-                }}
-              >
-                {slide.left.img && (
-                  <Image
-                    src={slide.left.img}
-                    alt={slide.left.title}
-                    fill
-                    className="object-cover group-hover/item:scale-105 transition-transform duration-700"
-                  />
-                )}
-                <div className="absolute bottom-8 left-8 text-white z-10 drop-shadow-md">
-                  <h2
-                    className="text-3xl font-bold leading-tight mb-2"
-                    dangerouslySetInnerHTML={{ __html: slide.left.title }}
-                  />
-                  <p className="text-sm font-medium opacity-90">
-                    {slide.left.desc}
-                  </p>
-                </div>
-              </div>
-              {/* 중앙 */}
-              <div
-                className={`md:col-span-1 relative ${slide.center.bgColor} overflow-hidden cursor-pointer group/item`}
-                onClick={() => {
-                  if (slide.center.link) window.open(slide.center.link, "_self");
-                }}
-              >
-                {slide.center.img && (
-                  <Image
-                    src={slide.center.img}
-                    alt={slide.center.title}
-                    fill
-                    className="object-cover group-hover/item:scale-105 transition-transform duration-700"
-                  />
-                )}
-                <div className="absolute top-8 left-6 right-6 text-white z-10 drop-shadow-md">
-                  <h2 className="text-2xl font-bold leading-snug mb-1">
-                    {slide.center.title}
-                  </h2>
-                </div>
-                <div className="absolute bottom-8 left-6 text-white z-10 drop-shadow-md">
-                  <h3
-                    className="text-lg font-bold mb-1"
-                    dangerouslySetInnerHTML={{ __html: slide.center.subTitle! }}
-                  />
-                  <p className="text-xs opacity-80">{slide.center.desc}</p>
-                </div>
-              </div>
-              {/* 오른쪽 */}
-              <div
-                className={`md:col-span-1 relative ${slide.right.bgColor} overflow-hidden cursor-pointer group/item`}
-                onClick={() => {
-                  if (slide.right.link) window.open(slide.right.link, "_self");
-                }}
-              >
-                {slide.right.img && (
-                  <Image
-                    src={slide.right.img}
-                    alt={slide.right.title}
-                    fill
-                    className="object-cover group-hover/item:scale-105 transition-transform duration-700"
-                  />
-                )}
-                <div className="absolute top-8 left-6 text-white z-10 drop-shadow-md">
-                  <h2 className="text-xl font-bold">{slide.right.title}</h2>
-                </div>
-                <div className="absolute bottom-8 left-6 text-white z-10 drop-shadow-md">
-                  <h3
-                    className="text-lg font-bold leading-tight mb-1"
-                    dangerouslySetInnerHTML={{ __html: slide.right.subTitle! }}
-                  />
-                  <p className="text-xs opacity-80">{slide.right.desc}</p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <HeroBannerSlider dynamicBanners={dynamicBanners} />
 
 
 
@@ -362,35 +124,31 @@ export default function HomePage() {
          <BrandLogoGrid brands={brands} />
       </section>
 
-      {/* 4.5. 나의 관심 기반 상품 추천 (신규 영역) */}
+      {/* 4.5. 나의 관심 기반 상품 추천 (찜한 상품) */}
+      {interestBasedProducts.length > 0 && (
       <section className="w-full pl-4 md:pl-6 pr-0 pt-12 pb-16 bg-white shrink-0">
         {/* 타이틀 및 더보기 */}
         <div className="flex justify-between items-end mb-4 bg-white relative pr-4 md:pr-6">
           <h2 className="text-[20px] font-extrabold text-black tracking-tight">나의 관심 기반 상품 추천</h2>
-          <Link href="/interest" className="text-[12px] text-gray-500 font-medium hover:text-black transition-colors underline decoration-gray-300 underline-offset-4 cursor-pointer">
+          <Link href="/like/goods" className="text-[12px] text-gray-500 font-medium hover:text-black transition-colors underline decoration-gray-300 underline-offset-4 cursor-pointer">
             더보기
           </Link>
         </div>
 
         {/* 원형 상품 아이콘 (관심/최근 본 상품 기준) */}
         <div className="flex gap-2.5 mb-5 overflow-visible">
-          {/* 선택됨 (검은 테두리) */}
-          <div className="w-[45px] h-[45px] rounded-full ring-[1.5px] ring-black p-[2px] cursor-pointer bg-white relative">
-            <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 relative">
-               <Image src="https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=100&q=80" fill className="object-cover" alt="interest item 1"/>
-            </div>
-          </div>
-          {/* 선택안됨 (회색 테두리) */}
-          <div className="w-[45px] h-[45px] rounded-full ring-[1.5px] ring-transparent border border-gray-200 p-[2px] cursor-pointer hover:border-gray-400 transition-colors bg-white relative">
-            <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 relative">
-               <Image src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=100&q=80" fill className="object-cover" alt="interest item 2"/>
-            </div>
-          </div>
+          {interestBasedProducts.slice(0, 5).map((product, idx) => (
+             <div key={product.id} className={`w-[45px] h-[45px] rounded-full ring-[1.5px] ${idx === 0 ? 'ring-black' : 'ring-transparent border border-gray-200'} p-[2px] cursor-pointer bg-white relative`}>
+               <div className="w-full h-full rounded-full overflow-hidden bg-gray-100 relative">
+                  <Image src={product.image} fill className="object-cover" alt={product.name}/>
+               </div>
+             </div>
+          ))}
         </div>
 
         {/* 안내 텍스트 */}
         <p className="text-[11px] font-bold text-black mb-4">
-          최근 본 <span className="underline decoration-black underline-offset-2">디미트리블랙 코튼 팬츠</span> 연관 상품
+          회원님이 최근 찜한 <span className="underline decoration-black underline-offset-2">{interestBasedProducts[0]?.name}</span> 관련 상품
         </p>
 
         {/* 상품 가로 스크롤 리스트 */}
@@ -405,11 +163,7 @@ export default function HomePage() {
                   fill
                   className="object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <button className="absolute right-2 bottom-2 text-white/80 hover:text-white transition-colors cursor-pointer">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-[20px] h-[20px] fill-transparent hover:fill-white">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                  </svg>
-                </button>
+                <LikeButton productId={product.id} initialIsLiked={true} />
               </div>
               
               {/* 정보 영역 */}
@@ -417,7 +171,7 @@ export default function HomePage() {
                 <span className="text-[11px] font-bold text-black mb-1 leading-none">{product.brand}</span>
                 <span className="text-[12px] text-gray-800 leading-snug line-clamp-2 mb-2 min-h-[34px] font-medium">{product.name}</span>
                 <div className="flex gap-1.5 items-center">
-                  <span className="text-[#FF0000] font-bold text-[14px] tracking-tight">{product.discount}%</span>
+                  {product.discount > 0 && <span className="text-[#FF0000] font-bold text-[14px] tracking-tight">{product.discount}%</span>}
                   <span className="font-extrabold text-[15px] text-black tracking-tight">{product.price.toLocaleString()}원</span>
                 </div>
               </div>
@@ -425,6 +179,7 @@ export default function HomePage() {
           ))}
         </div>
       </section>
+      )}
 
       {/* 5. Product Display Groups */}
       {loading ? (
@@ -461,18 +216,7 @@ export default function HomePage() {
                       />
                     </div>
                     {/* 하트 아이콘 */}
-                    <button className="absolute right-2 bottom-2 text-white/70 hover:text-white transition-colors">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
-                        className="w-6 h-6 fill-transparent hover:fill-white"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-                      </svg>
-                    </button>
+                    <LikeButton productId={product.id} />
                   </div>
 
                   {/* 정보 영역 */}

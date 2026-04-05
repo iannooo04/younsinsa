@@ -2,6 +2,7 @@ import { getPublicProductsAction } from "@/actions/product-actions";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import LikeButton from "@/components/common/LikeButton";
 
 type PageProps = {
   params: Promise<{ brandSlug: string }> | { brandSlug: string };
@@ -78,6 +79,7 @@ export default async function BrandPage(props: PageProps) {
                     <span className="text-white font-bold text-xs uppercase">Sold Out</span>
                   </div>
                 )}
+                <LikeButton productId={product.id} />
               </div>
 
               {/* 정보 영역 */}

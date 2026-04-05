@@ -90,6 +90,9 @@ export default function MainHeader({
   // ✅ [수정] 심플 헤더를 보여줄 경로인지 확인
   // 마이페이지, 장바구니, 오프라인, 좋아요 페이지만 심플 헤더(검색창 숨김) 적용
   // nkbus 관련 페이지는 포함되지 않으므로 검색창이 나옵니다.
+  const isGolfPage = pathname.includes("/golf");
+  const isPlayerPage = pathname.includes("/player");
+  const isWomenPage = pathname.includes("/women");
   const isSimplePage =
     pathname.includes("/mypage") ||
     pathname.includes("/orders/cart") ||
@@ -97,51 +100,76 @@ export default function MainHeader({
     pathname.includes("/like") ||
     pathname.includes("/alerts") ||
     pathname.includes("/settings") ||
-    pathname.includes("/product/");
+    pathname.includes("/product/") ||
+    isGolfPage ||
+    isPlayerPage ||
+    isWomenPage;
+
+  let themeBgClass = "bg-[#1A1A1A] hover:bg-gray-800";
+  let themeAdminBgClass = "bg-[#1A1A1A] hover:bg-orange-950";
+  let themeHeaderBgClass = "bg-black border-gray-800";
+  
+  if (isGolfPage) {
+    themeBgClass = "bg-green-700 hover:bg-green-800";
+    themeAdminBgClass = "bg-green-700 hover:bg-green-800";
+    themeHeaderBgClass = "bg-green-700 border-green-800";
+  } else if (isPlayerPage) {
+    themeBgClass = "bg-blue-500 hover:bg-blue-600";
+    themeAdminBgClass = "bg-blue-500 hover:bg-blue-600";
+    themeHeaderBgClass = "bg-blue-500 border-blue-600";
+  } else if (isWomenPage) {
+    themeBgClass = "bg-pink-600 hover:bg-pink-700";
+    themeAdminBgClass = "bg-pink-600 hover:bg-pink-700";
+    themeHeaderBgClass = "bg-pink-600 border-pink-700";
+  }
 
   // 우측 메뉴 공통 렌더링 함수
   const renderRightMenu = () => (
     <div className="flex gap-5 items-center text-xs">
-      {/* 검색 (아이콘 + 텍스트) */}
-      <button
-        onClick={() => setIsSearchOpen(true)}
-        className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-        <span className="hidden md:inline">{t("menu.search")}</span>
-      </button>
+      {authed && (
+        <>
+          {/* 검색 (아이콘 + 텍스트) */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="flex items-center gap-1 hover:text-gray-300 cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <span className="hidden md:inline">{t("menu.search")}</span>
+          </button>
 
-      {/* 좋아요 (아이콘 + 텍스트) */}
-      <Link href="/like/goods" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
-        </svg>
-        <span className="hidden md:inline">{t("menu.like")}</span>
-      </Link>
+          {/* 좋아요 (아이콘 + 텍스트) */}
+          <Link href="/like/goods" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z" />
+            </svg>
+            <span className="hidden md:inline">{t("menu.like")}</span>
+          </Link>
 
-      {/* 마이 (아이콘 + 텍스트) */}
-      <Link href="/mypage" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-        </svg>
-        <span className="hidden md:inline">{t("menu.my")}</span>
-      </Link>
+          {/* 마이 (아이콘 + 텍스트) */}
+          <Link href="/mypage" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+            <span className="hidden md:inline">{t("menu.my")}</span>
+          </Link>
 
-      {/* 장바구니 (아이콘 + 텍스트) */}
-      <Link href="/orders/cart" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-        </svg>
-        <span className="hidden md:inline">{t("menu.cart")}</span>
-      </Link>
+          {/* 장바구니 (아이콘 + 텍스트) */}
+          <Link href="/orders/cart" className="flex items-center gap-1 hover:text-gray-300 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+            <span className="hidden md:inline">{t("menu.cart")}</span>
+          </Link>
+        </>
+      )}
 
       {/* 로그인 버튼 (비로그인 시 노출) */}
       {!authed ? (
         <Link 
           href="/member/login"
-          className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight ml-1 cursor-pointer flex items-center justify-center"
+          className={`border border-white text-white px-2.5 py-1 text-xs font-bold rounded-[3px] transition-colors tracking-tight ml-1 cursor-pointer flex items-center justify-center ${themeBgClass}`}
         >
           {t("menu.loginSignup")}
         </Link>
@@ -150,14 +178,14 @@ export default function MainHeader({
           {userLevel >= 21 && (
             <Link 
               href="/admin"
-              className="border border-orange-500 bg-[#1A1A1A] text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-orange-950 transition-colors tracking-tight cursor-pointer flex items-center justify-center"
+              className={`border border-orange-500 text-orange-500 px-2.5 py-1 text-xs font-bold rounded-[3px] transition-colors tracking-tight cursor-pointer flex items-center justify-center ${themeAdminBgClass}`}
             >
                 관리
             </Link>
           )}
           <button
             onClick={handleLogout}
-            className="border border-white bg-[#1A1A1A] text-white px-2.5 py-1 text-xs font-bold rounded-[3px] hover:bg-gray-800 transition-colors tracking-tight cursor-pointer"
+            className={`border border-white text-white px-2.5 py-1 text-xs font-bold rounded-[3px] transition-colors tracking-tight cursor-pointer ${themeBgClass}`}
           >
             {t("topBar.logout")}
           </button>
@@ -233,8 +261,8 @@ export default function MainHeader({
 
   return (
     <>
-    {/* 배경: 검정, 텍스트: 흰색 */}
-    <header className="border-b border-gray-800 bg-black text-white sticky top-0 z-[60] transition-colors duration-300">
+    {/* 배경: 접속 페이지에 따른 테마 색상, 텍스트: 흰색 */}
+    <header className={`border-b text-white sticky top-0 z-[60] transition-colors duration-300 ${themeHeaderBgClass}`}>
 
       {/* 1. Top Bar */}
       {renderTopBar(false)}

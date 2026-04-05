@@ -1,4 +1,5 @@
 import { getPublicProductsAction } from "@/actions/product-actions";
+import LikeButton from "@/components/common/LikeButton";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
@@ -52,32 +53,35 @@ export default async function SearchPage(props: SearchPageProps) {
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-10 border-t pt-8">
           {products.map((product) => (
-            <Link key={product.id} href={`/product/${product.id}`} className="group flex flex-col">
+            <div key={product.id} className="group flex flex-col">
               {/* 이미지 영역 */}
               <div className="relative w-full bg-[#f4f4f4] mb-3 overflow-hidden rounded-sm">
-                <div className="aspect-[3/4]">
-                  {product.image && !product.image.includes("placeholder.png") ? (
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full text-gray-400 text-xs text-center p-4">
-                      No Image
-                    </div>
-                  )}
-                  {product.isSoldOut && (
-                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">SOLD OUT</span>
-                    </div>
-                  )}
-                </div>
+                <Link href={`/product/${product.id}`}>
+                  <div className="aspect-[3/4]">
+                    {product.image && !product.image.includes("placeholder.png") ? (
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
+                    ) : (
+                      <div className="flex items-center justify-center h-full text-gray-400 text-xs text-center p-4">
+                        No Image
+                      </div>
+                    )}
+                    {product.isSoldOut && (
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                        <span className="text-white font-bold text-xs uppercase">Sold Out</span>
+                      </div>
+                    )}
+                  </div>
+                </Link>
+                <LikeButton productId={product.id} />
               </div>
 
               {/* 정보 영역 */}
-              <div className="px-1">
+              <Link href={`/product/${product.id}`} className="px-1">
                 <div className="text-[11px] font-bold text-black mb-1 truncate">
                   {product.brandName || "Brand"}
                 </div>
@@ -90,8 +94,8 @@ export default async function SearchPage(props: SearchPageProps) {
                     <span className="text-red-500 text-xs font-bold">{product.discountRate}%</span>
                   )}
                 </div>
-              </div>
-            </Link>
+              </Link>
+            </div>
           ))}
         </div>
       )}

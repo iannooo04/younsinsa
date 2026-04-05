@@ -5,16 +5,25 @@ import { Search, Bell, Heart, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import BrandLogoGrid from "@/components/common/BrandLogoGrid";
 import { getFeaturedBrandsAction } from "@/actions/brand-actions";
+import { getActiveBannersAction } from "@/actions/banner-actions";
+import HeroBannerSlider from "@/components/common/HeroBannerSlider";
 
 export default function WomenRecommendPage() {
   const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dynamicBanners, setDynamicBanners] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadBrands() {
+    async function fetchData() {
       const data = await getFeaturedBrandsAction();
       setBrands(data);
+
+      const bannersRes = await getActiveBannersAction('women');
+      if (bannersRes.success) {
+          setDynamicBanners(bannersRes.banners || []);
+      }
     }
-    loadBrands();
+    fetchData();
   }, []);
 
   const [activeTab, setActiveTab] = useState("추천");
@@ -115,32 +124,7 @@ export default function WomenRecommendPage() {
       </div>
 
       {/* 2. Hero Banner */}
-      <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
-        <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <Image 
-                src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=1600&auto=format&fit=crop" 
-                alt="Banner 1" 
-                fill
-                className="object-cover"
-            />
-            <div className="absolute bottom-8 left-4 text-white">
-                <h2 className="text-2xl font-bold font-serif mb-1">2024 Winter<br/>Essential Look</h2>
-                <p className="text-sm opacity-90">따뜻하고 스타일리시하게</p>
-            </div>
-        </div>
-         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <Image 
-                src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=1600&auto=format&fit=crop" 
-                 alt="Banner 2" 
-                fill
-                className="object-cover"
-            />
-             <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
-                <h2 className="text-2xl font-bold mb-1">디자이너 브랜드<br/>시즌 오프 세일</h2>
-                <p className="text-sm opacity-90">최대 80% 할인</p>
-            </div>
-        </div>
-      </div>
+      <HeroBannerSlider dynamicBanners={dynamicBanners} />
 
       {/* 3. Icon Categories */}
       <div className="py-4 px-2 overflow-x-auto scrollbar-hide border-b border-gray-100">

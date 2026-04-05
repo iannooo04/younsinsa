@@ -36,7 +36,7 @@ export default function BannerListPage() {
 
     // Filter State
     const [keyword, _setKeyword] = useState('');
-    const [targetGroup, _setTargetGroup] = useState('all');
+    const [targetGroup, setTargetGroup] = useState('all');
     const [isActive, _setIsActive] = useState('all');
     const [sort, setSort] = useState('orderAsc');
     
@@ -112,6 +112,20 @@ export default function BannerListPage() {
                 <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-50 font-bold h-9 w-32 rounded-sm" onClick={() => window.location.href='/admin/products/banners/create'}>
                     <Plus size={16} className="mr-1" /> 배너 등록
                 </Button>
+            </div>
+
+            {/* Category Tabs */}
+            <div className="flex gap-2 border-b border-gray-200 pb-4">
+                {[{id: 'all', label: '전체'}, {id: 'home', label: '홈'}, {id: 'golf', label: '골프'}, {id: 'player', label: '플레이어'}, {id: 'women', label: '우먼'}].map((cat) => (
+                    <Button 
+                        key={cat.id} 
+                        variant={targetGroup === cat.id ? "default" : "outline"} 
+                        className={`h-8 px-5 rounded-full text-xs font-bold ${targetGroup === cat.id ? 'bg-gray-900 text-white hover:bg-gray-800' : 'text-gray-600 bg-white hover:bg-gray-50 border-gray-300'}`}
+                        onClick={() => { setTargetGroup(cat.id); setPage(1); }}
+                    >
+                        {cat.label}
+                    </Button>
+                ))}
             </div>
 
             {/* List Section */}

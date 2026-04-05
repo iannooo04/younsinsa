@@ -115,8 +115,9 @@ export default function BannerForm({ initialData }: { initialData?: any }) {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="home">홈 메인</SelectItem>
-                                <SelectItem value="shoes">신발 메인</SelectItem>
-                                <SelectItem value="bag">가방 메인</SelectItem>
+                                <SelectItem value="golf">골프 메인</SelectItem>
+                                <SelectItem value="player">플레이어 메인</SelectItem>
+                                <SelectItem value="women">우먼 메인</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -5,16 +5,25 @@ import { Search, Bell, Heart } from "lucide-react";
 import Image from "next/image";
 import BrandLogoGrid from "@/components/common/BrandLogoGrid";
 import { getFeaturedBrandsAction } from "@/actions/brand-actions";
+import { getActiveBannersAction } from "@/actions/banner-actions";
+import HeroBannerSlider from "@/components/common/HeroBannerSlider";
 
 export default function GolfRecommendPage() {
   const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dynamicBanners, setDynamicBanners] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadBrands() {
+    async function fetchData() {
       const data = await getFeaturedBrandsAction();
       setBrands(data);
+
+      const bannersRes = await getActiveBannersAction('golf');
+      if (bannersRes.success) {
+          setDynamicBanners(bannersRes.banners || []);
+      }
     }
-    loadBrands();
+    fetchData();
   }, []);
 
   const [activeTab, setActiveTab] = useState("추천");
@@ -110,35 +119,8 @@ export default function GolfRecommendPage() {
         </div>
       </div>
 
-      {/* 2. Hero Banner (Horizontal Scroll) */}
-      <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
-        {/* Banner 1 */}
-        <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <Image 
-                src="https://images.unsplash.com/photo-1535131749006-b7f58c9f0363?q=80&w=1600&auto=format&fit=crop" 
-                alt="Banner 1" 
-                fill
-                className="object-cover"
-            />
-            <div className="absolute bottom-8 left-4 text-white">
-                <h2 className="text-2xl font-bold font-serif mb-1">2024 S/S<br/>골프웨어 컬렉션</h2>
-                <p className="text-sm opacity-90">필드 위 새로운 스타일</p>
-            </div>
-        </div>
-         {/* Banner 2 */}
-         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <Image 
-                src="https://images.unsplash.com/photo-1593111774240-d529f12db4bb?q=80&w=1600&auto=format&fit=crop" 
-                 alt="Banner 2" 
-                fill
-                className="object-cover"
-            />
-             <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
-                <h2 className="text-2xl font-bold mb-1">완벽한 스윙을 위한<br/>프리미엄 클럽</h2>
-                <p className="text-sm opacity-90">타이틀리스트 & 테일러메이드</p>
-            </div>
-        </div>
-      </div>
+      {/* 2. Hero Banner */}
+      <HeroBannerSlider dynamicBanners={dynamicBanners} />
 
       {/* 3. Icon Categories */}
       <div className="py-4 px-2 overflow-x-auto scrollbar-hide border-b border-gray-100">

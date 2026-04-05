@@ -5,16 +5,25 @@ import { Search, Bell, Heart, ChevronUp } from "lucide-react";
 import Image from "next/image";
 import BrandLogoGrid from "@/components/common/BrandLogoGrid";
 import { getFeaturedBrandsAction } from "@/actions/brand-actions";
+import { getActiveBannersAction } from "@/actions/banner-actions";
+import HeroBannerSlider from "@/components/common/HeroBannerSlider";
 
 export default function PlayerRecommendPage() {
   const [brands, setBrands] = useState<Awaited<ReturnType<typeof getFeaturedBrandsAction>>>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [dynamicBanners, setDynamicBanners] = useState<any[]>([]);
 
   useEffect(() => {
-    async function loadBrands() {
+    async function fetchData() {
       const data = await getFeaturedBrandsAction();
       setBrands(data);
+
+      const bannersRes = await getActiveBannersAction('player');
+      if (bannersRes.success) {
+          setDynamicBanners(bannersRes.banners || []);
+      }
     }
-    loadBrands();
+    fetchData();
   }, []);
 
   const [activeTab, setActiveTab] = useState("추천");
@@ -144,48 +153,8 @@ export default function PlayerRecommendPage() {
         </div>
       </div>
 
-      {/* 2. Hero Banner (Horizontal Scroll) */}
-      <div className="w-full overflow-x-auto scrollbar-hide snap-xsnap-mandatory flex">
-        {/* Banner 1 */}
-        <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-100 snap-center">
-            <Image 
-                src="https://image.msscdn.net/mfile_s01/_shopstaff/list.staff_651f6868dfd05.jpg" 
-                alt="Banner 1" 
-                fill
-                className="object-cover"
-            />
-            <div className="absolute bottom-8 left-4 text-white">
-                <h2 className="text-2xl font-bold font-serif mb-1">가장 갖고 싶은<br/>인기 아이템 추천</h2>
-                <p className="text-sm opacity-90">룰루레몬</p>
-            </div>
-        </div>
-         {/* Banner 2 */}
-         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-200 snap-center">
-           <Image 
-                src="https://image.msscdn.net/images/goods_img/20230825/3485791/3485791_16929422055139_500.jpg" 
-                 alt="Banner 2" 
-                fill
-                className="object-cover"
-            />
-             <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
-                <h2 className="text-2xl font-bold mb-1">과하지 않은 실루엣<br/>740 라인</h2>
-                <p className="text-sm opacity-90">뉴발란스</p>
-            </div>
-        </div>
-         {/* Banner 3 */}
-         <div className="min-w-full relative aspect-[4/3] md:aspect-[2/1] bg-gray-300 snap-center">
-            <Image 
-                src="https://image.msscdn.net/images/goods_img/20231102/3679815/3679815_16989098906325_500.jpg" 
-                 alt="Banner 3" 
-                fill
-                className="object-cover"
-            />
-             <div className="absolute bottom-8 left-4 text-white drop-shadow-md">
-                <h2 className="text-2xl font-bold mb-1">감각적 경량 아우터<br/>최대 50% 할인</h2>
-                <p className="text-sm opacity-90">오스트리아</p>
-            </div>
-        </div>
-      </div>
+      {/* 2. Hero Banner */}
+      <HeroBannerSlider dynamicBanners={dynamicBanners} />
 
       {/* 3. Icon Categories */}
       <div className="py-4 px-2 overflow-x-auto scrollbar-hide border-b border-gray-100">

@@ -2,6 +2,8 @@ import { getPublicProductsAction } from "@/actions/product-actions";
 import { Link } from "@/i18n/routing";
 import Image from "next/image";
 
+import LikeButton from "@/components/common/LikeButton";
+
 type PageProps = {
   params: Promise<{ categoryId: string }> | { categoryId: string };
   searchParams:
@@ -76,6 +78,7 @@ export default async function CategoryPage(props: PageProps) {
                     <span className="text-white font-bold text-xs uppercase">Sold Out</span>
                   </div>
                 )}
+                <LikeButton productId={product.id} />
               </div>
 
               {/* 정보 영역 */}
