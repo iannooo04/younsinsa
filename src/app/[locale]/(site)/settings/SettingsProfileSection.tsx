@@ -11,14 +11,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-// Define a type that matches what's passed from the server component
-// based on getMyPageDataAction return type
 interface UserData {
   id: string;
   name: string; 
-  username: string; 
+  username: string | null; 
   nickname: string | null;
   image: string | null;
+  email?: string | null;
+  mobile?: string | null;
+  info?: any;
 }
 
 interface SettingsProfileSectionProps {
@@ -115,7 +116,7 @@ export default function SettingsProfileSection({ user }: SettingsProfileSectionP
       <div className="flex gap-3">
         <Dialog open={isImageDialogOpen} onOpenChange={setIsImageDialogOpen}>
           <DialogTrigger asChild>
-            <button className="flex-1 border border-gray-300 rounded-[4px] py-3 text-[14px] font-medium text-black hover:bg-gray-50 transition-colors">
+            <button suppressHydrationWarning className="flex-1 border border-gray-300 rounded-[4px] py-3 text-[14px] font-medium text-black hover:bg-gray-50 transition-colors">
               프로필 이미지 변경
             </button>
           </DialogTrigger>
@@ -148,7 +149,7 @@ export default function SettingsProfileSection({ user }: SettingsProfileSectionP
              <DialogTitle className="sr-only">프로필 이미지 변경 확인</DialogTitle>
              <div>
                 <p className="text-[15px] text-black font-medium leading-normal">
-                  스냅의 프로필 이미지도 동일하게 변경됩니다. 변경하시겠습니까?
+                  프로필 이미지 변경하시겠습니까?
                 </p>
              </div>
              

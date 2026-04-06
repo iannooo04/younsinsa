@@ -20,10 +20,12 @@ export default function FaqPage() {
   const categories = [
     { id: "all", name: "전체" },
     { id: "배송", name: "배송" },
+    { id: "취소/교환/반품", name: "취소/교환/반품" },
+    { id: "상품/AS 문의", name: "상품/AS 문의" },
     { id: "주문/결제", name: "주문/결제" },
-    { id: "취소/반품/교환", name: "취소/반품/교환" },
-    { id: "회원/정보", name: "회원/정보" },
-    { id: "서비스/기타", name: "서비스/기타" },
+    { id: "서비스", name: "서비스" },
+    { id: "이용 안내", name: "이용 안내" },
+    { id: "회원 정보", name: "회원 정보" },
   ];
 
   const fetchFaqs = useCallback(async () => {
@@ -53,70 +55,70 @@ export default function FaqPage() {
   };
 
   return (
-    <div className="bg-white min-h-screen pb-20">
-      {/* Header */}
-      <div className="border-b border-gray-100">
-        <div className="max-w-[800px] mx-auto px-5 py-10">
-          <h1 className="text-2xl font-bold mb-8 text-center">자주 묻는 질문 (FAQ)</h1>
-          
-          {/* Search Box */}
-          <form onSubmit={handleSearch} className="relative max-w-[600px] mx-auto">
-            <input
-              type="text"
-              placeholder="궁금한 내용을 입력해 주세요."
-              className="w-full h-14 pl-5 pr-20 bg-gray-100 rounded-full text-sm outline-none focus:ring-2 focus:ring-black/5"
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-            />
-            <button
-              type="submit"
-              className="absolute right-2 top-2 h-10 px-6 bg-black text-white text-sm font-bold rounded-full hover:bg-gray-800 transition-colors"
-            >
-              검색
-            </button>
-          </form>
-        </div>
+    <div className="w-full bg-[#fcfcfc] min-h-[calc(100vh-60px)] pb-24 max-w-[800px] mx-auto relative">
+      {/* Header & Search */}
+      <div className="px-5 pt-8 pb-4">
+        <h1 className="text-[18px] font-bold mb-4">FAQ</h1>
+        
+        {/* Search Box */}
+        <form onSubmit={handleSearch} className="relative w-full">
+          <input
+            type="text"
+            placeholder="무엇을 도와드릴까요?"
+            className="w-full h-[40px] pl-4 pr-10 bg-white border border-gray-100 rounded-[4px] text-[13px] outline-none shadow-sm placeholder-gray-400 focus:border-gray-300"
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="absolute right-3 top-0 h-full flex items-center justify-center"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4 text-gray-400">
+              <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+          </button>
+        </form>
       </div>
 
       {/* Categories */}
-      <div className="sticky top-0 bg-white border-b border-gray-100 z-10">
-        <div className="max-w-[800px] mx-auto px-5 overflow-x-auto scrollbar-hide">
-          <div className="flex gap-8 py-4 whitespace-nowrap">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setCategory(cat.id)}
-                className={`text-sm font-bold transition-colors pb-1 border-b-2 ${
-                  category === cat.id
-                    ? "text-black border-black"
-                    : "text-gray-400 border-transparent hover:text-black"
-                }`}
-              >
-                {cat.name}
-              </button>
-            ))}
-          </div>
+      <div className="sticky top-0 bg-[#fcfcfc] z-10 px-5">
+        <div className="flex gap-4 overflow-x-auto scrollbar-hide py-2 border-b border-gray-100 whitespace-nowrap">
+          {categories.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setCategory(cat.id)}
+              className={`text-[13px] pb-2 relative transition-colors ${
+                category === cat.id
+                  ? "text-black font-bold"
+                  : "text-gray-400 hover:text-black font-medium"
+              }`}
+            >
+              {cat.name}
+              {category === cat.id && (
+                <div className="absolute bottom-[-1px] left-0 w-full h-[2px] bg-black" />
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
       {/* FAQ List */}
-      <div className="max-w-[800px] mx-auto px-5 mt-8">
+      <div className="bg-white mx-5 mt-2 rounded-[4px] shadow-sm mb-6 pb-2">
         {loading ? (
-          <div className="py-20 text-center text-gray-400">불러오는 중...</div>
+          <div className="py-20 text-center text-gray-400 text-[13px]">불러오는 중...</div>
         ) : faqs.length === 0 ? (
-          <div className="py-20 text-center text-gray-400">검색 결과가 없습니다.</div>
+          <div className="py-20 text-center text-gray-400 text-[13px]">검색 결과가 없습니다.</div>
         ) : (
-          <div className="divide-y divide-gray-100 border-t border-gray-100">
+          <div className="divide-y divide-gray-100 flex flex-col">
             {faqs.map((faq) => (
               <div key={faq.id} className="group">
                 <button
                   onClick={() => toggleFaq(faq.id)}
-                  className="w-full py-5 flex items-start gap-4 text-left group-hover:bg-gray-50 transition-colors px-2"
+                  className="w-full py-5 flex items-start gap-4 text-left transition-colors px-4 relative"
                 >
-                  <span className="text-gray-300 font-bold mt-0.5">Q</span>
-                  <div className="flex-1">
-                    <span className="text-[12px] text-blue-600 mb-1 block">{faq.category}</span>
-                    <p className="text-[14px] font-medium text-gray-800">{faq.question}</p>
+                  <div className="flex-1 pr-6">
+                    <span className="text-[12px] text-gray-400 font-medium mb-1 block">{faq.category}</span>
+                    <p className="text-[14px] font-bold text-gray-900 leading-snug">{faq.question}</p>
                   </div>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -124,7 +126,7 @@ export default function FaqPage() {
                     viewBox="0 0 24 24"
                     strokeWidth={1.5}
                     stroke="currentColor"
-                    className={`w-4 h-4 text-gray-400 mt-1.5 transition-transform ${
+                    className={`w-4 h-4 text-gray-400 mt-5 absolute right-4 transition-transform ${
                       openId === faq.id ? "rotate-180" : ""
                     }`}
                   >
@@ -132,14 +134,11 @@ export default function FaqPage() {
                   </svg>
                 </button>
                 {openId === faq.id && (
-                  <div className="px-5 pb-8 pt-2 bg-gray-50">
-                    <div className="flex gap-4">
-                      <span className="text-black font-bold mt-1">A</span>
-                      <div
-                        className="text-[13px] leading-relaxed text-gray-600 whitespace-pre-wrap"
-                        dangerouslySetInnerHTML={{ __html: faq.answer }}
-                      />
-                    </div>
+                  <div className="px-4 pb-6 pt-1 bg-white">
+                    <div
+                      className="text-[13px] leading-relaxed text-gray-600 whitespace-pre-wrap ml-1"
+                      dangerouslySetInnerHTML={{ __html: faq.answer }}
+                    />
                   </div>
                 )}
               </div>
@@ -148,22 +147,11 @@ export default function FaqPage() {
         )}
       </div>
 
-      {/* CSR Center Links */}
-      <div className="max-w-[800px] mx-auto px-5 mt-20">
-        <div className="bg-gray-50 rounded-lg p-8 grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-gray-200">
-          <div className="flex flex-col items-center justify-center text-center">
-             <h3 className="font-bold mb-2">도움이 더 필요하신가요?</h3>
-             <p className="text-xs text-gray-500 mb-4">1:1 문의를 남겨주시면 정성껏 답변해 드립니다.</p>
-             <button className="px-6 py-2 border border-gray-300 rounded-sm text-sm font-bold hover:bg-white transition-colors">
-               1:1 문의하기
-             </button>
-          </div>
-          <div className="flex flex-col items-center justify-center text-center pt-8 md:pt-0">
-             <h3 className="font-bold mb-1">고객센터 1544-7199</h3>
-             <p className="text-xs text-gray-500">평일 09:00 - 18:00</p>
-             <p className="text-[10px] text-gray-400 mt-1">(점심시간 12:00 - 13:00 제외)</p>
-          </div>
-        </div>
+      {/* Bottom Button */}
+      <div className="px-5 mt-4">
+        <button className="w-full max-w-[800px] mx-auto block bg-black text-white text-[14px] font-bold py-4 rounded-[4px]">
+          1:1 문의하기
+        </button>
       </div>
     </div>
   );

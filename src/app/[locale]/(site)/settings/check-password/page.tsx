@@ -39,7 +39,7 @@ export default function CheckPasswordPage() {
 
   return (
     <div className="bg-white min-h-screen flex justify-center">
-      <div className="w-full max-w-[480px] bg-white relative flex flex-col h-screen">
+      <div className="w-full max-w-[480px] bg-white relative flex flex-col h-[100dvh]">
         {/* Header */}
         <header className="flex items-center h-[56px] px-4 sticky top-0 bg-white z-10">
           <button 
@@ -125,7 +125,7 @@ export default function CheckPasswordPage() {
         </div>
 
         {/* Bottom Button */}
-        <div className="p-5 pb-8">
+        <div className="px-5 pb-[100px] pt-8">
            <button
              disabled={!isValid || loading}
              onClick={handleSubmit}

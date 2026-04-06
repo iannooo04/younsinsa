@@ -766,6 +766,7 @@ export async function getMyPageDataAction(userId: string) {
         mobile: true,
         info: {
           select: {
+            id: true,
             grade: {
               select: {
                 name: true,
@@ -782,10 +783,79 @@ export async function getMyPageDataAction(userId: string) {
     });
 
     if (!user) {
+      // 어드민 계정인지 확인
+      const admin = await prisma.admin.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, image: true, nickname: true, mobile: true }
+      });
+
+      if (admin) {
+        return { 
+          success: true, 
+          user: {
+            id: admin.id,
+            name: admin.name,
+            username: admin.email,
+            nickname: admin.nickname || "관리자",
+            image: admin.image || null,
+            email: admin.email,
+            mobile: admin.mobile || null,
+            info: {
+              id: "admin-info",
+              grade: { name: "최고 관리자", discountRate: 0, mileageRate: 0 },
+              mileage: 0,
+              deposit: 0,
+              birthday: null
+            }
+          },
+          reviewableCount: 0,
+          couponCount: 0
+        };
+      }
+
       return { success: false, error: "회원 정보를 찾을 수 없습니다." };
     }
 
-    return { success: true, user };
+    const userInfoId = user.info?.id;
+
+    let reviewableCount = 0;
+    
+    if (userInfoId) {
+      // Get all delivered/confirmed order items
+      const orderItems = await prisma.orderItem.findMany({
+        where: {
+          order: { userId: userInfoId },
+          status: { in: ['DELIVERED', 'PURCHASE_CONFIRM'] },
+          productId: { not: null }
+        },
+        select: { productId: true }
+      });
+      
+      // Get all written reviews
+      const writtenReviews = await prisma.productReview.findMany({
+        where: { userId: userInfoId },
+        select: { productId: true }
+      });
+      
+      const writtenProductIds = new Set(writtenReviews.map(r => r.productId));
+      
+      // Count unique products ordered that haven't been reviewed
+      const reviewableProducts = new Set();
+      orderItems.forEach(item => {
+        if (item.productId && !writtenProductIds.has(item.productId)) {
+          reviewableProducts.add(item.productId);
+        }
+      });
+      
+      reviewableCount = reviewableProducts.size;
+    }
+
+    return { 
+      success: true, 
+      user, 
+      reviewableCount,
+      couponCount: 0
+    };
   } catch (error) {
     console.error("Error fetching my page data:", error);
     return { success: false, error: "마이페이지 정보를 불러오는데 실패했습니다." };
@@ -794,32 +864,20 @@ export async function getMyPageDataAction(userId: string) {
 
 // --- Profile Image Upload ---
 
-import { join } from "path";
-import { writeFile, mkdir } from "fs/promises";
+import { uploadFile } from "@/lib/s3";
 
-async function saveImage(file: File): Promise<string | null> {
+async function saveProfileImage(file: File): Promise<string | null> {
     if (!file || file.size === 0) return null;
 
     try {
         const buffer = Buffer.from(await file.arrayBuffer());
-        // Simple unique filename: profile-timestamp-random.ext
         const ext = file.name.split('.').pop() || 'jpg';
-        const filename = `profile-${Date.now()}-${Math.round(Math.random() * 10000)}.${ext}`;
+        const filename = `profiles/${Date.now()}-${Math.round(Math.random() * 10000)}.${ext}`;
         
-        // Ensure directory exists
-        const uploadDir = join(process.cwd(), "public/uploads");
-        try {
-            await mkdir(uploadDir, { recursive: true });
-        } catch (_err) {
-            // Include error code check if needed, but recursive: true usually handles existence
-        }
-
-        const filepath = join(uploadDir, filename);
-
-        await writeFile(filepath, buffer);
-        return `/uploads/${filename}`;
+        const url = await uploadFile(buffer, filename, file.type || 'application/octet-stream');
+        return url;
     } catch (error) {
-        console.error("Error saving image:", error);
+        console.error("Error saving image to S3/R2:", error);
         return null;
     }
 }
@@ -828,16 +886,30 @@ export async function verifyPasswordAction(userId: string, password: string) {
     try {
         if (!userId || !password) return { success: false, error: "잘못된 요청입니다." };
 
+        let passwordHash: string | null = null;
+
         const user = await prisma.user.findUnique({
             where: { id: userId },
             select: { passwordHash: true }
         });
 
-        if (!user || !user.passwordHash) {
+        if (user && user.passwordHash) {
+             passwordHash = user.passwordHash;
+        } else {
+             const admin = await prisma.admin.findUnique({
+                 where: { id: userId },
+                 select: { passwordHash: true }
+             });
+             if (admin && admin.passwordHash) {
+                 passwordHash = admin.passwordHash;
+             }
+        }
+
+        if (!passwordHash) {
              return { success: false, error: "사용자를 찾을 수 없습니다." };
         }
 
-        const isValid = await bcrypt.compare(password, user.passwordHash);
+        const isValid = await bcrypt.compare(password, passwordHash);
 
         if (isValid) {
             return { success: true };
@@ -859,16 +931,30 @@ export async function updateProfileImageAction(formData: FormData) {
         if (!userId) return { success: false, error: "사용자 ID가 없습니다." };
         if (!file) return { success: false, error: "이미지 파일이 없습니다." };
 
-        const imageUrl = await saveImage(file);
+        const imageUrl = await saveProfileImage(file);
         
         if (!imageUrl) {
             return { success: false, error: "이미지 저장에 실패했습니다." };
         }
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { image: imageUrl }
-        });
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        
+        if (user) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { image: imageUrl }
+            });
+        } else {
+            const admin = await prisma.admin.findUnique({ where: { id: userId } });
+            if (admin) {
+                await prisma.admin.update({
+                    where: { id: userId },
+                    data: { image: imageUrl }
+                });
+            } else {
+                 return { success: false, error: "사용자를 찾을 수 없습니다." };
+            }
+        }
 
         revalidatePath('/settings');
         revalidatePath('/mypage'); // If mypage shows the image
@@ -892,21 +978,42 @@ export async function updateNicknameAction(userId: string, newNickname: string) 
         }
 
         // Check duplicate
-        const existing = await prisma.user.findFirst({
+        const existingUser = await prisma.user.findFirst({
             where: { 
                 nickname: newNickname,
                 NOT: { id: userId } // Exclude self
             }
         });
 
-        if (existing) {
+        const existingAdmin = await prisma.admin.findFirst({
+             where: {
+                 nickname: newNickname,
+                 NOT: { id: userId } // Exclude self
+             }
+        });
+
+        if (existingUser || existingAdmin) {
             return { success: false, error: "이미 사용 중인 닉네임입니다." };
         }
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { nickname: newNickname }
-        });
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        
+        if (user) {
+            await prisma.user.update({
+                where: { id: userId },
+                data: { nickname: newNickname }
+            });
+        } else {
+             const admin = await prisma.admin.findUnique({ where: { id: userId } });
+             if (admin) {
+                 await prisma.admin.update({
+                     where: { id: userId },
+                     data: { nickname: newNickname }
+                 });
+             } else {
+                 return { success: false, error: "사용자를 찾을 수 없습니다." };
+             }
+        }
 
         revalidatePath('/settings');
         revalidatePath('/settings/nickname');
@@ -950,26 +1057,46 @@ export async function updatePasswordAction(userId: string, currentPassword: stri
             return { success: false, error: "모든 필드를 입력해주세요." };
         }
 
-        const user = await prisma.user.findUnique({
+        let account: { passwordHash: string | null } | null = null;
+        let isAdmin = false;
+
+        account = await prisma.user.findUnique({
             where: { id: userId },
             select: { passwordHash: true }
         });
 
-        if (!user || !user.passwordHash) {
+        if (!account || !account.passwordHash) {
+             account = await prisma.admin.findUnique({
+                 where: { id: userId },
+                 select: { passwordHash: true }
+             });
+             if (account && account.passwordHash) {
+                 isAdmin = true;
+             }
+        }
+
+        if (!account || !account.passwordHash) {
             return { success: false, error: "사용자를 찾을 수 없습니다." };
         }
 
-        const isValid = await bcrypt.compare(currentPassword, user.passwordHash);
+        const isValid = await bcrypt.compare(currentPassword, account.passwordHash);
         if (!isValid) {
             return { success: false, error: "현재 비밀번호가 일치하지 않습니다." };
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { passwordHash: hashedPassword }
-        });
+        if (isAdmin) {
+             await prisma.admin.update({
+                 where: { id: userId },
+                 data: { passwordHash: hashedPassword }
+             });
+        } else {
+             await prisma.user.update({
+                 where: { id: userId },
+                 data: { passwordHash: hashedPassword }
+             });
+        }
 
         return { success: true };
     } catch (error) {
@@ -1106,8 +1233,70 @@ export async function getUserDetailAction(userId: string) {
         }
     };
 
-  } catch (error: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+  } catch (error) {
     console.error("Error fetching user detail:", error);
-    return { success: false, message: error.message || "회원 상세 정보를 불러오는 중 오류가 발생했습니다." };
+    const errorMessage = error instanceof Error ? error.message : "회원 상세 정보를 불러오는 중 오류가 발생했습니다.";
+    return { success: false, message: errorMessage };
   }
 }
+
+export interface MemberInfoUpdateData {
+    name: string;
+    mobile: string;
+    email: string;
+    birthday?: Date;
+}
+
+export async function updateMemberInfoAction(userId: string, data: MemberInfoUpdateData) {
+    try {
+        if (!userId) return { success: false, error: "로그인이 필요합니다." };
+        
+        // 1. Try to update Admin
+        const admin = await prisma.admin.findUnique({ where: { id: userId } });
+        if (admin) {
+            await prisma.admin.update({
+                where: { id: userId },
+                data: {
+                    name: data.name,
+                    mobile: data.mobile,
+                    email: data.email,
+                }
+            });
+            revalidatePath('/settings/member-info');
+            return { success: true };
+        }
+        
+        // 2. Try to update User
+        const user = await prisma.user.findUnique({ where: { id: userId }, include: { info: true } });
+        if (!user) return { success: false, error: "사용자를 찾을 수 없습니다." };
+        
+        await prisma.user.update({
+            where: { id: userId },
+            data: {
+                name: data.name,
+                mobile: data.mobile,
+                email: data.email,
+            }
+        });
+        
+        if (data.birthday) {
+             if (user.info) {
+                 await prisma.userInfo.update({
+                     where: { userId: userId },
+                     data: { birthday: data.birthday }
+                 });
+             } else {
+                 await prisma.userInfo.create({
+                     data: { userId: userId, birthday: data.birthday }
+                 });
+             }
+        }
+
+        revalidatePath('/settings/member-info');
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating member info:", error);
+        return { success: false, error: "이메일이 중복되었거나 저장 중 오류가 발생했습니다." };
+    }
+}
+

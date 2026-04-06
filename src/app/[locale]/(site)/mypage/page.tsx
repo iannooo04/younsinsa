@@ -9,5 +9,11 @@ export default async function MyPage() {
   // Fetch real data
   const result = await getMyPageDataAction(session?.user?.id as string);
   
-  return <MyPageView user={result.user || null} />;
+  return (
+    <MyPageView 
+      user={result.user || null} 
+      reviewableCount={result.reviewableCount || 0} 
+      couponCount={result.couponCount || 0}
+    />
+  );
 }

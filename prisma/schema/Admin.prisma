@@ -29,6 +29,7 @@ model Admin {
   email          String?
   phone          String?     // 일반전화
   mobile         String?     // 휴대전화
+  image          String?     // 프로필 이미지
   
   // -- 구분 및 상태 --
   type           AdminType   @default(SUB)

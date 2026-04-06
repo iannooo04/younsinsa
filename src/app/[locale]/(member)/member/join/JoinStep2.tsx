@@ -12,6 +12,7 @@ interface JoinStep2Props {
 export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
     const [email, setEmail] = useState("");
     const [name, setName] = useState("");
+    const [birthday, setBirthday] = useState("");
     const [nickname, setNickname] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
@@ -20,7 +21,7 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isFormValid = email.includes("@") && name.length >= 2 && nickname.length >= 2 && password.length >= 8 && password === confirmPassword;
+    const isFormValid = email.includes("@") && name.length >= 2 && nickname.length >= 2 && password.length >= 8 && password === confirmPassword && birthday.length > 0;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,6 +43,7 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
                     name,
                     username,
                     nickname,
+                    birthday,
                 }),
             });
 
@@ -79,9 +81,9 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
     };
 
     return (
-        <div className="max-w-md mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+        <div className="max-w-[560px] mx-auto p-4 space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
             <div className="space-y-2">
-                <h1 className="text-xl font-bold">이미리 통합계정 가입</h1>
+                <h1 className="text-xl font-bold">NKBUS 통합계정 가입</h1>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -95,7 +97,7 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
                         onChange={(e) => setEmail(e.target.value)}
                         required
                     />
-                    <p className="text-[11px] text-base-content/40">이미리 통합계정에서 사용할 이메일입니다.</p>
+                    <p className="text-[11px] text-base-content/40">NKBUS 통합계정에서 사용할 이메일입니다.</p>
                 </div>
 
                 <div className="space-y-2">
@@ -106,6 +108,17 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
                         className="input input-bordered w-full h-12 focus:ring-1 focus:ring-black"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
+                        required
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-bold block">생년월일</label>
+                    <input
+                        type="date"
+                        className="input input-bordered w-full h-12 focus:ring-1 focus:ring-black"
+                        value={birthday}
+                        onChange={(e) => setBirthday(e.target.value)}
                         required
                     />
                 </div>
@@ -176,7 +189,7 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
                             }`}
                         disabled={!isFormValid || isLoading}
                     >
-                        {isLoading ? <span className="loading loading-spinner"></span> : "이미리 통합계정 가입하기"}
+                        {isLoading ? <span className="loading loading-spinner"></span> : "NKBUS 통합계정 가입하기"}
                     </button>
 
                     <button

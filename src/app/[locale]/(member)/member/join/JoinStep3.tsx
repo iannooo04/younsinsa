@@ -16,7 +16,7 @@ export default function JoinStep3() {
                 <div className="space-y-2">
                     <h1 className="text-3xl font-black tracking-tight underline decoration-gray-300 decoration-8 underline-offset-4">WELCOME!</h1>
                     <p className="text-xl font-bold pt-2">반갑습니다!</p>
-                    <p className="text-base-content/60">이미리 통합계정 가입이<br />성공적으로 완료되었습니다.</p>
+                    <p className="text-base-content/60">NKBUS 통합계정 가입이<br />성공적으로 완료되었습니다.</p>
                 </div>
             </div>
 

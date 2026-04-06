@@ -76,18 +76,10 @@ export default async function SettingsPage() {
              title="비밀번호 변경"
              href="/settings/password-change"
           />
-          <SettingsMenuItem
-             title="나의 맞춤 정보"
-             subText="체형, 피부, 취향 정보 입력하고 상품 추천 받기"
-             href="/settings/custom-info"
-          />
-          <SettingsMenuItem
-             title="간편 로그인 설정"
-             href="#"
-          />
+
           <SettingsMenuItem
              title="배송지 관리"
-             href="#"
+             href="/settings/address"
           />
           <SettingsMenuItem
              title="환불 계좌 관리"
@@ -97,10 +89,7 @@ export default async function SettingsPage() {
              title="알림 설정"
              href="#"
           />
-          <SettingsMenuItem
-             title="브랜드 멤버십 연동"
-             href="#"
-          />
+
           <SettingsMenuItem
              title="회원 탈퇴"
              href="#"

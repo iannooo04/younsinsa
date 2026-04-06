@@ -101,6 +101,8 @@ export default function MainHeader({
     pathname.includes("/alerts") ||
     pathname.includes("/settings") ||
     pathname.includes("/product/") ||
+    pathname.includes("/faq") ||
+    pathname.includes("/notices") ||
     isGolfPage ||
     isPlayerPage ||
     isWomenPage;
