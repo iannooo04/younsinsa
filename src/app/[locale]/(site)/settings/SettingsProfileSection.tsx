@@ -19,6 +19,7 @@ interface UserData {
   image: string | null;
   email?: string | null;
   mobile?: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   info?: any;
 }
 

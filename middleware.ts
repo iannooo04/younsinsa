@@ -66,6 +66,5 @@ export default auth((req) => {
 });
 
 export const config = {
-    // matcher에서 정적 파일 및 특정 경로 제외
-    matcher: ["/((?!api/auth|api/images|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+    matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };
