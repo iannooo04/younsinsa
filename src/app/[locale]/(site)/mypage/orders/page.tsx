@@ -90,11 +90,6 @@ export default function MyOrdersPage() {
         {/* Categories */}
         <div className="flex gap-4 border-b border-gray-200 overflow-x-auto scrollbar-hide whitespace-nowrap scroll-smooth">
           <button className="text-[13px] font-bold text-black pb-2.5 border-b-2 border-black relative top-[1px]">전체</button>
-          <button className="text-[13px] font-medium text-gray-500 pb-2.5 hover:text-black transition-colors">온라인 주문</button>
-          <button className="text-[13px] font-medium text-gray-500 pb-2.5 hover:text-black transition-colors">오프라인 구매</button>
-          <button className="text-[13px] font-medium text-gray-500 pb-2.5 hover:text-black transition-colors">유즈드</button>
-          <button className="text-[13px] font-medium text-gray-500 pb-2.5 hover:text-black transition-colors">상품권</button>
-          <button className="text-[13px] font-medium text-gray-500 pb-2.5 hover:text-black transition-colors">티켓</button>
         </div>
       </div>
 

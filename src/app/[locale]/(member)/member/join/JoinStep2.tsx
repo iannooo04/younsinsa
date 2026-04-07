@@ -21,7 +21,16 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const isFormValid = email.includes("@") && name.length >= 2 && nickname.length >= 2 && password.length >= 8 && password === confirmPassword && birthday.length > 0;
+    const passwordValidation = {
+        length: password.length >= 8 && password.length <= 18,
+        hasLetter: /[a-zA-Z]/.test(password),
+        hasNumber: /\d/.test(password),
+        hasUppercase: /[A-Z]/.test(password),
+        hasSymbol: /[^a-zA-Z0-9\s]/.test(password)
+    };
+    const isPasswordValid = Object.values(passwordValidation).every(Boolean);
+
+    const isFormValid = email.includes("@") && name.length >= 2 && nickname.length >= 2 && isPasswordValid && password === confirmPassword && birthday.length > 0;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -135,12 +144,12 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
                     />
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col">
                     <label className="text-sm font-bold block">비밀번호</label>
                     <div className="relative">
                         <input
                             type={showPassword ? "text" : "password"}
-                            placeholder="숫자, 영문, 특수문자 조합 최소 8자"
+                            placeholder="비밀번호를 입력하세요"
                             className="input input-bordered w-full h-12 pr-10 focus:ring-1 focus:ring-black"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
@@ -153,6 +162,13 @@ export default function JoinStep2({ onNext, onPrev }: JoinStep2Props) {
                         >
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
+                    </div>
+                    <div className="mt-2 flex flex-col gap-1.5 px-1">
+                        <span className={`text-[13px] font-medium transition-colors ${passwordValidation.length ? 'text-gray-400' : 'text-[#ff6b6b]'}`}>8~18 문자 길이</span>
+                        <span className={`text-[13px] font-medium transition-colors ${passwordValidation.hasLetter ? 'text-gray-400' : 'text-[#ff6b6b]'}`}>문자 포함</span>
+                        <span className={`text-[13px] font-medium transition-colors ${passwordValidation.hasNumber ? 'text-gray-400' : 'text-[#ff6b6b]'}`}>숫자 포함</span>
+                        <span className={`text-[13px] font-medium transition-colors ${passwordValidation.hasUppercase ? 'text-gray-400' : 'text-[#ff6b6b]'}`}>대문자 1자 이상</span>
+                        <span className={`text-[13px] font-medium transition-colors ${passwordValidation.hasSymbol ? 'text-gray-400' : 'text-[#ff6b6b]'}`}>기호 1자 이상</span>
                     </div>
                 </div>
 

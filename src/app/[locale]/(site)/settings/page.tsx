@@ -83,7 +83,7 @@ export default async function SettingsPage() {
           />
           <SettingsMenuItem
              title="환불 계좌 관리"
-             href="#"
+             href="/settings/refund-account"
           />
           <SettingsMenuItem
              title="알림 설정"

@@ -21,15 +21,62 @@ export type CartItemDTO = {
 
 // Helper to get UserInfo ID from User ID
 async function getUserInfoId(userId: string): Promise<string | null> {
+    // 1) Fast path: Look for existing UserInfo
     let userInfo = await prisma.userInfo.findUnique({
         where: { userId: userId },
         select: { id: true }
     });
 
+    if (userInfo) return userInfo.id;
+
+    // 2) If UserInfo does not exist, check if the ID corresponds to a valid User
+    let user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true }
+    });
+
+    // 3) If not a regular User, check if they are an Admin (often happens when admins test the storefront)
+    if (!user) {
+        const admin = await prisma.admin.findUnique({
+            where: { id: userId }
+        });
+
+        if (admin) {
+            // Admins need a "shadow" User to safely use customer features like Shopping Carts
+            const shadowUsername = `admin_shadow_${admin.id}`;
+            user = await prisma.user.findUnique({
+                where: { username: shadowUsername },
+                select: { id: true }
+            });
+
+            if (!user) {
+                try {
+                    user = await prisma.user.create({
+                        data: {
+                            id: admin.id, // Try to stick to the same ID as the session
+                            username: shadowUsername,
+                            passwordHash: admin.passwordHash || "",
+                            name: admin.name || "Admin",
+                            email: `${shadowUsername}@example.com`, // Avoid @unique constraint conflicts
+                        },
+                        select: { id: true }
+                    });
+                } catch (e) {
+                    console.error("Failed to create shadow user for admin:", e);
+                    return null;
+                }
+            }
+        } else {
+            console.error("No user or admin found for userId:", userId);
+            return null;
+        }
+    }
+
+    // 4) Create UserInfo for the User (or shadow User)
     if (!userInfo) {
         try {
             userInfo = await prisma.userInfo.create({
-                data: { userId },
+                data: { userId: user.id },
                 select: { id: true }
             });
         } catch (error) {

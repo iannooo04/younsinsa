@@ -176,6 +176,45 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!currentUserId) {
+        if (confirm("로그인이 필요합니다. 로그인 페이지로 이동하시겠습니까?")) {
+            router.push("/member/login");
+        }
+        return;
+    }
+
+    if (selectedItems.length === 0) {
+        alert("상품 옵션을 선택해주세요.");
+        return;
+    }
+
+    setIsAddingRequest(true);
+    try {
+        let hasError = false;
+        for (const item of selectedItems) {
+            const result = await addToCartAction(
+                currentUserId,
+                product.id,
+                item.id === 'default' ? undefined : item.id,
+                item.quantity
+            );
+            if (!result.success) hasError = true;
+        }
+
+        if (!hasError) {
+            router.push("/order/checkout");
+        } else {
+            alert("상품 결제 페이지로 이동하는데 실패했습니다.");
+        }
+    } catch (error) {
+        console.error("Buy now error:", error);
+        alert("오류가 발생했습니다.");
+    } finally {
+        setIsAddingRequest(false);
+    }
+  };
+
   const totalQuantity = selectedItems.reduce((acc, curr) => acc + curr.quantity, 0);
   const totalPrice = selectedItems.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
   const isSoldOut = product.options.length === 0 && false; // Assuming base product stock isn't fully tracked here unless using variants
@@ -397,12 +436,14 @@ export default function ProductDetailClient({ product, userId }: ProductDetailCl
                   {isAddingRequest ? '담는 중...' : '장바구니'}
               </button>
               <button 
+                  onClick={handleBuyNow}
                   disabled={isSoldOut || isAddingRequest || selectedItems.length === 0}
                   className="flex-1 py-3.5 font-bold text-[15px] rounded-[4px] transition-colors bg-black text-white hover:bg-gray-800 disabled:bg-gray-300 disabled:text-gray-500"
               >
                   {isSoldOut ? '품절' : '구매하기'}
               </button>
           </div>
+
         </div>
       </div>
 
